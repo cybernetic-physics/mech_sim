@@ -76,7 +76,11 @@ class Failure:
     confidence: float = 1.0
     public_hint: str | None = None
     private_trace: str | None = None
+    # ``extra`` is private by default — it never appears in public().
+    # Anything that is safe to expose to the agent must go in
+    # ``extra_public``.
     extra: dict = field(default_factory=dict)
+    extra_public: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         d = {
@@ -92,10 +96,26 @@ class Failure:
                 d[k] = v
         if self.extra:
             d["extra"] = self.extra
+        if self.extra_public:
+            d["extra_public"] = self.extra_public
         return d
 
     def public(self) -> dict:
-        """Agent-visible projection (no private_trace pointer)."""
-        d = self.to_dict()
-        d.pop("private_trace", None)
+        """Agent-visible projection.
+
+        Strips ``private_trace`` and the private ``extra`` bag. Only
+        ``extra_public`` survives.
+        """
+        d = {
+            "code": self.code.value,
+            "severity": self.severity.value,
+            "message": self.message,
+            "confidence": self.confidence,
+        }
+        for k in ("metric", "observed", "target", "where", "public_hint"):
+            v = getattr(self, k)
+            if v is not None:
+                d[k] = v
+        if self.extra_public:
+            d["extra_public"] = self.extra_public
         return d

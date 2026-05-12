@@ -119,16 +119,45 @@ class ProbeResult:
     artifacts: dict[str, Path] = field(default_factory=dict)
     skipped_reason: str | None = None
 
-    def public_metrics(self, allow: list[str] | None) -> dict[str, float]:
-        if allow is None:
-            return dict(self.metrics)
+    def public_metrics(
+        self,
+        allow: list[str] | None,
+        hidden: list[str] | None = None,
+    ) -> dict[str, float]:
+        """Filter ``self.metrics`` for public emission.
+
+        ``hidden`` always wins over ``allow``. Both lists may contain
+        either the local metric name (``"chamfer"``) or the prefixed
+        form (``"coupler_path.chamfer"``); both forms match. Prefix
+        keys ending in ``.`` denote "anything under this probe."
+        """
+        hidden_set = set(hidden or [])
         prefix = f"{self.probe_id}."
-        out = {}
+        out: dict[str, float] = {}
         for k, v in self.metrics.items():
-            key = f"{prefix}{k}"
-            if key in allow or k in allow:
+            full = f"{prefix}{k}"
+            if k in hidden_set or full in hidden_set:
+                continue
+            if any(self._prefix_match(name, full, k)
+                   for name in hidden_set):
+                continue
+            if allow is None:
+                out[k] = v
+                continue
+            if k in allow or full in allow:
+                out[k] = v
+                continue
+            if any(self._prefix_match(name, full, k) for name in allow):
                 out[k] = v
         return out
+
+    @staticmethod
+    def _prefix_match(pattern: str, full_key: str, local_key: str) -> bool:
+        # "probe." or "probe.foo." form: prefix match against full_key.
+        if pattern.endswith("."):
+            return (full_key.startswith(pattern)
+                    or local_key.startswith(pattern))
+        return False
 
 
 # --------------------------------------------------------------------- #
@@ -232,6 +261,7 @@ class EvalReport:
     difficulty: int = 0
     tier_results: dict[str, dict] = field(default_factory=dict)
     timings: dict[str, float] = field(default_factory=dict)
+    evaluation_valid: bool = True
     version: str = "eval_report.v1"
 
     def to_dict(
@@ -272,7 +302,9 @@ class EvalReport:
             }
             if public:
                 entry["metrics"] = r.public_metrics(
-                    vis.public_metrics or None)
+                    vis.public_metrics or None,
+                    hidden=vis.hidden_metrics,
+                )
             else:
                 entry["metrics"] = dict(r.metrics)
                 entry["skipped_reason"] = r.skipped_reason
@@ -294,6 +326,7 @@ class EvalReport:
             "run_id": self.run_id,
             "score": self.score,
             "hard_gate_passed": self.hard_gate_passed,
+            "evaluation_valid": self.evaluation_valid,
             "metrics": metrics_view,
             "feedback": feedback_items,
             "probe_results": probe_view,
@@ -318,16 +351,48 @@ def _filter_public_metrics(
     public_allow: list[str],
     hidden: list[str],
 ) -> dict[str, float]:
+    """Apply visibility rules to a flat ``probe.metric`` dict.
+
+    Order of precedence:
+      1. If a key (or one of its prefixes) is hidden, drop it.
+      2. If a public allowlist is supplied, only emit keys that match
+         it (exact or ``"prefix."``).
+      3. With no allowlist, emit everything that isn't hidden.
+    """
     hidden_set = set(hidden or [])
-    if not public_allow:
-        return {k: v for k, v in metrics.items() if k not in hidden_set}
+
+    def _hidden(key: str) -> bool:
+        if key in hidden_set:
+            return True
+        for h in hidden_set:
+            if h.endswith("."):
+                if key.startswith(h):
+                    return True
+            elif "." not in h:
+                # Local-name hidden entry like "chamfer" must match
+                # any "<probe>.chamfer".
+                if key.endswith("." + h):
+                    return True
+        return False
+
+    def _allowed(key: str) -> bool:
+        if not public_allow:
+            return True
+        if key in public_allow:
+            return True
+        for p in public_allow:
+            if p.endswith("."):
+                if key.startswith(p):
+                    return True
+            elif "." not in p:
+                if key.endswith("." + p):
+                    return True
+        return False
+
     out: dict[str, float] = {}
     for k, v in metrics.items():
-        if k in hidden_set:
+        if _hidden(k):
             continue
-        if k in public_allow:
-            out[k] = v
-            continue
-        if any(k.startswith(p.rstrip(".") + ".") for p in public_allow):
+        if _allowed(k):
             out[k] = v
     return out

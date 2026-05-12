@@ -3,37 +3,33 @@
 Pipeline (called once per submission):
 
   1. Load TaskSpec + EvalConfig from a task directory.
-  2. Load the submission's `design.py` and call build_design() in a
-     sandboxed working directory; parse the returned dict into a
-     DesignIR.
-  3. Run DesignIR validation. If the IR has critical structural
-     failures, short-circuit before any probe runs and return a zero
-     report whose feedback is the validation failures.
+  2. Run the submission's ``design.py`` in an isolated subprocess
+     (``mech_bench.submission_worker``) and parse the returned dict
+     into a DesignIR. The evaluator process never imports the
+     submission's design.py.
+  3. Validate the DesignIR. If validation surfaces critical
+     structural failures, short-circuit before any probe runs and
+     return a zero report whose feedback is the validation failures.
   4. Build an ExecutionPlan: per probe, pick the cheapest adapter
-     whose capabilities cover the probe's requirements. Probes
-     without an adapter (and that need one) are marked unavailable
-     and emit `CAPABILITY_UNAVAILABLE` in their result.
+     whose capabilities cover the probe's requirements. Probes that
+     need an adapter for which none is registered produce
+     CAPABILITY_UNAVAILABLE and mark the whole evaluation invalid.
   5. Run each adapter at most once; pass its outputs to the probes
-     that need it. Topology-only probes (`Capability.NONE`) run with
-     an empty sim_outputs dict.
-  6. Compose the final score:
-        hard_gate = AND over hard-gate probes (or probes marked
-                    `hard_gate=true`).
-        dense     = Σ w_i · s_i across non-gate probes, with weights
-                    renormalized to sum to 1.
-        final     = 0 if hard_gate fails else dense.
-  7. Return EvalReport.
+     that need it. Adapter exceptions also invalidate the evaluation.
+  6. Compose the final score (see ``_score`` for the rules) and
+     sanitize all numeric values for strict JSON.
 
-The runtime does **not** trust paths in the agent submission outside
-the sandbox `out_dir`. Geometry-path policy is enforced in the
-validation layer (see mech_bench/validation.py).
+The runtime treats the submission as adversarial. Path-policy
+enforcement lives in mech_bench.validation; out-of-process execution
+lives in mech_bench.submission_worker.
 """
 
 from __future__ import annotations
 
-import importlib.util
 import json
 import logging
+import math
+import subprocess
 import sys
 import time
 import tomllib
@@ -58,6 +54,12 @@ from mech_bench.validation import has_critical_failures, validate_design_ir
 
 _LOG = logging.getLogger("mech_bench.evaluator")
 
+DEFAULT_SUBMISSION_TIMEOUT = 10.0
+
+
+class SubmissionError(Exception):
+    """The submission subprocess failed in a structured way."""
+
 
 # --------------------------------------------------------------------- #
 # Execution planning                                                    #
@@ -69,9 +71,9 @@ class ProbePlan:
     probe_id: str
     probe_type: str
     capabilities: frozenset[Capability]
-    adapter_type: str | None = None  # None means no adapter needed
+    adapter_type: str | None = None
     available: bool = True
-    reason: str = ""  # explanation when unavailable or probe missing
+    reason: str = ""
     probe_known: bool = True
 
 
@@ -100,13 +102,6 @@ def _pick_adapter_for(caps: frozenset[Capability]) -> type[SimAdapter] | None:
 
 
 def build_execution_plan(cfg: EvalConfig) -> ExecutionPlan:
-    """Plan adapter selection per probe.
-
-    For each probe, look up its capability requirements and pick the
-    cheapest registered adapter that covers them. Probes that need an
-    adapter for which none is registered get `available=False`; the
-    evaluator turns those into `CAPABILITY_UNAVAILABLE` failures.
-    """
     plan = ExecutionPlan()
     for spec in cfg.probes:
         try:
@@ -184,8 +179,6 @@ def _tier_for(caps: frozenset[Capability]) -> str:
     if not pruned:
         return "topology"
     tiers = {_TIER_BY_CAP.get(c, "other") for c in pruned}
-    # Pick the most-expensive tier so a mixed probe goes with its
-    # heaviest dependency. Order matches typical pipeline cost.
     order = ["topology", "kinematics", "geometry", "dynamics",
              "structural", "other"]
     for t in reversed(order):
@@ -224,37 +217,141 @@ def load_task(task_dir: Path) -> tuple[TaskSpec, EvalConfig]:
     return task, cfg
 
 
-def load_submission(submission_dir: Path, scratch_dir: Path) -> DesignIR:
+def load_submission(
+    submission_dir: Path,
+    scratch_dir: Path,
+    *,
+    timeout: float = DEFAULT_SUBMISSION_TIMEOUT,
+) -> DesignIR:
+    """Execute the submission's design.py in an isolated subprocess.
+
+    The evaluator process must NOT import the agent's design.py — any
+    monkeypatch the agent applies stays inside the subprocess.
+    """
     submission_dir = Path(submission_dir).resolve()
     scratch_dir = Path(scratch_dir).resolve()
     scratch_dir.mkdir(parents=True, exist_ok=True)
 
     design_py = submission_dir / "design.py"
     if not design_py.exists():
-        raise FileNotFoundError(f"Submission missing design.py: {design_py}")
+        raise SubmissionError(f"Submission missing design.py: {design_py}")
 
-    spec = importlib.util.spec_from_file_location(
-        f"_mech_submission_{abs(hash(submission_dir))}",
-        design_py,
-    )
-    if spec is None or spec.loader is None:
-        raise ImportError(f"Could not load {design_py}")
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = mod
+    result_json = scratch_dir / "_design_ir.json"
+    if result_json.exists():
+        try:
+            result_json.unlink()
+        except OSError:
+            pass
+
+    cmd = [
+        sys.executable, "-I",
+        "-m", "mech_bench.submission_worker",
+        "--design-py", str(design_py),
+        "--out-dir", str(scratch_dir),
+        "--result-json", str(result_json),
+    ]
     try:
-        spec.loader.exec_module(mod)
-    finally:
-        sys.modules.pop(spec.name, None)
-    if not hasattr(mod, "build_design"):
-        raise AttributeError(
-            f"{design_py} does not define build_design(out_dir)."
+        proc = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
         )
-    raw = mod.build_design(scratch_dir)
+    except subprocess.TimeoutExpired:
+        raise SubmissionError(
+            f"build_design did not finish within {timeout}s; subprocess "
+            f"killed."
+        )
+
+    if proc.returncode != 0:
+        stderr_tail = (proc.stderr or "")[-1000:].strip()
+        raise SubmissionError(
+            f"Submission subprocess exited with code "
+            f"{proc.returncode}: {stderr_tail or '<no stderr>'}"
+        )
+
+    if not result_json.exists():
+        raise SubmissionError(
+            "Submission subprocess exited 0 but did not write the "
+            "result JSON."
+        )
+
+    try:
+        text = result_json.read_text()
+        raw = json.loads(text)
+    except (OSError, json.JSONDecodeError) as e:
+        raise SubmissionError(f"Could not parse submission JSON: {e}")
+
     if not isinstance(raw, dict):
-        raise TypeError(
-            f"build_design must return a dict, got {type(raw).__name__}"
+        raise SubmissionError(
+            f"Submission JSON root must be a dict, got "
+            f"{type(raw).__name__}."
         )
-    return DesignIR.from_dict(raw)
+
+    try:
+        return DesignIR.from_dict(raw)
+    except (KeyError, TypeError, ValueError) as e:
+        raise SubmissionError(
+            f"Submission JSON does not fit DesignIR schema: "
+            f"{type(e).__name__}: {e}"
+        )
+
+
+# --------------------------------------------------------------------- #
+# Sanitation                                                            #
+# --------------------------------------------------------------------- #
+
+
+def sanitize_metric_value(v: Any) -> float | None:
+    """Coerce a metric value for strict JSON.
+
+    Non-finite (NaN / +Inf / -Inf) becomes None. Booleans are
+    preserved as 1.0 / 0.0. Strings / dicts / lists pass through
+    unchanged — metrics dicts only ever hold floats today, but the
+    helper stays liberal so it can be reused on report blobs.
+    """
+    if v is None:
+        return None
+    if isinstance(v, bool):
+        return 1.0 if v else 0.0
+    if isinstance(v, (int, float)):
+        f = float(v)
+        if math.isfinite(f):
+            return f
+        return None
+    return v  # passthrough
+
+
+def sanitize_metrics_dict(d: dict[str, Any]) -> dict[str, Any]:
+    return {k: sanitize_metric_value(v) for k, v in d.items()}
+
+
+def sanitize_report_for_json(blob: Any) -> Any:
+    """Recursively replace NaN/Inf with None so json.dumps with
+    ``allow_nan=False`` succeeds.
+    """
+    if isinstance(blob, dict):
+        return {k: sanitize_report_for_json(v) for k, v in blob.items()}
+    if isinstance(blob, (list, tuple)):
+        return [sanitize_report_for_json(v) for v in blob]
+    if isinstance(blob, bool):
+        return blob
+    if isinstance(blob, (int, float)):
+        f = float(blob)
+        if math.isfinite(f):
+            return blob
+        return None
+    return blob
+
+
+def _strict_json_dumps(obj: Any, indent: int = 2) -> str:
+    return json.dumps(
+        sanitize_report_for_json(obj),
+        indent=indent,
+        default=str,
+        allow_nan=False,
+    )
 
 
 # --------------------------------------------------------------------- #
@@ -312,19 +409,55 @@ def _run_probe(
     return result
 
 
+def _sanitize_probe_result(
+    r: ProbeResult,
+) -> tuple[ProbeResult, bool]:
+    """Clamp score to [0, 1] and replace NaN/Inf metrics with None.
+
+    Returns the (possibly mutated) result and a flag indicating
+    whether anything non-finite was observed, which the caller treats
+    as an evaluation_valid invalidation.
+    """
+    invalid = False
+    if not math.isfinite(float(r.score)):
+        r.failures.append(Failure(
+            code=FailureCode.SIMULATOR_DIVERGENCE,
+            severity=Severity.CRITICAL,
+            message=(f"Probe {r.probe_id!r} returned a non-finite "
+                     f"score ({r.score!r})."),
+        ))
+        r.score = 0.0
+        r.passed = False
+        invalid = True
+    else:
+        r.score = max(0.0, min(1.0, float(r.score)))
+    # Metric sanitation: keep dict but replace bad floats with None.
+    new_metrics: dict[str, float] = {}
+    for k, v in r.metrics.items():
+        sv = sanitize_metric_value(v)
+        if sv is None and v is not None:
+            invalid = True  # metric was non-finite
+        new_metrics[k] = sv  # type: ignore[assignment]
+    r.metrics = new_metrics
+    return r, invalid
+
+
 def _score(
     probe_results: list[ProbeResult],
     specs_by_id: dict[str, ProbeSpec],
     hard_gate_ids: set[str],
 ) -> tuple[bool, float]:
     hard_gate_passed = True
+    has_gate = False
     for r in probe_results:
         spec = specs_by_id.get(r.probe_id)
         is_gate = r.probe_id in hard_gate_ids or (
             spec is not None and spec.hard_gate)
-        if is_gate and not r.passed:
-            hard_gate_passed = False
-            break
+        if is_gate:
+            has_gate = True
+            if not r.passed:
+                hard_gate_passed = False
+                break
     if not hard_gate_passed:
         return False, 0.0
 
@@ -341,14 +474,20 @@ def _score(
             continue
         weighted += w * float(r.score)
         total_w += w
-    dense = weighted / total_w if total_w > 0 else 0.0
-    return True, dense
+    if total_w > 0:
+        return True, weighted / total_w
+    # No non-gate weighted probes. If the hard gate exists and it
+    # passed, the task is fully satisfied: score = 1.0.
+    if has_gate:
+        return True, 1.0
+    # No gate, no weighted dense probes — undefined; report 0 instead
+    # of pretending there is a verifiable signal.
+    return True, 0.0
 
 
 def _tier_summary(
     probe_results: list[ProbeResult],
     plans: list[ProbePlan],
-    specs_by_id: dict[str, ProbeSpec],
 ) -> dict[str, dict]:
     by_id = {p.probe_id: p for p in plans}
     tiers: dict[str, dict] = {}
@@ -366,7 +505,7 @@ def _tier_summary(
             bucket["passed"] = False
         bucket["score_sum"] += float(r.score)
         bucket["score_count"] += 1
-    for t, b in tiers.items():
+    for b in tiers.values():
         n = b.pop("score_count")
         s = b.pop("score_sum")
         b["score"] = s / n if n else 0.0
@@ -384,6 +523,7 @@ def evaluate(
     *,
     scratch_dir: Path | None = None,
     run_id: str | None = None,
+    submission_timeout: float = DEFAULT_SUBMISSION_TIMEOUT,
 ) -> EvalReport:
     task_dir = Path(task_dir)
     submission_dir = Path(submission_dir)
@@ -395,8 +535,12 @@ def evaluate(
     task, cfg = load_task(task_dir)
     timings["load_task"] = time.perf_counter() - t0
 
-    def _empty_report(failures: list[Failure],
-                      tier_results: dict | None = None) -> EvalReport:
+    def _empty_report(
+        failures: list[Failure],
+        tier_results: dict | None = None,
+        *,
+        valid: bool = False,
+    ) -> EvalReport:
         return EvalReport(
             task_id=task.id,
             task_family=task.family,
@@ -409,18 +553,20 @@ def evaluate(
             feedback=failures,
             tier_results=tier_results or {},
             timings=dict(timings),
+            evaluation_valid=valid,
         )
 
-    # Load submission.
+    # Load submission via isolated subprocess.
     t0 = time.perf_counter()
     try:
-        ir = load_submission(submission_dir, scratch_dir)
-    except Exception as e:
+        ir = load_submission(submission_dir, Path(scratch_dir),
+                              timeout=submission_timeout)
+    except SubmissionError as e:
         timings["load_submission"] = time.perf_counter() - t0
         return _empty_report([Failure(
             code=FailureCode.INVALID_ARTIFACT,
             severity=Severity.CRITICAL,
-            message=f"Failed to load submission: {e}",
+            message=str(e),
             where=str(submission_dir),
         )])
     timings["load_submission"] = time.perf_counter() - t0
@@ -445,8 +591,11 @@ def evaluate(
     plan = build_execution_plan(cfg)
     timings["plan"] = time.perf_counter() - t0
 
+    evaluation_valid = True
+
     # Run each needed adapter once.
     sim_outputs_by_adapter: dict[str, dict[str, Any]] = {}
+    adapter_failures: list[Failure] = []
     for adapter_name in plan.adapters_to_run():
         adapter_cls = next(
             (a for a in all_adapters() if a.type_name == adapter_name),
@@ -459,11 +608,19 @@ def evaluate(
         try:
             sim_outputs_by_adapter[adapter_name] = adapter.run(
                 ir, {"samples": 360})
-        except Exception as e:  # adapter shouldn't crash; report as divergence
+        except Exception as e:  # noqa: BLE001 — adapter is internal-ish
             _LOG.warning("adapter %s raised: %s", adapter_name, e)
             sim_outputs_by_adapter[adapter_name] = {
                 "__adapter_error__": str(e),
             }
+            adapter_failures.append(Failure(
+                code=FailureCode.SIMULATOR_DIVERGENCE,
+                severity=Severity.CRITICAL,
+                message=(f"Adapter {adapter_name!r} raised "
+                         f"{type(e).__name__}: {e}"),
+                where=f"adapter.{adapter_name}",
+            ))
+            evaluation_valid = False
         timings[f"adapter.{adapter_name}"] = time.perf_counter() - t0
 
     # Run probes.
@@ -473,25 +630,52 @@ def evaluate(
         pplan = plan_by_id[spec.id]
         t0 = time.perf_counter()
         r = _run_probe(spec, pplan, ir, sim_outputs_by_adapter)
+        r, bad = _sanitize_probe_result(r)
+        if bad:
+            evaluation_valid = False
         timings[f"probe.{spec.id}"] = time.perf_counter() - t0
         probe_results.append(r)
+        # If any probe surfaced CAPABILITY_UNAVAILABLE, the entire
+        # evaluation is structurally invalid: an agent should not be
+        # able to earn reward on a partial verifier.
+        if any(f.code == FailureCode.CAPABILITY_UNAVAILABLE
+               for f in r.failures):
+            evaluation_valid = False
 
     specs_by_id = {s.id: s for s in cfg.probes}
     hard_gate_passed, dense = _score(
         probe_results, specs_by_id, set(cfg.hard_gate_probes)
     )
 
+    if not evaluation_valid:
+        # An invalid evaluation can never earn reward and must surface
+        # as a CLI failure.
+        hard_gate_passed = False
+        dense = 0.0
+
     # Aggregate metrics / feedback.
     agg_metrics: dict[str, float] = {}
-    feedback: list[Failure] = list(validation_failures)
+    feedback: list[Failure] = list(validation_failures) + list(
+        adapter_failures)
     for r in probe_results:
         for k, v in r.metrics.items():
-            agg_metrics[f"{r.probe_id}.{k}"] = float(v)
+            sv = sanitize_metric_value(v)
+            agg_metrics[f"{r.probe_id}.{k}"] = sv  # may be None
         for f in r.failures:
             f.where = f.where or r.probe_id
             feedback.append(f)
 
-    tier_results = _tier_summary(probe_results, plan.probes, specs_by_id)
+    if not math.isfinite(float(dense)):
+        feedback.append(Failure(
+            code=FailureCode.SIMULATOR_DIVERGENCE,
+            severity=Severity.CRITICAL,
+            message=f"Aggregate score is non-finite: {dense!r}",
+        ))
+        dense = 0.0
+        evaluation_valid = False
+        hard_gate_passed = False
+
+    tier_results = _tier_summary(probe_results, plan.probes)
     if validation_failures:
         tier_results.setdefault("validation", {
             "probe_ids": [],
@@ -504,13 +688,14 @@ def evaluate(
         task_family=task.family,
         difficulty=task.difficulty,
         run_id=rid,
-        score=dense,
+        score=float(dense),
         hard_gate_passed=hard_gate_passed,
         probe_results=probe_results,
         metrics=agg_metrics,
         feedback=feedback,
         tier_results=tier_results,
         timings=timings,
+        evaluation_valid=evaluation_valid,
     )
 
 
@@ -519,14 +704,17 @@ def evaluate(
 # --------------------------------------------------------------------- #
 
 
-def _flatten_numeric(d: dict, prefix: str = "") -> dict[str, float]:
-    out: dict[str, float] = {}
+def _flatten_numeric(d: dict, prefix: str = "") -> dict[str, float | None]:
+    out: dict[str, float | None] = {}
     for k, v in d.items():
         key = f"{prefix}{k}"
         if isinstance(v, bool):
             out[key] = 1.0 if v else 0.0
+        elif v is None:
+            out[key] = None
         elif isinstance(v, (int, float)):
-            out[key] = float(v)
+            f = float(v)
+            out[key] = f if math.isfinite(f) else None
         elif isinstance(v, dict):
             out.update(_flatten_numeric(v, prefix=key + "."))
     return out
@@ -538,7 +726,6 @@ def write_report_bundle(
     *,
     visibility: FeedbackVisibility,
 ) -> dict[str, Path]:
-    """Write the report bundle and return a dict of artifact paths."""
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -547,31 +734,28 @@ def write_report_bundle(
 
     paths: dict[str, Path] = {}
 
-    scorecard = out_dir / "scorecard.json"
-    scorecard.write_text(json.dumps(full, indent=2, default=str))
-    paths["scorecard"] = scorecard
+    (out_dir / "scorecard.json").write_text(_strict_json_dumps(full))
+    paths["scorecard"] = out_dir / "scorecard.json"
 
-    scorecard_pub = out_dir / "scorecard.public.json"
-    scorecard_pub.write_text(json.dumps(public, indent=2, default=str))
-    paths["scorecard_public"] = scorecard_pub
+    (out_dir / "scorecard.public.json").write_text(_strict_json_dumps(public))
+    paths["scorecard_public"] = out_dir / "scorecard.public.json"
 
     metrics_blob = {
         "score": report.score,
         "hard_gate_passed": report.hard_gate_passed,
+        "evaluation_valid": report.evaluation_valid,
         **_flatten_numeric({"metrics": report.metrics}),
         **_flatten_numeric({"timings": report.timings}),
     }
-    metrics = out_dir / "metrics.json"
-    metrics.write_text(json.dumps(metrics_blob, indent=2, default=str))
-    paths["metrics"] = metrics
+    (out_dir / "metrics.json").write_text(_strict_json_dumps(metrics_blob))
+    paths["metrics"] = out_dir / "metrics.json"
 
     public_failures = [
         (f.public() if hasattr(f, "public") else dict(f))
         for f in report.feedback
     ]
-    feedback_pub = out_dir / "feedback.public.json"
-    feedback_pub.write_text(json.dumps(public_failures, indent=2,
-                                        default=str))
-    paths["feedback_public"] = feedback_pub
+    (out_dir / "feedback.public.json").write_text(
+        _strict_json_dumps(public_failures))
+    paths["feedback_public"] = out_dir / "feedback.public.json"
 
     return paths

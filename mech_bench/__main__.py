@@ -14,7 +14,12 @@ import sys
 from pathlib import Path
 
 from mech_bench.adapters import all_adapters
-from mech_bench.evaluator import evaluate, load_task, write_report_bundle
+from mech_bench.evaluator import (
+    evaluate,
+    load_task,
+    sanitize_report_for_json,
+    write_report_bundle,
+)
 from mech_bench.probes import known_probe_types, get_probe
 
 
@@ -29,7 +34,12 @@ def _cmd_evaluate(args: argparse.Namespace) -> int:
         blob = report.to_dict(public=False, visibility=cfg.visibility)
     else:
         blob = report.to_dict(public=True, visibility=cfg.visibility)
-    out = json.dumps(blob, indent=2, default=str)
+    out = json.dumps(
+        sanitize_report_for_json(blob),
+        indent=2,
+        default=str,
+        allow_nan=False,
+    )
     print(out)
 
     if args.out:
@@ -43,7 +53,12 @@ def _cmd_evaluate(args: argparse.Namespace) -> int:
 
     if args.allow_partial:
         return 0
-    return 0 if (report.hard_gate_passed and report.score > 0) else 1
+    ok = (
+        report.evaluation_valid
+        and report.hard_gate_passed
+        and report.score > 0
+    )
+    return 0 if ok else 1
 
 
 def _cmd_list_probes(args: argparse.Namespace) -> int:
