@@ -83,17 +83,21 @@ Probes declare their `capabilities_required` (planar kinematics,
 contact forces, FEA, …). The evaluator only runs a probe when the
 selected simulator adapter advertises matching capabilities.
 
-Shipping today (more land iteratively):
+Shipping today:
 
 | Probe | Capabilities | Purpose |
 |---|---|---|
 | `dof_grubler` | none (pure topology) | Mobility (planar / spatial Grübler-Kutzbach) |
+| `required_ports` | none | Required ports exist, kinds match, grounded checks |
+| `analytic_param_check` | none | Compare a dotted IR path (`params.declared_ratio`, etc.) to an expected value with `eq` / `ge` / `le` comparators |
 | `path_trace_chamfer` | `planar_kinematics` | Compare a moving frame's trace to a target CSV via Chamfer distance |
-| `port_velocity_ratio` *(planned)* | any kinematic adapter | Measured ω_out / ω_in vs target |
-| `swept_collision` *(planned)* | `mesh_overlap` | Maximum penetration over a joint sweep |
-| `contact_engagement` *(planned)* | `contact_forces` | Required pair carries ≥ F_min RMS |
-| `torque_load_trial` *(planned)* | `rigid_dynamics + drives + loads` | Output motion under prescribed input speed and load torque |
-| `printability_dfam` *(planned)* | `mesh` | Min wall, max overhang |
+| `port_velocity_ratio` | any kinematic adapter | Measured ω_out / ω_in vs target |
+| `lockup` | `planar_kinematics` | Output never moves while input is driven |
+| `swept_collision` | `mesh_overlap` | Maximum penetration over a joint sweep |
+| `contact_engagement` | `contact_forces` | Required pair carries ≥ F_min RMS and ≥ engagement fraction |
+| `torque_load_trial` | rigid dyn + drives + loads | Motion under prescribed input speed and output load; power balance, torque ripple |
+| `printability_dfam` | `mesh` | Min wall, max overhang per process |
+| `safety_factor` | `safety_factor` | FOS check against allowable stress |
 
 The bar to add a new probe is "express it as configuration." A probe
 should be the same shape no matter which mechanism the task is.
@@ -107,14 +111,17 @@ adapter; the runtime selects one based on capabilities.
 
 Shipping today:
 
-| Adapter | Capabilities | Cost |
-|---|---|---|
-| `planar_kinematics` | `planar_kinematics`, `path_trace` | μs–ms |
-| `chrono_contact` *(stub; phys-sim has the real one)* | `rigid_body_dynamics`, `contact_forces`, `joint_constraints`, `motor_drives`, `load_torques`, `pose_traces` | minutes |
+| Adapter | Capabilities | Cost | Registration |
+|---|---|---|---|
+| `planar_kinematics` | `planar_kinematics`, `path_trace`, `dof_detection`, `pose_traces` | 0 (μs–ms) | always registered |
+| `fake_contact_oracle` | `rigid_body_dynamics`, `contact_forces`, `joint_constraints`, `motor_drives`, `load_torques`, `pose_traces`, `mesh_overlap`, `planar_kinematics` | 50 / 1000 | **explicit opt-in only**: `[adapters.fake_contact_oracle] enabled = true`, mode-level `forced_adapter = "fake_contact_oracle"`, probe-level `adapter = "fake_contact_oracle"`, or env var `MECH_BENCH_USE_FAKE_ORACLE=1` / `MECH_BENCH_TEST_MODE=1`. Reports tag `oracle_is_synthetic = true`. |
+| `chrono_contact` *(skeleton-only)* | `rigid_body_dynamics`, `contact_forces`, `joint_constraints`, `motor_drives`, `load_torques`, `pose_traces`, `mesh_overlap` | 100 (minutes) | registers only when both `pychrono` and `mech_bench.adapters._chrono_impl` are importable; see `docs/future_chrono_oracle.md`. |
 
 When `chrono_contact` lands, no probe code changes. The dispatcher
 picks it automatically for any task whose probes require contact
-forces.
+forces. The fake oracle never satisfies a probe by accident — the
+evaluator filters it out unless the active eval config (or env var)
+explicitly opts in.
 
 ### 5. `Feedback` — structured failures, not strings
 
@@ -174,19 +181,40 @@ layout is the contract:
 
 ```
 tasks/<id>/
-    prompt.md              # natural-language task statement (agent sees)
-    task.toml              # structured requirements (agent sees abridged)
-    eval_config.toml       # probe weights & visibility (mostly hidden)
-    fixtures/              # target paths, envelopes, etc.
-    reference_solution/    # known-good design.py (hidden during eval)
-    expected_failures.json # negative controls; what should fail (hidden)
+    prompt.md                  # natural-language task statement (agent sees)
+    task.toml                  # structured requirements (agent sees abridged)
+    eval_config.toml           # default probe pipeline + visibility
+    eval_config.public.toml    # public split (looser, agent-visible)
+    eval_config.hidden.toml    # hidden split (tighter, for generalization gap)
+    fixtures/                  # target paths, envelopes, etc.
+    reference_solution/        # known-good design.py (hidden during eval)
+    negative_solutions/<case>/ # one design.py per negative control
+    expected_failures.json     # negative-control expectations (hidden)
+    metadata.json              # family, tier, seed, difficulty
 ```
 
-A task generator emits these files programmatically. Tier-1 (static
-fit) tasks can be generated with no simulator dependency. Tier-2
-(planar 1-DOF) tasks need only the `planar_kinematics` adapter
-shipping here today. Tier-3+ (transmission, contact, integrated)
-will need `chrono_contact` ported in from phys-sim.
+A task generator emits these files programmatically. The default
+suite registered under `mech_bench/generators/benchmark_suite.py`
+ships **four tiers, 50 families** today:
+
+| Tier (`metadata.tier`)   | Adapter dependence                       | Families |
+|--------------------------|------------------------------------------|----------|
+| `artifact_static`        | none                                     | 13       |
+| `planar_kinematics`      | `planar_kinematics`                      | 12       |
+| `transmission_analytic`  | none (declared-ratio checks)             | 13       |
+| `contact_dynamics`       | `fake_contact_oracle` (opt-in) or real Chrono once ported | 12 |
+
+Tasks under `artifact_static` and `transmission_analytic` evaluate
+with no simulator. `planar_kinematics` tasks need only the
+always-on `planar_kinematics` adapter. `contact_dynamics` tasks are
+test/demo tasks: two surface `capability_unavailable` until a real
+Chrono runner ships; the other ten explicitly enable the synthetic
+`fake_contact_oracle` and tag reports as synthetic.
+
+The complete suite materializes into `tasks/` (seed 1) and is
+exercised end-to-end by `mech-bench check-negative-controls --tasks
+tasks`. Add a new family by writing one `TaskGenerator` subclass and
+appending it to `SUITE`; nothing else in the runtime changes.
 
 ## What is NOT in this runtime
 
@@ -210,12 +238,13 @@ port piecewise as probes/adapters mature:
 
 | phys-sim asset | Where it goes here |
 |---|---|
-| `mech_harness/builder/run_builder.py` | Sandboxed `build_design()` invocation |
-| `mech_harness/validators/assembly.py` (Grübler) | `mech_bench/probes/dof_grubler.py` (already ported) |
-| `mech_harness/validators/cycloidal.py` (Hertz, FOS) | Probes parameterized by contact pair |
-| `mech_harness/simulators/_chrono_mesh_runner.py` | `mech_bench/adapters/chrono_contact.py` |
-| `mech_harness/standards/sarif.py` | Feedback grammar (already ported in spirit) |
-| `mech_harness/standards/hdf5_traces.py` | `mech_bench/traces.py` (planned) |
+| `mech_harness/builder/run_builder.py` | `mech_bench/submission_worker.py` (subprocess-isolated `build_design()` invocation, ported) |
+| `mech_harness/validators/assembly.py` (Grübler) | `mech_bench/probes/dof_grubler.py` (ported) |
+| `mech_harness/validators/cycloidal.py` (Hertz, FOS) | `mech_bench/probes/safety_factor.py` + parameterized contact probes (in progress) |
+| `mech_harness/simulators/_chrono_mesh_runner.py` | `mech_bench/adapters/chrono_contact.py` (skeleton + diagnostic only; vendor `_chrono_impl.py` to enable) |
+| `mech_harness/standards/sarif.py` | `mech_bench/feedback.py` (ported in spirit) |
+| `mech_harness/standards/hdf5_traces.py` | `mech_bench/traces.py` (ported; per-adapter groups under `/adapters/<name>/`) |
 
-The four-bar task shipping in this PR is the smallest non-trivial
-demonstration that the inversion holds.
+The four-bar task originally shipped in this repo is now one of 50
+generated families; the runtime stays generic and the inversion holds
+across all of them.

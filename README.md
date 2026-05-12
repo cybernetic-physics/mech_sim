@@ -219,7 +219,7 @@ capabilities cover the requirement.
 | Adapter                | Capabilities provided                                                    | Cost tier | Notes                                            |
 | ---------------------- | ------------------------------------------------------------------------ | --------- | ------------------------------------------------ |
 | `planar_kinematics`    | planar_kinematics, path_trace, dof_detection, pose_traces                | 0 (μs–ms) | Always registered.                               |
-| `fake_contact_oracle`  | rigid_body_dynamics, contact_forces, joint_constraints, motor_drives, load_torques, pose_traces, mesh_overlap, planar_kinematics | 50 / 1000 | Registers only under `MECH_BENCH_USE_FAKE_ORACLE=1`. Synthetic — never claims to be a physical oracle. |
+| `fake_contact_oracle`  | rigid_body_dynamics, contact_forces, joint_constraints, motor_drives, load_torques, pose_traces, mesh_overlap, planar_kinematics | 50 / 1000 | **Explicit opt-in only**: `[adapters.fake_contact_oracle] enabled = true` in the eval config, mode-level `forced_adapter = "fake_contact_oracle"`, probe-level `adapter = "fake_contact_oracle"`, or env var `MECH_BENCH_USE_FAKE_ORACLE=1` / `MECH_BENCH_TEST_MODE=1`. Synthetic — never claims to be a physical oracle. Reports tag `oracle_is_synthetic = true`. |
 | `chrono_contact`       | same as above + mesh contact                                             | 100       | Registers only when both `pychrono` and `_chrono_impl` are importable. Skeleton in this repo. |
 
 Adapter outputs share one canonical shape (`SimOutput`): `time_s`,
@@ -295,7 +295,8 @@ eval config can override per-probe via `tier = …` and
 
 ### Evidence bundle per run
 
-`mech-bench evaluate … --report-dir out/` writes:
+`mech-bench evaluate … --report-dir out/` writes the **lightweight
+bundle** by default:
 
 ```
 out/
@@ -304,13 +305,27 @@ out/
   metrics.json                # flat numeric dict
   feedback.public.json        # public failure cards
   dashboard_payload.json      # canonical dashboard input
-  dashboard.html              # static HTML (plotly required)
-  traces.h5                   # HDF5 evidence (h5py required)
   media_manifest.json         # paths to media artifacts
+  traces.h5                   # HDF5 evidence (when h5py is installed; per-adapter groups under /adapters/<name>/)
+  dashboard.html              # static HTML (when plotly is installed; suppress with --no-dashboard-html)
+```
+
+Frame rendering / mp4 encoding is **opt-in**:
+
+```
+mech-bench evaluate … --report-dir out/ --render-media
+```
+
+which additionally produces:
+
+```
   thumbnail.png               # mid-cycle frame (matplotlib required)
   preview.mp4                 # encoded video (ffmpeg required)
   frames/                     # PNG frame sequence (fallback when no ffmpeg)
 ```
+
+`mech-bench run-suite` also defaults to no media; pass
+`--render-media` / `--write-dashboard-html` to opt in per task.
 
 Missing optional dependencies degrade gracefully — the manifest
 records what was produced and what was skipped with a structured
@@ -400,7 +415,18 @@ mech_bench/
   rlvr.py               compact RLVR reward API
   probes/               built-in probes (capability-tagged)
   adapters/             planar_kinematics, fake_contact_oracle, chrono_contact
-  generators/           procedural task families (Tiers 1–3)
+  generators/           procedural task families (50 across 4 tiers):
+                          base.py                  GeneratedTask + TOML writer
+                          benchmark_suite.py       registry of generators
+                          common_designs.py        part/joint/port/probe helpers
+                          static_fit.py            Tier 0 (pre-existing)
+                          fourbar.py               Tier 1 (pre-existing)
+                          slider_crank.py          Tier 1 (pre-existing)
+                          gear_train.py            Tier 2 + chrono stubs
+                          static_analytic.py       Tier 0 (10 new)
+                          planar_kinematics_extra.py Tier 1 (10 new)
+                          transmission_analytic.py Tier 2 (10 new)
+                          contact_synth.py         Tier 3 synthetic stubs (10 new)
   rendering/            planar_renderer (matplotlib), ffmpeg shim
   benchmark.py          run-suite, aggregate summaries, negative controls
   dashboard.py          static HTML for one run + suite-level dashboard
@@ -409,7 +435,9 @@ mech_bench/
   traces.py             HDF5 trace evidence
   __main__.py           mech-bench CLI
 
-tasks/                  curated example tasks (fourbar_path_t001, …)
+tasks/                  materialized example tasks: `fourbar_path_t001`
+                        (hand-written) + 50 generator-produced `<family>_s0001/`
+docs/                   future_chrono_oracle.md (policy notes)
 tests/                  pytest suite
 ```
 
@@ -421,7 +449,9 @@ tests/                  pytest suite
 mech-bench evaluate                   Score one submission
                                       Flags: --task, --submission, --scratch,
                                       --out, --report-dir, --full,
-                                      --mode {fast|oracle|final}, --allow-partial
+                                      --mode {fast|oracle|final},
+                                      --render-media, --no-dashboard-html,
+                                      --allow-partial
 
 mech-bench rlvr-eval                  Compact RLVR-loop result
                                       Flags: --task, --submission, --mode,
@@ -429,6 +459,10 @@ mech-bench rlvr-eval                  Compact RLVR-loop result
 
 mech-bench list-probes                Show registered probe types
 mech-bench list-adapters              Show registered adapters and cost tiers
+                                      Flags: --diagnostics
+
+mech-bench chrono-diagnostic          Report chrono backend availability
+                                      Flags: --json
 
 mech-bench generate-suite             Procedurally write a benchmark suite
                                       Flags: --out, --count-per-family, --seed,
@@ -437,7 +471,8 @@ mech-bench generate-suite             Procedurally write a benchmark suite
 mech-bench run-suite                  Score every task in a suite
                                       Flags: --tasks, --submissions, --negative,
                                       --report-dir, --eval {public|hidden|both},
-                                      --families
+                                      --families, --render-media,
+                                      --write-dashboard-html
 
 mech-bench check-negative-controls    Verify expected_failures.json
                                       Flags: --tasks, --eval
