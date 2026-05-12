@@ -165,3 +165,173 @@ def test_suite_covers_at_least_three_tiers_and_five_families():
     families = {cls.family for cls in SUITE}
     assert len(tiers) >= 3, tiers
     assert len(families) >= 5, families
+
+
+# --------------------------------------------------------------------- #
+# Part B additions                                                       #
+# --------------------------------------------------------------------- #
+
+
+_PART_B_FAMILIES = {
+    # Tier 0
+    "mounting_plate_hole_pitch", "flange_bolt_circle",
+    "bearing_seat_clearance", "press_fit_hub_interference",
+    "keyed_shaft_hub_fit", "spacer_stack_height",
+    "standoff_pattern_square", "pulley_bore_alignment_static",
+    "snap_tab_clearance_static", "box_lid_register_fit",
+    # Tier 1
+    "fourbar_crank_rocker_sweep", "fourbar_wiper_arc",
+    "fourbar_straight_line_approx", "fourbar_dwell_path",
+    "fourbar_pump_handle", "slider_crank_stroke_precision",
+    "slider_crank_quick_return_proxy", "reciprocating_pump_plunger",
+    "toggle_overcenter_margin", "rocker_limit_stop_topology",
+    # Tier 2
+    "compound_gear_ratio_analytic", "idler_gear_direction_analytic",
+    "planetary_fixed_ring_ratio_analytic",
+    "planetary_fixed_sun_ratio_analytic",
+    "worm_gear_ratio_analytic", "lead_screw_linear_travel",
+    "bevel_gear_ratio_analytic", "chain_sprocket_ratio",
+    "timing_belt_center_distance", "rack_pinion_force_direction",
+    # Tier 3 (synthetic fake-oracle stubs)
+    "cam_follower_contact_stub", "ratchet_pawl_engagement_stub",
+    "geneva_indexing_stub", "friction_clutch_torque_stub",
+    "brake_caliper_contact_stub", "parallel_gripper_retention_stub",
+    "latch_release_force_stub", "detent_spring_contact_stub",
+    "gear_pair_load_trial_stub", "rack_pinion_contact_stub",
+}
+
+
+def test_part_b_adds_at_least_25_families():
+    registered = set(family_names())
+    new_families = _PART_B_FAMILIES & registered
+    assert len(new_families) >= 25, sorted(new_families)
+
+
+def test_part_b_reference_solutions_pass(suite_dir: Path, tmp_path):
+    """Spot-check at least one reference per new tier."""
+    sample_families = [
+        "mounting_plate_hole_pitch",       # Tier 0
+        "fourbar_crank_rocker_sweep",      # Tier 1
+        "compound_gear_ratio_analytic",    # Tier 2
+        "cam_follower_contact_stub",       # Tier 3
+    ]
+    for fam in sample_families:
+        matches = [d for d in suite_dir.iterdir()
+                   if d.is_dir() and d.name.startswith(fam + "_s")]
+        assert matches, f"no task generated for {fam!r}"
+        task_dir = matches[0]
+        report = evaluate(
+            task_dir, task_dir / "reference_solution",
+            scratch_dir=tmp_path / fam,
+        )
+        assert report.evaluation_valid, (fam, [f.code.value for f in report.feedback])
+        assert report.hard_gate_passed, (fam, [f.code.value for f in report.feedback])
+        assert report.score > 0.5, (fam, report.score)
+
+
+def test_synthetic_tier3_marks_report_synthetic(suite_dir: Path, tmp_path):
+    matches = [d for d in suite_dir.iterdir()
+               if d.is_dir()
+               and d.name.startswith("cam_follower_contact_stub_s")]
+    assert matches
+    task_dir = matches[0]
+    report = evaluate(
+        task_dir, task_dir / "reference_solution",
+        scratch_dir=tmp_path / "synthetic_tag",
+    )
+    assert report.oracle_is_synthetic is True
+
+
+def test_fake_oracle_not_used_without_explicit_opt_in(tmp_path):
+    """If a task doesn't declare ``[adapters.fake_contact_oracle]``,
+    the fake oracle must not silently satisfy contact probes — even
+    when it has been globally registered by an earlier task in the
+    same process."""
+    from mech_bench.adapters import fake_contact_oracle as fco
+    fco.force_register()  # simulate earlier-task side effect.
+
+    matches = [d for d in tmp_path.glob("**/contact_gear_pair_stub_s*")]
+    # build a temporary suite so we can test
+    out = tmp_path / "stubsuite"
+    generate_suite(out, count_per_family=1, base_seed=1)
+    matches = [d for d in out.iterdir()
+               if d.is_dir() and d.name.startswith(
+                   "contact_gear_pair_stub_s")]
+    task_dir = matches[0]
+    report = evaluate(
+        task_dir, task_dir / "reference_solution",
+        scratch_dir=tmp_path / "noimplicit",
+    )
+    codes = _codes(report)
+    # The contact-gear-pair stub has no fake-oracle opt-in, so contact
+    # probes must surface capability_unavailable, never missing_contact.
+    assert "capability_unavailable" in codes, codes
+    assert "missing_contact" not in codes, codes
+
+
+def test_tier_with_no_probes_is_not_applicable(suite_dir: Path, tmp_path):
+    """A four-bar / mounting plate task has no contact probes; the
+    contact tier should be marked N/A, not failed."""
+    matches = [d for d in suite_dir.iterdir()
+               if d.is_dir()
+               and d.name.startswith("mounting_plate_hole_pitch_s")]
+    assert matches
+    task_dir = matches[0]
+    report = evaluate(
+        task_dir, task_dir / "reference_solution",
+        scratch_dir=tmp_path / "tier_na",
+    )
+    tier = report.tier_results.get("contact")
+    if tier is not None:
+        assert tier.get("applicable") is False
+        assert tier.get("passed") in (None, False)
+
+
+def test_evaluate_lightweight_bundle_skips_media(tmp_path):
+    """``write_run_bundle`` defaults to no frame rendering."""
+    from mech_bench.evaluator import evaluate_with_evidence, write_run_bundle
+    matches = list((tmp_path / "_x").glob("*"))  # placeholder
+
+    # Build a tiny suite of one task and run.
+    suite = tmp_path / "bundle_suite"
+    generate_suite(suite, count_per_family=1, base_seed=2)
+    one = next(d for d in suite.iterdir()
+               if d.is_dir() and d.name.startswith(
+                   "mounting_plate_hole_pitch_s"))
+    evidence = evaluate_with_evidence(
+        one, one / "reference_solution",
+        scratch_dir=tmp_path / "scr_bundle",
+    )
+    out_dir = tmp_path / "report_bundle"
+    write_run_bundle(evidence, out_dir)
+    assert (out_dir / "scorecard.json").exists()
+    assert (out_dir / "dashboard_payload.json").exists()
+    # Media is opt-in; no frames / mp4 / thumbnail by default.
+    assert not (out_dir / "preview.mp4").exists()
+    assert not (out_dir / "frames").exists()
+
+
+def test_design_ir_try_from_dict_handles_malformed():
+    """``DesignIR.try_from_dict`` never raises for malformed roots."""
+    from mech_bench.schema import DesignIR
+    for raw in (
+        None, [1, 2, 3], "string", 42,
+        {"schema_version": "design_ir.v2",
+         "parts": "not a list", "joints": [], "ports": {}},
+        {"schema_version": "design_ir.v2",
+         "parts": [], "joints": [], "ports": "not a dict"},
+        {"parts": [], "joints": [], "ports": {}},  # missing schema_version
+    ):
+        ir, errors = DesignIR.try_from_dict(raw)
+        assert ir is None, raw
+        assert errors, raw
+
+
+def test_chrono_diagnostic_distinguishes_states():
+    from mech_bench.adapters.chrono_contact import chrono_diagnostic
+    diag = chrono_diagnostic()
+    assert diag["adapter"] == "chrono_contact"
+    assert diag["runner_status"] in (
+        "ready", "skeleton_only", "missing_dependency")
+    assert isinstance(diag["pychrono_importable"], bool)
+    assert isinstance(diag["_chrono_impl_importable"], bool)

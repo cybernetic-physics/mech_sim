@@ -61,9 +61,14 @@ def _probe_pychrono() -> tuple[bool, str]:
                 f"MECH_BENCH_CHRONO_PYTHON is set to {alt_python!r}, "
                 f"but that path does not exist."
             )
+        # Both pychrono AND the _chrono_impl shim must import in the
+        # alt interpreter — otherwise the adapter would advertise
+        # contact forces while having no runner to call.
         try:
             proc = subprocess.run(
-                [alt_python, "-c", "import pychrono"],
+                [alt_python, "-c",
+                 "import pychrono; "
+                 "import mech_bench.adapters._chrono_impl"],
                 capture_output=True, text=True, timeout=10,
                 check=False,
             )
@@ -71,10 +76,14 @@ def _probe_pychrono() -> tuple[bool, str]:
             return False, f"subprocess probe failed: {e}"
         if proc.returncode != 0:
             return False, (
-                f"{alt_python} cannot import pychrono: "
+                f"{alt_python} cannot import pychrono + "
+                f"mech_bench.adapters._chrono_impl: "
                 f"{(proc.stderr or '').strip()[-200:]}"
             )
-        return True, f"pychrono available via {alt_python} (subprocess)"
+        return True, (
+            f"pychrono + _chrono_impl available via {alt_python} "
+            f"(subprocess)"
+        )
     try:
         import pychrono  # type: ignore[import-not-found]  # noqa: F401
     except ImportError as e:

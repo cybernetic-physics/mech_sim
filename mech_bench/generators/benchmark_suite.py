@@ -30,19 +30,117 @@ from mech_bench.generators.static_fit import (
     StaticFitBracketGenerator,
 )
 
+# Newly-added (Part B) generator families.
+from mech_bench.generators.static_analytic import (
+    BearingSeatClearanceGenerator,
+    BoxLidRegisterFitGenerator,
+    FlangeBoltCircleGenerator,
+    KeyedShaftHubFitGenerator,
+    MountingPlateHolePitchGenerator,
+    PressFitHubInterferenceGenerator,
+    PulleyBoreAlignmentStaticGenerator,
+    SnapTabClearanceStaticGenerator,
+    SpacerStackHeightGenerator,
+    StandoffPatternSquareGenerator,
+)
+from mech_bench.generators.planar_kinematics_extra import (
+    FourbarCrankRockerSweepGenerator,
+    FourbarDwellPathGenerator,
+    FourbarPumpHandleGenerator,
+    FourbarStraightLineApproxGenerator,
+    FourbarWiperArcGenerator,
+    ReciprocatingPumpPlungerGenerator,
+    RockerLimitStopTopologyGenerator,
+    SliderCrankQuickReturnProxyGenerator,
+    SliderCrankStrokePrecisionGenerator,
+    ToggleOvercenterMarginGenerator,
+)
+from mech_bench.generators.transmission_analytic import (
+    BevelGearRatioAnalyticGenerator,
+    ChainSprocketRatioGenerator,
+    CompoundGearRatioAnalyticGenerator,
+    IdlerGearDirectionAnalyticGenerator,
+    LeadScrewLinearTravelGenerator,
+    PlanetaryFixedRingRatioGenerator,
+    PlanetaryFixedSunRatioGenerator,
+    RackPinionForceDirectionGenerator,
+    TimingBeltCenterDistanceGenerator,
+    WormGearRatioAnalyticGenerator,
+)
+from mech_bench.generators.contact_synth import (
+    BrakeCaliperContactStubGenerator,
+    CamFollowerContactStubGenerator,
+    DetentSpringContactStubGenerator,
+    FrictionClutchTorqueStubGenerator,
+    GearPairLoadTrialStubGenerator,
+    GenevaIndexingStubGenerator,
+    LatchReleaseForceStubGenerator,
+    ParallelGripperRetentionStubGenerator,
+    RackPinionContactStubGenerator,
+    RatchetPawlEngagementStubGenerator,
+)
+
 
 # Ordered: Tier 0 → Tier 3, families listed in the task description.
 SUITE: list[type[TaskGenerator]] = [
+    # Pre-existing Tier 0
     StaticFitBracketGenerator,
     ShaftCollarClearanceGenerator,
     SimpleHingeFitGenerator,
+    # Part B — Tier 0 additions
+    MountingPlateHolePitchGenerator,
+    FlangeBoltCircleGenerator,
+    BearingSeatClearanceGenerator,
+    PressFitHubInterferenceGenerator,
+    KeyedShaftHubFitGenerator,
+    SpacerStackHeightGenerator,
+    StandoffPatternSquareGenerator,
+    PulleyBoreAlignmentStaticGenerator,
+    SnapTabClearanceStaticGenerator,
+    BoxLidRegisterFitGenerator,
+    # Pre-existing Tier 1
     FourbarPathGenerator,
     SliderCrankStrokeGenerator,
+    # Part B — Tier 1 additions
+    FourbarCrankRockerSweepGenerator,
+    FourbarWiperArcGenerator,
+    FourbarStraightLineApproxGenerator,
+    FourbarDwellPathGenerator,
+    FourbarPumpHandleGenerator,
+    SliderCrankStrokePrecisionGenerator,
+    SliderCrankQuickReturnProxyGenerator,
+    ReciprocatingPumpPlungerGenerator,
+    ToggleOvercenterMarginGenerator,
+    RockerLimitStopTopologyGenerator,
+    # Pre-existing Tier 2
     SpurGearRatioAnalyticGenerator,
     RackPinionConversionGenerator,
     BeltPulleyRatioGenerator,
+    # Part B — Tier 2 additions
+    CompoundGearRatioAnalyticGenerator,
+    IdlerGearDirectionAnalyticGenerator,
+    PlanetaryFixedRingRatioGenerator,
+    PlanetaryFixedSunRatioGenerator,
+    WormGearRatioAnalyticGenerator,
+    LeadScrewLinearTravelGenerator,
+    BevelGearRatioAnalyticGenerator,
+    ChainSprocketRatioGenerator,
+    TimingBeltCenterDistanceGenerator,
+    RackPinionForceDirectionGenerator,
+    # Pre-existing Tier 3 (capability-unavailable stubs)
     ContactGearPairStubGenerator,
     CycloidalLowNStubGenerator,
+    # Part B — Tier 3 additions (synthetic fake-oracle stubs)
+    CamFollowerContactStubGenerator,
+    RatchetPawlEngagementStubGenerator,
+    GenevaIndexingStubGenerator,
+    FrictionClutchTorqueStubGenerator,
+    BrakeCaliperContactStubGenerator,
+    ParallelGripperRetentionStubGenerator,
+    LatchReleaseForceStubGenerator,
+    DetentSpringContactStubGenerator,
+    GearPairLoadTrialStubGenerator,
+    RackPinionContactStubGenerator,
 ]
 
 

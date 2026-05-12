@@ -223,6 +223,8 @@ def run_task(
     eval_mode: str = "public",
     report_dir: Path | None = None,
     scratch_root: Path | None = None,
+    render_media: bool = False,
+    write_dashboard_html: bool = False,
 ) -> TaskRunResult:
     """Evaluate one task. ``eval_mode`` ∈ {public, hidden, both}."""
     if eval_mode not in EVAL_MODES:
@@ -283,7 +285,11 @@ def run_task(
             else:
                 per_task = report_dir / result.task_id
             per_task.mkdir(parents=True, exist_ok=True)
-            write_run_bundle(evidence, per_task)
+            write_run_bundle(
+                evidence, per_task,
+                render_media=render_media,
+                write_dashboard_html=write_dashboard_html,
+            )
             result.report_dir = str(report_dir / result.task_id)
     return result
 
@@ -329,6 +335,8 @@ def run_suite(
     eval_mode: str = "public",
     report_dir: Path | None = None,
     families: Iterable[str] | None = None,
+    render_media: bool = False,
+    write_dashboard_html: bool = False,
 ) -> dict[str, Any]:
     """Run every task in *suite_dir* and return the aggregate summary.
 
@@ -357,6 +365,8 @@ def run_suite(
                 eval_mode=eval_mode,
                 report_dir=report_dir_path,
                 scratch_root=scratch_root,
+                render_media=render_media,
+                write_dashboard_html=write_dashboard_html,
             )
         )
 
@@ -408,8 +418,14 @@ def build_benchmark_summary(
     *,
     eval_mode: str = "public",
     suite_dir: Path | None = None,
+    verified_score_threshold: float = 0.5,
 ) -> dict[str, Any]:
-    """Construct the benchmark_summary.json dict."""
+    """Construct the benchmark_summary.json dict.
+
+    A task counts toward ``verified_pass_rate`` only when
+    ``evaluation_valid`` AND ``hard_gate_passed`` AND
+    ``overall_score >= verified_score_threshold``.
+    """
     n_tasks = len(results)
     overall_scores = [r.overall_score() for r in results]
     pass_flags = [r.overall_passed() for r in results]
@@ -429,8 +445,13 @@ def build_benchmark_summary(
     pass_by_family: dict[str, dict[str, float]] = {}
     score_by_family: dict[str, dict[str, float]] = {}
     runtime_by_tier: dict[str, dict[str, float]] = {}
+    runtime_by_family: dict[str, dict[str, float]] = {}
+    n_by_tier: dict[str, int] = {}
+    n_by_family: dict[str, int] = {}
     failure_hist: dict[str, int] = {}
     hard_gate_pass_n = 0
+    verified_pass_n = 0
+    evaluation_valid_n = 0
 
     for r in results:
         tier = r.tier or "unknown"
@@ -439,7 +460,19 @@ def build_benchmark_summary(
         passed = r.overall_passed()
         if passed:
             hard_gate_pass_n += 1
+        valid = bool(r.hidden_valid
+                     if r.hidden_valid is not None
+                     else (r.public_valid
+                           if r.public_valid is not None
+                           else True))
+        if valid:
+            evaluation_valid_n += 1
+        verified = valid and passed and score >= verified_score_threshold
+        if verified:
+            verified_pass_n += 1
 
+        n_by_tier[tier] = n_by_tier.get(tier, 0) + 1
+        n_by_family[family] = n_by_family.get(family, 0) + 1
         _bump(pass_by_tier, tier, passed)
         _bump(pass_by_family, family, passed)
         _accumulate(score_by_tier, tier, score)
@@ -447,28 +480,51 @@ def build_benchmark_summary(
 
         rt = (r.public_runtime_s or 0.0) + (r.hidden_runtime_s or 0.0)
         _accumulate(runtime_by_tier, tier, rt)
+        _accumulate(runtime_by_family, family, rt)
 
         for code in r.all_failure_codes():
             failure_hist[code] = failure_hist.get(code, 0) + 1
+
+    synthetic_oracle_n = sum(
+        1 for r in results
+        # Any test using fake_contact_oracle bleeds into report
+        # tagging via oracle_is_synthetic; the benchmark runner sees
+        # the failure_code list and not the report directly, so we
+        # approximate by counting tasks with a "synthetic" tier tag.
+        if (r.tier or "").startswith("contact")
+        and "capability_unavailable" not in (
+            r.public_failure_codes or [])
+    )
 
     summary: dict[str, Any] = {
         "version": "mech_bench.benchmark_summary.v1",
         "suite_dir": str(suite_dir) if suite_dir is not None else "",
         "eval_mode": eval_mode,
         "n_tasks": n_tasks,
+        "n_families": len(n_by_family),
+        "n_by_tier": dict(n_by_tier),
+        "n_by_family": dict(n_by_family),
         "overall_score_mean": _mean(overall_scores),
         "overall_score_median": _median(overall_scores),
+        "dense_score_mean": _mean(overall_scores),
         "pass_rate": _frac(pass_flags),
         "hard_gate_pass_rate": (hard_gate_pass_n / n_tasks) if n_tasks else 0.0,
+        "verified_pass_rate": (verified_pass_n / n_tasks) if n_tasks else 0.0,
+        "evaluation_valid_rate": (
+            (evaluation_valid_n / n_tasks) if n_tasks else 0.0
+        ),
         "public_score_mean": _mean(public_scores) if public_scores else None,
         "hidden_score_mean": _mean(hidden_scores) if hidden_scores else None,
         "generalization_gap_mean": _mean(gen_gaps) if gen_gaps else None,
         "capability_unavailable_n": capability_unavail_n,
+        "synthetic_oracle_n": synthetic_oracle_n,
         "pass_by_tier": _finalize_counts(pass_by_tier),
         "score_by_tier": _finalize_means(score_by_tier),
+        "applicable_pass_by_tier": _finalize_counts(pass_by_tier),
         "pass_by_family": _finalize_counts(pass_by_family),
         "score_by_family": _finalize_means(score_by_family),
         "runtime_by_tier": _finalize_runtime(runtime_by_tier),
+        "runtime_by_family": _finalize_runtime(runtime_by_family),
         "failure_code_histogram": dict(sorted(failure_hist.items())),
         "tasks": [_result_dict(r) for r in results],
     }

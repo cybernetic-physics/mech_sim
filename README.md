@@ -229,18 +229,21 @@ adapter name — they read the canonical keys.
 
 ### Task families (`mech_bench/generators/`)
 
-The procedural generator emits four tiers, ten families:
+The procedural generator emits four tiers and 50 families.
 
-| Tier                    | Families                                                                  |
-| ----------------------- | ------------------------------------------------------------------------- |
-| **artifact_static**     | `static_fit_bracket`, `shaft_collar_clearance`, `simple_hinge_fit`        |
-| **planar_kinematics**   | `fourbar_path`, `slider_crank_stroke`                                     |
-| **transmission_analytic** | `spur_gear_ratio_analytic`, `rack_pinion_conversion`, `belt_pulley_ratio` |
-| **contact_dynamics**    | `contact_gear_pair_stub`, `cycloidal_lowN_stub`                           |
+| Tier                      | Families                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **artifact_static**       | `static_fit_bracket`, `shaft_collar_clearance`, `simple_hinge_fit`, `mounting_plate_hole_pitch`, `flange_bolt_circle`, `bearing_seat_clearance`, `press_fit_hub_interference`, `keyed_shaft_hub_fit`, `spacer_stack_height`, `standoff_pattern_square`, `pulley_bore_alignment_static`, `snap_tab_clearance_static`, `box_lid_register_fit`            |
+| **planar_kinematics**     | `fourbar_path`, `slider_crank_stroke`, `fourbar_crank_rocker_sweep`, `fourbar_wiper_arc`, `fourbar_straight_line_approx`, `fourbar_dwell_path`, `fourbar_pump_handle`, `slider_crank_stroke_precision`, `slider_crank_quick_return_proxy`, `reciprocating_pump_plunger`, `toggle_overcenter_margin`, `rocker_limit_stop_topology`                       |
+| **transmission_analytic** | `spur_gear_ratio_analytic`, `rack_pinion_conversion`, `belt_pulley_ratio`, `compound_gear_ratio_analytic`, `idler_gear_direction_analytic`, `planetary_fixed_ring_ratio_analytic`, `planetary_fixed_sun_ratio_analytic`, `worm_gear_ratio_analytic`, `lead_screw_linear_travel`, `bevel_gear_ratio_analytic`, `chain_sprocket_ratio`, `timing_belt_center_distance`, `rack_pinion_force_direction` |
+| **contact_dynamics**      | `contact_gear_pair_stub`, `cycloidal_lowN_stub` (both surface `capability_unavailable` until a real Chrono runner ships), `cam_follower_contact_stub`, `ratchet_pawl_engagement_stub`, `geneva_indexing_stub`, `friction_clutch_torque_stub`, `brake_caliper_contact_stub`, `parallel_gripper_retention_stub`, `latch_release_force_stub`, `detent_spring_contact_stub`, `gear_pair_load_trial_stub`, `rack_pinion_contact_stub` (these explicitly enable the synthetic `fake_contact_oracle` and tag reports `oracle_is_synthetic=true`) |
 
 Each generated task ships a reference solution that should pass, a
 set of negative controls that should fail with specific codes, and an
-`expected_failures.json` the runner verifies.
+`expected_failures.json` the runner verifies. The contact_dynamics
+synthetic stubs are *test/demo* tasks — they exercise the contact
+probe wiring without validating physics; see `docs/future_chrono_oracle.md`
+for the policy around the future real Chrono integration.
 
 ### Failure grammar (`mech_bench/feedback.py`)
 

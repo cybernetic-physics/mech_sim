@@ -207,16 +207,33 @@ def compute_general_metrics(
 def fill_defaults_for_dashboard(
     tier_metrics: dict[str, dict[str, float]],
     class_metrics: dict[str, float],
-) -> tuple[dict[str, dict[str, float]], dict[str, float]]:
-    """Ensure every canonical channel is present (zero-fill).
+) -> tuple[dict[str, dict], dict[str, float]]:
+    """Ensure every canonical channel is present.
 
-    Dashboards prefer a stable shape — easier to render heatmaps when
-    every tier appears as a column even if it had no probes.
+    Dashboards prefer a stable shape. A tier with no probes is marked
+    ``applicable=false`` with ``passed=None`` / ``score=None`` so the
+    dashboard renders it as N/A rather than "failed."
     """
-    tier_out = dict(tier_metrics)
+    tier_out: dict[str, dict] = {}
+    for k, v in tier_metrics.items():
+        bucket: dict = dict(v)
+        n = int(bucket.get("n", 0) or 0)
+        if n == 0:
+            bucket["applicable"] = False
+            bucket["passed"] = None
+            bucket["score"] = None
+            bucket.setdefault("n_passed", 0)
+        else:
+            bucket.setdefault("applicable", True)
+        tier_out[k] = bucket
     for ch in TIER_CHANNELS:
-        tier_out.setdefault(ch, {"score": 0.0, "passed": False,
-                                  "n": 0, "n_passed": 0})
+        tier_out.setdefault(ch, {
+            "applicable": False,
+            "score": None,
+            "passed": None,
+            "n": 0,
+            "n_passed": 0,
+        })
     class_out = dict(class_metrics)
     for ch in CLASS_CHANNELS:
         class_out.setdefault(ch, 0.0)

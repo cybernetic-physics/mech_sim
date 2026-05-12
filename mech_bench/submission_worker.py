@@ -29,6 +29,21 @@ import traceback
 from pathlib import Path
 
 
+# When launched by absolute file path under ``python -I``, sys.path[0]
+# is the script's directory (``mech_bench/``). That puts the package's
+# *inside* on sys.path instead of the repo root, which means
+# ``import mech_bench`` would resolve to the script's package init only
+# by accident, and submodule imports break. Replace sys.path[0] with the
+# repo root so ``mech_bench`` is importable as a real package — which
+# matters for raw checkouts that did not run ``pip install -e``.
+_HERE = Path(__file__).resolve().parent
+_REPO_ROOT = _HERE.parent
+if sys.path and sys.path[0] == str(_HERE):
+    sys.path[0] = str(_REPO_ROOT)
+elif str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+
 def _die(code: int, msg: str) -> int:
     print(msg, file=sys.stderr)
     return code

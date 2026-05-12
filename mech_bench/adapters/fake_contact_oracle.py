@@ -289,6 +289,21 @@ def register_if_test_mode() -> bool:
     return True
 
 
+def force_register() -> bool:
+    """Register the fake oracle regardless of env/test mode.
+
+    Called by the evaluator when ``[adapters.fake_contact_oracle]
+    enabled=true`` is set in the eval config or when a mode sets
+    ``forced_adapter = "fake_contact_oracle"``. Returns True when the
+    adapter ends up registered.
+    """
+    from mech_bench.adapters import _REGISTRY, register_adapter
+    if FakeContactOracle.type_name in _REGISTRY:
+        return True
+    register_adapter(FakeContactOracle)
+    return True
+
+
 # Best-effort auto-registration at import time. Most test runners set
 # the env var before importing mech_bench; CLI runs leave it unset.
 if _is_test_mode_enabled():

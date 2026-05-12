@@ -100,20 +100,115 @@ class ExecutionPlan:
         return seen
 
 
-def _pick_adapter_for(caps: frozenset[Capability]) -> type[SimAdapter] | None:
+def _pick_adapter_for(
+    caps: frozenset[Capability],
+    *,
+    exclude: frozenset[str] = frozenset(),
+) -> type[SimAdapter] | None:
     needed = caps - {Capability.NONE}
     if not needed:
         return None
     candidates = [a for a in all_adapters()
-                  if needed.issubset(a.capabilities_provided)]
+                  if a.type_name not in exclude
+                  and needed.issubset(a.capabilities_provided)]
     if not candidates:
         return None
     candidates.sort(key=lambda a: a.cost_tier)
     return candidates[0]
 
 
-def build_execution_plan(cfg: EvalConfig) -> ExecutionPlan:
+def _lookup_adapter(type_name: str) -> type[SimAdapter] | None:
+    for a in all_adapters():
+        if a.type_name == type_name:
+            return a
+    return None
+
+
+def _maybe_register_fake_oracle(
+    cfg: EvalConfig, mode: str,
+) -> None:
+    """Register fake_contact_oracle iff explicitly enabled.
+
+    Triggers:
+
+    * ``[adapters.fake_contact_oracle] enabled = true`` in eval_config.
+    * Any mode whose ``forced_adapter = "fake_contact_oracle"``.
+
+    Env-variable triggers (``MECH_BENCH_USE_FAKE_ORACLE``,
+    ``MECH_BENCH_TEST_MODE``) are handled at import time by the
+    fake-oracle module; this only forces explicit-config opt-in.
+    """
+    fake_cfg = cfg.adapter_configs.get("fake_contact_oracle", {}) or {}
+    enabled = bool(fake_cfg.get("enabled", False))
+    forced_in_any_mode = any(
+        (m.forced_adapter == "fake_contact_oracle")
+        for m in cfg.modes.values()
+    )
+    # Per-probe overrides also count.
+    forced_in_probe = any(
+        isinstance(spec.config.get("adapter"), str)
+        and spec.config.get("adapter") == "fake_contact_oracle"
+        for spec in cfg.probes
+    )
+    if enabled or forced_in_any_mode or forced_in_probe:
+        from mech_bench.adapters import fake_contact_oracle as _fco
+        _fco.force_register()
+
+
+def _resolve_forced_adapter(
+    cfg: EvalConfig, mode: str,
+) -> str | None:
+    if mode and mode in cfg.modes:
+        forced = cfg.modes[mode].forced_adapter
+        if forced:
+            return str(forced)
+    return None
+
+
+def _fake_oracle_is_explicit(
+    cfg: EvalConfig, forced_adapter: str | None,
+) -> bool:
+    """True iff the eval config explicitly opts into fake_contact_oracle.
+
+    Triggers (any one):
+      * ``[adapters.fake_contact_oracle] enabled = true``
+      * mode-level ``forced_adapter = "fake_contact_oracle"``
+      * any probe with ``adapter = "fake_contact_oracle"``
+      * env vars ``MECH_BENCH_USE_FAKE_ORACLE`` / ``MECH_BENCH_TEST_MODE``
+        — kept for backwards compat with the existing test surface.
+    """
+    import os as _os
+    if forced_adapter == "fake_contact_oracle":
+        return True
+    fake_cfg = cfg.adapter_configs.get("fake_contact_oracle", {}) or {}
+    if bool(fake_cfg.get("enabled", False)):
+        return True
+    if any(spec.config.get("adapter") == "fake_contact_oracle"
+           for spec in cfg.probes):
+        return True
+    if any(m.forced_adapter == "fake_contact_oracle"
+           for m in cfg.modes.values()):
+        return True
+    for var in ("MECH_BENCH_USE_FAKE_ORACLE", "MECH_BENCH_TEST_MODE"):
+        if _os.environ.get(var, "").lower() in ("1", "true", "yes"):
+            return True
+    return False
+
+
+def build_execution_plan(
+    cfg: EvalConfig,
+    *,
+    forced_adapter: str | None = None,
+) -> ExecutionPlan:
     plan = ExecutionPlan()
+    # Fake oracle is opt-in per task. If the current eval config / mode
+    # / probe configs don't explicitly request it, exclude it from
+    # auto-selection even if it's been registered globally by another
+    # task earlier in the process.
+    fake_oracle_explicit = _fake_oracle_is_explicit(cfg, forced_adapter)
+    exclude: frozenset[str] = frozenset(
+        () if fake_oracle_explicit else ("fake_contact_oracle",)
+    )
     for spec in cfg.probes:
         try:
             probe = get_probe(spec.type)
@@ -138,7 +233,76 @@ def build_execution_plan(cfg: EvalConfig) -> ExecutionPlan:
                 available=True,
             ))
             continue
-        adapter = _pick_adapter_for(caps)
+
+        # Per-probe adapter override (highest priority).
+        probe_override = spec.config.get("adapter")
+        adapter: type[SimAdapter] | None = None
+        if isinstance(probe_override, str) and probe_override:
+            cls = _lookup_adapter(probe_override)
+            needed = caps - {Capability.NONE}
+            if cls is None:
+                plan.probes.append(ProbePlan(
+                    probe_id=spec.id,
+                    probe_type=spec.type,
+                    capabilities=caps,
+                    adapter_type=None,
+                    available=False,
+                    reason=(
+                        f"Probe-level adapter {probe_override!r} is "
+                        f"not registered."
+                    ),
+                ))
+                continue
+            if not needed.issubset(cls.capabilities_provided):
+                missing = sorted(
+                    c.value for c in needed - cls.capabilities_provided)
+                plan.probes.append(ProbePlan(
+                    probe_id=spec.id,
+                    probe_type=spec.type,
+                    capabilities=caps,
+                    adapter_type=None,
+                    available=False,
+                    reason=(
+                        f"Probe-level adapter {probe_override!r} does "
+                        f"not provide required capabilities: {missing}."
+                    ),
+                ))
+                continue
+            adapter = cls
+        elif forced_adapter:
+            cls = _lookup_adapter(forced_adapter)
+            needed = caps - {Capability.NONE}
+            if cls is None:
+                plan.probes.append(ProbePlan(
+                    probe_id=spec.id,
+                    probe_type=spec.type,
+                    capabilities=caps,
+                    adapter_type=None,
+                    available=False,
+                    reason=(
+                        f"Forced adapter {forced_adapter!r} is not "
+                        f"registered."
+                    ),
+                ))
+                continue
+            if not needed.issubset(cls.capabilities_provided):
+                missing = sorted(
+                    c.value for c in needed - cls.capabilities_provided)
+                plan.probes.append(ProbePlan(
+                    probe_id=spec.id,
+                    probe_type=spec.type,
+                    capabilities=caps,
+                    adapter_type=None,
+                    available=False,
+                    reason=(
+                        f"Forced adapter {forced_adapter!r} lacks "
+                        f"required capabilities: {missing}."
+                    ),
+                ))
+                continue
+            adapter = cls
+        else:
+            adapter = _pick_adapter_for(caps, exclude=exclude)
         if adapter is None:
             missing = sorted(c.value for c in caps - {Capability.NONE})
             plan.probes.append(ProbePlan(
@@ -254,13 +418,25 @@ def load_submission(
         except OSError:
             pass
 
-    cmd = [
-        sys.executable, "-I",
-        "-m", "mech_bench.submission_worker",
-        "--design-py", str(design_py),
-        "--out-dir", str(scratch_dir),
-        "--result-json", str(result_json),
-    ]
+    worker_path = Path(__file__).with_name("submission_worker.py")
+    if worker_path.is_file():
+        cmd = [
+            sys.executable, "-I",
+            str(worker_path),
+            "--design-py", str(design_py),
+            "--out-dir", str(scratch_dir),
+            "--result-json", str(result_json),
+        ]
+    else:
+        # Fallback: module-based launch (requires the package to be
+        # importable on sys.path already).
+        cmd = [
+            sys.executable, "-I",
+            "-m", "mech_bench.submission_worker",
+            "--design-py", str(design_py),
+            "--out-dir", str(scratch_dir),
+            "--result-json", str(result_json),
+        ]
     try:
         proc = subprocess.run(
             cmd,
@@ -300,13 +476,13 @@ def load_submission(
             f"{type(raw).__name__}."
         )
 
-    try:
-        return DesignIR.from_dict(raw)
-    except (KeyError, TypeError, ValueError) as e:
+    ir, errors = DesignIR.try_from_dict(raw)
+    if ir is None:
         raise SubmissionError(
-            f"Submission JSON does not fit DesignIR schema: "
-            f"{type(e).__name__}: {e}"
+            "Submission JSON does not fit DesignIR schema: "
+            + "; ".join(errors)
         )
+    return ir
 
 
 # --------------------------------------------------------------------- #
@@ -519,7 +695,11 @@ def _tier_summary(
     for b in tiers.values():
         n = b.pop("score_count")
         s = b.pop("score_sum")
-        b["score"] = s / n if n else 0.0
+        b["score"] = (s / n) if n else None
+        b["n"] = n
+        b["applicable"] = bool(n)
+        if n == 0:
+            b["passed"] = None
     return tiers
 
 
@@ -585,6 +765,10 @@ def evaluate_with_evidence(
         from mech_bench.modes import apply_mode
         cfg = apply_mode(cfg, mode)
 
+    # Honor explicit fake-oracle enablement before building the plan.
+    _maybe_register_fake_oracle(cfg, mode)
+    forced_adapter = _resolve_forced_adapter(cfg, mode)
+
     def _empty_evidence(
         failures: list[Failure],
         tier_results: dict | None = None,
@@ -643,7 +827,7 @@ def evaluate_with_evidence(
 
     # Build the per-probe execution plan.
     t0 = time.perf_counter()
-    plan = build_execution_plan(cfg)
+    plan = build_execution_plan(cfg, forced_adapter=forced_adapter)
     timings["plan"] = time.perf_counter() - t0
 
     evaluation_valid = True
@@ -654,6 +838,7 @@ def evaluate_with_evidence(
     # backward compatibility with adapters that expect it.
     sim_outputs_by_adapter: dict[str, dict[str, Any]] = {}
     adapter_failures: list[Failure] = []
+    unavailable_adapters: set[str] = set()
     for adapter_name in plan.adapters_to_run():
         adapter_cls = next(
             (a for a in all_adapters() if a.type_name == adapter_name),
@@ -667,7 +852,42 @@ def evaluate_with_evidence(
         t0 = time.perf_counter()
         try:
             raw = adapter.run(ir, adapter_cfg)
-            sim_outputs_by_adapter[adapter_name] = normalize_sim_output(raw)
+            normalized = normalize_sim_output(raw)
+            sim_outputs_by_adapter[adapter_name] = normalized
+            if isinstance(normalized, dict):
+                if normalized.get("__capability_unavailable__"):
+                    md = normalized.get("metadata") or {}
+                    reason = ""
+                    issues = md.get("preflight_issues") if isinstance(
+                        md, dict) else None
+                    if isinstance(issues, list) and issues:
+                        reason = str(issues[0])
+                    adapter_failures.append(Failure(
+                        code=FailureCode.CAPABILITY_UNAVAILABLE,
+                        severity=Severity.CRITICAL,
+                        message=(
+                            f"Adapter {adapter_name!r} reported "
+                            f"capability_unavailable"
+                            + (f": {reason}" if reason else ".")
+                        ),
+                        where=f"adapter.{adapter_name}",
+                        public_hint=(
+                            "This task needs a simulator that is not "
+                            "currently available."
+                        ),
+                    ))
+                    unavailable_adapters.add(adapter_name)
+                    evaluation_valid = False
+                elif "__adapter_error__" in normalized:
+                    adapter_failures.append(Failure(
+                        code=FailureCode.SIMULATOR_DIVERGENCE,
+                        severity=Severity.CRITICAL,
+                        message=(
+                            f"Adapter {adapter_name!r} reported error: "
+                            f"{normalized['__adapter_error__']}"),
+                        where=f"adapter.{adapter_name}",
+                    ))
+                    evaluation_valid = False
         except Exception as e:  # noqa: BLE001 — adapter is internal-ish
             _LOG.warning("adapter %s raised: %s", adapter_name, e)
             sim_outputs_by_adapter[adapter_name] = {
@@ -689,7 +909,33 @@ def evaluate_with_evidence(
     for spec in cfg.probes:
         pplan = plan_by_id[spec.id]
         t0 = time.perf_counter()
-        r = _run_probe(spec, pplan, ir, sim_outputs_by_adapter)
+        # If the probe depends on an adapter that reported
+        # capability_unavailable, short-circuit so we don't surface
+        # spurious physical failures like missing_contact.
+        if (pplan.adapter_type
+                and pplan.adapter_type in unavailable_adapters):
+            r = ProbeResult(
+                probe_id=spec.id,
+                probe_type=spec.type,
+                passed=False,
+                score=0.0,
+                metrics={},
+                failures=[Failure(
+                    code=FailureCode.CAPABILITY_UNAVAILABLE,
+                    severity=Severity.CRITICAL,
+                    message=(
+                        f"Adapter {pplan.adapter_type!r} is "
+                        f"capability-unavailable in this build; "
+                        f"probe {spec.id!r} could not run."
+                    ),
+                    where=spec.id,
+                )],
+                skipped_reason=(
+                    f"adapter.{pplan.adapter_type} unavailable"
+                ),
+            )
+        else:
+            r = _run_probe(spec, pplan, ir, sim_outputs_by_adapter)
         r, bad = _sanitize_probe_result(r)
         if bad:
             evaluation_valid = False
@@ -754,14 +1000,16 @@ def evaluate_with_evidence(
     for ch, vals in tier_channels.items():
         merged = tier_results.setdefault(ch, {
             "probe_ids": [],
-            "passed": vals["passed"],
-            "score": vals["score"],
+            "passed": vals.get("passed"),
+            "score": vals.get("score"),
         })
         merged.setdefault("probe_ids", merged.get("probe_ids", []))
-        merged["score"] = vals["score"]
-        merged["passed"] = vals["passed"]
-        merged["n"] = vals["n"]
-        merged["n_passed"] = vals["n_passed"]
+        merged["score"] = vals.get("score")
+        merged["passed"] = vals.get("passed")
+        merged["n"] = vals.get("n", 0)
+        merged["n_passed"] = vals.get("n_passed", 0)
+        if "applicable" in vals:
+            merged["applicable"] = vals["applicable"]
 
     total_runtime = float(sum(timings.values()))
     oracle_is_synthetic = any(
@@ -868,13 +1116,19 @@ def write_report_bundle(
 def write_run_bundle(
     evidence: "RunEvidence",
     out_dir: Path,
+    *,
+    render_media: bool = False,
+    write_dashboard_html: bool = True,
 ) -> dict[str, Path]:
     """Write the full evidence bundle for one run.
 
     Always writes: scorecard.json, scorecard.public.json,
     metrics.json, feedback.public.json, dashboard_payload.json,
     media_manifest.json. Optionally writes traces.h5 (when h5py is
-    installed) and dashboard.html (when plotly is installed).
+    installed) and dashboard.html (when plotly is installed and
+    ``write_dashboard_html`` is True). Frames / thumbnail / MP4 are
+    only generated when ``render_media=True`` — the CLI flips that
+    flag through ``--render-media``.
     Returns a dict of the artifact paths actually written.
     """
     from mech_bench.dashboard_payload import (
@@ -894,27 +1148,45 @@ def write_run_bundle(
     paths = write_report_bundle(
         evidence.report, out_dir, visibility=evidence.cfg.visibility)
 
-    # Pick the first non-error adapter output for trace generation.
-    primary_sim: dict | None = None
+    # Build per-adapter traces (so multi-adapter tasks preserve both
+    # streams) plus a "primary" trace used for the dashboard payload.
+    adapter_traces: dict[str, TraceData] = {}
     primary_adapter = ""
+    primary_sim: dict | None = None
     for name, sim in evidence.sim_outputs_by_adapter.items():
-        if isinstance(sim, dict) and "__adapter_error__" in sim:
+        if not isinstance(sim, dict) or "__adapter_error__" in sim:
             continue
-        primary_sim = sim
-        primary_adapter = name
-        break
+        if "__capability_unavailable__" in sim:
+            # Capability-unavailable adapters contribute no traces.
+            continue
+        td = TraceData.from_sim_output(
+            sim,
+            run_id=evidence.report.run_id,
+            task_id=evidence.report.task_id,
+            adapter=name,
+        )
+        if td.is_empty():
+            continue
+        adapter_traces[name] = td
+        if primary_sim is None:
+            primary_sim = sim
+            primary_adapter = name
 
-    trace = TraceData.from_sim_output(
-        primary_sim or {},
-        run_id=evidence.report.run_id,
-        task_id=evidence.report.task_id,
-        adapter=primary_adapter,
+    trace = (
+        adapter_traces.get(primary_adapter)
+        or TraceData.from_sim_output(
+            primary_sim or {},
+            run_id=evidence.report.run_id,
+            task_id=evidence.report.task_id,
+            adapter=primary_adapter,
+        )
     )
 
     trace_path: Path | None = None
-    if not trace.is_empty():
+    if adapter_traces:
         if HAS_H5PY:
-            trace_path = write_trace_hdf5(out_dir / "traces.h5", trace)
+            trace_path = write_trace_hdf5_multi(
+                out_dir / "traces.h5", adapter_traces, trace)
             paths["trace"] = trace_path
         else:
             stub = write_capability_unavailable(
@@ -926,57 +1198,61 @@ def write_run_bundle(
 
     payload = build_dashboard_payload(
         evidence.report, trace, task=evidence.task)
+    if adapter_traces:
+        payload["adapter_traces"] = sorted(adapter_traces.keys())
     payload_path = write_dashboard_payload(
         out_dir / "dashboard_payload.json", payload)
     paths["dashboard_payload"] = payload_path
 
-    # Optional planar media rendering — best-effort.
+    # Optional planar media rendering — opt-in via render_media.
     thumbnail_path: Path | None = None
     preview_mp4: Path | None = None
     frames_dir: Path | None = None
-    try:
-        from mech_bench.rendering.planar_renderer import (
-            HAS_MATPLOTLIB,
-            PlanarRenderer,
-        )
-        if HAS_MATPLOTLIB:
-            renderer = PlanarRenderer()
-            res = renderer.render(payload, out_dir, fps=30,
-                                  produce_mp4=True)
-            if res.ok:
-                thumbnail_path = res.thumbnail_png
-                preview_mp4 = res.preview_mp4
-                frames_dir = res.frames_dir
-    except Exception:  # noqa: BLE001 — media is non-critical
-        pass
+    if render_media:
+        try:
+            from mech_bench.rendering.planar_renderer import (
+                HAS_MATPLOTLIB,
+                PlanarRenderer,
+            )
+            if HAS_MATPLOTLIB:
+                renderer = PlanarRenderer()
+                res = renderer.render(payload, out_dir, fps=30,
+                                      produce_mp4=True)
+                if res.ok:
+                    thumbnail_path = res.thumbnail_png
+                    preview_mp4 = res.preview_mp4
+                    frames_dir = res.frames_dir
+        except Exception:  # noqa: BLE001 — media is non-critical
+            pass
 
     dashboard_path: Path | None = None
-    try:
-        from mech_bench.dashboard import (
-            HAS_PLOTLY,
-            write_static_dashboard,
-        )
-        # Refresh payload's media block with whatever was rendered.
-        if thumbnail_path or preview_mp4 or frames_dir:
-            payload.setdefault("media", {})
-            if thumbnail_path:
-                payload["media"]["thumbnail_png"] = str(
-                    thumbnail_path.relative_to(out_dir))
-            if preview_mp4:
-                payload["media"]["preview_mp4"] = str(
-                    preview_mp4.relative_to(out_dir))
-            elif frames_dir:
-                payload["media"]["frames_dir"] = str(
-                    frames_dir.relative_to(out_dir))
-            # Rewrite payload JSON so dashboards see media refs.
-            payload_path = write_dashboard_payload(
-                out_dir / "dashboard_payload.json", payload)
-        if HAS_PLOTLY:
-            dashboard_path = write_static_dashboard(
-                payload, out_dir / "dashboard.html")
-            paths["dashboard"] = dashboard_path
-    except ImportError:  # pragma: no cover - defensive
-        pass
+    if write_dashboard_html:
+        try:
+            from mech_bench.dashboard import (
+                HAS_PLOTLY,
+                write_static_dashboard,
+            )
+            # Refresh payload's media block with whatever was rendered.
+            if thumbnail_path or preview_mp4 or frames_dir:
+                payload.setdefault("media", {})
+                if thumbnail_path:
+                    payload["media"]["thumbnail_png"] = str(
+                        thumbnail_path.relative_to(out_dir))
+                if preview_mp4:
+                    payload["media"]["preview_mp4"] = str(
+                        preview_mp4.relative_to(out_dir))
+                elif frames_dir:
+                    payload["media"]["frames_dir"] = str(
+                        frames_dir.relative_to(out_dir))
+                # Rewrite payload JSON so dashboards see media refs.
+                payload_path = write_dashboard_payload(
+                    out_dir / "dashboard_payload.json", payload)
+            if HAS_PLOTLY:
+                dashboard_path = write_static_dashboard(
+                    payload, out_dir / "dashboard.html")
+                paths["dashboard"] = dashboard_path
+        except ImportError:  # pragma: no cover - defensive
+            pass
 
     if thumbnail_path:
         paths["thumbnail_png"] = thumbnail_path
@@ -999,3 +1275,78 @@ def write_run_bundle(
     )
     paths["media_manifest"] = manifest_path
     return paths
+
+
+def write_trace_hdf5_multi(
+    path: Path,
+    adapter_traces: dict[str, "TraceData"],
+    primary: "TraceData",
+) -> Path:
+    """Write multiple adapter traces under per-adapter groups.
+
+    If there is only one adapter we still nest it under
+    ``/adapters/<name>/`` so the file format is uniform, but consumers
+    that only know the legacy single-trace shape can still find the
+    primary trace at the root attrs.
+    """
+    from mech_bench.traces import HAS_H5PY  # local to avoid hard dep
+    if not HAS_H5PY:
+        raise RuntimeError("h5py not installed; cannot write traces")
+    import h5py  # type: ignore[import-not-found]
+
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with h5py.File(path, "w") as f:
+        f.attrs["version"] = "mech_bench.trace.v2"
+        f.attrs["run_id"] = primary.run_id
+        f.attrs["task_id"] = primary.task_id
+        f.attrs["primary_adapter"] = primary.adapter
+        adapters_grp = f.create_group("adapters")
+        for name, td in adapter_traces.items():
+            grp = adapters_grp.create_group(name)
+            _h5_write_trace_into_group(grp, td)
+        # Also mirror primary at top level for legacy readers.
+        _h5_write_trace_into_group(f, primary, include_attrs=False)
+    return path
+
+
+def _h5_write_trace_into_group(
+    grp: Any,
+    td: "TraceData",
+    *,
+    include_attrs: bool = True,
+) -> None:
+    if include_attrs:
+        grp.attrs["adapter"] = td.adapter
+        for k, v in td.metadata.items():
+            grp.attrs[f"meta.{k}"] = v
+    if td.time_s.size and "time_s" not in grp:
+        grp.create_dataset("time_s", data=td.time_s)
+    _h5_named(grp, "ports", td.port_traces, "trace")
+    _h5_named(grp, "ports", td.port_velocities, "velocity")
+    _h5_named(grp, "joints", td.joint_positions, "position")
+    _h5_named(grp, "joints", td.joint_velocities, "velocity")
+    _h5_named(grp, "bodies", td.body_poses, "pose")
+    _h5_named(grp, "bodies", td.body_twists, "twist")
+    _h5_named(grp, "contacts", td.contact_forces, "normal_force")
+    _h5_named(grp, "contacts", td.penetration, "penetration")
+    if td.scalar_metrics and "metrics" not in grp:
+        metrics_grp = grp.create_group("metrics")
+        for k, v in td.scalar_metrics.items():
+            metrics_grp.create_dataset(
+                str(k).replace("/", "__"), data=float(v))
+
+
+def _h5_named(
+    root: Any, top: str, d: dict, leaf: str,
+) -> None:
+    if not d:
+        return
+    grp = root.require_group(top)
+    for k, arr in d.items():
+        safe = str(k).replace("/", "__")
+        sub = grp.require_group(safe)
+        if leaf in sub:
+            continue
+        import numpy as np
+        sub.create_dataset(leaf, data=np.asarray(arr))

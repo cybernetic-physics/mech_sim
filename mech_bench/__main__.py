@@ -79,7 +79,12 @@ def _cmd_evaluate(args: argparse.Namespace) -> int:
         Path(args.out).write_text(out)
 
     if args.report_dir:
-        paths = write_run_bundle(evidence, Path(args.report_dir))
+        paths = write_run_bundle(
+            evidence, Path(args.report_dir),
+            render_media=bool(getattr(args, "render_media", False)),
+            write_dashboard_html=not bool(
+                getattr(args, "no_dashboard_html", False)),
+        )
         for k, p in paths.items():
             print(f"# wrote {k}: {p}", file=sys.stderr)
 
@@ -105,7 +110,21 @@ def _cmd_list_adapters(args: argparse.Namespace) -> int:
     for cls in all_adapters():
         caps = sorted(c.value for c in cls.capabilities_provided)
         print(f"{cls.type_name}  cost={cls.cost_tier}  provides={caps}")
+    if getattr(args, "diagnostics", False):
+        from mech_bench.adapters.chrono_contact import chrono_diagnostic
+        print(json.dumps(chrono_diagnostic(), indent=2, default=str))
     return 0
+
+
+def _cmd_chrono_diagnostic(args: argparse.Namespace) -> int:
+    from mech_bench.adapters.chrono_contact import chrono_diagnostic
+    diag = chrono_diagnostic()
+    if getattr(args, "json", False):
+        print(json.dumps(diag, indent=2, default=str))
+    else:
+        for k, v in diag.items():
+            print(f"{k}: {v}")
+    return 0 if diag.get("status") == "available" else 1
 
 
 def _cmd_package_run(args: argparse.Namespace) -> int:
@@ -165,6 +184,9 @@ def _cmd_run_suite(args: argparse.Namespace) -> int:
         eval_mode=args.eval,
         report_dir=Path(args.report_dir) if args.report_dir else None,
         families=(args.families.split(",") if args.families else None),
+        render_media=bool(getattr(args, "render_media", False)),
+        write_dashboard_html=bool(
+            getattr(args, "write_dashboard_html", False)),
     )
     # Print a compact summary to stdout; the full JSON is on disk.
     compact = {k: summary[k] for k in (
@@ -272,13 +294,32 @@ def main(argv: list[str] | None = None) -> int:
     ev.add_argument("--allow-partial", action="store_true",
                     help=("exit 0 even if the hard gate failed or "
                           "score is zero"))
+    ev.add_argument("--render-media", action="store_true",
+                    help=("render planar frames / thumbnail / MP4 "
+                          "into --report-dir (off by default; needs "
+                          "matplotlib + ffmpeg)"))
+    ev.add_argument("--no-dashboard-html", action="store_true",
+                    help=("skip writing dashboard.html even when "
+                          "plotly is installed"))
     ev.set_defaults(func=_cmd_evaluate)
 
     lp = sub.add_parser("list-probes", help="List registered probes")
     lp.set_defaults(func=_cmd_list_probes)
 
     la = sub.add_parser("list-adapters", help="List registered adapters")
+    la.add_argument("--diagnostics", action="store_true",
+                    help=("also print backend diagnostics (e.g. "
+                          "chrono pychrono / _chrono_impl status)"))
     la.set_defaults(func=_cmd_list_adapters)
+
+    cd = sub.add_parser(
+        "chrono-diagnostic",
+        help=("Report the chrono backend's availability state "
+              "(pychrono importable? _chrono_impl present?)"),
+    )
+    cd.add_argument("--json", action="store_true",
+                    help="emit a single JSON document")
+    cd.set_defaults(func=_cmd_chrono_diagnostic)
 
     pr = sub.add_parser(
         "package-run",
@@ -318,6 +359,12 @@ def main(argv: list[str] | None = None) -> int:
                     help="which eval config variant(s) to run")
     rs.add_argument("--families", default=None,
                     help="comma-separated subset of family names")
+    rs.add_argument("--render-media", action="store_true",
+                    help=("render per-task planar media (off by "
+                          "default for run-suite)"))
+    rs.add_argument("--write-dashboard-html", action="store_true",
+                    help=("write per-task dashboard.html (off by "
+                          "default for run-suite)"))
     rs.set_defaults(func=_cmd_run_suite)
 
     nc = sub.add_parser(

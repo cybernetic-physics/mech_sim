@@ -116,12 +116,20 @@ class ScenePort:
 
     The simulator uses port frames for two things: knowing where to
     drive (input_port) and which body's velocity to report (output_port).
+
+    A frame port targets a body; a revolute/prismatic port targets a
+    joint. ``target_type`` disambiguates; ``target_id`` is the actual
+    referenced id, and the legacy ``body_id`` and new ``joint_id``
+    attributes are populated for backwards-compat consumers.
     """
 
     id: str
     body_id: str
     kind: str = "frame"
     pose_local_mm: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    target_type: str = "body"
+    target_id: str = ""
+    joint_id: str | None = None
 
 
 @dataclass
@@ -287,13 +295,29 @@ def build_scene_graph_from_design_ir(
         ))
 
     ports: dict[str, ScenePort] = {}
+    joint_id_set = {j.id for j in ir.joints}
     for pid, port in ir.ports.items():
-        ports[pid] = ScenePort(
-            id=port.id,
-            body_id=port.part,
-            kind=port.kind,
-            pose_local_mm=tuple(port.pose_local_mm),
-        )
+        is_joint = port.kind in ("revolute_joint", "prismatic_joint")
+        if is_joint:
+            ports[pid] = ScenePort(
+                id=port.id,
+                body_id="",
+                kind=port.kind,
+                pose_local_mm=tuple(port.pose_local_mm),
+                target_type="joint",
+                target_id=port.part,
+                joint_id=port.part,
+            )
+        else:
+            ports[pid] = ScenePort(
+                id=port.id,
+                body_id=port.part,
+                kind=port.kind,
+                pose_local_mm=tuple(port.pose_local_mm),
+                target_type="body",
+                target_id=port.part,
+                joint_id=None,
+            )
 
     preflight: list[Failure] = []
     body_ids = {b.id for b in bodies}
@@ -308,6 +332,23 @@ def build_scene_graph_from_design_ir(
                 message=(f"SceneGraph: required port {required!r} is "
                          f"absent from the DesignIR."),
                 where="scene_graph.ports",
+            ))
+
+    # Joint-target preflight: revolute/prismatic ports must reference
+    # an existing joint id, not a phantom one.
+    for pid, port in ports.items():
+        if port.target_type != "joint":
+            continue
+        if (port.joint_id or port.target_id) not in joint_id_set:
+            preflight.append(Failure(
+                code=FailureCode.MISSING_PORT,
+                severity=Severity.CRITICAL,
+                message=(
+                    f"SceneGraph: port {pid!r} ({port.kind}) targets "
+                    f"joint {(port.joint_id or port.target_id)!r} "
+                    f"which is not in the DesignIR."
+                ),
+                where=f"scene_graph.ports.{pid}",
             ))
 
     # Contact-pair preflight.
@@ -344,7 +385,11 @@ def build_scene_graph_from_design_ir(
         # Motors reference ports; resolve port → joint when possible.
         ref = m["joint_id"]
         if ref in ports:
-            ref_joint = ports[ref].body_id
+            port_obj = ports[ref]
+            if port_obj.target_type == "joint":
+                ref_joint = port_obj.joint_id or port_obj.target_id
+            else:
+                ref_joint = port_obj.body_id
         else:
             ref_joint = ref
         if ref_joint not in joint_ids and ref not in ports:
@@ -366,7 +411,11 @@ def build_scene_graph_from_design_ir(
     for ld in load_specs:
         ref = ld["joint_id"]
         if ref in ports:
-            ref_joint = ports[ref].body_id
+            port_obj = ports[ref]
+            if port_obj.target_type == "joint":
+                ref_joint = port_obj.joint_id or port_obj.target_id
+            else:
+                ref_joint = port_obj.body_id
         else:
             ref_joint = ref
         if ref_joint not in joint_ids and ref not in ports:

@@ -82,6 +82,124 @@ class DesignIR:
             params=d.get("params", {}),
         )
 
+    @classmethod
+    def try_from_dict(
+        cls, raw: Any,
+    ) -> "tuple[DesignIR | None, list[str]]":
+        """Parse *raw* into a DesignIR without ever raising.
+
+        Returns ``(ir, errors)``. When ``errors`` is non-empty, the
+        evaluator should surface them as structured failures (typically
+        INVALID_ARTIFACT or SCHEMA_ERROR) rather than crashing.
+        """
+        errors: list[str] = []
+        if not isinstance(raw, dict):
+            return None, [
+                f"DesignIR root must be a dict, got "
+                f"{type(raw).__name__}.",
+            ]
+        sv = raw.get("schema_version")
+        if not isinstance(sv, str) or not sv:
+            errors.append(
+                "Missing or non-string 'schema_version' key.")
+        raw_parts = raw.get("parts")
+        if not isinstance(raw_parts, list):
+            errors.append(
+                f"'parts' must be a list, got "
+                f"{type(raw_parts).__name__}."
+            )
+            raw_parts = []
+        raw_joints = raw.get("joints")
+        if not isinstance(raw_joints, list):
+            errors.append(
+                f"'joints' must be a list, got "
+                f"{type(raw_joints).__name__}."
+            )
+            raw_joints = []
+        raw_ports = raw.get("ports")
+        if not isinstance(raw_ports, dict):
+            errors.append(
+                f"'ports' must be a dict[str, dict], got "
+                f"{type(raw_ports).__name__}."
+            )
+            raw_ports = {}
+        raw_params = raw.get("params", {})
+        if raw_params is None:
+            raw_params = {}
+        if not isinstance(raw_params, dict):
+            errors.append(
+                f"'params' must be a dict if present, got "
+                f"{type(raw_params).__name__}."
+            )
+            raw_params = {}
+
+        parts: list[Part] = []
+        for i, p in enumerate(raw_parts):
+            if isinstance(p, Part):
+                parts.append(p)
+                continue
+            if not isinstance(p, dict):
+                errors.append(
+                    f"parts[{i}] must be a dict, got "
+                    f"{type(p).__name__}."
+                )
+                continue
+            try:
+                parts.append(Part(**p))
+            except (TypeError, ValueError, AttributeError, KeyError) as e:
+                errors.append(
+                    f"parts[{i}] malformed: "
+                    f"{type(e).__name__}: {e}"
+                )
+
+        joints: list[Joint] = []
+        for i, j in enumerate(raw_joints):
+            if isinstance(j, Joint):
+                joints.append(j)
+                continue
+            if not isinstance(j, dict):
+                errors.append(
+                    f"joints[{i}] must be a dict, got "
+                    f"{type(j).__name__}."
+                )
+                continue
+            try:
+                joints.append(Joint(**j))
+            except (TypeError, ValueError, AttributeError, KeyError) as e:
+                errors.append(
+                    f"joints[{i}] malformed: "
+                    f"{type(e).__name__}: {e}"
+                )
+
+        ports: dict[str, Port] = {}
+        for k, v in raw_ports.items():
+            if isinstance(v, Port):
+                ports[str(k)] = v
+                continue
+            if not isinstance(v, dict):
+                errors.append(
+                    f"ports[{k!r}] must be a dict, got "
+                    f"{type(v).__name__}."
+                )
+                continue
+            try:
+                ports[str(k)] = Port(**v)
+            except (TypeError, ValueError, AttributeError, KeyError) as e:
+                errors.append(
+                    f"ports[{k!r}] malformed: "
+                    f"{type(e).__name__}: {e}"
+                )
+
+        if errors:
+            return None, errors
+        return cls(
+            schema_version=str(sv),
+            parts=parts,
+            joints=joints,
+            ports=ports,
+            params=raw_params,
+        ), []
+
     def part_ids(self) -> set[str]:
         return {p.id for p in self.parts}
 
