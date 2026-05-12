@@ -1,11 +1,14 @@
 """`mech-bench` CLI.
 
 Subcommands:
-  evaluate      Score a submission against a task
-  list-probes   Show registered probe types and their capabilities
-  list-adapters Show registered adapters and their capabilities
-  package-run   Collect/normalize a packaged run directory
-  video         Render an mp4 preview for a packaged run (placeholder)
+  evaluate                  Score a submission against a task
+  list-probes               Show registered probe types and their capabilities
+  list-adapters             Show registered adapters and their capabilities
+  package-run               Collect/normalize a packaged run directory
+  video                     Render an mp4 preview for a packaged run
+  generate-suite            Procedurally generate a benchmark suite
+  run-suite                 Evaluate a suite and write an aggregate summary
+  check-negative-controls   Verify expected_failures.json for every task
 """
 
 from __future__ import annotations
@@ -95,6 +98,69 @@ def _cmd_package_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_generate_suite(args: argparse.Namespace) -> int:
+    from mech_bench.generators.benchmark_suite import (
+        generate_suite, family_names,
+    )
+
+    out_dir = Path(args.out)
+    families = args.families.split(",") if args.families else None
+    if families is not None:
+        known = set(family_names())
+        unknown = [f for f in families if f not in known]
+        if unknown:
+            print(f"error: unknown families {unknown!r}. "
+                  f"Known: {sorted(known)!r}", file=sys.stderr)
+            return 2
+    written = generate_suite(
+        out_dir,
+        count_per_family=args.count_per_family,
+        base_seed=args.seed,
+        families=families,
+        difficulty=args.difficulty,
+    )
+    summary = {
+        "out_dir": str(out_dir),
+        "n_tasks": len(written),
+        "families": sorted({p.name.rsplit("_s", 1)[0] for p in written}),
+        "tasks": [p.name for p in written],
+    }
+    print(json.dumps(summary, indent=2))
+    return 0
+
+
+def _cmd_run_suite(args: argparse.Namespace) -> int:
+    from mech_bench.benchmark import run_suite
+
+    summary = run_suite(
+        Path(args.tasks),
+        submissions=("negative" if args.negative else args.submissions),
+        negative=args.negative,
+        eval_mode=args.eval,
+        report_dir=Path(args.report_dir) if args.report_dir else None,
+        families=(args.families.split(",") if args.families else None),
+    )
+    # Print a compact summary to stdout; the full JSON is on disk.
+    compact = {k: summary[k] for k in (
+        "n_tasks", "eval_mode", "overall_score_mean",
+        "overall_score_median", "pass_rate", "hard_gate_pass_rate",
+        "public_score_mean", "hidden_score_mean",
+        "generalization_gap_mean", "capability_unavailable_n",
+    )}
+    print(json.dumps(compact, indent=2, default=str))
+    return 0
+
+
+def _cmd_check_negative_controls(args: argparse.Namespace) -> int:
+    from mech_bench.benchmark import check_negative_controls
+
+    checks, summary = check_negative_controls(
+        Path(args.tasks), eval_mode=args.eval,
+    )
+    print(json.dumps(summary, indent=2, default=str))
+    return 0 if summary.get("all_passed") else 1
+
+
 def _cmd_video(args: argparse.Namespace) -> int:
     from mech_bench.video import FrameSequenceRenderer
 
@@ -171,6 +237,49 @@ def main(argv: list[str] | None = None) -> int:
     pr.add_argument("--report-dir", required=True,
                     help="directory previously written by `evaluate --report-dir`")
     pr.set_defaults(func=_cmd_package_run)
+
+    gs = sub.add_parser(
+        "generate-suite",
+        help="Procedurally generate a benchmark suite of tasks",
+    )
+    gs.add_argument("--out", required=True, help="output directory")
+    gs.add_argument("--count-per-family", type=int, default=5)
+    gs.add_argument("--seed", type=int, default=0,
+                    help="base seed; family seeds are base + 0..N-1")
+    gs.add_argument("--families", default=None,
+                    help="comma-separated subset of family names")
+    gs.add_argument("--difficulty", type=int, default=None)
+    gs.set_defaults(func=_cmd_generate_suite)
+
+    rs = sub.add_parser("run-suite",
+                         help="Evaluate every task in a suite")
+    rs.add_argument("--tasks", required=True,
+                    help="directory of generated tasks")
+    rs.add_argument("--submissions", default="reference",
+                    choices=["reference", "negative"],
+                    help="which submission per task to score")
+    rs.add_argument("--negative", default=None,
+                    help=("negative-control case name (implies "
+                          "--submissions negative)"))
+    rs.add_argument("--report-dir", default=None,
+                    help="write per-task report bundles and summary here")
+    rs.add_argument("--eval", default="public",
+                    choices=["public", "hidden", "both"],
+                    help="which eval config variant(s) to run")
+    rs.add_argument("--families", default=None,
+                    help="comma-separated subset of family names")
+    rs.set_defaults(func=_cmd_run_suite)
+
+    nc = sub.add_parser(
+        "check-negative-controls",
+        help=("Run every negative control and verify expected_failures.json; "
+              "exit 1 if any expectation is missed"),
+    )
+    nc.add_argument("--tasks", required=True,
+                    help="directory of generated tasks")
+    nc.add_argument("--eval", default="public",
+                    choices=["public", "hidden", "both"])
+    nc.set_defaults(func=_cmd_check_negative_controls)
 
     vd = sub.add_parser(
         "video",

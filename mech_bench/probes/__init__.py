@@ -106,3 +106,4 @@ from mech_bench.probes import lockup  # noqa: E402, F401
 from mech_bench.probes import torque_load_trial  # noqa: E402, F401
 from mech_bench.probes import printability_dfam  # noqa: E402, F401
 from mech_bench.probes import safety_factor  # noqa: E402, F401
+from mech_bench.probes import analytic_param_check  # noqa: E402, F401

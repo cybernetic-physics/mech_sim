@@ -1,0 +1,884 @@
+"""Tier 2 (transmission-analytic) and Tier 3 (contact-dynamics stub)
+generators.
+
+The Tier-2 families all reduce to a declared-ratio check:
+
+* ``spur_gear_ratio_analytic`` — declared ``ratio = teeth_out / teeth_in``.
+* ``rack_pinion_conversion``   — declared ``linear_per_rev = 2π · pitch_radius``.
+* ``belt_pulley_ratio``        — declared ``ratio = D_out / D_in``.
+
+Reference solutions encode the correct relationship; negative
+controls perturb the declared value (wrong_ratio, hard-gate passes,
+dense score drops) or remove a required port (missing_port, hard-gate
+fails).
+
+The Tier-3 stubs (``contact_gear_pair_stub``, ``cycloidal_lowN_stub``)
+declare probes that require contact-force or torque-load adapters
+which are NOT registered in this build. Their reference solutions are
+otherwise valid, so the evaluator surfaces
+``capability_unavailable``; the benchmark runner counts those
+separately.
+"""
+
+from __future__ import annotations
+
+import random
+from typing import Any
+
+from mech_bench.generators.base import (
+    GeneratedTask,
+    TaskGenerator,
+    common_metadata,
+    make_task_id,
+)
+from mech_bench.generators.static_fit import _negative_overlay
+
+
+_PUBLIC_HEAD = (
+    "# auto-generated; do not edit by hand. See mech_bench.generators.\n"
+)
+
+
+# --------------------------------------------------------------------- #
+# Spur gear ratio (analytic)                                            #
+# --------------------------------------------------------------------- #
+
+
+def _two_gear_reference_py(teeth_in: int, teeth_out: int,
+                             declared_ratio: float) -> str:
+    return (
+        _PUBLIC_HEAD
+        + "from pathlib import Path\n\n\n"
+        + "def build_design(out_dir: Path) -> dict:\n"
+        + f"    TEETH_IN = {teeth_in}\n"
+        + f"    TEETH_OUT = {teeth_out}\n"
+        + f"    DECLARED_RATIO = {declared_ratio}\n"
+        + "    parts = [\n"
+        + "        {'id': 'frame', 'role': 'ground', 'mass_kg': 0.0, "
+        "'fixed': True, 'com_local_mm': (0.0, 0.0, 0.0)},\n"
+        + "        {'id': 'pinion', 'role': 'gear_input', 'mass_kg': 0.02, "
+        "'com_local_mm': (0.0, 0.0, 0.0), "
+        "'params': {'teeth': TEETH_IN}},\n"
+        + "        {'id': 'gear', 'role': 'gear_output', 'mass_kg': 0.05, "
+        "'com_local_mm': (0.0, 0.0, 0.0), "
+        "'params': {'teeth': TEETH_OUT}},\n"
+        + "    ]\n"
+        + "    joints = [\n"
+        + "        {'id': 'pinion_axis', 'type': 'revolute', "
+        "'parent': 'frame', 'child': 'pinion', "
+        "'axis_world': (0.0, 0.0, 1.0), "
+        "'anchor_world_mm': (0.0, 0.0, 0.0)},\n"
+        + "        {'id': 'gear_axis', 'type': 'revolute', "
+        "'parent': 'frame', 'child': 'gear', "
+        "'axis_world': (0.0, 0.0, 1.0), "
+        "'anchor_world_mm': (40.0, 0.0, 0.0)},\n"
+        + "    ]\n"
+        + "    ports = {\n"
+        + "        'input_port': {'id': 'input_port', "
+        "'part': 'pinion_axis', 'kind': 'revolute_joint', "
+        "'pose_local_mm': (0.0, 0.0, 0.0)},\n"
+        + "        'output_port': {'id': 'output_port', "
+        "'part': 'gear_axis', 'kind': 'revolute_joint', "
+        "'pose_local_mm': (0.0, 0.0, 0.0)},\n"
+        + "    }\n"
+        + "    return {\n"
+        + "        'schema_version': 'design_ir.v2',\n"
+        + "        'parts': parts,\n"
+        + "        'joints': joints,\n"
+        + "        'ports': ports,\n"
+        + "        'params': {\n"
+        + "            'teeth_in': TEETH_IN,\n"
+        + "            'teeth_out': TEETH_OUT,\n"
+        + "            'declared_ratio': DECLARED_RATIO,\n"
+        + "        },\n"
+        + "    }\n"
+    )
+
+
+class SpurGearRatioAnalyticGenerator(TaskGenerator):
+    family = "spur_gear_ratio_analytic"
+    tier = "transmission_analytic"
+
+    def generate(self, seed: int, difficulty: int = 2) -> GeneratedTask:
+        rng = random.Random(seed + 5050)
+        teeth_in = rng.choice([12, 14, 15, 16, 18, 20, 24])
+        teeth_out = teeth_in * rng.choice([2, 3, 4, 5])
+        ratio = round(teeth_out / teeth_in, 6)
+
+        task_id = make_task_id(self.family, seed)
+        prompt = (
+            "# Spur gear ratio (analytic)\n\n"
+            f"Design a two-gear reducer with pinion ({teeth_in} teeth) "
+            f"and gear ({teeth_out} teeth).\n\n"
+            f"* Declare `params.declared_ratio` = teeth_out / teeth_in "
+            f"= {ratio}.\n"
+            "* Required ports: `input_port` (revolute_joint), "
+            "`output_port` (revolute_joint), both grounded.\n"
+            "* Mobility = 2 (two free axes, ungeared in this analytic "
+            "tier).\n"
+        )
+
+        task_toml: dict[str, Any] = {
+            "task": {"id": task_id, "family": self.family,
+                     "difficulty": int(difficulty), "units": "mm",
+                     "tier": self.tier},
+            "requirements": {
+                "required_ports": ["input_port", "output_port"],
+                "expected_mobility": 2,
+                "max_envelope_mm": [200, 200, 50],
+            },
+            "objective": {
+                "description": (
+                    f"Two-gear analytic ratio = {ratio}."
+                ),
+                "allow_massless_links": False,
+                "ground_required": True,
+            },
+            "visibility": {
+                "public_split": ["mobility", "ports", "ratio"],
+                "hidden_split": ["ratio"],
+            },
+        }
+
+        def _cfg(target_ratio: float, tol_pct: float) -> dict[str, Any]:
+            return {
+                "probes": [
+                    {"id": "mobility", "type": "dof_grubler",
+                     "space": "planar", "expected": 2, "tolerance": 0,
+                     "hard_gate": True, "severity": "critical"},
+                    {"id": "ports", "type": "required_ports",
+                     "ports": ["input_port", "output_port"],
+                     "require_grounded": ["input_port", "output_port"],
+                     "require_kinds": {"input_port": "revolute_joint",
+                                        "output_port": "revolute_joint"},
+                     "hard_gate": True, "severity": "critical"},
+                    {"id": "ratio", "type": "analytic_param_check",
+                     "path": "params.declared_ratio",
+                     "expected": float(target_ratio),
+                     "comparator": "eq",
+                     "tolerance_pct": float(tol_pct),
+                     "failure_code": "wrong_ratio",
+                     "weight": 1.0, "severity": "major"},
+                ],
+                "feedback": {
+                    "public_metrics": [
+                        "mobility.observed", "ports.ports_required",
+                        "ratio.observed", "ratio.expected",
+                    ],
+                    "hidden_metrics": ["ratio.error_pct"],
+                },
+                "hard_gate": {"require": ["mobility", "ports"]},
+            }
+
+        ref_py = _two_gear_reference_py(teeth_in, teeth_out, ratio)
+        negatives = {
+            "wrong_ratio": _negative_overlay(
+                f"    ir['params']['declared_ratio'] = "
+                f"{round(ratio * 1.5, 6)}"
+            ),
+            "missing_port": _negative_overlay(
+                "    del ir['ports']['output_port']"
+            ),
+        }
+        expected = {
+            "description": "Tier 2 spur_gear_ratio_analytic negatives.",
+            "controls": [
+                {
+                    "id": "wrong_ratio",
+                    "submission": "negative_solutions/wrong_ratio",
+                    "expected_failure_codes": ["wrong_ratio"],
+                    "expected_hard_gate_passed": True,
+                    "expected_score_below": 0.5,
+                },
+                {
+                    "id": "missing_port",
+                    "submission": "negative_solutions/missing_port",
+                    "expected_failure_codes": ["missing_port"],
+                    "expected_hard_gate_passed": False,
+                    "expected_score_below": 0.001,
+                },
+            ],
+        }
+        return GeneratedTask(
+            task_id=task_id, family=self.family,
+            difficulty=int(difficulty), prompt_md=prompt,
+            task_toml=task_toml,
+            eval_config_toml=_cfg(ratio, tol_pct=2.0),
+            eval_config_hidden_toml=_cfg(ratio, tol_pct=1.0),
+            fixtures={},
+            reference_solution_py=ref_py,
+            negative_solutions=negatives,
+            expected_failures=expected,
+            metadata=common_metadata(self.family, self.tier, seed,
+                                     difficulty,
+                                     teeth_in=teeth_in,
+                                     teeth_out=teeth_out,
+                                     ratio=ratio),
+        )
+
+
+# --------------------------------------------------------------------- #
+# Rack-and-pinion conversion (analytic)                                 #
+# --------------------------------------------------------------------- #
+
+
+def _rack_pinion_reference_py(pitch_radius_mm: float,
+                                linear_per_rev_mm: float) -> str:
+    return (
+        _PUBLIC_HEAD
+        + "from pathlib import Path\n\n\n"
+        + "def build_design(out_dir: Path) -> dict:\n"
+        + f"    PITCH_R = {pitch_radius_mm}\n"
+        + f"    LIN_PER_REV = {linear_per_rev_mm}\n"
+        + "    parts = [\n"
+        + "        {'id': 'frame', 'role': 'ground', 'mass_kg': 0.0, "
+        "'fixed': True, 'com_local_mm': (0.0, 0.0, 0.0)},\n"
+        + "        {'id': 'pinion', 'role': 'pinion', 'mass_kg': 0.02, "
+        "'com_local_mm': (0.0, 0.0, 0.0), "
+        "'params': {'pitch_radius_mm': PITCH_R}},\n"
+        + "        {'id': 'rack', 'role': 'rack', 'mass_kg': 0.04, "
+        "'com_local_mm': (0.0, 0.0, 0.0)},\n"
+        + "    ]\n"
+        + "    joints = [\n"
+        + "        {'id': 'pinion_axis', 'type': 'revolute', "
+        "'parent': 'frame', 'child': 'pinion', "
+        "'axis_world': (0.0, 0.0, 1.0), "
+        "'anchor_world_mm': (0.0, 0.0, 0.0)},\n"
+        + "        {'id': 'rack_slide', 'type': 'prismatic', "
+        "'parent': 'frame', 'child': 'rack', "
+        "'axis_world': (1.0, 0.0, 0.0), "
+        "'anchor_world_mm': (0.0, -PITCH_R, 0.0)},\n"
+        + "    ]\n"
+        + "    ports = {\n"
+        + "        'input_port': {'id': 'input_port', "
+        "'part': 'pinion_axis', 'kind': 'revolute_joint', "
+        "'pose_local_mm': (0.0, 0.0, 0.0)},\n"
+        + "        'output_port': {'id': 'output_port', "
+        "'part': 'rack_slide', 'kind': 'prismatic_joint', "
+        "'pose_local_mm': (0.0, 0.0, 0.0)},\n"
+        + "    }\n"
+        + "    return {\n"
+        + "        'schema_version': 'design_ir.v2',\n"
+        + "        'parts': parts,\n"
+        + "        'joints': joints,\n"
+        + "        'ports': ports,\n"
+        + "        'params': {\n"
+        + "            'pitch_radius_mm': PITCH_R,\n"
+        + "            'declared_linear_per_rev_mm': LIN_PER_REV,\n"
+        + "        },\n"
+        + "    }\n"
+    )
+
+
+class RackPinionConversionGenerator(TaskGenerator):
+    family = "rack_pinion_conversion"
+    tier = "transmission_analytic"
+
+    def generate(self, seed: int, difficulty: int = 2) -> GeneratedTask:
+        import math
+        rng = random.Random(seed + 8181)
+        pitch_radius_mm = round(rng.uniform(8.0, 25.0), 3)
+        linear_per_rev_mm = round(2.0 * math.pi * pitch_radius_mm, 4)
+
+        task_id = make_task_id(self.family, seed)
+        prompt = (
+            "# Rack-and-pinion conversion\n\n"
+            f"Design a rack-and-pinion with pinion pitch radius "
+            f"{pitch_radius_mm} mm.\n\n"
+            f"* Declare `params.declared_linear_per_rev_mm` = "
+            f"2π · pitch_radius = {linear_per_rev_mm} mm.\n"
+            "* Ports: `input_port` (revolute_joint), `output_port` "
+            "(prismatic_joint).\n"
+            "* Mobility = 2 (ungeared analytic tier).\n"
+        )
+
+        task_toml: dict[str, Any] = {
+            "task": {"id": task_id, "family": self.family,
+                     "difficulty": int(difficulty), "units": "mm",
+                     "tier": self.tier},
+            "requirements": {
+                "required_ports": ["input_port", "output_port"],
+                "expected_mobility": 2,
+                "max_envelope_mm": [200, 200, 50],
+            },
+            "objective": {
+                "description": (
+                    f"Rack-and-pinion: declare linear/rev = "
+                    f"{linear_per_rev_mm} mm."
+                ),
+                "allow_massless_links": False,
+                "ground_required": True,
+            },
+            "visibility": {
+                "public_split": ["mobility", "ports", "linear_per_rev"],
+                "hidden_split": ["linear_per_rev"],
+            },
+        }
+
+        def _cfg(target: float, tol_pct: float) -> dict[str, Any]:
+            return {
+                "probes": [
+                    {"id": "mobility", "type": "dof_grubler",
+                     "space": "planar", "expected": 2, "tolerance": 0,
+                     "hard_gate": True, "severity": "critical"},
+                    {"id": "ports", "type": "required_ports",
+                     "ports": ["input_port", "output_port"],
+                     "require_grounded": ["input_port"],
+                     "require_kinds": {"input_port": "revolute_joint",
+                                        "output_port": "prismatic_joint"},
+                     "hard_gate": True, "severity": "critical"},
+                    {"id": "linear_per_rev", "type": "analytic_param_check",
+                     "path": "params.declared_linear_per_rev_mm",
+                     "expected": float(target),
+                     "comparator": "eq",
+                     "tolerance_pct": float(tol_pct),
+                     "failure_code": "wrong_ratio",
+                     "weight": 1.0, "severity": "major"},
+                ],
+                "feedback": {
+                    "public_metrics": [
+                        "mobility.observed", "linear_per_rev.observed",
+                        "linear_per_rev.expected",
+                    ],
+                    "hidden_metrics": ["linear_per_rev.error_pct"],
+                },
+                "hard_gate": {"require": ["mobility", "ports"]},
+            }
+
+        ref_py = _rack_pinion_reference_py(pitch_radius_mm,
+                                              linear_per_rev_mm)
+        negatives = {
+            "wrong_ratio": _negative_overlay(
+                f"    ir['params']['declared_linear_per_rev_mm'] = "
+                f"{round(linear_per_rev_mm * 0.7, 4)}"
+            ),
+            "missing_port": _negative_overlay(
+                "    del ir['ports']['input_port']"
+            ),
+        }
+        expected = {
+            "description": "Tier 2 rack_pinion_conversion negatives.",
+            "controls": [
+                {
+                    "id": "wrong_ratio",
+                    "submission": "negative_solutions/wrong_ratio",
+                    "expected_failure_codes": ["wrong_ratio"],
+                    "expected_hard_gate_passed": True,
+                    "expected_score_below": 0.5,
+                },
+                {
+                    "id": "missing_port",
+                    "submission": "negative_solutions/missing_port",
+                    "expected_failure_codes": ["missing_port"],
+                    "expected_hard_gate_passed": False,
+                    "expected_score_below": 0.001,
+                },
+            ],
+        }
+        return GeneratedTask(
+            task_id=task_id, family=self.family,
+            difficulty=int(difficulty), prompt_md=prompt,
+            task_toml=task_toml,
+            eval_config_toml=_cfg(linear_per_rev_mm, tol_pct=1.5),
+            eval_config_hidden_toml=_cfg(linear_per_rev_mm, tol_pct=0.8),
+            fixtures={},
+            reference_solution_py=ref_py,
+            negative_solutions=negatives,
+            expected_failures=expected,
+            metadata=common_metadata(self.family, self.tier, seed,
+                                     difficulty,
+                                     pitch_radius_mm=pitch_radius_mm,
+                                     target_linear_per_rev_mm=linear_per_rev_mm),
+        )
+
+
+# --------------------------------------------------------------------- #
+# Belt-pulley ratio (analytic)                                          #
+# --------------------------------------------------------------------- #
+
+
+def _belt_pulley_reference_py(d_in: float, d_out: float,
+                                  ratio: float) -> str:
+    return (
+        _PUBLIC_HEAD
+        + "from pathlib import Path\n\n\n"
+        + "def build_design(out_dir: Path) -> dict:\n"
+        + f"    D_IN = {d_in}\n"
+        + f"    D_OUT = {d_out}\n"
+        + f"    RATIO = {ratio}\n"
+        + "    parts = [\n"
+        + "        {'id': 'frame', 'role': 'ground', 'mass_kg': 0.0, "
+        "'fixed': True, 'com_local_mm': (0.0, 0.0, 0.0)},\n"
+        + "        {'id': 'drive', 'role': 'pulley_drive', "
+        "'mass_kg': 0.03, 'com_local_mm': (0.0, 0.0, 0.0), "
+        "'params': {'diameter_mm': D_IN}},\n"
+        + "        {'id': 'driven', 'role': 'pulley_driven', "
+        "'mass_kg': 0.05, 'com_local_mm': (0.0, 0.0, 0.0), "
+        "'params': {'diameter_mm': D_OUT}},\n"
+        + "    ]\n"
+        + "    joints = [\n"
+        + "        {'id': 'drive_axis', 'type': 'revolute', "
+        "'parent': 'frame', 'child': 'drive', "
+        "'axis_world': (0.0, 0.0, 1.0), "
+        "'anchor_world_mm': (0.0, 0.0, 0.0)},\n"
+        + "        {'id': 'driven_axis', 'type': 'revolute', "
+        "'parent': 'frame', 'child': 'driven', "
+        "'axis_world': (0.0, 0.0, 1.0), "
+        "'anchor_world_mm': (120.0, 0.0, 0.0)},\n"
+        + "    ]\n"
+        + "    ports = {\n"
+        + "        'input_port': {'id': 'input_port', "
+        "'part': 'drive_axis', 'kind': 'revolute_joint', "
+        "'pose_local_mm': (0.0, 0.0, 0.0)},\n"
+        + "        'output_port': {'id': 'output_port', "
+        "'part': 'driven_axis', 'kind': 'revolute_joint', "
+        "'pose_local_mm': (0.0, 0.0, 0.0)},\n"
+        + "    }\n"
+        + "    return {\n"
+        + "        'schema_version': 'design_ir.v2',\n"
+        + "        'parts': parts,\n"
+        + "        'joints': joints,\n"
+        + "        'ports': ports,\n"
+        + "        'params': {\n"
+        + "            'drive_diameter_mm': D_IN,\n"
+        + "            'driven_diameter_mm': D_OUT,\n"
+        + "            'declared_ratio': RATIO,\n"
+        + "        },\n"
+        + "    }\n"
+    )
+
+
+class BeltPulleyRatioGenerator(TaskGenerator):
+    family = "belt_pulley_ratio"
+    tier = "transmission_analytic"
+
+    def generate(self, seed: int, difficulty: int = 2) -> GeneratedTask:
+        rng = random.Random(seed + 9192)
+        d_in = round(rng.uniform(20.0, 40.0), 2)
+        d_out = round(d_in * rng.choice([1.5, 2.0, 2.5, 3.0, 4.0]), 2)
+        ratio = round(d_out / d_in, 6)
+
+        task_id = make_task_id(self.family, seed)
+        prompt = (
+            "# Belt-pulley ratio (analytic)\n\n"
+            f"Design a two-pulley belt drive with drive Ø{d_in} mm and "
+            f"driven Ø{d_out} mm.\n\n"
+            f"* Declare `params.declared_ratio` = D_out / D_in = {ratio}.\n"
+            "* Ports: `input_port`, `output_port` (revolute_joint, "
+            "both grounded).\n"
+            "* Mobility = 2 (ungeared analytic tier).\n"
+        )
+
+        task_toml: dict[str, Any] = {
+            "task": {"id": task_id, "family": self.family,
+                     "difficulty": int(difficulty), "units": "mm",
+                     "tier": self.tier},
+            "requirements": {
+                "required_ports": ["input_port", "output_port"],
+                "expected_mobility": 2,
+                "max_envelope_mm": [200, 200, 50],
+            },
+            "objective": {
+                "description": f"Belt-pulley analytic ratio = {ratio}.",
+                "allow_massless_links": False,
+                "ground_required": True,
+            },
+            "visibility": {
+                "public_split": ["mobility", "ports", "ratio"],
+                "hidden_split": ["ratio"],
+            },
+        }
+
+        def _cfg(target_ratio: float, tol_pct: float) -> dict[str, Any]:
+            return {
+                "probes": [
+                    {"id": "mobility", "type": "dof_grubler",
+                     "space": "planar", "expected": 2, "tolerance": 0,
+                     "hard_gate": True, "severity": "critical"},
+                    {"id": "ports", "type": "required_ports",
+                     "ports": ["input_port", "output_port"],
+                     "require_grounded": ["input_port", "output_port"],
+                     "require_kinds": {"input_port": "revolute_joint",
+                                        "output_port": "revolute_joint"},
+                     "hard_gate": True, "severity": "critical"},
+                    {"id": "ratio", "type": "analytic_param_check",
+                     "path": "params.declared_ratio",
+                     "expected": float(target_ratio),
+                     "comparator": "eq",
+                     "tolerance_pct": float(tol_pct),
+                     "failure_code": "wrong_ratio",
+                     "weight": 1.0, "severity": "major"},
+                ],
+                "feedback": {
+                    "public_metrics": [
+                        "mobility.observed", "ports.ports_required",
+                        "ratio.observed", "ratio.expected",
+                    ],
+                    "hidden_metrics": ["ratio.error_pct"],
+                },
+                "hard_gate": {"require": ["mobility", "ports"]},
+            }
+
+        ref_py = _belt_pulley_reference_py(d_in, d_out, ratio)
+        negatives = {
+            "wrong_ratio": _negative_overlay(
+                f"    ir['params']['declared_ratio'] = "
+                f"{round(ratio * 0.5, 6)}"
+            ),
+            "missing_port": _negative_overlay(
+                "    del ir['ports']['output_port']"
+            ),
+        }
+        expected = {
+            "description": "Tier 2 belt_pulley_ratio negatives.",
+            "controls": [
+                {
+                    "id": "wrong_ratio",
+                    "submission": "negative_solutions/wrong_ratio",
+                    "expected_failure_codes": ["wrong_ratio"],
+                    "expected_hard_gate_passed": True,
+                    "expected_score_below": 0.5,
+                },
+                {
+                    "id": "missing_port",
+                    "submission": "negative_solutions/missing_port",
+                    "expected_failure_codes": ["missing_port"],
+                    "expected_hard_gate_passed": False,
+                    "expected_score_below": 0.001,
+                },
+            ],
+        }
+        return GeneratedTask(
+            task_id=task_id, family=self.family,
+            difficulty=int(difficulty), prompt_md=prompt,
+            task_toml=task_toml,
+            eval_config_toml=_cfg(ratio, tol_pct=2.0),
+            eval_config_hidden_toml=_cfg(ratio, tol_pct=1.0),
+            fixtures={},
+            reference_solution_py=ref_py,
+            negative_solutions=negatives,
+            expected_failures=expected,
+            metadata=common_metadata(self.family, self.tier, seed,
+                                     difficulty,
+                                     drive_d_mm=d_in,
+                                     driven_d_mm=d_out, ratio=ratio),
+        )
+
+
+# --------------------------------------------------------------------- #
+# Tier 3 stubs — contact-dynamics, expected to surface                  #
+# capability_unavailable until a contact adapter ships.                 #
+# --------------------------------------------------------------------- #
+
+
+class ContactGearPairStubGenerator(TaskGenerator):
+    family = "contact_gear_pair_stub"
+    tier = "contact_dynamics"
+
+    def generate(self, seed: int, difficulty: int = 3) -> GeneratedTask:
+        rng = random.Random(seed + 22222)
+        teeth_in = rng.choice([12, 14, 16, 18])
+        teeth_out = teeth_in * rng.choice([2, 3, 4])
+
+        task_id = make_task_id(self.family, seed)
+        prompt = (
+            "# Contact gear pair (stub)\n\n"
+            f"Two-gear contact-loaded design with {teeth_in}/{teeth_out} "
+            "teeth.\n\n"
+            "This task requires a contact-force-capable adapter that is "
+            "not registered in this build. The evaluator should surface "
+            "`capability_unavailable`. Once a Chrono / MuJoCo adapter "
+            "lands, only the eval config changes.\n"
+        )
+
+        ref_py = _two_gear_reference_py(teeth_in, teeth_out,
+                                          teeth_out / teeth_in)
+
+        task_toml: dict[str, Any] = {
+            "task": {"id": task_id, "family": self.family,
+                     "difficulty": int(difficulty), "units": "mm",
+                     "tier": self.tier},
+            "requirements": {
+                "required_ports": ["input_port", "output_port"],
+                "expected_mobility": 2,
+                "max_envelope_mm": [200, 200, 50],
+            },
+            "objective": {
+                "description": "Contact-loaded two-gear pair.",
+                "allow_massless_links": False,
+                "ground_required": True,
+            },
+            "visibility": {
+                "public_split": ["mobility", "ports"],
+                "hidden_split": ["contact"],
+            },
+            "capability": {
+                "requires_adapter": "contact_forces",
+                "expect_capability_unavailable": True,
+            },
+        }
+
+        def _cfg(min_force: float) -> dict[str, Any]:
+            return {
+                "probes": [
+                    {"id": "mobility", "type": "dof_grubler",
+                     "space": "planar", "expected": 2, "tolerance": 0,
+                     "hard_gate": True, "severity": "critical"},
+                    {"id": "ports", "type": "required_ports",
+                     "ports": ["input_port", "output_port"],
+                     "require_grounded": ["input_port", "output_port"],
+                     "hard_gate": True, "severity": "critical"},
+                    {"id": "contact", "type": "contact_engagement",
+                     "required_pairs": ["pinion:gear"],
+                     "min_rms_force_N": float(min_force),
+                     "min_engagement_fraction": 0.2,
+                     "weight": 1.0, "severity": "critical"},
+                ],
+                "feedback": {
+                    "public_metrics": [
+                        "mobility.observed",
+                        "contact.contact.pinion:gear.rms_N",
+                    ],
+                    "hidden_metrics": [],
+                },
+                "hard_gate": {"require": ["mobility", "ports"]},
+                "adapters": {
+                    "chrono_contact": {"samples": 720},
+                },
+            }
+
+        expected = {
+            "description": (
+                "Tier 3 contact_gear_pair_stub — capability-unavailable "
+                "regression."),
+            "controls": [
+                {
+                    "id": "missing_port",
+                    "submission": "negative_solutions/missing_port",
+                    "expected_failure_codes": ["missing_port"],
+                    "expected_hard_gate_passed": False,
+                    "expected_score_below": 0.001,
+                },
+                {
+                    "id": "no_contact_geometry",
+                    "submission": "negative_solutions/no_contact_geometry",
+                    # Reference & negatives both surface
+                    # capability_unavailable until a contact adapter
+                    # registers; the runner counts these separately.
+                    "expected_failure_codes": ["capability_unavailable"],
+                    "expected_hard_gate_passed": False,
+                    "expected_score_below": 0.001,
+                },
+            ],
+        }
+        negatives = {
+            "missing_port": _negative_overlay(
+                "    del ir['ports']['output_port']"
+            ),
+            "no_contact_geometry": _negative_overlay(
+                "    ir['params']['declared_ratio'] = -1.0"
+            ),
+        }
+        return GeneratedTask(
+            task_id=task_id, family=self.family,
+            difficulty=int(difficulty), prompt_md=prompt,
+            task_toml=task_toml,
+            eval_config_toml=_cfg(0.5),
+            eval_config_hidden_toml=_cfg(1.0),
+            fixtures={},
+            reference_solution_py=ref_py,
+            negative_solutions=negatives,
+            expected_failures=expected,
+            metadata=common_metadata(self.family, self.tier, seed,
+                                     difficulty,
+                                     teeth_in=teeth_in,
+                                     teeth_out=teeth_out,
+                                     requires_adapter="contact_forces"),
+        )
+
+
+class CycloidalLowNStubGenerator(TaskGenerator):
+    family = "cycloidal_lowN_stub"
+    tier = "contact_dynamics"
+
+    def generate(self, seed: int, difficulty: int = 3) -> GeneratedTask:
+        rng = random.Random(seed + 33333)
+        N_pins = rng.choice([8, 10, 12])
+        target_ratio = float(N_pins - 1)
+
+        task_id = make_task_id(self.family, seed)
+        prompt = (
+            "# Low-N cycloidal stub\n\n"
+            f"Single-stage cycloidal reducer with {N_pins} ring pins "
+            f"(target ratio {target_ratio:g}).\n\n"
+            "Requires torque-load and contact-force capabilities; "
+            "expected to surface `capability_unavailable` in this build.\n"
+        )
+
+        ref_py = (
+            _PUBLIC_HEAD
+            + "from pathlib import Path\n\n\n"
+            + "def build_design(out_dir: Path) -> dict:\n"
+            + f"    N_PINS = {N_pins}\n"
+            + f"    RATIO = {target_ratio}\n"
+            + "    parts = [\n"
+            + "        {'id': 'housing', 'role': 'ground', 'mass_kg': 0.0, "
+            "'fixed': True, 'com_local_mm': (0.0, 0.0, 0.0)},\n"
+            + "        {'id': 'eccentric', 'role': 'eccentric', "
+            "'mass_kg': 0.05, 'com_local_mm': (0.0, 0.0, 0.0)},\n"
+            + "        {'id': 'disc', 'role': 'cycloidal_disc', "
+            "'mass_kg': 0.08, 'com_local_mm': (0.0, 0.0, 0.0), "
+            "'params': {'pins': N_PINS}},\n"
+            + "        {'id': 'carrier', 'role': 'carrier', "
+            "'mass_kg': 0.04, 'com_local_mm': (0.0, 0.0, 0.0)},\n"
+            + "    ]\n"
+            + "    joints = [\n"
+            + "        {'id': 'input_revolute', 'type': 'revolute', "
+            "'parent': 'housing', 'child': 'eccentric', "
+            "'axis_world': (0.0, 0.0, 1.0), "
+            "'anchor_world_mm': (0.0, 0.0, 0.0)},\n"
+            + "        {'id': 'eccentric_disc', 'type': 'revolute', "
+            "'parent': 'eccentric', 'child': 'disc', "
+            "'axis_world': (0.0, 0.0, 1.0), "
+            "'anchor_world_mm': (1.0, 0.0, 0.0)},\n"
+            + "        {'id': 'output_revolute', 'type': 'revolute', "
+            "'parent': 'housing', 'child': 'carrier', "
+            "'axis_world': (0.0, 0.0, 1.0), "
+            "'anchor_world_mm': (0.0, 0.0, 0.0)},\n"
+            + "        {'id': 'ring_contact', 'type': 'contact_pair', "
+            "'parent': 'housing', 'child': 'disc', "
+            "'axis_world': (0.0, 0.0, 1.0), "
+            "'anchor_world_mm': (0.0, 0.0, 0.0)},\n"
+            + "    ]\n"
+            + "    ports = {\n"
+            + "        'input_port': {'id': 'input_port', "
+            "'part': 'input_revolute', 'kind': 'revolute_joint', "
+            "'pose_local_mm': (0.0, 0.0, 0.0)},\n"
+            + "        'output_port': {'id': 'output_port', "
+            "'part': 'output_revolute', 'kind': 'revolute_joint', "
+            "'pose_local_mm': (0.0, 0.0, 0.0)},\n"
+            + "    }\n"
+            + "    return {\n"
+            + "        'schema_version': 'design_ir.v2',\n"
+            + "        'parts': parts,\n"
+            + "        'joints': joints,\n"
+            + "        'ports': ports,\n"
+            + "        'params': {\n"
+            + "            'pins': N_PINS,\n"
+            + "            'declared_ratio': RATIO,\n"
+            + "        },\n"
+            + "    }\n"
+        )
+
+        task_toml: dict[str, Any] = {
+            "task": {"id": task_id, "family": self.family,
+                     "difficulty": int(difficulty), "units": "mm",
+                     "tier": self.tier},
+            "requirements": {
+                "required_ports": ["input_port", "output_port"],
+                "expected_mobility": 1,
+                "max_envelope_mm": [200, 200, 80],
+            },
+            "objective": {
+                "description": (
+                    f"Cycloidal reducer with {N_pins} ring pins; "
+                    f"declared ratio {target_ratio:g}."
+                ),
+                "allow_massless_links": False,
+                "ground_required": True,
+            },
+            "visibility": {
+                "public_split": ["mobility", "ports"],
+                "hidden_split": ["torque"],
+            },
+            "capability": {
+                "requires_adapter": "rigid_body_dynamics+contact_forces",
+                "expect_capability_unavailable": True,
+            },
+        }
+
+        def _cfg(input_speed: float, load: float) -> dict[str, Any]:
+            return {
+                "probes": [
+                    {"id": "ports", "type": "required_ports",
+                     "ports": ["input_port", "output_port"],
+                     "require_kinds": {"input_port": "revolute_joint",
+                                        "output_port": "revolute_joint"},
+                     "hard_gate": True, "severity": "critical"},
+                    {"id": "ratio", "type": "analytic_param_check",
+                     "path": "params.declared_ratio",
+                     "expected": float(target_ratio),
+                     "comparator": "eq",
+                     "tolerance_pct": 1.0,
+                     "failure_code": "wrong_ratio",
+                     "weight": 0.3, "severity": "major"},
+                    {"id": "torque", "type": "torque_load_trial",
+                     "input_port": "input_port",
+                     "output_port": "output_port",
+                     "input_speed_rad_s": float(input_speed),
+                     "output_load_Nm": float(load),
+                     "min_output_speed_rad_s": 0.001,
+                     "max_power_error_pct": 25.0,
+                     "max_torque_ripple_pct": 30.0,
+                     "weight": 0.7, "severity": "critical"},
+                ],
+                "feedback": {
+                    "public_metrics": [
+                        "ratio.observed", "ratio.expected",
+                        "torque.output_speed_observed_rad_s",
+                    ],
+                    "hidden_metrics": ["torque.torque_ripple_pct"],
+                },
+                "hard_gate": {"require": ["ports"]},
+                "adapters": {
+                    "chrono_contact": {"samples": 360},
+                },
+            }
+
+        negatives = {
+            "wrong_ratio": _negative_overlay(
+                f"    ir['params']['declared_ratio'] = "
+                f"{round(target_ratio * 0.5, 6)}"
+            ),
+            "missing_port": _negative_overlay(
+                "    del ir['ports']['input_port']"
+            ),
+        }
+        expected = {
+            "description": (
+                "Tier 3 cycloidal_lowN_stub — capability-unavailable "
+                "regression."),
+            "controls": [
+                {
+                    "id": "wrong_ratio",
+                    "submission": "negative_solutions/wrong_ratio",
+                    "expected_failure_codes":
+                        ["wrong_ratio", "capability_unavailable"],
+                    "expected_hard_gate_passed": False,
+                    "expected_score_below": 0.5,
+                },
+                {
+                    "id": "missing_port",
+                    "submission": "negative_solutions/missing_port",
+                    "expected_failure_codes": ["missing_port"],
+                    "expected_hard_gate_passed": False,
+                    "expected_score_below": 0.001,
+                },
+            ],
+        }
+        return GeneratedTask(
+            task_id=task_id, family=self.family,
+            difficulty=int(difficulty), prompt_md=prompt,
+            task_toml=task_toml,
+            eval_config_toml=_cfg(input_speed=10.0, load=0.05),
+            eval_config_hidden_toml=_cfg(input_speed=20.0, load=0.10),
+            fixtures={},
+            reference_solution_py=ref_py,
+            negative_solutions=negatives,
+            expected_failures=expected,
+            metadata=common_metadata(self.family, self.tier, seed,
+                                     difficulty,
+                                     pins=N_pins,
+                                     target_ratio=target_ratio,
+                                     requires_adapter="rigid_body_dynamics+contact_forces"),
+        )
