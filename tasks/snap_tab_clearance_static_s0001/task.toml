@@ -1,0 +1,15 @@
+[task]
+id = "snap_tab_clearance_static_s0001"
+family = "snap_tab_clearance_static"
+difficulty = 1
+units = "mm"
+tier = "artifact_static"
+
+[requirements]
+required_ports = ["body_face", "tab_face"]
+expected_mobility = 0
+max_envelope_mm = [100, 60, 50]
+
+[objective]
+description = "Snap-tab clearance / min wall."
+ground_required = false

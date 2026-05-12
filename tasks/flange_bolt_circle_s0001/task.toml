@@ -1,0 +1,15 @@
+[task]
+id = "flange_bolt_circle_s0001"
+family = "flange_bolt_circle"
+difficulty = 1
+units = "mm"
+tier = "artifact_static"
+
+[requirements]
+required_ports = ["flange_axis", "bolt_ref"]
+expected_mobility = 0
+max_envelope_mm = [200, 200, 50]
+
+[objective]
+description = "Flange BCD = 105.111 mm, 4 bolts."
+ground_required = false

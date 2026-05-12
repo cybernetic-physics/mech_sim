@@ -1,0 +1,39 @@
+[feedback]
+public_metrics = ["mobility.observed", "mobility.expected", "ports.ports_required", "ports.ports_present", "clearance.observed", "clearance.expected"]
+hidden_metrics = []
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 1
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["mount_a", "hinge_joint", "tip_b"]
+require_grounded = ["mount_a"]
+hard_gate = true
+severity = "critical"
+
+[probes.require_kinds]
+mount_a = "frame"
+hinge_joint = "revolute_joint"
+tip_b = "frame"
+
+[[probes]]
+id = "clearance"
+type = "analytic_param_check"
+path = "params.declared_pin_clearance_mm"
+expected = 0.15000000000000002
+comparator = "ge"
+tolerance_abs = 0.0
+failure_code = "insufficient_clearance"
+weight = 1.0
+severity = "major"

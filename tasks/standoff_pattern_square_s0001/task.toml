@@ -1,0 +1,15 @@
+[task]
+id = "standoff_pattern_square_s0001"
+family = "standoff_pattern_square"
+difficulty = 1
+units = "mm"
+tier = "artifact_static"
+
+[requirements]
+required_ports = ["so_1", "so_2", "so_3", "so_4"]
+expected_mobility = 0
+max_envelope_mm = [200, 200, 50]
+
+[objective]
+description = "Standoff square of side 58.874 mm."
+ground_required = false

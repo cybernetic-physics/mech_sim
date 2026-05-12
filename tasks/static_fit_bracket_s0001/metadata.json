@@ -1,0 +1,10 @@
+{
+  "family": "static_fit_bracket",
+  "tier": "artifact_static",
+  "seed": 1,
+  "difficulty": 1,
+  "min_wall_mm": 2.646,
+  "pitch_mm": 36.949,
+  "hole_diameter_mm": 5.075,
+  "task_id": "static_fit_bracket_s0001"
+}

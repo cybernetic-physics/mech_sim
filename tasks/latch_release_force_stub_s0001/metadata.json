@@ -1,0 +1,8 @@
+{
+  "family": "latch_release_force_stub",
+  "tier": "contact_dynamics",
+  "seed": 0,
+  "difficulty": 3,
+  "pair": "latch:strike",
+  "task_id": "latch_release_force_stub_s0001"
+}

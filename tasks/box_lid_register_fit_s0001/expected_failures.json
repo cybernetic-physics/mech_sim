@@ -1,0 +1,23 @@
+{
+  "description": "Tier 0 box_lid_register_fit negatives.",
+  "controls": [
+    {
+      "id": "no_lid_port",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001,
+      "submission": "negative_solutions/no_lid_port"
+    },
+    {
+      "id": "wrong_clearance",
+      "expected_failure_codes": [
+        "insufficient_clearance"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.6,
+      "submission": "negative_solutions/wrong_clearance"
+    }
+  ]
+}

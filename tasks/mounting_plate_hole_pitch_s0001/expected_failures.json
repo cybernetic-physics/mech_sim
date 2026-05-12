@@ -1,0 +1,23 @@
+{
+  "description": "Tier 0 mounting_plate_hole_pitch negatives.",
+  "controls": [
+    {
+      "id": "wrong_pitch",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.5,
+      "submission": "negative_solutions/wrong_pitch"
+    },
+    {
+      "id": "missing_mount_port",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001,
+      "submission": "negative_solutions/missing_mount_port"
+    }
+  ]
+}

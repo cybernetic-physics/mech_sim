@@ -1,0 +1,15 @@
+[task]
+id = "bearing_seat_clearance_s0001"
+family = "bearing_seat_clearance"
+difficulty = 1
+units = "mm"
+tier = "artifact_static"
+
+[requirements]
+required_ports = ["bore_face", "bearing_seat"]
+expected_mobility = 0
+max_envelope_mm = [120, 120, 50]
+
+[objective]
+description = "Bearing-seat clearance ≥ 0.02 mm."
+ground_required = false

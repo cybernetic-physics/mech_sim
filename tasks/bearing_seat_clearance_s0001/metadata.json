@@ -1,0 +1,10 @@
+{
+  "family": "bearing_seat_clearance",
+  "tier": "artifact_static",
+  "seed": 1,
+  "difficulty": 1,
+  "bore_d_mm": 29.923,
+  "bearing_od_mm": 29.873,
+  "target_clearance_mm": 0.02,
+  "task_id": "bearing_seat_clearance_s0001"
+}

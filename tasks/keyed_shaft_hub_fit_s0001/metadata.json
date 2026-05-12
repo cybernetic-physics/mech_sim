@@ -1,0 +1,9 @@
+{
+  "family": "keyed_shaft_hub_fit",
+  "tier": "artifact_static",
+  "seed": 1,
+  "difficulty": 1,
+  "shaft_diameter_mm": 11.071,
+  "keyway_width_mm": 5.467,
+  "task_id": "keyed_shaft_hub_fit_s0001"
+}

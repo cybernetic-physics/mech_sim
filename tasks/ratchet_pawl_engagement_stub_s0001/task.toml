@@ -1,0 +1,19 @@
+[task]
+id = "ratchet_pawl_engagement_stub_s0001"
+family = "ratchet_pawl_engagement_stub"
+difficulty = 3
+units = "mm"
+tier = "contact_dynamics"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 2
+max_envelope_mm = [200, 200, 80]
+
+[objective]
+description = "ratchet_pawl_engagement_stub synthetic contact stub."
+ground_required = true
+
+[capability]
+requires_adapter = "contact_forces"
+synthetic_oracle = true

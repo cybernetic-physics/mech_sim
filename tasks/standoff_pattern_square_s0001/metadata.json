@@ -1,0 +1,9 @@
+{
+  "family": "standoff_pattern_square",
+  "tier": "artifact_static",
+  "seed": 1,
+  "difficulty": 1,
+  "side_length_mm": 58.874,
+  "standoff_count": 4,
+  "task_id": "standoff_pattern_square_s0001"
+}

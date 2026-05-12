@@ -1,0 +1,51 @@
+[feedback]
+public_metrics = ["ports.ports_required", "contact.contact.latch:strike.rms_N", "release.observed"]
+hidden_metrics = []
+
+[hard_gate]
+require = ["ports", "contact"]
+
+[adapters.fake_contact_oracle]
+enabled = true
+contact_pairs = ["latch:strike"]
+contact_force_N = 5.0
+penetration_mm = 0.01
+samples = 360
+duration_s = 1.0
+input_speed_rad_s = 1.0
+output_load_Nm = 0.0
+torque_ripple_pct = 5.0
+power_balance_error_pct = 1.0
+lockup = false
+contact_engagement_fraction = 0.9
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["input_port"]
+
+[[probes]]
+id = "contact"
+type = "contact_engagement"
+required_pairs = ["latch:strike"]
+min_rms_force_N = 0.5
+min_engagement_fraction = 0.2
+weight = 1.0
+severity = "critical"
+hard_gate = true
+adapter = "fake_contact_oracle"
+
+[[probes]]
+id = "release"
+type = "analytic_param_check"
+path = "params.release_force_N"
+expected = 3.249
+comparator = "le"
+failure_code = "insufficient_clearance"
+weight = 0.5
+severity = "major"
+hard_gate = false
+tolerance_abs = 0.5

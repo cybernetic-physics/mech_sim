@@ -1,0 +1,8 @@
+{
+  "family": "ratchet_pawl_engagement_stub",
+  "tier": "contact_dynamics",
+  "seed": 0,
+  "difficulty": 3,
+  "pair": "ratchet:pawl",
+  "task_id": "ratchet_pawl_engagement_stub_s0001"
+}

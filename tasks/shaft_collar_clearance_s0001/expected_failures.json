@@ -1,0 +1,23 @@
+{
+  "description": "Tier 0 shaft_collar_clearance negative controls.",
+  "controls": [
+    {
+      "id": "missing_port",
+      "submission": "negative_solutions/missing_port",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001
+    },
+    {
+      "id": "tight_clearance",
+      "submission": "negative_solutions/tight_clearance",
+      "expected_failure_codes": [
+        "insufficient_clearance"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.5
+    }
+  ]
+}

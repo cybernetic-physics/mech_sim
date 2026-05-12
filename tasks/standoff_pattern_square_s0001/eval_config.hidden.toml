@@ -1,0 +1,46 @@
+[feedback]
+public_metrics = ["side.observed", "side.expected", "count.observed", "count.expected"]
+hidden_metrics = ["side.error_pct"]
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 0
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["so_1", "so_2", "so_3", "so_4"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["so_1", "so_2", "so_3", "so_4"]
+
+[[probes]]
+id = "side"
+type = "analytic_param_check"
+path = "params.side_length_mm"
+expected = 58.874
+comparator = "eq"
+failure_code = "wrong_ratio"
+weight = 0.7
+severity = "major"
+hard_gate = false
+tolerance_pct = 1.0
+
+[[probes]]
+id = "count"
+type = "analytic_param_check"
+path = "params.standoff_count"
+expected = 4.0
+comparator = "eq"
+failure_code = "invalid_artifact"
+weight = 0.3
+severity = "major"
+hard_gate = false

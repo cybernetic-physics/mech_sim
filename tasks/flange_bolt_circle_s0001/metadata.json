@@ -1,0 +1,9 @@
+{
+  "family": "flange_bolt_circle",
+  "tier": "artifact_static",
+  "seed": 1,
+  "difficulty": 1,
+  "bcd_mm": 105.111,
+  "bolt_count": 4,
+  "task_id": "flange_bolt_circle_s0001"
+}

@@ -1,0 +1,15 @@
+[task]
+id = "box_lid_register_fit_s0001"
+family = "box_lid_register_fit"
+difficulty = 1
+units = "mm"
+tier = "artifact_static"
+
+[requirements]
+required_ports = ["base_frame", "lid_frame"]
+expected_mobility = 0
+max_envelope_mm = [200, 150, 80]
+
+[objective]
+description = "Box-lid register clearance."
+ground_required = false

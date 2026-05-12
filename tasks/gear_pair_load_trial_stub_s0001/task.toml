@@ -1,0 +1,19 @@
+[task]
+id = "gear_pair_load_trial_stub_s0001"
+family = "gear_pair_load_trial_stub"
+difficulty = 3
+units = "mm"
+tier = "contact_dynamics"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 2
+max_envelope_mm = [200, 200, 80]
+
+[objective]
+description = "Gear pair load trial; ratio=2.0."
+ground_required = true
+
+[capability]
+requires_adapter = "contact_forces"
+synthetic_oracle = true

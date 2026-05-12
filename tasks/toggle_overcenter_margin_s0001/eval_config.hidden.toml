@@ -1,0 +1,34 @@
+[feedback]
+public_metrics = ["margin.observed", "margin.expected"]
+hidden_metrics = []
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 1
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["input_port", "output_port"]
+
+[[probes]]
+id = "margin"
+type = "analytic_param_check"
+path = "params.overcenter_margin_mm"
+expected = 2.7832000000000003
+comparator = "ge"
+failure_code = "insufficient_clearance"
+weight = 1.0
+severity = "major"
+hard_gate = false

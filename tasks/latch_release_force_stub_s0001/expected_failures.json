@@ -1,0 +1,23 @@
+{
+  "description": "Tier 3 latch_release_force_stub negatives.",
+  "controls": [
+    {
+      "id": "missing_port",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.5,
+      "submission": "negative_solutions/missing_port"
+    },
+    {
+      "id": "excessive_release_force",
+      "expected_failure_codes": [
+        "insufficient_clearance"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.7,
+      "submission": "negative_solutions/excessive_release_force"
+    }
+  ]
+}

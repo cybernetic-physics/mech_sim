@@ -1,0 +1,24 @@
+[task]
+id = "cycloidal_lowN_stub_s0001"
+family = "cycloidal_lowN_stub"
+difficulty = 3
+units = "mm"
+tier = "contact_dynamics"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 1
+max_envelope_mm = [200, 200, 80]
+
+[objective]
+description = "Cycloidal reducer with 10 ring pins; declared ratio 9."
+allow_massless_links = false
+ground_required = true
+
+[visibility]
+public_split = ["mobility", "ports"]
+hidden_split = ["torque"]
+
+[capability]
+requires_adapter = "rigid_body_dynamics+contact_forces"
+expect_capability_unavailable = true

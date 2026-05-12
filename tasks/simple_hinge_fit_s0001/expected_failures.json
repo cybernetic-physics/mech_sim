@@ -1,0 +1,23 @@
+{
+  "description": "Tier 0 simple_hinge_fit negative controls.",
+  "controls": [
+    {
+      "id": "wrong_mobility_extra_fixed",
+      "submission": "negative_solutions/wrong_mobility_extra_fixed",
+      "expected_failure_codes": [
+        "wrong_mobility"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001
+    },
+    {
+      "id": "tight_clearance",
+      "submission": "negative_solutions/tight_clearance",
+      "expected_failure_codes": [
+        "insufficient_clearance"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.5
+    }
+  ]
+}

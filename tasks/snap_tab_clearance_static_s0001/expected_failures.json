@@ -1,0 +1,23 @@
+{
+  "description": "Tier 0 snap_tab_clearance_static negatives.",
+  "controls": [
+    {
+      "id": "insufficient_gap",
+      "expected_failure_codes": [
+        "insufficient_clearance"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.6,
+      "submission": "negative_solutions/insufficient_gap"
+    },
+    {
+      "id": "thin_wall",
+      "expected_failure_codes": [
+        "insufficient_clearance"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.85,
+      "submission": "negative_solutions/thin_wall"
+    }
+  ]
+}

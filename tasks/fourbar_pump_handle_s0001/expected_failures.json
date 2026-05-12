@@ -1,0 +1,23 @@
+{
+  "description": "Tier 1 fourbar_pump_handle negatives.",
+  "controls": [
+    {
+      "id": "inverted_output",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.5,
+      "submission": "negative_solutions/inverted_output"
+    },
+    {
+      "id": "missing_output_port",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001,
+      "submission": "negative_solutions/missing_output_port"
+    }
+  ]
+}

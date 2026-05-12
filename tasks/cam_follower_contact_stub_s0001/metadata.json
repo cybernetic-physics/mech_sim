@@ -1,0 +1,8 @@
+{
+  "family": "cam_follower_contact_stub",
+  "tier": "contact_dynamics",
+  "seed": 1,
+  "difficulty": 3,
+  "pair": "cam:follower",
+  "task_id": "cam_follower_contact_stub_s0001"
+}

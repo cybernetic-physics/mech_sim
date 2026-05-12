@@ -1,0 +1,20 @@
+[task]
+id = "static_fit_bracket_s0001"
+family = "static_fit_bracket"
+difficulty = 1
+units = "mm"
+tier = "artifact_static"
+
+[objective]
+description = "Static bracket: mobility=0, ports grounded, wall >= 2.646 mm."
+allow_massless_links = false
+ground_required = false
+
+[requirements]
+required_ports = ["mount_a", "mount_b"]
+expected_mobility = 0
+max_envelope_mm = [100, 100, 50]
+
+[visibility]
+public_split = ["mobility", "ports"]
+hidden_split = ["min_wall_declared"]

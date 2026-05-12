@@ -1,0 +1,38 @@
+[feedback]
+public_metrics = ["mobility.observed", "mobility.expected", "ports.ports_required", "min_wall_declared.observed", "min_wall_declared.expected"]
+hidden_metrics = ["min_wall_declared.error_pct"]
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 0
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["mount_a", "mount_b"]
+require_grounded = ["mount_a", "mount_b"]
+hard_gate = true
+severity = "critical"
+
+[probes.require_kinds]
+mount_a = "frame"
+mount_b = "frame"
+
+[[probes]]
+id = "min_wall_declared"
+type = "analytic_param_check"
+path = "params.declared_min_wall_mm"
+expected = 2.646
+comparator = "ge"
+tolerance_abs = 0.05
+failure_code = "insufficient_clearance"
+weight = 1.0
+severity = "major"

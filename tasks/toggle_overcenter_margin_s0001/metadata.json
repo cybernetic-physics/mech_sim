@@ -1,0 +1,8 @@
+{
+  "family": "toggle_overcenter_margin",
+  "tier": "planar_kinematics",
+  "seed": 1,
+  "difficulty": 2,
+  "overcenter_margin_mm": 3.479,
+  "task_id": "toggle_overcenter_margin_s0001"
+}

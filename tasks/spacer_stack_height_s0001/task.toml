@@ -1,0 +1,15 @@
+[task]
+id = "spacer_stack_height_s0001"
+family = "spacer_stack_height"
+difficulty = 1
+units = "mm"
+tier = "artifact_static"
+
+[requirements]
+required_ports = ["base_face", "stack_top"]
+expected_mobility = 0
+max_envelope_mm = [100, 100, 80]
+
+[objective]
+description = "Stack height = 15.726 mm (3 × 5.242 mm)."
+ground_required = false

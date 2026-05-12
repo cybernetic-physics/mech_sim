@@ -1,0 +1,39 @@
+[feedback]
+public_metrics = ["mobility.observed", "mobility.expected", "ports.ports_required", "pitch.observed", "pitch.expected"]
+hidden_metrics = ["pitch.error_pct"]
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 0
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["mount_a", "mount_b"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["mount_a", "mount_b"]
+
+[probes.require_kinds]
+mount_a = "frame"
+mount_b = "frame"
+
+[[probes]]
+id = "pitch"
+type = "analytic_param_check"
+path = "params.declared_pitch_mm"
+expected = 40.566
+comparator = "eq"
+failure_code = "wrong_ratio"
+weight = 1.0
+severity = "major"
+hard_gate = false
+tolerance_pct = 2.0

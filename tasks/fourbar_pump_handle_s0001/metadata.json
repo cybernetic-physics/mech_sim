@@ -1,0 +1,9 @@
+{
+  "family": "fourbar_pump_handle",
+  "tier": "planar_kinematics",
+  "seed": 1,
+  "difficulty": 2,
+  "rocker_min": -0.785,
+  "rocker_max": 0.785,
+  "task_id": "fourbar_pump_handle_s0001"
+}

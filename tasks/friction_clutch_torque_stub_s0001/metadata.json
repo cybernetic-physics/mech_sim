@@ -1,0 +1,8 @@
+{
+  "family": "friction_clutch_torque_stub",
+  "tier": "contact_dynamics",
+  "seed": 0,
+  "difficulty": 3,
+  "pair": "plate_in:plate_out",
+  "task_id": "friction_clutch_torque_stub_s0001"
+}

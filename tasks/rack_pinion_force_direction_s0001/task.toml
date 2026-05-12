@@ -1,0 +1,15 @@
+[task]
+id = "rack_pinion_force_direction_s0001"
+family = "rack_pinion_force_direction"
+difficulty = 2
+units = "mm"
+tier = "transmission_analytic"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 2
+max_envelope_mm = [200, 80, 50]
+
+[objective]
+description = "Rack-pinion direction 1."
+ground_required = true

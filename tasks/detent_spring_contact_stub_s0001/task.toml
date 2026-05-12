@@ -1,0 +1,19 @@
+[task]
+id = "detent_spring_contact_stub_s0001"
+family = "detent_spring_contact_stub"
+difficulty = 3
+units = "mm"
+tier = "contact_dynamics"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 2
+max_envelope_mm = [200, 200, 80]
+
+[objective]
+description = "detent_spring_contact_stub synthetic contact stub."
+ground_required = true
+
+[capability]
+requires_adapter = "contact_forces"
+synthetic_oracle = true

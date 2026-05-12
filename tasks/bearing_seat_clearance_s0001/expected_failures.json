@@ -1,0 +1,21 @@
+{
+  "description": "Tier 0 bearing_seat_clearance negatives.",
+  "controls": [
+    {
+      "id": "too_tight",
+      "expected_failure_codes": [
+        "insufficient_clearance"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.5,
+      "submission": "negative_solutions/too_tight"
+    },
+    {
+      "id": "too_loose",
+      "expected_failure_codes": [],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 1.01,
+      "submission": "negative_solutions/too_loose"
+    }
+  ]
+}

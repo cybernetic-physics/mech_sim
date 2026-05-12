@@ -1,0 +1,15 @@
+[task]
+id = "fourbar_crank_rocker_sweep_s0001"
+family = "fourbar_crank_rocker_sweep"
+difficulty = 2
+units = "mm"
+tier = "planar_kinematics"
+
+[requirements]
+required_ports = ["input_port", "output_port", "coupler_point"]
+expected_mobility = 1
+max_envelope_mm = [220, 220, 50]
+
+[objective]
+description = "Crank-rocker four-bar; mobility=1."
+ground_required = true

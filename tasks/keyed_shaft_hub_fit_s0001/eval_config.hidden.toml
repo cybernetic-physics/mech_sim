@@ -1,0 +1,51 @@
+[feedback]
+public_metrics = ["mobility.observed", "shaft_d.observed", "keyway.observed"]
+hidden_metrics = ["shaft_d.error_pct", "keyway.error_pct"]
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 1
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["hub_face", "output_port"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["hub_face"]
+
+[probes.require_kinds]
+hub_face = "frame"
+output_port = "revolute_joint"
+
+[[probes]]
+id = "shaft_d"
+type = "analytic_param_check"
+path = "params.shaft_diameter_mm"
+expected = 11.071
+comparator = "eq"
+failure_code = "wrong_ratio"
+weight = 0.5
+severity = "major"
+hard_gate = false
+tolerance_pct = 1.0
+
+[[probes]]
+id = "keyway"
+type = "analytic_param_check"
+path = "params.keyway_width_mm"
+expected = 5.467
+comparator = "eq"
+failure_code = "wrong_ratio"
+weight = 0.5
+severity = "major"
+hard_gate = false
+tolerance_pct = 1.0

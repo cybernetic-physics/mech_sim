@@ -1,0 +1,20 @@
+[task]
+id = "simple_hinge_fit_s0001"
+family = "simple_hinge_fit"
+difficulty = 1
+units = "mm"
+tier = "artifact_static"
+
+[objective]
+description = "Simple planar hinge; mobility=1, declared pin clearance ≥ 0.1 mm."
+allow_massless_links = false
+ground_required = false
+
+[requirements]
+required_ports = ["mount_a", "hinge_joint", "tip_b"]
+expected_mobility = 1
+max_envelope_mm = [200, 100, 50]
+
+[visibility]
+public_split = ["mobility", "ports", "clearance"]
+hidden_split = []

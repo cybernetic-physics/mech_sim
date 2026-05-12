@@ -1,0 +1,9 @@
+{
+  "family": "pulley_bore_alignment_static",
+  "tier": "artifact_static",
+  "seed": 1,
+  "difficulty": 1,
+  "center_distance_mm": 155.433,
+  "alignment_error_mm": 0.0392,
+  "task_id": "pulley_bore_alignment_static_s0001"
+}

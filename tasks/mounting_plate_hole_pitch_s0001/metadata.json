@@ -1,0 +1,9 @@
+{
+  "family": "mounting_plate_hole_pitch",
+  "tier": "artifact_static",
+  "seed": 1,
+  "difficulty": 1,
+  "pitch_mm": 40.566,
+  "hole_diameter_mm": 3.659,
+  "task_id": "mounting_plate_hole_pitch_s0001"
+}

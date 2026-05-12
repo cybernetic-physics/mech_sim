@@ -1,0 +1,24 @@
+{
+  "description": "Tier 3 cycloidal_lowN_stub \u2014 capability-unavailable regression.",
+  "controls": [
+    {
+      "id": "wrong_ratio",
+      "submission": "negative_solutions/wrong_ratio",
+      "expected_failure_codes": [
+        "wrong_ratio",
+        "capability_unavailable"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.5
+    },
+    {
+      "id": "missing_port",
+      "submission": "negative_solutions/missing_port",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001
+    }
+  ]
+}

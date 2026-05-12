@@ -1,0 +1,23 @@
+{
+  "description": "Tier 0 press_fit_hub_interference negatives.",
+  "controls": [
+    {
+      "id": "slip_fit",
+      "expected_failure_codes": [
+        "insufficient_clearance"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.6,
+      "submission": "negative_solutions/slip_fit"
+    },
+    {
+      "id": "excessive_interference",
+      "expected_failure_codes": [
+        "insufficient_clearance"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.6,
+      "submission": "negative_solutions/excessive_interference"
+    }
+  ]
+}

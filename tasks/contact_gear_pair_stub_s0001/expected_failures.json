@@ -1,0 +1,23 @@
+{
+  "description": "Tier 3 contact_gear_pair_stub \u2014 capability-unavailable regression.",
+  "controls": [
+    {
+      "id": "missing_port",
+      "submission": "negative_solutions/missing_port",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001
+    },
+    {
+      "id": "no_contact_geometry",
+      "submission": "negative_solutions/no_contact_geometry",
+      "expected_failure_codes": [
+        "capability_unavailable"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001
+    }
+  ]
+}

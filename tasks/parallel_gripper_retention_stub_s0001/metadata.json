@@ -1,0 +1,8 @@
+{
+  "family": "parallel_gripper_retention_stub",
+  "tier": "contact_dynamics",
+  "seed": 0,
+  "difficulty": 3,
+  "pair": "finger:object",
+  "task_id": "parallel_gripper_retention_stub_s0001"
+}

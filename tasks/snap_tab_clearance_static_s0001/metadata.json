@@ -1,0 +1,9 @@
+{
+  "family": "snap_tab_clearance_static",
+  "tier": "artifact_static",
+  "seed": 1,
+  "difficulty": 1,
+  "gap_mm": 0.45,
+  "min_wall_mm": 2.865,
+  "task_id": "snap_tab_clearance_static_s0001"
+}

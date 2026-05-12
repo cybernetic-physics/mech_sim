@@ -1,0 +1,19 @@
+[task]
+id = "cam_follower_contact_stub_s0001"
+family = "cam_follower_contact_stub"
+difficulty = 3
+units = "mm"
+tier = "contact_dynamics"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 2
+max_envelope_mm = [120, 120, 80]
+
+[objective]
+description = "Cam-follower contact stub."
+ground_required = true
+
+[capability]
+requires_adapter = "contact_forces"
+synthetic_oracle = true

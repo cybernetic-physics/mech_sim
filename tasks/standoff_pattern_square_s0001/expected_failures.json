@@ -1,0 +1,23 @@
+{
+  "description": "Tier 0 standoff_pattern_square negatives.",
+  "controls": [
+    {
+      "id": "wrong_spacing",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.6,
+      "submission": "negative_solutions/wrong_spacing"
+    },
+    {
+      "id": "wrong_count",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001,
+      "submission": "negative_solutions/wrong_count"
+    }
+  ]
+}

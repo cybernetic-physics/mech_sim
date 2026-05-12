@@ -1,0 +1,24 @@
+{
+  "description": "Tier 0 static_fit_bracket negative controls.",
+  "controls": [
+    {
+      "id": "missing_port",
+      "submission": "negative_solutions/missing_port",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001,
+      "expected_metric_direction": "below"
+    },
+    {
+      "id": "underwall_declared",
+      "submission": "negative_solutions/underwall_declared",
+      "expected_failure_codes": [
+        "insufficient_clearance"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.5
+    }
+  ]
+}

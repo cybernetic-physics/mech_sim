@@ -1,0 +1,16 @@
+[task]
+id = "mounting_plate_hole_pitch_s0001"
+family = "mounting_plate_hole_pitch"
+difficulty = 1
+units = "mm"
+tier = "artifact_static"
+
+[requirements]
+required_ports = ["mount_a", "mount_b"]
+expected_mobility = 0
+max_envelope_mm = [200, 100, 20]
+
+[objective]
+description = "Mounting plate; declared pitch 40.566 mm."
+allow_massless_links = true
+ground_required = false

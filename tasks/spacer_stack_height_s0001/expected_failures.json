@@ -1,0 +1,23 @@
+{
+  "description": "Tier 0 spacer_stack_height negatives.",
+  "controls": [
+    {
+      "id": "short_stack",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.5,
+      "submission": "negative_solutions/short_stack"
+    },
+    {
+      "id": "tall_stack",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.5,
+      "submission": "negative_solutions/tall_stack"
+    }
+  ]
+}

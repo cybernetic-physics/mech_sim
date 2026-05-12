@@ -1,0 +1,44 @@
+[feedback]
+public_metrics = ["ratio.observed", "ratio.expected", "torque.output_speed_observed_rad_s"]
+hidden_metrics = ["torque.torque_ripple_pct"]
+
+[hard_gate]
+require = ["ports"]
+
+[adapters.chrono_contact]
+samples = 360
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port"]
+hard_gate = true
+severity = "critical"
+
+[probes.require_kinds]
+input_port = "revolute_joint"
+output_port = "revolute_joint"
+
+[[probes]]
+id = "ratio"
+type = "analytic_param_check"
+path = "params.declared_ratio"
+expected = 9.0
+comparator = "eq"
+tolerance_pct = 1.0
+failure_code = "wrong_ratio"
+weight = 0.3
+severity = "major"
+
+[[probes]]
+id = "torque"
+type = "torque_load_trial"
+input_port = "input_port"
+output_port = "output_port"
+input_speed_rad_s = 10.0
+output_load_Nm = 0.05
+min_output_speed_rad_s = 0.001
+max_power_error_pct = 25.0
+max_torque_ripple_pct = 30.0
+weight = 0.7
+severity = "critical"

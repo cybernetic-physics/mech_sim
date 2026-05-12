@@ -1,0 +1,45 @@
+[feedback]
+public_metrics = ["gap.observed", "wall.observed"]
+hidden_metrics = ["gap.error_abs", "wall.error_abs"]
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 0
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["body_face", "tab_face"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["body_face"]
+
+[[probes]]
+id = "gap"
+type = "analytic_param_check"
+path = "params.gap_mm"
+expected = 0.3
+comparator = "ge"
+failure_code = "insufficient_clearance"
+weight = 0.5
+severity = "major"
+hard_gate = false
+
+[[probes]]
+id = "wall"
+type = "analytic_param_check"
+path = "params.min_wall_mm"
+expected = 1.2
+comparator = "ge"
+failure_code = "insufficient_clearance"
+weight = 0.5
+severity = "major"
+hard_gate = false

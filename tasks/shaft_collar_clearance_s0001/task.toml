@@ -1,0 +1,20 @@
+[task]
+id = "shaft_collar_clearance_s0001"
+family = "shaft_collar_clearance"
+difficulty = 1
+units = "mm"
+tier = "artifact_static"
+
+[objective]
+description = "Shaft Ø8.527 mm in a fixed collar; declared diametrical clearance ≥ 0.2 mm."
+allow_massless_links = false
+ground_required = false
+
+[requirements]
+required_ports = ["shaft_origin", "collar_face"]
+expected_mobility = 0
+max_envelope_mm = [200, 80, 80]
+
+[visibility]
+public_split = ["mobility", "ports", "clearance"]
+hidden_split = ["shaft_diameter"]

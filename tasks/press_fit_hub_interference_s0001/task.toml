@@ -1,0 +1,15 @@
+[task]
+id = "press_fit_hub_interference_s0001"
+family = "press_fit_hub_interference"
+difficulty = 1
+units = "mm"
+tier = "artifact_static"
+
+[requirements]
+required_ports = ["hub_face", "shaft_origin"]
+expected_mobility = 0
+max_envelope_mm = [80, 80, 50]
+
+[objective]
+description = "Press-fit interference within [0.01, 0.06] mm."
+ground_required = false

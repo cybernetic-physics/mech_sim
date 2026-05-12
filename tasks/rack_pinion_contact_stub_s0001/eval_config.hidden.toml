@@ -1,0 +1,61 @@
+[feedback]
+public_metrics = ["ports.ports_required", "contact.contact.pinion:rack.rms_N", "travel.observed"]
+hidden_metrics = []
+
+[hard_gate]
+require = ["ports", "contact"]
+
+[adapters.fake_contact_oracle]
+enabled = true
+contact_pairs = ["pinion:rack"]
+contact_force_N = 6.0
+penetration_mm = 0.005
+samples = 360
+duration_s = 1.0
+input_speed_rad_s = 1.0
+output_load_Nm = 0.0
+torque_ripple_pct = 5.0
+power_balance_error_pct = 1.0
+lockup = false
+contact_engagement_fraction = 0.95
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["input_port"]
+
+[[probes]]
+id = "contact"
+type = "contact_engagement"
+required_pairs = ["pinion:rack"]
+min_rms_force_N = 0.5
+min_engagement_fraction = 0.2
+weight = 1.0
+severity = "critical"
+hard_gate = true
+adapter = "fake_contact_oracle"
+
+[[probes]]
+id = "travel"
+type = "analytic_param_check"
+path = "params.declared_travel_per_rev_mm"
+expected = 132.06
+comparator = "eq"
+failure_code = "wrong_ratio"
+weight = 0.5
+severity = "major"
+hard_gate = false
+tolerance_pct = 2.0
+
+[[probes]]
+id = "lockup"
+type = "lockup"
+input_port = "input_port"
+output_port = "output_port"
+min_output_motion_rad = 0.05
+weight = 0.0
+severity = "major"
+adapter = "fake_contact_oracle"

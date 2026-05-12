@@ -1,0 +1,21 @@
+{
+  "description": "Tier 3 ratchet_pawl_engagement_stub negatives.",
+  "controls": [
+    {
+      "id": "missing_port",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.5,
+      "submission": "negative_solutions/missing_port"
+    },
+    {
+      "id": "lockup",
+      "expected_failure_codes": [],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 1.01,
+      "submission": "negative_solutions/lockup"
+    }
+  ]
+}

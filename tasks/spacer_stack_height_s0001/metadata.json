@@ -1,0 +1,10 @@
+{
+  "family": "spacer_stack_height",
+  "tier": "artifact_static",
+  "seed": 1,
+  "difficulty": 1,
+  "spacer_count": 3,
+  "spacer_height_mm": 5.242,
+  "declared_stack_height_mm": 15.726,
+  "task_id": "spacer_stack_height_s0001"
+}

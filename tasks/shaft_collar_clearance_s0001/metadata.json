@@ -1,0 +1,9 @@
+{
+  "family": "shaft_collar_clearance",
+  "tier": "artifact_static",
+  "seed": 1,
+  "difficulty": 1,
+  "shaft_diameter_mm": 8.527,
+  "target_clearance_mm": 0.2,
+  "task_id": "shaft_collar_clearance_s0001"
+}

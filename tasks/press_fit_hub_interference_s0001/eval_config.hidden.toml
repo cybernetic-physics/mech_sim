@@ -1,0 +1,45 @@
+[feedback]
+public_metrics = ["mobility.observed", "interference_lower.observed", "interference_upper.observed"]
+hidden_metrics = ["interference_lower.error_pct", "interference_upper.error_pct"]
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 0
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["hub_face", "shaft_origin"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["hub_face"]
+
+[[probes]]
+id = "interference_lower"
+type = "analytic_param_check"
+path = "params.interference_mm"
+expected = 0.012
+comparator = "ge"
+failure_code = "insufficient_clearance"
+weight = 0.5
+severity = "major"
+hard_gate = false
+
+[[probes]]
+id = "interference_upper"
+type = "analytic_param_check"
+path = "params.interference_mm"
+expected = 0.056999999999999995
+comparator = "le"
+failure_code = "insufficient_clearance"
+weight = 0.5
+severity = "major"
+hard_gate = false

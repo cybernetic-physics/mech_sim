@@ -1,0 +1,15 @@
+[task]
+id = "keyed_shaft_hub_fit_s0001"
+family = "keyed_shaft_hub_fit"
+difficulty = 1
+units = "mm"
+tier = "artifact_static"
+
+[requirements]
+required_ports = ["hub_face", "output_port"]
+expected_mobility = 1
+max_envelope_mm = [120, 120, 80]
+
+[objective]
+description = "Keyed shaft + hub; mobility=1."
+ground_required = false

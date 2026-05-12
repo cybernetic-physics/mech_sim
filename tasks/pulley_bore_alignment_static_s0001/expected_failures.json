@@ -1,0 +1,23 @@
+{
+  "description": "Tier 0 pulley_bore_alignment_static negatives.",
+  "controls": [
+    {
+      "id": "misaligned",
+      "expected_failure_codes": [
+        "insufficient_clearance"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.5,
+      "submission": "negative_solutions/misaligned"
+    },
+    {
+      "id": "missing_axis_port",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001,
+      "submission": "negative_solutions/missing_axis_port"
+    }
+  ]
+}

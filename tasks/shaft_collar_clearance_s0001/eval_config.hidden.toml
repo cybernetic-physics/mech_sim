@@ -1,0 +1,45 @@
+[feedback]
+public_metrics = ["mobility.observed", "mobility.expected", "clearance.observed", "clearance.expected", "shaft_diameter.observed", "shaft_diameter.expected"]
+hidden_metrics = ["clearance.error_abs"]
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 0
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["shaft_origin", "collar_face"]
+require_grounded = ["collar_face"]
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "shaft_diameter"
+type = "analytic_param_check"
+path = "params.shaft_diameter_mm"
+expected = 8.527
+comparator = "eq"
+tolerance_abs = 0.01
+failure_code = "invalid_artifact"
+weight = 0.3
+severity = "major"
+
+[[probes]]
+id = "clearance"
+type = "analytic_param_check"
+path = "params.declared_clearance_mm"
+expected = 0.30000000000000004
+comparator = "ge"
+tolerance_abs = 0.0
+failure_code = "insufficient_clearance"
+weight = 0.7
+severity = "major"

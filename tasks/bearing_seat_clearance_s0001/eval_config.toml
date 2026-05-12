@@ -1,0 +1,35 @@
+[feedback]
+public_metrics = ["mobility.observed", "clearance.observed", "clearance.expected"]
+hidden_metrics = ["clearance.error_abs"]
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 0
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["bore_face", "bearing_seat"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["bore_face"]
+
+[[probes]]
+id = "clearance"
+type = "analytic_param_check"
+path = "params.clearance_mm"
+expected = 0.02
+comparator = "ge"
+failure_code = "insufficient_clearance"
+weight = 1.0
+severity = "major"
+hard_gate = false
+tolerance_abs = 0.001

@@ -1,0 +1,10 @@
+{
+  "family": "contact_gear_pair_stub",
+  "tier": "contact_dynamics",
+  "seed": 1,
+  "difficulty": 3,
+  "teeth_in": 12,
+  "teeth_out": 48,
+  "requires_adapter": "contact_forces",
+  "task_id": "contact_gear_pair_stub_s0001"
+}

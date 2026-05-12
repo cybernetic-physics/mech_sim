@@ -1,0 +1,9 @@
+{
+  "family": "press_fit_hub_interference",
+  "tier": "artifact_static",
+  "seed": 1,
+  "difficulty": 1,
+  "nominal_diameter_mm": 21.338,
+  "interference_mm": 0.0222,
+  "task_id": "press_fit_hub_interference_s0001"
+}

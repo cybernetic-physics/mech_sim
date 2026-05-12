@@ -1,0 +1,35 @@
+[feedback]
+public_metrics = ["mobility.observed", "contact.contact.pinion:gear.rms_N"]
+hidden_metrics = []
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[adapters.chrono_contact]
+samples = 720
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 2
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port"]
+require_grounded = ["input_port", "output_port"]
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "contact"
+type = "contact_engagement"
+required_pairs = ["pinion:gear"]
+min_rms_force_N = 0.5
+min_engagement_fraction = 0.2
+weight = 1.0
+severity = "critical"

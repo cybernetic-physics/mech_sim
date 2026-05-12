@@ -1,0 +1,23 @@
+{
+  "description": "Tier 0 keyed_shaft_hub_fit negatives.",
+  "controls": [
+    {
+      "id": "wrong_keyway",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.6,
+      "submission": "negative_solutions/wrong_keyway"
+    },
+    {
+      "id": "missing_output_port",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001,
+      "submission": "negative_solutions/missing_output_port"
+    }
+  ]
+}

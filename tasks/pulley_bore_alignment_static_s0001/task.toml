@@ -1,0 +1,15 @@
+[task]
+id = "pulley_bore_alignment_static_s0001"
+family = "pulley_bore_alignment_static"
+difficulty = 1
+units = "mm"
+tier = "artifact_static"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 2
+max_envelope_mm = [220, 80, 80]
+
+[objective]
+description = "Pulley bore alignment ≤ 0.05 mm."
+ground_required = true

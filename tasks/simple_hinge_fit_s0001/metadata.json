@@ -1,0 +1,9 @@
+{
+  "family": "simple_hinge_fit",
+  "tier": "artifact_static",
+  "seed": 1,
+  "difficulty": 1,
+  "leaf_length_mm": 66.66,
+  "knuckle_diameter_mm": 4.91,
+  "task_id": "simple_hinge_fit_s0001"
+}

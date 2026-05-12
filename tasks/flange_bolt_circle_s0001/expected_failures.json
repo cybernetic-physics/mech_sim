@@ -1,0 +1,23 @@
+{
+  "description": "Tier 0 flange_bolt_circle negatives.",
+  "controls": [
+    {
+      "id": "wrong_bcd",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.6,
+      "submission": "negative_solutions/wrong_bcd"
+    },
+    {
+      "id": "wrong_bolt_count",
+      "expected_failure_codes": [
+        "invalid_artifact"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.8,
+      "submission": "negative_solutions/wrong_bolt_count"
+    }
+  ]
+}

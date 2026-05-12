@@ -1,0 +1,8 @@
+{
+  "family": "rack_pinion_contact_stub",
+  "tier": "contact_dynamics",
+  "seed": 0,
+  "difficulty": 3,
+  "pair": "pinion:rack",
+  "task_id": "rack_pinion_contact_stub_s0001"
+}
