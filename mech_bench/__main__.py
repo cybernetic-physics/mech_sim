@@ -1,8 +1,8 @@
 """`mech-bench` CLI.
 
 Subcommands:
-  evaluate   Score a submission against a task
-  list-probes  Show registered probe types and their capabilities
+  evaluate      Score a submission against a task
+  list-probes   Show registered probe types and their capabilities
   list-adapters Show registered adapters and their capabilities
 """
 
@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 from mech_bench.adapters import all_adapters
-from mech_bench.evaluator import evaluate, load_task
+from mech_bench.evaluator import evaluate, load_task, write_report_bundle
 from mech_bench.probes import known_probe_types, get_probe
 
 
@@ -23,13 +23,27 @@ def _cmd_evaluate(args: argparse.Namespace) -> int:
     submission_dir = Path(args.submission)
     scratch_dir = Path(args.scratch) if args.scratch else None
     report = evaluate(task_dir, submission_dir, scratch_dir=scratch_dir)
-    task, cfg = load_task(task_dir)
-    public = report.public_dict(cfg.visibility)
-    out = json.dumps(public, indent=2, default=str)
+    _, cfg = load_task(task_dir)
+
+    if args.full:
+        blob = report.to_dict(public=False, visibility=cfg.visibility)
+    else:
+        blob = report.to_dict(public=True, visibility=cfg.visibility)
+    out = json.dumps(blob, indent=2, default=str)
     print(out)
+
     if args.out:
         Path(args.out).write_text(out)
-    return 0 if report.hard_gate_passed else 1
+
+    if args.report_dir:
+        paths = write_report_bundle(
+            report, Path(args.report_dir), visibility=cfg.visibility)
+        for k, p in paths.items():
+            print(f"# wrote {k}: {p}", file=sys.stderr)
+
+    if args.allow_partial:
+        return 0
+    return 0 if (report.hard_gate_passed and report.score > 0) else 1
 
 
 def _cmd_list_probes(args: argparse.Namespace) -> int:
@@ -59,6 +73,15 @@ def main(argv: list[str] | None = None) -> int:
                     help="scratch dir for build_design output")
     ev.add_argument("--out", default=None,
                     help="write the report JSON to this path too")
+    ev.add_argument("--report-dir", default=None,
+                    help=("write the full report bundle (scorecard, "
+                          "metrics, public feedback) under this dir"))
+    ev.add_argument("--full", action="store_true",
+                    help=("print the full internal report instead of "
+                          "the public-redacted view"))
+    ev.add_argument("--allow-partial", action="store_true",
+                    help=("exit 0 even if the hard gate failed or "
+                          "score is zero"))
     ev.set_defaults(func=_cmd_evaluate)
 
     lp = sub.add_parser("list-probes", help="List registered probes")

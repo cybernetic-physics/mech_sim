@@ -226,22 +226,108 @@ class EvalReport:
     probe_results: list[ProbeResult]
     metrics: dict[str, float] = field(default_factory=dict)
     feedback: list = field(default_factory=list)
-    artifacts: dict[str, Path] = field(default_factory=dict)
+    artifacts: dict[str, str] = field(default_factory=dict)
+    run_id: str = ""
+    task_family: str = ""
+    difficulty: int = 0
+    tier_results: dict[str, dict] = field(default_factory=dict)
+    timings: dict[str, float] = field(default_factory=dict)
+    version: str = "eval_report.v1"
 
-    def public_dict(self, vis: FeedbackVisibility) -> dict:
-        public = []
+    def to_dict(
+        self,
+        public: bool = False,
+        visibility: "FeedbackVisibility | None" = None,
+    ) -> dict:
+        """Serialize the report.
+
+        public=False emits everything (private trace pointers and all
+        metrics). public=True applies the configured FeedbackVisibility:
+        feedback items drop private_trace, and metrics outside the
+        allowlist are stripped.
+        """
+        vis = visibility or FeedbackVisibility()
+
+        feedback_items: list[dict] = []
         for f in self.feedback:
-            pf = f.public() if hasattr(f, "public") else dict(f)
-            public.append(pf)
-        return {
+            if public:
+                item = f.public() if hasattr(f, "public") else dict(f)
+            else:
+                item = f.to_dict() if hasattr(f, "to_dict") else dict(f)
+            feedback_items.append(item)
+
+        if public:
+            metrics_view = _filter_public_metrics(
+                self.metrics, vis.public_metrics, vis.hidden_metrics)
+        else:
+            metrics_view = dict(self.metrics)
+
+        probe_view: list[dict] = []
+        for r in self.probe_results:
+            entry: dict = {
+                "probe_id": r.probe_id,
+                "probe_type": r.probe_type,
+                "passed": r.passed,
+                "score": r.score,
+            }
+            if public:
+                entry["metrics"] = r.public_metrics(
+                    vis.public_metrics or None)
+            else:
+                entry["metrics"] = dict(r.metrics)
+                entry["skipped_reason"] = r.skipped_reason
+                entry["artifacts"] = {
+                    k: str(v) for k, v in r.artifacts.items()
+                }
+            entry["failures"] = [
+                (f.public() if public and hasattr(f, "public")
+                 else (f.to_dict() if hasattr(f, "to_dict") else dict(f)))
+                for f in r.failures
+            ]
+            probe_view.append(entry)
+
+        out: dict = {
+            "version": self.version,
             "task_id": self.task_id,
+            "task_family": self.task_family,
+            "difficulty": self.difficulty,
+            "run_id": self.run_id,
             "score": self.score,
             "hard_gate_passed": self.hard_gate_passed,
-            "metrics": {
-                k: v for k, v in self.metrics.items()
-                if not vis.public_metrics
-                or k in vis.public_metrics
-                or any(k.startswith(p.rstrip(".")) for p in vis.public_metrics)
-            },
-            "feedback": public,
+            "metrics": metrics_view,
+            "feedback": feedback_items,
+            "probe_results": probe_view,
+            "tier_results": dict(self.tier_results),
+            "timings": dict(self.timings),
         }
+        if not public:
+            out["artifacts"] = {
+                k: str(v) for k, v in self.artifacts.items()
+            }
+        return out
+
+    def public_dict(
+        self,
+        vis: "FeedbackVisibility | None" = None,
+    ) -> dict:
+        return self.to_dict(public=True, visibility=vis)
+
+
+def _filter_public_metrics(
+    metrics: dict[str, float],
+    public_allow: list[str],
+    hidden: list[str],
+) -> dict[str, float]:
+    hidden_set = set(hidden or [])
+    if not public_allow:
+        return {k: v for k, v in metrics.items() if k not in hidden_set}
+    out: dict[str, float] = {}
+    for k, v in metrics.items():
+        if k in hidden_set:
+            continue
+        if k in public_allow:
+            out[k] = v
+            continue
+        if any(k.startswith(p.rstrip(".") + ".") for p in public_allow):
+            out[k] = v
+    return out
