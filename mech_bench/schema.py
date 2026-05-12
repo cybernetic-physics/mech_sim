@@ -215,6 +215,7 @@ class EvalConfig:
     probes: list[ProbeSpec]
     hard_gate_probes: list[str] = field(default_factory=list)
     visibility: FeedbackVisibility = field(default_factory=FeedbackVisibility)
+    adapter_configs: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, d: dict) -> "EvalConfig":
@@ -232,6 +233,12 @@ class EvalConfig:
             ))
         hard_gate = d.get("hard_gate", {}).get("require", [])
         fb = d.get("feedback", {})
+        raw_adapters = d.get("adapters", {}) or {}
+        adapter_configs: dict[str, dict[str, Any]] = {}
+        if isinstance(raw_adapters, dict):
+            for k, v in raw_adapters.items():
+                if isinstance(v, dict):
+                    adapter_configs[str(k)] = dict(v)
         return cls(
             probes=probes,
             hard_gate_probes=list(hard_gate),
@@ -239,6 +246,7 @@ class EvalConfig:
                 public_metrics=list(fb.get("public_metrics", [])),
                 hidden_metrics=list(fb.get("hidden_metrics", [])),
             ),
+            adapter_configs=adapter_configs,
         )
 
 

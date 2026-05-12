@@ -98,3 +98,11 @@ def known_probe_types() -> list[str]:
 # Trigger registration of built-in probes.
 from mech_bench.probes import dof_grubler  # noqa: E402, F401
 from mech_bench.probes import path_trace_chamfer  # noqa: E402, F401
+from mech_bench.probes import required_ports  # noqa: E402, F401
+from mech_bench.probes import port_velocity_ratio  # noqa: E402, F401
+from mech_bench.probes import swept_collision  # noqa: E402, F401
+from mech_bench.probes import contact_engagement  # noqa: E402, F401
+from mech_bench.probes import lockup  # noqa: E402, F401
+from mech_bench.probes import torque_load_trial  # noqa: E402, F401
+from mech_bench.probes import printability_dfam  # noqa: E402, F401
+from mech_bench.probes import safety_factor  # noqa: E402, F401

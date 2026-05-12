@@ -634,7 +634,10 @@ def evaluate_with_evidence(
 
     evaluation_valid = True
 
-    # Run each needed adapter once.
+    # Run each needed adapter once. Each adapter receives the
+    # ``[adapters.<name>]`` table from eval_config.toml (or an empty
+    # dict). A registered default of ``samples=360`` is provided for
+    # backward compatibility with adapters that expect it.
     sim_outputs_by_adapter: dict[str, dict[str, Any]] = {}
     adapter_failures: list[Failure] = []
     for adapter_name in plan.adapters_to_run():
@@ -645,9 +648,11 @@ def evaluate_with_evidence(
         if adapter_cls is None:
             continue
         adapter = adapter_cls()
+        adapter_cfg: dict[str, Any] = {"samples": 360}
+        adapter_cfg.update(cfg.adapter_configs.get(adapter_name, {}))
         t0 = time.perf_counter()
         try:
-            raw = adapter.run(ir, {"samples": 360})
+            raw = adapter.run(ir, adapter_cfg)
             sim_outputs_by_adapter[adapter_name] = normalize_sim_output(raw)
         except Exception as e:  # noqa: BLE001 — adapter is internal-ish
             _LOG.warning("adapter %s raised: %s", adapter_name, e)
