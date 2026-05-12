@@ -35,7 +35,36 @@ def _world_anchor(j: Joint) -> np.ndarray:
     return np.array(a[:2], dtype=float)
 
 
-def _solve_fourbar(ir: DesignIR, n_samples: int) -> dict[str, np.ndarray] | None:
+def unwrap_angles(theta: np.ndarray) -> np.ndarray:
+    """Return *theta* unwrapped so jumps larger than π are removed.
+
+    Thin wrapper over numpy's ``unwrap`` so the rest of the package
+    has a single import surface for "make angles continuous so we
+    can finite-difference them."
+    """
+    arr = np.asarray(theta, dtype=float).reshape(-1)
+    if arr.size == 0:
+        return arr
+    return np.unwrap(arr)
+
+
+def angular_velocity_finite_diff(
+    theta: np.ndarray, time_s: np.ndarray,
+) -> np.ndarray:
+    """Central-difference angular velocity of an angle signal.
+
+    Inputs are unwrapped internally so wrap-around does not produce
+    spurious spikes. Returns an array of the same length as *theta*
+    using forward/backward differences at the endpoints.
+    """
+    theta = unwrap_angles(theta)
+    t = np.asarray(time_s, dtype=float).reshape(-1)
+    if theta.size < 2 or t.size != theta.size:
+        return np.zeros_like(theta)
+    return np.gradient(theta, t, edge_order=1)
+
+
+def _solve_fourbar(ir: DesignIR, n_samples: int) -> dict[str, Any] | None:
     """Solve the four-bar closed-loop forward kinematics.
 
     Topology assumption: 4 bodies — one fixed (ground) and three
@@ -128,8 +157,9 @@ def _solve_fourbar(ir: DesignIR, n_samples: int) -> dict[str, np.ndarray] | None
     out_bc: list[np.ndarray] = []
     out_cp: list[np.ndarray] = []
     out_cd: list[np.ndarray] = []
+    input_angles: list[float] = []
+    output_angles: list[float] = []
 
-    AD = D - A
     initial_theta = float(np.arctan2(BC_anchor[1] - A[1],
                                      BC_anchor[0] - A[0]))
 
@@ -153,6 +183,9 @@ def _solve_fourbar(ir: DesignIR, n_samples: int) -> dict[str, np.ndarray] | None
         C = M + h * perp
         out_bc.append(B.copy())
         out_cd.append(C.copy())
+        input_angles.append(theta_2)
+        # Rocker angle: from D toward C.
+        output_angles.append(float(np.arctan2(C[1] - D[1], C[0] - D[0])))
         if coupler_pt_port is not None:
             # Coupler frame: origin B, x-axis BC, y-axis perp(BC).
             v = C - B
@@ -180,7 +213,36 @@ def _solve_fourbar(ir: DesignIR, n_samples: int) -> dict[str, np.ndarray] | None
         # output is whatever this joint connects to relative to ground
         traces["output_port"] = np.asarray(out_cd)
 
-    return traces
+    input_arr = unwrap_angles(np.asarray(input_angles, dtype=float))
+    output_arr = unwrap_angles(np.asarray(output_angles, dtype=float))
+    # Synthetic time axis assuming unit angular velocity over one
+    # crank revolution: useful for derived rates.
+    time_s = np.linspace(
+        0.0, 2.0 * np.pi, n_samples, endpoint=False, dtype=float)
+
+    joint_positions: dict[str, np.ndarray] = {
+        "input_port": input_arr,
+        "output_port": output_arr,
+        j_in.id: input_arr,
+        j_out.id: output_arr,
+    }
+    joint_velocities: dict[str, np.ndarray] = {
+        "input_port": angular_velocity_finite_diff(input_arr, time_s),
+        "output_port": angular_velocity_finite_diff(output_arr, time_s),
+    }
+    return {
+        "port_traces": traces,
+        "joint_positions": joint_positions,
+        "joint_velocities": joint_velocities,
+        "time_s": time_s,
+        "topology": "fourbar",
+        "link_lengths_mm": {
+            "ground": l_ground,
+            "crank": l_crank,
+            "coupler": l_coupler,
+            "rocker": l_rocker,
+        },
+    }
 
 
 @register_adapter
@@ -203,15 +265,32 @@ class PlanarKinematics(SimAdapter):
 
         result: dict[str, Any] = {
             "port_traces": {},
+            "joint_positions": {},
+            "joint_velocities": {},
+            "time_s": np.zeros(0, dtype=float),
             "adapter": self.type_name,
-            "samples": n_samples,
+            "scalar_metrics": {"samples": float(n_samples)},
+            "metadata": {
+                "adapter": self.type_name,
+                "samples": n_samples,
+                "topology_requested": str(topology),
+            },
         }
         if topology in ("auto", "fourbar"):
-            traces = _solve_fourbar(ir, n_samples)
-            if traces is not None:
-                result["port_traces"] = traces
+            solved = _solve_fourbar(ir, n_samples)
+            if solved is not None:
+                result["port_traces"] = solved["port_traces"]
+                result["joint_positions"] = solved["joint_positions"]
+                result["joint_velocities"] = solved["joint_velocities"]
+                result["time_s"] = solved["time_s"]
+                result["metadata"]["topology"] = solved["topology"]
+                ll = solved["link_lengths_mm"]
+                result["scalar_metrics"].update({
+                    f"link_length_{k}_mm": float(v) for k, v in ll.items()
+                })
                 return result
         # No matching topology — adapter returns empty traces; the
         # downstream probes surface SIMULATOR_DIVERGENCE.
         result["unsolved"] = True
+        result["metadata"]["topology"] = "unsolved"
         return result

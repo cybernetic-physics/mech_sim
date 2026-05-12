@@ -11,6 +11,8 @@ dependencies = [
 dev = [
     "pytest>=8.0",
 ]
+traces = ["h5py>=3.10"]
+dashboard = ["plotly>=5.20"]
 
 [project.scripts]
 mech-bench = "mech_bench.__main__:main"

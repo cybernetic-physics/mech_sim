@@ -38,7 +38,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from mech_bench.adapters import SimAdapter, all_adapters
+from mech_bench.adapters import (
+    SimAdapter,
+    all_adapters,
+    normalize_sim_output,
+)
 from mech_bench.feedback import Failure, FailureCode, Severity
 from mech_bench.probes import Capability, Probe, get_probe
 from mech_bench.schema import (
@@ -517,6 +521,20 @@ def _tier_summary(
 # --------------------------------------------------------------------- #
 
 
+@dataclass
+class RunEvidence:
+    """Everything needed to package a run after evaluation.
+
+    The CLI's --report-dir flow turns this into the on-disk
+    scorecard / metrics / feedback / dashboard / trace bundle.
+    """
+
+    report: EvalReport
+    task: TaskSpec
+    cfg: EvalConfig
+    sim_outputs_by_adapter: dict[str, Any] = field(default_factory=dict)
+
+
 def evaluate(
     task_dir: Path,
     submission_dir: Path,
@@ -525,6 +543,24 @@ def evaluate(
     run_id: str | None = None,
     submission_timeout: float = DEFAULT_SUBMISSION_TIMEOUT,
 ) -> EvalReport:
+    """Backwards-compatible wrapper: returns only the EvalReport."""
+    return evaluate_with_evidence(
+        task_dir,
+        submission_dir,
+        scratch_dir=scratch_dir,
+        run_id=run_id,
+        submission_timeout=submission_timeout,
+    ).report
+
+
+def evaluate_with_evidence(
+    task_dir: Path,
+    submission_dir: Path,
+    *,
+    scratch_dir: Path | None = None,
+    run_id: str | None = None,
+    submission_timeout: float = DEFAULT_SUBMISSION_TIMEOUT,
+) -> RunEvidence:
     task_dir = Path(task_dir)
     submission_dir = Path(submission_dir)
     scratch_dir = scratch_dir or (submission_dir / "_scratch")
@@ -535,25 +571,30 @@ def evaluate(
     task, cfg = load_task(task_dir)
     timings["load_task"] = time.perf_counter() - t0
 
-    def _empty_report(
+    def _empty_evidence(
         failures: list[Failure],
         tier_results: dict | None = None,
         *,
         valid: bool = False,
-    ) -> EvalReport:
-        return EvalReport(
-            task_id=task.id,
-            task_family=task.family,
-            difficulty=task.difficulty,
-            run_id=rid,
-            score=0.0,
-            hard_gate_passed=False,
-            probe_results=[],
-            metrics={},
-            feedback=failures,
-            tier_results=tier_results or {},
-            timings=dict(timings),
-            evaluation_valid=valid,
+    ) -> RunEvidence:
+        return RunEvidence(
+            report=EvalReport(
+                task_id=task.id,
+                task_family=task.family,
+                difficulty=task.difficulty,
+                run_id=rid,
+                score=0.0,
+                hard_gate_passed=False,
+                probe_results=[],
+                metrics={},
+                feedback=failures,
+                tier_results=tier_results or {},
+                timings=dict(timings),
+                evaluation_valid=valid,
+            ),
+            task=task,
+            cfg=cfg,
+            sim_outputs_by_adapter={},
         )
 
     # Load submission via isolated subprocess.
@@ -563,7 +604,7 @@ def evaluate(
                               timeout=submission_timeout)
     except SubmissionError as e:
         timings["load_submission"] = time.perf_counter() - t0
-        return _empty_report([Failure(
+        return _empty_evidence([Failure(
             code=FailureCode.INVALID_ARTIFACT,
             severity=Severity.CRITICAL,
             message=str(e),
@@ -578,7 +619,7 @@ def evaluate(
     )
     timings["validate"] = time.perf_counter() - t0
     if has_critical_failures(validation_failures):
-        return _empty_report(validation_failures, {
+        return _empty_evidence(validation_failures, {
             "validation": {
                 "probe_ids": [],
                 "passed": False,
@@ -606,8 +647,8 @@ def evaluate(
         adapter = adapter_cls()
         t0 = time.perf_counter()
         try:
-            sim_outputs_by_adapter[adapter_name] = adapter.run(
-                ir, {"samples": 360})
+            raw = adapter.run(ir, {"samples": 360})
+            sim_outputs_by_adapter[adapter_name] = normalize_sim_output(raw)
         except Exception as e:  # noqa: BLE001 — adapter is internal-ish
             _LOG.warning("adapter %s raised: %s", adapter_name, e)
             sim_outputs_by_adapter[adapter_name] = {
@@ -683,7 +724,7 @@ def evaluate(
             "score": 0.0,
         })
 
-    return EvalReport(
+    report = EvalReport(
         task_id=task.id,
         task_family=task.family,
         difficulty=task.difficulty,
@@ -696,6 +737,12 @@ def evaluate(
         tier_results=tier_results,
         timings=timings,
         evaluation_valid=evaluation_valid,
+    )
+    return RunEvidence(
+        report=report,
+        task=task,
+        cfg=cfg,
+        sim_outputs_by_adapter=sim_outputs_by_adapter,
     )
 
 
@@ -758,4 +805,93 @@ def write_report_bundle(
         _strict_json_dumps(public_failures))
     paths["feedback_public"] = out_dir / "feedback.public.json"
 
+    return paths
+
+
+def write_run_bundle(
+    evidence: "RunEvidence",
+    out_dir: Path,
+) -> dict[str, Path]:
+    """Write the full evidence bundle for one run.
+
+    Always writes: scorecard.json, scorecard.public.json,
+    metrics.json, feedback.public.json, dashboard_payload.json,
+    media_manifest.json. Optionally writes traces.h5 (when h5py is
+    installed) and dashboard.html (when plotly is installed).
+    Returns a dict of the artifact paths actually written.
+    """
+    from mech_bench.dashboard_payload import (
+        build_dashboard_payload,
+        write_dashboard_payload,
+    )
+    from mech_bench.media import write_media_manifest
+    from mech_bench.traces import (
+        HAS_H5PY,
+        TraceData,
+        write_capability_unavailable,
+        write_trace_hdf5,
+    )
+
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    paths = write_report_bundle(
+        evidence.report, out_dir, visibility=evidence.cfg.visibility)
+
+    # Pick the first non-error adapter output for trace generation.
+    primary_sim: dict | None = None
+    primary_adapter = ""
+    for name, sim in evidence.sim_outputs_by_adapter.items():
+        if isinstance(sim, dict) and "__adapter_error__" in sim:
+            continue
+        primary_sim = sim
+        primary_adapter = name
+        break
+
+    trace = TraceData.from_sim_output(
+        primary_sim or {},
+        run_id=evidence.report.run_id,
+        task_id=evidence.report.task_id,
+        adapter=primary_adapter,
+    )
+
+    trace_path: Path | None = None
+    if not trace.is_empty():
+        if HAS_H5PY:
+            trace_path = write_trace_hdf5(out_dir / "traces.h5", trace)
+            paths["trace"] = trace_path
+        else:
+            stub = write_capability_unavailable(
+                out_dir / "traces.unavailable.json",
+                reason=("h5py is not installed; HDF5 trace not "
+                        "written. Install mech-bench[traces] to enable."),
+            )
+            paths["trace_stub"] = stub
+
+    payload = build_dashboard_payload(
+        evidence.report, trace, task=evidence.task)
+    payload_path = write_dashboard_payload(
+        out_dir / "dashboard_payload.json", payload)
+    paths["dashboard_payload"] = payload_path
+
+    dashboard_path: Path | None = None
+    try:
+        from mech_bench.dashboard import (
+            HAS_PLOTLY,
+            write_static_dashboard,
+        )
+        if HAS_PLOTLY:
+            dashboard_path = write_static_dashboard(
+                payload, out_dir / "dashboard.html")
+            paths["dashboard"] = dashboard_path
+    except ImportError:  # pragma: no cover - defensive
+        pass
+
+    manifest_path = write_media_manifest(
+        out_dir,
+        evidence.report,
+        trace_path=trace_path,
+        dashboard_payload_path=payload_path,
+        dashboard_html_path=dashboard_path,
+    )
+    paths["media_manifest"] = manifest_path
     return paths

@@ -10,10 +10,68 @@ on capability category (port_traces, contact_forces, …).
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from typing import Any, ClassVar
+
+import numpy as np
 
 from mech_bench.probes import Capability
 from mech_bench.schema import DesignIR
+
+
+@dataclass
+class SimOutput:
+    """Canonical, trace-compatible output from a SimAdapter.run().
+
+    Adapters may return either this dataclass *or* a plain dict with
+    the same top-level keys. The evaluator normalizes both into a
+    :class:`mech_bench.traces.TraceData` for evidence and into a dict
+    for probe consumption — see ``to_dict()``.
+    """
+
+    port_traces: dict[str, np.ndarray] = field(default_factory=dict)
+    port_velocities: dict[str, np.ndarray] = field(default_factory=dict)
+    joint_positions: dict[str, np.ndarray] = field(default_factory=dict)
+    joint_velocities: dict[str, np.ndarray] = field(default_factory=dict)
+    body_poses: dict[str, np.ndarray] = field(default_factory=dict)
+    body_twists: dict[str, np.ndarray] = field(default_factory=dict)
+    contact_forces: dict[str, np.ndarray] = field(default_factory=dict)
+    penetration: dict[str, np.ndarray] = field(default_factory=dict)
+    time_s: np.ndarray = field(default_factory=lambda: np.zeros(0, dtype=float))
+    scalar_metrics: dict[str, float] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    extras: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        d: dict[str, Any] = dict(self.extras)
+        d.update({
+            "port_traces": self.port_traces,
+            "port_velocities": self.port_velocities,
+            "joint_positions": self.joint_positions,
+            "joint_velocities": self.joint_velocities,
+            "body_poses": self.body_poses,
+            "body_twists": self.body_twists,
+            "contact_forces": self.contact_forces,
+            "penetration": self.penetration,
+            "time_s": self.time_s,
+            "scalar_metrics": self.scalar_metrics,
+            "metadata": self.metadata,
+        })
+        return d
+
+
+def normalize_sim_output(out: Any) -> dict[str, Any]:
+    """Coerce a SimOutput or dict to a dict shaped for probes.
+
+    Probes only care about a handful of keys (``port_traces``, etc.).
+    This helper preserves backward compatibility with adapters that
+    historically returned a plain dict.
+    """
+    if isinstance(out, SimOutput):
+        return out.to_dict()
+    if isinstance(out, dict):
+        return out
+    return {}
 
 
 class SimAdapter(ABC):
@@ -28,17 +86,22 @@ class SimAdapter(ABC):
         self,
         ir: DesignIR,
         config: dict[str, Any],
-    ) -> dict[str, Any]:
-        """Return a dict whose top-level keys are output categories:
+    ) -> SimOutput | dict[str, Any]:
+        """Return a :class:`SimOutput` or an equivalently-shaped dict.
 
-        - `port_traces`: dict[port_id, ndarray (N, 2)] in mm
-        - `port_velocities`: dict[port_id, ndarray (N, ...)]
-        - `contact_forces`: dict[pair_key, ndarray]
-        - `lockup`: bool
-        - `n_contacts_max`: int
-        - ...
+        Top-level keys:
 
-        Probes consume only the keys they need.
+        - ``port_traces``: dict[port_id, ndarray (N, 2 or 3)] in mm
+        - ``port_velocities``: dict[port_id, ndarray]
+        - ``joint_positions`` / ``joint_velocities``: dict[joint_id, ndarray]
+        - ``body_poses`` / ``body_twists``: dict[body_id, ndarray]
+        - ``contact_forces`` / ``penetration``: dict[pair_key, ndarray]
+        - ``time_s``: ndarray (N,) — shared time axis
+        - ``scalar_metrics``: dict[str, float]
+        - ``metadata``: dict[str, str | float | int | bool]
+
+        Probes consume only the keys they need; the evaluator
+        normalizes everything else into a TraceData for evidence.
         """
 
 
