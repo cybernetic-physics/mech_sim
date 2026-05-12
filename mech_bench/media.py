@@ -29,10 +29,12 @@ class MediaManifest:
     task_id: str = ""
     thumbnail_png: str | None = None
     preview_mp4: str | None = None
+    frames_dir: str | None = None
     failure_zoom_mp4: str | None = None
     dashboard_html: str | None = None
     dashboard_payload_json: str | None = None
     trace_h5: str | None = None
+    warnings: list[str] = field(default_factory=list)
     extras: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -58,7 +60,9 @@ def write_media_manifest(
     dashboard_html_path: Path | None = None,
     thumbnail_png_path: Path | None = None,
     preview_mp4_path: Path | None = None,
+    frames_dir_path: Path | None = None,
     failure_zoom_mp4_path: Path | None = None,
+    warnings: list[str] | None = None,
 ) -> Path:
     """Write ``media_manifest.json`` under *out_dir*.
 
@@ -72,10 +76,12 @@ def write_media_manifest(
         task_id=getattr(report, "task_id", "") or "",
         thumbnail_png=_rel_to(out_dir, thumbnail_png_path),
         preview_mp4=_rel_to(out_dir, preview_mp4_path),
+        frames_dir=_rel_to(out_dir, frames_dir_path),
         failure_zoom_mp4=_rel_to(out_dir, failure_zoom_mp4_path),
         dashboard_html=_rel_to(out_dir, dashboard_html_path),
         dashboard_payload_json=_rel_to(out_dir, dashboard_payload_path),
         trace_h5=_rel_to(out_dir, trace_path),
+        warnings=list(warnings or []),
     )
     path = out_dir / "media_manifest.json"
     path.write_text(json.dumps(manifest.to_dict(), indent=2))

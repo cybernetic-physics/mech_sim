@@ -103,6 +103,10 @@ def build_dashboard_payload(
             "task_family": report.task_family,
             "difficulty": report.difficulty,
             "adapter": getattr(trace, "adapter", "") if trace else "",
+            "mode": getattr(report, "mode", "") or "",
+            "oracle_is_synthetic": bool(
+                getattr(report, "oracle_is_synthetic", False)
+            ),
         },
         "score": {
             "dense": float(report.score),
@@ -110,6 +114,9 @@ def build_dashboard_payload(
             "evaluation_valid": bool(report.evaluation_valid),
         },
         "tier_results": dict(report.tier_results),
+        "class_metrics": dict(getattr(report, "class_metrics", {}) or {}),
+        "general_metrics": dict(
+            getattr(report, "general_metrics", {}) or {}),
         "metrics": metrics_view,
         "feedback": feedback_cards,
         "probe_results": [

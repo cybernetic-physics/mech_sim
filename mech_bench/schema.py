@@ -98,6 +98,13 @@ class ProbeSpec:
     `type` is a key in the ProbeRegistry. `config` is the
     probe-type-specific payload. `weight` and `severity` are how
     this probe contributes to the score.
+
+    ``tier`` groups probes into the channel hierarchy
+    (artifact, geometry, kinematics, contact, dynamics, structural,
+    manufacturability, robustness). ``class_metric`` further routes a
+    probe into a task-class channel (``linkage_path_score``,
+    ``gearbox_ratio_score``, etc.). Both are optional; when absent,
+    the runtime derives the tier from probe capabilities.
     """
 
     id: str
@@ -106,6 +113,8 @@ class ProbeSpec:
     weight: float = 0.0
     severity: str = "major"
     hard_gate: bool = False
+    tier: str | None = None
+    class_metric: str | None = None
 
 
 @dataclass
@@ -211,11 +220,38 @@ class FeedbackVisibility:
 
 
 @dataclass
+class ModeConfig:
+    """One eval mode (e.g. ``fast``, ``oracle``).
+
+    ``enabled_probe_ids`` is the subset of probes that run in this mode.
+    An empty list means "all probes." ``adapter_overrides`` lets a mode
+    swap the contact-dynamics adapter (e.g. ``fake_contact_oracle`` in
+    ``oracle`` mode for tests).
+    """
+
+    enabled_probe_ids: list[str] = field(default_factory=list)
+    adapter_overrides: dict[str, dict[str, Any]] = field(default_factory=dict)
+    forced_adapter: str | None = None
+
+
+@dataclass
+class FinalModeConfig:
+    """``final`` mode: combines fast + oracle into a single report."""
+
+    require_modes: list[str] = field(default_factory=lambda: ["fast", "oracle"])
+    agreement_probes: list[str] = field(default_factory=list)
+    ratio_delta_pct_max: float = 5.0
+    penetration_delta_mm_max: float = 0.1
+
+
+@dataclass
 class EvalConfig:
     probes: list[ProbeSpec]
     hard_gate_probes: list[str] = field(default_factory=list)
     visibility: FeedbackVisibility = field(default_factory=FeedbackVisibility)
     adapter_configs: dict[str, dict[str, Any]] = field(default_factory=dict)
+    modes: dict[str, ModeConfig] = field(default_factory=dict)
+    final_mode: FinalModeConfig = field(default_factory=FinalModeConfig)
 
     @classmethod
     def from_dict(cls, d: dict) -> "EvalConfig":
@@ -226,10 +262,13 @@ class EvalConfig:
                 type=entry["type"],
                 config={k: v for k, v in entry.items()
                         if k not in {"id", "type", "weight",
-                                     "severity", "hard_gate"}},
+                                     "severity", "hard_gate",
+                                     "tier", "class_metric"}},
                 weight=float(entry.get("weight", 0.0)),
                 severity=str(entry.get("severity", "major")),
                 hard_gate=bool(entry.get("hard_gate", False)),
+                tier=entry.get("tier"),
+                class_metric=entry.get("class_metric"),
             ))
         hard_gate = d.get("hard_gate", {}).get("require", [])
         fb = d.get("feedback", {})
@@ -239,6 +278,42 @@ class EvalConfig:
             for k, v in raw_adapters.items():
                 if isinstance(v, dict):
                     adapter_configs[str(k)] = dict(v)
+
+        raw_modes = d.get("modes", {}) or {}
+        modes: dict[str, ModeConfig] = {}
+        final_cfg = FinalModeConfig()
+        if isinstance(raw_modes, dict):
+            for mname, mraw in raw_modes.items():
+                if not isinstance(mraw, dict):
+                    continue
+                if mname == "final":
+                    final_cfg = FinalModeConfig(
+                        require_modes=list(
+                            mraw.get("require_modes", ["fast", "oracle"])
+                        ),
+                        agreement_probes=list(
+                            mraw.get("agreement_probes", [])
+                        ),
+                        ratio_delta_pct_max=float(
+                            mraw.get("ratio_delta_pct_max", 5.0)
+                        ),
+                        penetration_delta_mm_max=float(
+                            mraw.get("penetration_delta_mm_max", 0.1)
+                        ),
+                    )
+                    continue
+                modes[str(mname)] = ModeConfig(
+                    enabled_probe_ids=list(
+                        mraw.get("enabled_probe_ids", [])
+                    ),
+                    adapter_overrides={
+                        str(k): dict(v) if isinstance(v, dict) else {}
+                        for k, v in (mraw.get("adapter_overrides")
+                                     or {}).items()
+                    },
+                    forced_adapter=mraw.get("forced_adapter"),
+                )
+
         return cls(
             probes=probes,
             hard_gate_probes=list(hard_gate),
@@ -247,6 +322,8 @@ class EvalConfig:
                 hidden_metrics=list(fb.get("hidden_metrics", [])),
             ),
             adapter_configs=adapter_configs,
+            modes=modes,
+            final_mode=final_cfg,
         )
 
 
@@ -268,8 +345,12 @@ class EvalReport:
     task_family: str = ""
     difficulty: int = 0
     tier_results: dict[str, dict] = field(default_factory=dict)
+    class_metrics: dict[str, float] = field(default_factory=dict)
+    general_metrics: dict[str, float] = field(default_factory=dict)
     timings: dict[str, float] = field(default_factory=dict)
     evaluation_valid: bool = True
+    oracle_is_synthetic: bool = False
+    mode: str = ""
     version: str = "eval_report.v1"
 
     def to_dict(
@@ -335,10 +416,14 @@ class EvalReport:
             "score": self.score,
             "hard_gate_passed": self.hard_gate_passed,
             "evaluation_valid": self.evaluation_valid,
+            "oracle_is_synthetic": self.oracle_is_synthetic,
+            "mode": self.mode,
             "metrics": metrics_view,
             "feedback": feedback_items,
             "probe_results": probe_view,
             "tier_results": dict(self.tier_results),
+            "class_metrics": dict(self.class_metrics),
+            "general_metrics": dict(self.general_metrics),
             "timings": dict(self.timings),
         }
         if not public:

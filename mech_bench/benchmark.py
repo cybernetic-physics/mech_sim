@@ -369,7 +369,7 @@ def run_suite(
             json.dumps(sanitize_report_for_json(summary), indent=2,
                         default=str, allow_nan=False)
         )
-        # Best-effort dashboard payload.
+        # Best-effort dashboard payload + static HTML.
         try:
             from mech_bench.dashboard_payload import (
                 build_benchmark_dashboard_payload,
@@ -380,6 +380,18 @@ def run_suite(
                 report_dir_path / "benchmark_dashboard_payload.json",
                 payload,
             )
+            try:
+                from mech_bench.dashboard import (
+                    HAS_PLOTLY,
+                    write_benchmark_dashboard,
+                )
+                if HAS_PLOTLY:
+                    write_benchmark_dashboard(
+                        payload,
+                        report_dir_path / "benchmark_dashboard.html",
+                    )
+            except ImportError:  # pragma: no cover
+                pass
         except Exception:  # noqa: BLE001 - best effort
             pass
 

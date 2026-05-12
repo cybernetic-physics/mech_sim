@@ -44,6 +44,13 @@ from mech_bench.adapters import (
     normalize_sim_output,
 )
 from mech_bench.feedback import Failure, FailureCode, Severity
+from mech_bench.metrics import (
+    compute_class_metrics,
+    compute_general_metrics,
+    compute_tier_metrics,
+    derive_tier,
+    fill_defaults_for_dashboard,
+)
 from mech_bench.probes import Capability, Probe, get_probe
 from mech_bench.schema import (
     DesignIR,
@@ -542,6 +549,7 @@ def evaluate(
     scratch_dir: Path | None = None,
     run_id: str | None = None,
     submission_timeout: float = DEFAULT_SUBMISSION_TIMEOUT,
+    mode: str = "",
 ) -> EvalReport:
     """Backwards-compatible wrapper: returns only the EvalReport."""
     return evaluate_with_evidence(
@@ -550,6 +558,7 @@ def evaluate(
         scratch_dir=scratch_dir,
         run_id=run_id,
         submission_timeout=submission_timeout,
+        mode=mode,
     ).report
 
 
@@ -560,6 +569,7 @@ def evaluate_with_evidence(
     scratch_dir: Path | None = None,
     run_id: str | None = None,
     submission_timeout: float = DEFAULT_SUBMISSION_TIMEOUT,
+    mode: str = "",
 ) -> RunEvidence:
     task_dir = Path(task_dir)
     submission_dir = Path(submission_dir)
@@ -570,6 +580,10 @@ def evaluate_with_evidence(
     t0 = time.perf_counter()
     task, cfg = load_task(task_dir)
     timings["load_task"] = time.perf_counter() - t0
+
+    if mode:
+        from mech_bench.modes import apply_mode
+        cfg = apply_mode(cfg, mode)
 
     def _empty_evidence(
         failures: list[Failure],
@@ -729,6 +743,40 @@ def evaluate_with_evidence(
             "score": 0.0,
         })
 
+    # Tier / class / general metric aggregation.
+    caps_by_id = {p.probe_id: list(p.capabilities) for p in plan.probes}
+    tier_channels = compute_tier_metrics(
+        probe_results, specs_by_id, caps_by_id)
+    class_channels = compute_class_metrics(probe_results, specs_by_id)
+    tier_channels, class_channels = fill_defaults_for_dashboard(
+        tier_channels, class_channels)
+    # Merge channel scores into tier_results so the dashboard sees both.
+    for ch, vals in tier_channels.items():
+        merged = tier_results.setdefault(ch, {
+            "probe_ids": [],
+            "passed": vals["passed"],
+            "score": vals["score"],
+        })
+        merged.setdefault("probe_ids", merged.get("probe_ids", []))
+        merged["score"] = vals["score"]
+        merged["passed"] = vals["passed"]
+        merged["n"] = vals["n"]
+        merged["n_passed"] = vals["n_passed"]
+
+    total_runtime = float(sum(timings.values()))
+    oracle_is_synthetic = any(
+        isinstance(out, dict)
+        and bool(out.get("metadata", {}).get("oracle_is_synthetic", False))
+        for out in sim_outputs_by_adapter.values()
+    )
+    general = compute_general_metrics(
+        probe_results,
+        hard_gate_passed=hard_gate_passed,
+        score=float(dense),
+        runtime_s=total_runtime,
+        oracle_passed=hard_gate_passed if oracle_is_synthetic else None,
+    )
+
     report = EvalReport(
         task_id=task.id,
         task_family=task.family,
@@ -740,8 +788,12 @@ def evaluate_with_evidence(
         metrics=agg_metrics,
         feedback=feedback,
         tier_results=tier_results,
+        class_metrics=class_channels,
+        general_metrics=general,
         timings=timings,
         evaluation_valid=evaluation_valid,
+        oracle_is_synthetic=oracle_is_synthetic,
+        mode=mode,
     )
     return RunEvidence(
         report=report,
@@ -878,12 +930,47 @@ def write_run_bundle(
         out_dir / "dashboard_payload.json", payload)
     paths["dashboard_payload"] = payload_path
 
+    # Optional planar media rendering — best-effort.
+    thumbnail_path: Path | None = None
+    preview_mp4: Path | None = None
+    frames_dir: Path | None = None
+    try:
+        from mech_bench.rendering.planar_renderer import (
+            HAS_MATPLOTLIB,
+            PlanarRenderer,
+        )
+        if HAS_MATPLOTLIB:
+            renderer = PlanarRenderer()
+            res = renderer.render(payload, out_dir, fps=30,
+                                  produce_mp4=True)
+            if res.ok:
+                thumbnail_path = res.thumbnail_png
+                preview_mp4 = res.preview_mp4
+                frames_dir = res.frames_dir
+    except Exception:  # noqa: BLE001 — media is non-critical
+        pass
+
     dashboard_path: Path | None = None
     try:
         from mech_bench.dashboard import (
             HAS_PLOTLY,
             write_static_dashboard,
         )
+        # Refresh payload's media block with whatever was rendered.
+        if thumbnail_path or preview_mp4 or frames_dir:
+            payload.setdefault("media", {})
+            if thumbnail_path:
+                payload["media"]["thumbnail_png"] = str(
+                    thumbnail_path.relative_to(out_dir))
+            if preview_mp4:
+                payload["media"]["preview_mp4"] = str(
+                    preview_mp4.relative_to(out_dir))
+            elif frames_dir:
+                payload["media"]["frames_dir"] = str(
+                    frames_dir.relative_to(out_dir))
+            # Rewrite payload JSON so dashboards see media refs.
+            payload_path = write_dashboard_payload(
+                out_dir / "dashboard_payload.json", payload)
         if HAS_PLOTLY:
             dashboard_path = write_static_dashboard(
                 payload, out_dir / "dashboard.html")
@@ -891,12 +978,24 @@ def write_run_bundle(
     except ImportError:  # pragma: no cover - defensive
         pass
 
+    if thumbnail_path:
+        paths["thumbnail_png"] = thumbnail_path
+    if preview_mp4:
+        paths["preview_mp4"] = preview_mp4
+    if frames_dir and not preview_mp4:
+        paths["frames_dir"] = frames_dir
+
     manifest_path = write_media_manifest(
         out_dir,
         evidence.report,
         trace_path=trace_path,
         dashboard_payload_path=payload_path,
         dashboard_html_path=dashboard_path,
+        thumbnail_png_path=thumbnail_path,
+        preview_mp4_path=preview_mp4,
+        frames_dir_path=frames_dir if (preview_mp4 is None
+                                        and frames_dir is not None)
+                          else None,
     )
     paths["media_manifest"] = manifest_path
     return paths

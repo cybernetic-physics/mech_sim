@@ -32,8 +32,34 @@ def _cmd_evaluate(args: argparse.Namespace) -> int:
     task_dir = Path(args.task)
     submission_dir = Path(args.submission)
     scratch_dir = Path(args.scratch) if args.scratch else None
+    mode = getattr(args, "mode", "") or ""
+
+    if mode == "final":
+        from mech_bench.modes import run_final
+        final = run_final(task_dir, submission_dir, scratch_dir=scratch_dir)
+        blob = final.to_dict()
+        out = json.dumps(
+            sanitize_report_for_json(blob), indent=2,
+            default=str, allow_nan=False)
+        print(out)
+        if args.out:
+            Path(args.out).write_text(out)
+        if args.report_dir:
+            rd = Path(args.report_dir)
+            rd.mkdir(parents=True, exist_ok=True)
+            (rd / "final.json").write_text(out)
+            if final.fast:
+                write_run_bundle(final.fast.evidence, rd / "fast")
+            if final.oracle:
+                write_run_bundle(final.oracle.evidence, rd / "oracle")
+        if args.allow_partial:
+            return 0
+        return 0 if (final.evaluation_valid
+                     and final.hard_gate_passed
+                     and final.final_score > 0) else 1
+
     evidence = evaluate_with_evidence(
-        task_dir, submission_dir, scratch_dir=scratch_dir)
+        task_dir, submission_dir, scratch_dir=scratch_dir, mode=mode)
     report = evidence.report
     cfg = evidence.cfg
 
@@ -161,6 +187,25 @@ def _cmd_check_negative_controls(args: argparse.Namespace) -> int:
     return 0 if summary.get("all_passed") else 1
 
 
+def _cmd_rlvr_eval(args: argparse.Namespace) -> int:
+    from mech_bench.rlvr import evaluate_for_rlvr
+
+    rlvr = evaluate_for_rlvr(
+        Path(args.task),
+        Path(args.submission),
+        mode=args.mode,
+        report_dir=Path(args.report_dir) if args.report_dir else None,
+    )
+    blob = rlvr.to_dict()
+    out = json.dumps(
+        sanitize_report_for_json(blob), indent=2, default=str,
+        allow_nan=False)
+    print(out)
+    if args.out:
+        Path(args.out).write_text(out)
+    return 0
+
+
 def _cmd_video(args: argparse.Namespace) -> int:
     from mech_bench.video import FrameSequenceRenderer
 
@@ -179,7 +224,7 @@ def _cmd_video(args: argparse.Namespace) -> int:
         print(f"error: cannot read payload: {e}", file=sys.stderr)
         return 2
 
-    renderer = FrameSequenceRenderer()
+    renderer = FrameSequenceRenderer(view=getattr(args, "view", "planar"))
     out_mp4 = Path(args.out)
     result = renderer.render(payload, out_mp4, fps=args.fps)
     if not result.ok:
@@ -219,6 +264,11 @@ def main(argv: list[str] | None = None) -> int:
     ev.add_argument("--full", action="store_true",
                     help=("print the full internal report instead of "
                           "the public-redacted view"))
+    ev.add_argument("--mode", default="",
+                    choices=["", "fast", "oracle", "final"],
+                    help=("evaluation mode: 'fast' runs cheap probes, "
+                          "'oracle' runs contact/dynamics probes, "
+                          "'final' runs both and gates on agreement"))
     ev.add_argument("--allow-partial", action="store_true",
                     help=("exit 0 even if the hard gate failed or "
                           "score is zero"))
@@ -281,6 +331,19 @@ def main(argv: list[str] | None = None) -> int:
                     choices=["public", "hidden", "both"])
     nc.set_defaults(func=_cmd_check_negative_controls)
 
+    rl = sub.add_parser(
+        "rlvr-eval",
+        help="Compact RLVR-loop evaluation: reward + scalar channels",
+    )
+    rl.add_argument("--task", required=True)
+    rl.add_argument("--submission", required=True)
+    rl.add_argument("--mode", default="fast",
+                    choices=["fast", "oracle", "final"])
+    rl.add_argument("--report-dir", default=None)
+    rl.add_argument("--out", default=None,
+                    help="also write the compact JSON to this path")
+    rl.set_defaults(func=_cmd_rlvr_eval)
+
     vd = sub.add_parser(
         "video",
         help=("Render an mp4 preview from a packaged run "
@@ -289,6 +352,9 @@ def main(argv: list[str] | None = None) -> int:
     vd.add_argument("--report-dir", required=True)
     vd.add_argument("--out", required=True, help="output mp4 path")
     vd.add_argument("--fps", type=int, default=30)
+    vd.add_argument("--view", default="planar",
+                    choices=["planar"],
+                    help="renderer view (currently only 'planar')")
     vd.set_defaults(func=_cmd_video)
 
     args = p.parse_args(argv)

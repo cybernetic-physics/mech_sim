@@ -1,18 +1,23 @@
-"""MP4 video skeleton.
+"""MP4 video front-end.
 
-We don't ship a real renderer today — Chrono / MuJoCo / Drake / Three.js
-backends will plug in later. This module provides the interface the
-CLI calls and a safe failure mode when no backend is installed.
+Two backends are wired here:
 
-The flow is:
+* ``planar`` — matplotlib-driven 2D renderer for planar mechanism
+  payloads (see :mod:`mech_bench.rendering.planar_renderer`). Available
+  whenever ``matplotlib`` is installed.
+* Placeholders for future Chrono / MuJoCo / Drake / Three.js backends.
 
-    1. CLI loads dashboard_payload.json from --report-dir.
-    2. CLI asks an available :class:`RendererBackend` for frames.
-    3. Frames are encoded into an mp4 with ffmpeg (if installed).
+The CLI's ``mech-bench video`` flow is:
 
-For now every backend reports unavailable, and the CLI emits a
-structured warning instead of producing a video. The interfaces are
-stable so future backends can register themselves.
+    1. Load ``dashboard_payload.json`` from ``--report-dir``.
+    2. Pick a :class:`RendererBackend` (``--view`` decides; default
+       ``planar``).
+    3. Have the backend render frames + thumbnail + optional mp4 (if
+       ffmpeg is on PATH).
+
+If matplotlib or ffmpeg are missing, the renderer keeps any partial
+artifacts (frames) and emits a structured warning rather than crashing
+the evaluation.
 """
 
 from __future__ import annotations
@@ -94,12 +99,20 @@ def pick_backend() -> RendererBackend | None:
 class FrameSequenceRenderer:
     """Drive a backend through its frame loop.
 
-    Today this is mostly a placeholder so the CLI has a single entry
-    point. Real backends will subclass :class:`RendererBackend`.
+    By default uses the planar matplotlib renderer (which is the only
+    backend wired today). Future Chrono / MuJoCo backends will register
+    via :func:`register_backend` and be picked when their capabilities
+    match the payload.
     """
 
-    def __init__(self, backend: RendererBackend | None = None):
-        self.backend = backend or pick_backend()
+    def __init__(
+        self,
+        backend: RendererBackend | None = None,
+        *,
+        view: str = "planar",
+    ):
+        self.backend = backend
+        self.view = view
 
     def render(
         self,
@@ -109,36 +122,63 @@ class FrameSequenceRenderer:
         fps: int = 30,
         frames_dir: Path | None = None,
     ) -> RenderResult:
-        if self.backend is None:
-            return RendererResult_unavailable(
-                "No renderer backend is registered. Install a "
-                "renderer extra such as `mech-bench[video]` once one "
-                "is available."
+        out_mp4 = Path(out_mp4)
+        if self.view in ("planar", "", None):
+            from mech_bench.rendering.planar_renderer import (
+                HAS_MATPLOTLIB,
+                PlanarRenderer,
             )
-        if not self.backend.available():
+            if not HAS_MATPLOTLIB:
+                return RendererResult_unavailable(
+                    "matplotlib is not installed; install "
+                    "mech-bench[media] to enable planar rendering."
+                )
+            renderer = PlanarRenderer()
+            out_dir = out_mp4.parent
+            out_dir.mkdir(parents=True, exist_ok=True)
+            res = renderer.render(payload, out_dir, fps=fps,
+                                  produce_mp4=True)
+            if not res.ok:
+                return RenderResult(
+                    ok=False, backend="planar",
+                    reason=res.reason or "planar renderer failed",
+                )
+            if res.preview_mp4 is None:
+                return RenderResult(
+                    ok=False, backend="planar",
+                    reason=("frames + thumbnail written, but ffmpeg "
+                            "did not produce an mp4."),
+                    out_path=res.frames_dir,
+                )
+            # Move the renderer's preview.mp4 to the requested path if
+            # they differ.
+            if res.preview_mp4 != out_mp4:
+                out_mp4.write_bytes(res.preview_mp4.read_bytes())
+            return RenderResult(
+                ok=True, out_path=out_mp4, backend="planar")
+
+        # Other backends: try registered ones.
+        backend = self.backend or pick_backend()
+        if backend is None:
             return RendererResult_unavailable(
-                f"Backend {self.backend.type_name!r} is registered "
-                f"but not currently runnable."
-            )
+                f"No registered backend for view {self.view!r}.")
         frames_dir = frames_dir or out_mp4.with_suffix("").with_name(
             f"{out_mp4.stem}_frames")
         frames_dir.mkdir(parents=True, exist_ok=True)
-        n = self.backend.render_frames(payload, frames_dir, fps=fps)
+        n = backend.render_frames(payload, frames_dir, fps=fps)
         if n <= 0:
             return RenderResult(
-                ok=False,
-                backend=self.backend.type_name,
+                ok=False, backend=backend.type_name,
                 reason="backend produced zero frames",
             )
         encoded = encode_mp4_with_ffmpeg(frames_dir, out_mp4, fps=fps)
         if encoded is None:
             return RenderResult(
-                ok=False,
-                backend=self.backend.type_name,
+                ok=False, backend=backend.type_name,
                 reason="ffmpeg not available; frames written but not encoded",
             )
         return RenderResult(
-            ok=True, out_path=encoded, backend=self.backend.type_name)
+            ok=True, out_path=encoded, backend=backend.type_name)
 
 
 def RendererResult_unavailable(reason: str) -> RenderResult:
