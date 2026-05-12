@@ -1,0 +1,19 @@
+{
+  "description": "Negative controls that the eval pipeline must catch.",
+  "controls": [
+    {
+      "id": "wrong_coupler_offset",
+      "submission": "negative_solutions/wrong_coupler_offset",
+      "expected_failure_codes": ["path_error"],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.5
+    },
+    {
+      "id": "wrong_mobility_extra_fixed",
+      "submission": "negative_solutions/wrong_mobility_extra_fixed",
+      "expected_failure_codes": ["wrong_mobility"],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001
+    }
+  ]
+}

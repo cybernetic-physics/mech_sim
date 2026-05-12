@@ -1,0 +1,15 @@
+[task]
+id = "fourbar_path_t001"
+family = "planar_4bar"
+difficulty = 2
+units = "mm"
+
+[requirements]
+required_ports = ["input_port", "output_port", "coupler_point"]
+expected_mobility = 1
+max_envelope_mm = [200, 200, 50]
+
+[objective]
+description = "Trace the target coupler path within Chamfer 0.05 (normalized)."
+target_path_csv = "target_path.csv"
+max_chamfer_normalized = 0.05
