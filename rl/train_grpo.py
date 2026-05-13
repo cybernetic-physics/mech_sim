@@ -203,7 +203,10 @@ def main() -> int:
     p.add_argument("--pass-bonus", type=float, default=25.0,
                    help="extra reward when the final-turn hard gate "
                         "passes (on top of dense_pct)")
-    p.add_argument("--adv-clip", type=float, default=5.0)
+    p.add_argument("--adv-clip", type=float, default=2.0,
+                   help="absolute clip on per-rollout advantage; "
+                        "advantage * completion-len-many-tokens "
+                        "produces big gradients when clip is loose")
     p.add_argument("--drop-zero-var", action="store_true", default=True)
     p.add_argument("--mask-truncated", action="store_true", default=True)
     p.add_argument("--checkpoint-every", type=int, default=10)
@@ -411,10 +414,16 @@ def main() -> int:
                 cl = len(r["final_ids"])
                 full_ids = list(r["prompt_ids"]) + list(r["final_ids"])
                 target_ids = full_ids[1:] + [0]
+                # Per-token weight = advantage / completion_len so the
+                # total weight contributed by ONE rollout is |adv|
+                # rather than |adv| * completion_len. Without this the
+                # gradient scales linearly with sequence length and
+                # blows up (cook05 hit loss ≈ -25k by step 16).
+                per_tok = float(adv) / max(1, cl)
                 if pl >= 1:
-                    weights = [0.0] * (pl - 1) + [adv] * cl + [0.0]
+                    weights = [0.0] * (pl - 1) + [per_tok] * cl + [0.0]
                 else:
-                    weights = [adv] * cl + [0.0]
+                    weights = [per_tok] * cl + [0.0]
                 if len(weights) != len(full_ids):
                     weights = (
                         weights + [0.0] * len(full_ids)
