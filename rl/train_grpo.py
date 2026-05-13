@@ -1,32 +1,29 @@
-"""GRPO-style RL loop on mech_bench tasks via worldlines.
+"""Multi-turn GRPO on mech_bench: SGLang rollouts → worldlines training.
 
-Adapted from rl-spark/worldlines-engdesign/src/engdesign_train.py.
-One round =
+Architecture (single-host, two GPUs):
 
-    1. Pick a sub-batch of tasks (uniform — curriculum is a future
-       knob, see rl-spark for the EMA-weighted version).
-    2. For each task, sample K rollouts from the policy.
-    3. ``mech_env.score(task, raw_text)`` →
-       (parsed_ok, passed, score in [0, 100], failure_codes).
-    4. Per-task reward = score + parse_bonus(if parsed) -
-       length_alpha * log1p(completion_tokens).
-       Truncated completions (stop_reason="length") get advantage 0.
-    5. Advantage_i = (reward_i - mean_K) / (std_K + ε) with optional
-       clip; "drop zero variance" skips entire groups.
-    6. Build worldlines ``Datum`` objects with per-token weights
-       (advantage on completion tokens, 0 on prompt tokens) and call
-       ``train.forward_backward(data, loss_fn="cross_entropy")`` then
-       ``train.optim_step(AdamParams(lr))``. Same multiplicative-CE
-       advantage trick as engdesign_train.
+  GPU 1 ─ SGLang OpenAI server (:30000)         ← samples per turn
+  GPU 0 ─ Worldlines backend (:18100)           ← PEFT LoRA trainer
+            ├─ ServiceClient.create_lora_training_client
+            ├─ forward_backward(loss_fn="cross_entropy")
+            └─ optim_step(AdamParams)
 
-Outputs run logs to ``runs/<run_name>/`` so the rl-spark dashboard
-shape stays compatible — ``history.jsonl``, ``task_scores.jsonl``,
-``heartbeat.json``.
+Per round:
+    1. Pick ``tasks_per_round`` tasks (uniform, curriculum is TBD).
+    2. For each task, run ``samples_per_task`` multi-turn rollouts
+       through SGLang via ``rl.chat_rollout.run_rollout`` — each
+       rollout is up to ``max_turns`` assistant turns with verifier
+       feedback in between. Reward = best score across turns + parse
+       bonus.
+    3. Compute group-relative advantages over the K rollouts.
+    4. For each kept rollout, tokenise (system, user, ...turns_until_last_assistant,
+       final_assistant) and build a worldlines Datum: prompt tokens
+       weighted 0, final-assistant tokens weighted by advantage.
+    5. forward_backward + optim_step on worldlines. Periodic save_state.
 
-Auth: relies on the user's Worldlines backend at
-``--backend-url`` (default 127.0.0.1:18100) with API key
-``wld-local``. The backend is whatever ``rl/launch_worldlines.sh``
-spun up — Qwen3-1.7B PEFT LoRA trainer here.
+Logs land under ``runs/<run_name>/`` in the same shape as
+rl-spark/worldlines-engdesign — ``history.jsonl``,
+``task_scores.jsonl``, ``heartbeat.json``.
 """
 
 from __future__ import annotations
@@ -39,7 +36,6 @@ import statistics
 import sys
 import time
 import traceback
-from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -47,10 +43,11 @@ THIS = Path(__file__).resolve().parent
 sys.path.insert(0, str(THIS))
 sys.path.insert(0, str(THIS.parent))
 
-import mech_env as env  # noqa: E402  (after sys.path)
+import mech_env as env  # noqa: E402
+import chat_rollout as cr  # noqa: E402
 
 
-SYSTEM_PROMPT_PATH = THIS.parent / "scripts" / "agent_system_prompt.md"
+SYSTEM_PROMPT_PATH = THIS / "agent_prompt_rl.md"
 USER_PROMPT_TEMPLATE = """Solve mech_bench task **{task_id}**.
 
 ## prompt.md
@@ -61,14 +58,13 @@ USER_PROMPT_TEMPLATE = """Solve mech_bench task **{task_id}**.
 {task_toml}
 ```
 
-Emit ONE Python file named `design.py` that defines
-`build_design(out_dir: Path) -> dict`. Wrap the full file in a
-single fenced ```python ... ``` block. No prose outside the block.
+Emit ONE Python file as a single fenced ```python ... ``` block.
+No prose outside the block.
 """
 
 
 # --------------------------------------------------------------------- #
-# tiny heartbeat + log files (mirror rl-spark layout)                    #
+# Logging helpers (mirror rl-spark)                                     #
 # --------------------------------------------------------------------- #
 
 
@@ -87,7 +83,7 @@ def append_jsonl(path: Path, row: dict) -> None:
 
 
 # --------------------------------------------------------------------- #
-# Advantage math (uniform with rl-spark)                                 #
+# Advantage math                                                        #
 # --------------------------------------------------------------------- #
 
 
@@ -109,7 +105,6 @@ def _group_advantages(
     adv_clip: float = 5.0,
     drop_zero_var: bool = True,
 ) -> list[float]:
-    """(r - mean) / (std + eps), with mask + optional clip + drop-zero-var."""
     if not rewards:
         return []
     if drop_zero_var and len(set(rewards)) <= 1:
@@ -118,10 +113,7 @@ def _group_advantages(
     if not valid:
         return [0.0] * len(rewards)
     mu = sum(valid) / len(valid)
-    if len(valid) > 1:
-        sigma = statistics.pstdev(valid)
-    else:
-        sigma = 0.0
+    sigma = statistics.pstdev(valid) if len(valid) > 1 else 0.0
     advs: list[float] = []
     for r, m in zip(rewards, mask):
         if not m:
@@ -135,27 +127,74 @@ def _group_advantages(
 
 
 # --------------------------------------------------------------------- #
-# main                                                                   #
+# Tokenise (messages-up-to-final-assistant) + (final-assistant)         #
+# --------------------------------------------------------------------- #
+
+
+def _split_into_prompt_and_final_assistant(
+    tok,
+    messages: list[dict[str, str]],
+) -> tuple[list[int], list[int]]:
+    """Return (prompt_ids, final_assistant_ids).
+
+    ``prompt_ids`` is the chat-templated tokenisation of all messages
+    up to (but not including) the LAST assistant message, with the
+    generation prompt appended — exactly what the model saw when it
+    produced the final completion. ``final_assistant_ids`` is the
+    content of that last assistant message.
+    """
+    # Find the last assistant.
+    last_assistant_idx = None
+    for i in range(len(messages) - 1, -1, -1):
+        if messages[i]["role"] == "assistant":
+            last_assistant_idx = i
+            break
+    if last_assistant_idx is None:
+        # No assistant turn — return whole thing as prompt, empty completion.
+        prompt_text = tok.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True)
+        prompt_ids = tok.encode(prompt_text, add_special_tokens=False)
+        return [int(x) for x in prompt_ids], []
+
+    prompt_msgs = messages[:last_assistant_idx]
+    prompt_text = tok.apply_chat_template(
+        prompt_msgs, tokenize=False, add_generation_prompt=True)
+    prompt_ids = tok.encode(prompt_text, add_special_tokens=False)
+
+    final_content = messages[last_assistant_idx]["content"] or ""
+    final_ids = tok.encode(final_content, add_special_tokens=False)
+    return [int(x) for x in prompt_ids], [int(x) for x in final_ids]
+
+
+# --------------------------------------------------------------------- #
+# main                                                                  #
 # --------------------------------------------------------------------- #
 
 
 def main() -> int:
     p = argparse.ArgumentParser(prog="train_grpo")
-    p.add_argument("--backend-url", default="http://127.0.0.1:18100")
+    p.add_argument("--backend-url", default="http://127.0.0.1:18100",
+                   help="worldlines backend (PEFT trainer)")
     p.add_argument("--api-key", default="wld-local")
-    p.add_argument("--base-model", default="Qwen/Qwen3-1.7B")
+    p.add_argument("--sglang-url", default="http://127.0.0.1:30000",
+                   help="sglang OpenAI server (rollout sampler)")
+    p.add_argument(
+        "--base-model",
+        default="NousResearch/DeepHermes-3-Llama-3-3B-Preview")
     p.add_argument("--tokenizer", default=None,
                    help="defaults to --base-model")
     p.add_argument("--run-name", default="mech-grpo")
-    p.add_argument("--runs-root", default="runs",
-                   help="root dir for per-run logs (relative to repo)")
+    p.add_argument("--runs-root", default="runs")
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--rounds", type=int, default=20)
     p.add_argument("--tasks-per-round", type=int, default=4)
     p.add_argument("--samples-per-task", type=int, default=4)
-    p.add_argument("--max-tokens", type=int, default=1024)
-    p.add_argument("--max-prompt-tokens", type=int, default=8192)
-    p.add_argument("--rollout-temperature", type=float, default=0.8)
+    p.add_argument("--max-turns", type=int, default=4,
+                   help="max assistant turns per rollout")
+    p.add_argument("--max-tokens-per-turn", type=int, default=4096)
+    p.add_argument("--max-context-tokens", type=int, default=16384,
+                   help="hard cap on full prompt+completion length")
+    p.add_argument("--rollout-temperature", type=float, default=0.7)
     p.add_argument("--top-p", type=float, default=0.95)
     p.add_argument("--lr", type=float, default=1e-4)
     p.add_argument("--lora-rank", type=int, default=16)
@@ -164,17 +203,11 @@ def main() -> int:
     p.add_argument("--adv-clip", type=float, default=5.0)
     p.add_argument("--drop-zero-var", action="store_true", default=True)
     p.add_argument("--mask-truncated", action="store_true", default=True)
-    p.add_argument("--mask-prompt", action="store_true", default=True)
     p.add_argument("--checkpoint-every", type=int, default=10)
-    p.add_argument("--families", default=None,
-                   help="comma-separated family allowlist (e.g. "
-                        "'mounting_plate_hole_pitch,spur_gear_ratio_analytic')")
-    p.add_argument("--tiers", default=None,
-                   help="comma-separated tier allowlist "
-                        "(artifact_static / planar_kinematics / "
-                        "transmission_analytic / contact_dynamics)")
-    p.add_argument("--score-timeout", type=float, default=60.0,
-                   help="seconds for one mech_bench evaluate")
+    p.add_argument("--families", default=None)
+    p.add_argument("--tiers", default=None)
+    p.add_argument("--score-timeout", type=float, default=60.0)
+    p.add_argument("--rollout-timeout", type=float, default=300.0)
     args = p.parse_args()
 
     rng = random.Random(args.seed)
@@ -182,7 +215,6 @@ def main() -> int:
     runs_dir = repo_root / args.runs_root / args.run_name
     runs_dir.mkdir(parents=True, exist_ok=True)
 
-    # Load tasks.
     families = (
         {s.strip() for s in args.families.split(",") if s.strip()}
         if args.families else None
@@ -200,16 +232,11 @@ def main() -> int:
         return 2
     print(f"loaded {len(tasks)} tasks")
 
-    # Worldlines clients (lazy-imported so the script still parses on
-    # machines without the SDK).
     import worldlines as wl  # type: ignore[import-not-found]
     from transformers import AutoTokenizer  # type: ignore[import-not-found]
 
     svc = wl.ServiceClient(base_url=args.backend_url, api_key=args.api_key)
-    base_sampler = svc.create_sampling_client(base_model=args.base_model)
-    rollout_sampler = base_sampler  # until we publish a trained adapter
-    print(f"connected to {args.backend_url}, base={args.base_model}")
-
+    print(f"worldlines @ {args.backend_url}")
     print("creating LoRA training client ...")
     train = svc.create_lora_training_client(
         base_model=args.base_model,
@@ -222,28 +249,14 @@ def main() -> int:
     tok = AutoTokenizer.from_pretrained(tokenizer_name)
     system_prompt = SYSTEM_PROMPT_PATH.read_text()
 
-    def _chat_tokens(task: env.TaskInfo) -> list[int]:
-        user = USER_PROMPT_TEMPLATE.format(
-            task_id=task.task_id,
-            prompt_md=task.prompt,
-            task_toml=task.task_toml,
-        )
-        msgs = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user},
-        ]
-        prompt_text = tok.apply_chat_template(
-            msgs, tokenize=False, add_generation_prompt=True,
-        )
-        ids = tok.encode(prompt_text, add_special_tokens=False)
-        return [int(x) for x in ids]
-
     step = 0
     t0 = time.time()
     heartbeat(runs_dir, phase="starting", round=0, step=0,
-              base_model=args.base_model, algo="grpo",
+              base_model=args.base_model, algo="grpo-multi-turn",
               tokenizer=tokenizer_name,
-              n_tasks=len(tasks))
+              n_tasks=len(tasks),
+              sglang_url=args.sglang_url,
+              backend_url=args.backend_url)
 
     for round_idx in range(args.rounds):
         batch = rng.sample(
@@ -258,64 +271,88 @@ def main() -> int:
 
         groups: list[dict] = []
         for ti in batch:
-            heartbeat(runs_dir, phase="rollout", round=round_idx,
-                      step=step, current_task=ti.task_id)
-            prompt_ids = _chat_tokens(ti)
-            if len(prompt_ids) + args.max_tokens > args.max_prompt_tokens:
-                print(f"  [skip] {ti.task_id} prompt too long "
-                      f"({len(prompt_ids)} + {args.max_tokens})")
-                continue
-            mi = wl.ModelInput.from_ints(prompt_ids)
-            params = wl.SamplingParams(
-                max_tokens=args.max_tokens,
-                temperature=args.rollout_temperature,
-                top_p=args.top_p,
+            user_prompt = USER_PROMPT_TEMPLATE.format(
+                task_id=ti.task_id,
+                prompt_md=ti.prompt,
+                task_toml=ti.task_toml,
             )
-            try:
-                fut = rollout_sampler.sample(
-                    prompt=mi,
-                    num_samples=args.samples_per_task,
-                    sampling_params=params,
-                )
-                resp = fut.result()
-            except Exception as e:  # noqa: BLE001
-                print(f"  [warn] sample {ti.task_id}: {e}")
-                continue
-
             rollouts: list[dict] = []
-            for seq in resp.sequences:
-                raw = tok.decode(list(seq.tokens), skip_special_tokens=True)
-                ep = env.score(
-                    ti, raw, parse_bonus=args.parse_bonus,
-                    timeout_s=args.score_timeout,
+            for k in range(args.samples_per_task):
+                heartbeat(runs_dir, phase="rollout",
+                          round=round_idx, step=step,
+                          current_task=ti.task_id, sample_idx=k,
+                          rollouts_target=len(batch) * args.samples_per_task)
+                try:
+                    r = cr.run_rollout(
+                        base_url=args.sglang_url,
+                        model=args.base_model,
+                        task=ti,
+                        system_prompt=system_prompt,
+                        user_prompt=user_prompt,
+                        max_turns=args.max_turns,
+                        max_tokens_per_turn=args.max_tokens_per_turn,
+                        temperature=args.rollout_temperature,
+                        top_p=args.top_p,
+                        timeout_s=args.rollout_timeout,
+                        parse_bonus=args.parse_bonus,
+                    )
+                except Exception as e:  # noqa: BLE001
+                    print(f"  [warn] rollout {ti.task_id} k={k}: {e}")
+                    continue
+                # The "completion" we train on is the final assistant turn.
+                last = r.turns[-1] if r.turns else None
+                if last is None:
+                    continue
+                prompt_ids, final_ids = (
+                    _split_into_prompt_and_final_assistant(tok, r.messages)
                 )
-                ep.completion_tokens = len(seq.tokens)
-                stop_reason = getattr(seq, "stop_reason", "stop")
+                if not final_ids:
+                    continue
+                if len(prompt_ids) + len(final_ids) > args.max_context_tokens:
+                    # Skip rollouts that overflow the trainer's context
+                    # window. (Worldlines' default max_train_tokens is
+                    # 16384.)
+                    print(f"  [skip] {ti.task_id} k={k} "
+                          f"full_len={len(prompt_ids)+len(final_ids)} > "
+                          f"{args.max_context_tokens}")
+                    continue
                 rollouts.append({
-                    "raw": raw, "ep": ep,
-                    "stop_reason": stop_reason,
-                    "tokens": list(seq.tokens),
+                    "task": ti,
+                    "ep_score": last.score,
+                    "passed": last.passed,
+                    "parsed_ok": last.parsed_ok,
+                    "completion_tokens": last.completion_tokens,
+                    "stop_reason": last.stop_reason,
+                    "failure_codes": last.failure_codes,
+                    "best_score": r.best_score,
+                    "n_turns": len(r.turns),
                     "prompt_ids": prompt_ids,
+                    "final_ids": final_ids,
                 })
-            best = max((r["ep"].score for r in rollouts), default=0.0)
-            n_parsed = sum(1 for r in rollouts if r["ep"].parsed_ok)
-            n_passed = sum(1 for r in rollouts if r["ep"].passed)
+
+            if not rollouts:
+                continue
+            best = max(r["ep_score"] for r in rollouts)
+            n_passed = sum(1 for r in rollouts if r["passed"])
+            n_parsed = sum(1 for r in rollouts if r["parsed_ok"])
             print(
                 f"  {ti.task_id:48}  best={best:5.1f}  "
                 f"parsed={n_parsed}/{len(rollouts)}  "
                 f"passed={n_passed}/{len(rollouts)}"
             )
             for r in rollouts:
-                ep = r["ep"]
                 append_jsonl(runs_dir / "task_scores.jsonl", {
                     "ts": time.time(),
-                    "task_id": ti.task_id, "tier": ti.tier,
-                    "family": ti.family,
-                    "score": ep.score, "passed": ep.passed,
-                    "parsed_ok": ep.parsed_ok,
-                    "failure_codes": ep.failure_codes,
-                    "completion_tokens": ep.completion_tokens,
+                    "task_id": ti.task_id,
+                    "tier": ti.tier, "family": ti.family,
+                    "score": r["ep_score"],
+                    "best_score": r["best_score"],
+                    "passed": r["passed"],
+                    "parsed_ok": r["parsed_ok"],
+                    "failure_codes": r["failure_codes"],
+                    "completion_tokens": r["completion_tokens"],
                     "stop_reason": r["stop_reason"],
+                    "n_turns": r["n_turns"],
                     "round": round_idx, "step": step,
                 })
             groups.append({"task": ti, "rollouts": rollouts})
@@ -323,7 +360,7 @@ def main() -> int:
         heartbeat(runs_dir, phase="scoring", round=round_idx, step=step,
                   n_groups=len(groups))
 
-        # Build advantage-weighted training data.
+        # Build advantage-weighted Datums.
         data: list = []
         kept = 0
         all_rewards: list[float] = []
@@ -331,13 +368,15 @@ def main() -> int:
             rewards: list[float] = []
             for r in g["rollouts"]:
                 rewards.append(_adjust_reward(
-                    r["ep"].score, r["ep"].parse_bonus,
-                    r["ep"].completion_tokens, args.length_alpha,
+                    r["ep_score"],
+                    args.parse_bonus if r["parsed_ok"] else 0.0,
+                    r["completion_tokens"], args.length_alpha,
                 ))
             mask = [True] * len(rewards)
             if args.mask_truncated:
-                mask = [r["stop_reason"] != "length"
-                        for r in g["rollouts"]]
+                mask = [
+                    r["stop_reason"] != "length" for r in g["rollouts"]
+                ]
             advs = _group_advantages(
                 rewards, mask,
                 adv_clip=args.adv_clip,
@@ -348,24 +387,18 @@ def main() -> int:
                 adv = advs[j]
                 if adv == 0.0:
                     continue
-                completion_ids = list(r["tokens"])
-                if not completion_ids:
-                    continue
                 pl = len(r["prompt_ids"])
-                cl = len(completion_ids)
-                full_ids = list(r["prompt_ids"]) + completion_ids
+                cl = len(r["final_ids"])
+                full_ids = list(r["prompt_ids"]) + list(r["final_ids"])
                 target_ids = full_ids[1:] + [0]
-                if args.mask_prompt:
-                    if pl >= 1:
-                        weights = [0.0] * (pl - 1) + [adv] * cl + [0.0]
-                    else:
-                        weights = [adv] * cl + [0.0]
-                    if len(weights) != len(full_ids):
-                        weights = (
-                            weights + [0.0] * len(full_ids)
-                        )[: len(full_ids)]
+                if pl >= 1:
+                    weights = [0.0] * (pl - 1) + [adv] * cl + [0.0]
                 else:
-                    weights = [adv] * len(full_ids)
+                    weights = [adv] * cl + [0.0]
+                if len(weights) != len(full_ids):
+                    weights = (
+                        weights + [0.0] * len(full_ids)
+                    )[: len(full_ids)]
                 loss_inputs = {
                     "target_tokens": wl.TensorData(
                         data=target_ids, dtype="int64",
@@ -382,16 +415,15 @@ def main() -> int:
                 ))
                 kept += 1
 
-        # Round-level history row.
         if groups:
             top_by_task = {
-                g["task"].task_id: max((r["ep"].score for r in g["rollouts"]),
+                g["task"].task_id: max((r["ep_score"] for r in g["rollouts"]),
                                        default=0.0)
                 for g in groups
             }
             n_passed_round = sum(
                 1 for g in groups for r in g["rollouts"]
-                if r["ep"].passed
+                if r["passed"]
             )
             n_total_round = sum(len(g["rollouts"]) for g in groups)
             append_jsonl(runs_dir / "history.jsonl", {
@@ -405,9 +437,9 @@ def main() -> int:
                 ) * 100.0,
                 "reward_mean": (
                     sum(all_rewards) / max(1, len(all_rewards))
-                ),
+                ) if all_rewards else 0.0,
                 "base_model": args.base_model,
-                "algo": "grpo",
+                "algo": "grpo-multi-turn",
             })
 
         if data:
@@ -429,7 +461,8 @@ def main() -> int:
                     "ts": time.time(), "kind": "optim",
                     "step": step, "round": round_idx,
                     "loss": loss, "lr": args.lr, "n_kept": kept,
-                    "algo": "grpo", "base_model": args.base_model,
+                    "algo": "grpo-multi-turn",
+                    "base_model": args.base_model,
                 })
                 print(f"  [train] loss={loss:.4f} kept={kept} step={step}")
                 if (args.checkpoint_every
@@ -449,7 +482,8 @@ def main() -> int:
                     except Exception as e:  # noqa: BLE001
                         print(f"  [warn] save_state: {e}")
             except Exception as e:  # noqa: BLE001
-                print(f"  [warn] train step: {e}\n{traceback.format_exc()}")
+                print(
+                    f"  [warn] train step: {e}\n{traceback.format_exc()}")
         else:
             print(f"  [train] skipped — 0 rollouts with non-zero advantage")
             heartbeat(runs_dir, phase="skip_optim", round=round_idx,
