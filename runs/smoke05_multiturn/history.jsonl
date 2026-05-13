@@ -1,0 +1,3 @@
+{"ts": 1778646746.5998867, "kind": "rollout", "step": 0, "round": 0, "n_rollouts": 8, "n_kept": 4, "pass_rate": 0.5, "score_pct": 50.0, "reward_mean": 30.0, "base_model": "NousResearch/DeepHermes-3-Llama-3-3B-Preview", "algo": "grpo-multi-turn"}
+{"ts": 1778646797.522552, "kind": "rollout", "step": 0, "round": 1, "n_rollouts": 8, "n_kept": 0, "pass_rate": 0.5, "score_pct": 50.0, "reward_mean": 55.0, "base_model": "NousResearch/DeepHermes-3-Llama-3-3B-Preview", "algo": "grpo-multi-turn"}
+{"ts": 1778646916.3066306, "kind": "rollout", "step": 0, "round": 2, "n_rollouts": 8, "n_kept": 0, "pass_rate": 0.0, "score_pct": 0.0, "reward_mean": 5.0, "base_model": "NousResearch/DeepHermes-3-Llama-3-3B-Preview", "algo": "grpo-multi-turn"}

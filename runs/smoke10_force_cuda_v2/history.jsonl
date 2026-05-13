@@ -1,0 +1,6 @@
+{"ts": 1778652920.131611, "kind": "rollout", "step": 0, "round": 0, "n_rollouts": 8, "n_kept": 8, "pass_rate": 0.5, "score_pct": 100.0, "reward_mean": 71.66666666666666, "base_model": "NousResearch/DeepHermes-3-Llama-3-3B-Preview", "algo": "grpo-multi-turn"}
+{"ts": 1778652929.0592697, "kind": "optim", "step": 1, "round": 0, "loss": 0.0, "lr": 0.0001, "n_kept": 8, "algo": "grpo-multi-turn", "base_model": "NousResearch/DeepHermes-3-Llama-3-3B-Preview"}
+{"ts": 1778652962.7221205, "kind": "rollout", "step": 1, "round": 1, "n_rollouts": 8, "n_kept": 4, "pass_rate": 0.625, "score_pct": 100.0, "reward_mean": 91.45833333333333, "base_model": "NousResearch/DeepHermes-3-Llama-3-3B-Preview", "algo": "grpo-multi-turn"}
+{"ts": 1778652967.0787976, "kind": "optim", "step": 2, "round": 1, "loss": 0.0, "lr": 0.0001, "n_kept": 4, "algo": "grpo-multi-turn", "base_model": "NousResearch/DeepHermes-3-Llama-3-3B-Preview"}
+{"ts": 1778653011.0308285, "kind": "rollout", "step": 2, "round": 2, "n_rollouts": 8, "n_kept": 8, "pass_rate": 0.375, "score_pct": 50.0, "reward_mean": 62.291666666666664, "base_model": "NousResearch/DeepHermes-3-Llama-3-3B-Preview", "algo": "grpo-multi-turn"}
+{"ts": 1778653019.6337552, "kind": "optim", "step": 3, "round": 2, "loss": 0.0, "lr": 0.0001, "n_kept": 8, "algo": "grpo-multi-turn", "base_model": "NousResearch/DeepHermes-3-Llama-3-3B-Preview"}

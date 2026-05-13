@@ -1,0 +1,3 @@
+{"ts": 1778644672.0575905, "kind": "rollout", "step": 0, "round": 0, "n_rollouts": 4, "n_kept": 0, "pass_rate": 0.0, "score_pct": 0.0, "reward_mean": 0.0, "base_model": "Qwen/Qwen3-1.7B", "algo": "grpo"}
+{"ts": 1778644672.8433723, "kind": "rollout", "step": 0, "round": 1, "n_rollouts": 4, "n_kept": 0, "pass_rate": 0.0, "score_pct": 0.0, "reward_mean": 0.0, "base_model": "Qwen/Qwen3-1.7B", "algo": "grpo"}
+{"ts": 1778644673.5980923, "kind": "rollout", "step": 0, "round": 2, "n_rollouts": 4, "n_kept": 0, "pass_rate": 0.0, "score_pct": 0.0, "reward_mean": 0.0, "base_model": "Qwen/Qwen3-1.7B", "algo": "grpo"}

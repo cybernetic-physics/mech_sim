@@ -1,0 +1,1 @@
+{"ts": 1778652256.8253603, "kind": "rollout", "step": 0, "round": 0, "n_rollouts": 8, "n_kept": 8, "pass_rate": 0.375, "score_pct": 50.0, "reward_mean": 47.70833333333333, "base_model": "NousResearch/DeepHermes-3-Llama-3-3B-Preview", "algo": "grpo-multi-turn"}
