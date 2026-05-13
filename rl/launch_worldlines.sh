@@ -26,6 +26,10 @@ mkdir -p "$ARTIFACTS"
 
 export WORLDLINES_API_KEY="${WORLDLINES_API_KEY:-wld-local}"
 export WORLDLINES_BASE_URL="${WORLDLINES_BASE_URL:-http://${HOST}:${PORT}}"
+# Reduce memory fragmentation on the 24 GB 3090 — without this the
+# PEFT trainer hits CUDA OOM on round 2+ even though peak live memory
+# is well under 24 GB.
+export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
 # When we add SGLang for accelerated rollouts, set:
 #   export WORLDLINES_SGLANG_BASE_URL=http://127.0.0.1:30000
 # For now the local LoRA trainer + HF sampler is enough.

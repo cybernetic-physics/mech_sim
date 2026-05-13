@@ -474,17 +474,36 @@ def main() -> int:
                 ).result()
                 _ = opt
                 step += 1
-                loss = float(getattr(fb, "loss", 0.0))
+                # ``ForwardBackwardOutput`` has ``loss_fn_outputs:
+                # list[dict[str, TensorData]]`` where each entry's
+                # "loss" TensorData carries the per-datum scalar
+                # loss. Mean across the kept datums.
+                losses: list[float] = []
+                for out in getattr(fb, "loss_fn_outputs", []) or []:
+                    td = out.get("loss") if isinstance(out, dict) else None
+                    if td is None:
+                        continue
+                    vals = getattr(td, "data", None) or []
+                    if vals:
+                        try:
+                            losses.append(float(vals[0]))
+                        except (TypeError, ValueError):
+                            pass
+                loss = sum(losses) / len(losses) if losses else 0.0
                 heartbeat(runs_dir, phase="optim_done", round=round_idx,
                           step=step, n_kept=kept, last_loss=loss)
                 append_jsonl(runs_dir / "history.jsonl", {
                     "ts": time.time(), "kind": "optim",
                     "step": step, "round": round_idx,
-                    "loss": loss, "lr": args.lr, "n_kept": kept,
+                    "loss": loss, "n_losses": len(losses),
+                    "lr": args.lr, "n_kept": kept,
                     "algo": "grpo-multi-turn",
                     "base_model": args.base_model,
                 })
-                print(f"  [train] loss={loss:.4f} kept={kept} step={step}")
+                print(
+                    f"  [train] loss={loss:+.4f} (n={len(losses)}) "
+                    f"kept={kept} step={step}"
+                )
                 if (args.checkpoint_every
                         and step % args.checkpoint_every == 0):
                     try:
