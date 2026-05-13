@@ -1,0 +1,1456 @@
+{
+  "version": "mech_bench.codex_eval.v1",
+  "agent": "codex",
+  "model": "gpt-5.5",
+  "n_tasks": 51,
+  "n_passed": 34,
+  "pass_rate": 0.6666666666666666,
+  "total_cost_usd_estimate": 2.4361625,
+  "tasks_with_cost_estimate": 51,
+  "by_tier": {
+    "artifact_static": {
+      "n": 13,
+      "passed": 8,
+      "pass_rate": 0.6153846153846154
+    },
+    "transmission_analytic": {
+      "n": 13,
+      "passed": 12,
+      "pass_rate": 0.9230769230769231
+    },
+    "contact_dynamics": {
+      "n": 12,
+      "passed": 6,
+      "pass_rate": 0.5
+    },
+    "planar_kinematics": {
+      "n": 12,
+      "passed": 7,
+      "pass_rate": 0.5833333333333334
+    },
+    "unknown": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    }
+  },
+  "by_family": {
+    "bearing_seat_clearance": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "belt_pulley_ratio": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "bevel_gear_ratio_analytic": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "box_lid_register_fit": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "brake_caliper_contact_stub": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "cam_follower_contact_stub": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "chain_sprocket_ratio": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "compound_gear_ratio_analytic": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "contact_gear_pair_stub": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "cycloidal_lowN_stub": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "detent_spring_contact_stub": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "flange_bolt_circle": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "fourbar_crank_rocker_sweep": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "fourbar_dwell_path": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "fourbar_path": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "fourbar_path_t001": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "fourbar_pump_handle": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "fourbar_straight_line_approx": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "fourbar_wiper_arc": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "friction_clutch_torque_stub": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "gear_pair_load_trial_stub": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "geneva_indexing_stub": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "idler_gear_direction_analytic": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "keyed_shaft_hub_fit": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "latch_release_force_stub": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "lead_screw_linear_travel": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "mounting_plate_hole_pitch": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "parallel_gripper_retention_stub": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "planetary_fixed_ring_ratio_analytic": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "planetary_fixed_sun_ratio_analytic": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "press_fit_hub_interference": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "pulley_bore_alignment_static": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "rack_pinion_contact_stub": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "rack_pinion_conversion": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "rack_pinion_force_direction": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "ratchet_pawl_engagement_stub": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "reciprocating_pump_plunger": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "rocker_limit_stop_topology": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "shaft_collar_clearance": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "simple_hinge_fit": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "slider_crank_quick_return_proxy": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "slider_crank_stroke_precision": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "slider_crank_stroke": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "snap_tab_clearance_static": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "spacer_stack_height": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "spur_gear_ratio_analytic": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "standoff_pattern_square": {
+      "n": 1,
+      "passed": 0,
+      "pass_rate": 0.0
+    },
+    "static_fit_bracket": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "timing_belt_center_distance": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "toggle_overcenter_margin": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "worm_gear_ratio_analytic": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    }
+  },
+  "tasks": [
+    {
+      "task_id": "bearing_seat_clearance_s0001",
+      "family": "bearing_seat_clearance",
+      "tier": "artifact_static",
+      "agent_ok": true,
+      "agent_cost_usd": 0.03344925,
+      "agent_duration_s": 34.81727635697462,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.18351207510568202,
+      "usage": {
+        "input_tokens": 61945,
+        "cached_input_tokens": 52224,
+        "output_tokens": 1273,
+        "reasoning_output_tokens": 204
+      }
+    },
+    {
+      "task_id": "belt_pulley_ratio_s0001",
+      "family": "belt_pulley_ratio",
+      "tier": "transmission_analytic",
+      "agent_ok": true,
+      "agent_cost_usd": 0.03798825,
+      "agent_duration_s": 36.44293343392201,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.14157462096773088,
+      "usage": {
+        "input_tokens": 62541,
+        "cached_input_tokens": 52736,
+        "output_tokens": 1622,
+        "reasoning_output_tokens": 292
+      }
+    },
+    {
+      "task_id": "bevel_gear_ratio_analytic_s0001",
+      "family": "bevel_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "agent_ok": true,
+      "agent_cost_usd": 0.040841749999999996,
+      "agent_duration_s": 42.20531668001786,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.17005408694967628,
+      "usage": {
+        "input_tokens": 62579,
+        "cached_input_tokens": 52224,
+        "output_tokens": 1787,
+        "reasoning_output_tokens": 350
+      }
+    },
+    {
+      "task_id": "box_lid_register_fit_s0001",
+      "family": "box_lid_register_fit",
+      "tier": "artifact_static",
+      "agent_ok": true,
+      "agent_cost_usd": 0.03365675,
+      "agent_duration_s": 33.943232611054555,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.1725424900650978,
+      "usage": {
+        "input_tokens": 61975,
+        "cached_input_tokens": 52224,
+        "output_tokens": 1384,
+        "reasoning_output_tokens": 110
+      }
+    },
+    {
+      "task_id": "brake_caliper_contact_stub_s0001",
+      "family": "brake_caliper_contact_stub",
+      "tier": "contact_dynamics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.04921175,
+      "agent_duration_s": 46.856628648005426,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.8,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.15236490801908076,
+      "usage": {
+        "input_tokens": 62499,
+        "cached_input_tokens": 44544,
+        "output_tokens": 1788,
+        "reasoning_output_tokens": 332
+      }
+    },
+    {
+      "task_id": "cam_follower_contact_stub_s0001",
+      "family": "cam_follower_contact_stub",
+      "tier": "contact_dynamics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.0361355,
+      "agent_duration_s": 39.82713344390504,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.8,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.18032113905064762,
+      "usage": {
+        "input_tokens": 62094,
+        "cached_input_tokens": 52224,
+        "output_tokens": 1564,
+        "reasoning_output_tokens": 163
+      }
+    },
+    {
+      "task_id": "chain_sprocket_ratio_s0001",
+      "family": "chain_sprocket_ratio",
+      "tier": "transmission_analytic",
+      "agent_ok": true,
+      "agent_cost_usd": 0.0444325,
+      "agent_duration_s": 44.552289083832875,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.1730730407871306,
+      "usage": {
+        "input_tokens": 78906,
+        "cached_input_tokens": 68480,
+        "output_tokens": 1931,
+        "reasoning_output_tokens": 353
+      }
+    },
+    {
+      "task_id": "compound_gear_ratio_analytic_s0001",
+      "family": "compound_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "agent_ok": true,
+      "agent_cost_usd": 0.053551,
+      "agent_duration_s": 47.215549163054675,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.1789912199601531,
+      "usage": {
+        "input_tokens": 63068,
+        "cached_input_tokens": 45568,
+        "output_tokens": 2082,
+        "reasoning_output_tokens": 516
+      }
+    },
+    {
+      "task_id": "contact_gear_pair_stub_s0001",
+      "family": "contact_gear_pair_stub",
+      "tier": "contact_dynamics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.0477645,
+      "agent_duration_s": 42.01398534188047,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": false,
+      "eval_hard_gate_passed": false,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "capability_unavailable"
+      ],
+      "eval_duration_s": 0.18677253904752433,
+      "usage": {
+        "input_tokens": 62578,
+        "cached_input_tokens": 45056,
+        "output_tokens": 1765,
+        "reasoning_output_tokens": 258
+      }
+    },
+    {
+      "task_id": "cycloidal_lowN_stub_s0001",
+      "family": "cycloidal_lowN_stub",
+      "tier": "contact_dynamics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.0477795,
+      "agent_duration_s": 55.471922687022015,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": false,
+      "eval_hard_gate_passed": false,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "capability_unavailable"
+      ],
+      "eval_duration_s": 0.18306116200983524,
+      "usage": {
+        "input_tokens": 81150,
+        "cached_input_tokens": 75136,
+        "output_tokens": 2501,
+        "reasoning_output_tokens": 586
+      }
+    },
+    {
+      "task_id": "detent_spring_contact_stub_s0001",
+      "family": "detent_spring_contact_stub",
+      "tier": "contact_dynamics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.07016875,
+      "agent_duration_s": 59.67601597099565,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.75,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.3293128260411322,
+      "usage": {
+        "input_tokens": 107031,
+        "cached_input_tokens": 85760,
+        "output_tokens": 2649,
+        "reasoning_output_tokens": 637
+      }
+    },
+    {
+      "task_id": "flange_bolt_circle_s0001",
+      "family": "flange_bolt_circle",
+      "tier": "artifact_static",
+      "agent_ok": true,
+      "agent_cost_usd": 0.0319855,
+      "agent_duration_s": 36.05527440388687,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.20160655910149217,
+      "usage": {
+        "input_tokens": 61782,
+        "cached_input_tokens": 52224,
+        "output_tokens": 1204,
+        "reasoning_output_tokens": 147
+      }
+    },
+    {
+      "task_id": "fourbar_crank_rocker_sweep_s0001",
+      "family": "fourbar_crank_rocker_sweep",
+      "tier": "planar_kinematics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.0594255,
+      "agent_duration_s": 61.71408992889337,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.19358175294473767,
+      "usage": {
+        "input_tokens": 80254,
+        "cached_input_tokens": 61824,
+        "output_tokens": 2520,
+        "reasoning_output_tokens": 346
+      }
+    },
+    {
+      "task_id": "fourbar_dwell_path_s0001",
+      "family": "fourbar_dwell_path",
+      "tier": "planar_kinematics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.039845500000000006,
+      "agent_duration_s": 45.27284887013957,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "path_error"
+      ],
+      "eval_duration_s": 0.24501001997850835,
+      "usage": {
+        "input_tokens": 62550,
+        "cached_input_tokens": 52224,
+        "output_tokens": 1865,
+        "reasoning_output_tokens": 176
+      }
+    },
+    {
+      "task_id": "fourbar_path_s0001",
+      "family": "fourbar_path",
+      "tier": "planar_kinematics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.15512175,
+      "agent_duration_s": 96.26423048297875,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.9999996364431545,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.24191911704838276,
+      "usage": {
+        "input_tokens": 498779,
+        "cached_input_tokens": 455424,
+        "output_tokens": 3862,
+        "reasoning_output_tokens": 538
+      }
+    },
+    {
+      "task_id": "fourbar_path_t001",
+      "family": "fourbar_path_t001",
+      "tier": "unknown",
+      "agent_ok": true,
+      "agent_cost_usd": 0.31184525,
+      "agent_duration_s": 228.4372015390545,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.9999997077644183,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.19668233790434897,
+      "usage": {
+        "input_tokens": 1291833,
+        "cached_input_tokens": 1232512,
+        "output_tokens": 7352,
+        "reasoning_output_tokens": 1011
+      }
+    },
+    {
+      "task_id": "fourbar_pump_handle_s0001",
+      "family": "fourbar_pump_handle",
+      "tier": "planar_kinematics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.046040250000000005,
+      "agent_duration_s": 37.45554426894523,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.16560232802294195,
+      "usage": {
+        "input_tokens": 62221,
+        "cached_input_tokens": 44032,
+        "output_tokens": 1670,
+        "reasoning_output_tokens": 110
+      }
+    },
+    {
+      "task_id": "fourbar_straight_line_approx_s0001",
+      "family": "fourbar_straight_line_approx",
+      "tier": "planar_kinematics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.0438305,
+      "agent_duration_s": 55.31581749487668,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": false,
+      "eval_hard_gate_passed": false,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "path_error"
+      ],
+      "eval_duration_s": 0.2172129771206528,
+      "usage": {
+        "input_tokens": 63506,
+        "cached_input_tokens": 57344,
+        "output_tokens": 2357,
+        "reasoning_output_tokens": 539
+      }
+    },
+    {
+      "task_id": "fourbar_wiper_arc_s0001",
+      "family": "fourbar_wiper_arc",
+      "tier": "planar_kinematics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.0448195,
+      "agent_duration_s": 54.23230048106052,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "path_error"
+      ],
+      "eval_duration_s": 0.21180345490574837,
+      "usage": {
+        "input_tokens": 63382,
+        "cached_input_tokens": 57856,
+        "output_tokens": 2425,
+        "reasoning_output_tokens": 643
+      }
+    },
+    {
+      "task_id": "friction_clutch_torque_stub_s0001",
+      "family": "friction_clutch_torque_stub",
+      "tier": "contact_dynamics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.0366755,
+      "agent_duration_s": 38.12501589814201,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.9444444444444445,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.24327524402178824,
+      "usage": {
+        "input_tokens": 62230,
+        "cached_input_tokens": 52224,
+        "output_tokens": 1600,
+        "reasoning_output_tokens": 164
+      }
+    },
+    {
+      "task_id": "gear_pair_load_trial_stub_s0001",
+      "family": "gear_pair_load_trial_stub",
+      "tier": "contact_dynamics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.046926999999999996,
+      "agent_duration_s": 40.173928818898275,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.20096175419166684,
+      "usage": {
+        "input_tokens": 62540,
+        "cached_input_tokens": 45056,
+        "output_tokens": 1711,
+        "reasoning_output_tokens": 233
+      }
+    },
+    {
+      "task_id": "geneva_indexing_stub_s0001",
+      "family": "geneva_indexing_stub",
+      "tier": "contact_dynamics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.037493,
+      "agent_duration_s": 37.66055109607987,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "invalid_artifact"
+      ],
+      "eval_duration_s": 0.18273847410455346,
+      "usage": {
+        "input_tokens": 62212,
+        "cached_input_tokens": 52224,
+        "output_tokens": 1643,
+        "reasoning_output_tokens": 205
+      }
+    },
+    {
+      "task_id": "idler_gear_direction_analytic_s0001",
+      "family": "idler_gear_direction_analytic",
+      "tier": "transmission_analytic",
+      "agent_ok": true,
+      "agent_cost_usd": 0.05838525,
+      "agent_duration_s": 57.89244896103628,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.17854724498465657,
+      "usage": {
+        "input_tokens": 63665,
+        "cached_input_tokens": 51712,
+        "output_tokens": 2654,
+        "reasoning_output_tokens": 1044
+      }
+    },
+    {
+      "task_id": "keyed_shaft_hub_fit_s0001",
+      "family": "keyed_shaft_hub_fit",
+      "tier": "artifact_static",
+      "agent_ok": true,
+      "agent_cost_usd": 0.03206325,
+      "agent_duration_s": 32.87816391792148,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "invalid_artifact"
+      ],
+      "eval_duration_s": 0.14616135018877685,
+      "usage": {
+        "input_tokens": 61937,
+        "cached_input_tokens": 52736,
+        "output_tokens": 1255,
+        "reasoning_output_tokens": 142
+      }
+    },
+    {
+      "task_id": "latch_release_force_stub_s0001",
+      "family": "latch_release_force_stub",
+      "tier": "contact_dynamics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.04381575,
+      "agent_duration_s": 45.703403416089714,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": false,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "wrong_topology",
+        "invalid_artifact"
+      ],
+      "eval_duration_s": 0.18001195997931063,
+      "usage": {
+        "input_tokens": 62819,
+        "cached_input_tokens": 52736,
+        "output_tokens": 1996,
+        "reasoning_output_tokens": 466
+      }
+    },
+    {
+      "task_id": "lead_screw_linear_travel_s0001",
+      "family": "lead_screw_linear_travel",
+      "tier": "transmission_analytic",
+      "agent_ok": true,
+      "agent_cost_usd": 0.0294215,
+      "agent_duration_s": 39.27910243300721,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.16014674212783575,
+      "usage": {
+        "input_tokens": 62102,
+        "cached_input_tokens": 56832,
+        "output_tokens": 1435,
+        "reasoning_output_tokens": 138
+      }
+    },
+    {
+      "task_id": "mounting_plate_hole_pitch_s0001",
+      "family": "mounting_plate_hole_pitch",
+      "tier": "artifact_static",
+      "agent_ok": true,
+      "agent_cost_usd": 0.02498175,
+      "agent_duration_s": 28.389458687976003,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": false,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "wrong_topology"
+      ],
+      "eval_duration_s": 0.18000510381534696,
+      "usage": {
+        "input_tokens": 61787,
+        "cached_input_tokens": 57344,
+        "output_tokens": 1119,
+        "reasoning_output_tokens": 107
+      }
+    },
+    {
+      "task_id": "parallel_gripper_retention_stub_s0001",
+      "family": "parallel_gripper_retention_stub",
+      "tier": "contact_dynamics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.0579125,
+      "agent_duration_s": 62.88688630214892,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "invalid_artifact"
+      ],
+      "eval_duration_s": 0.19054259709082544,
+      "usage": {
+        "input_tokens": 64154,
+        "cached_input_tokens": 53760,
+        "output_tokens": 2836,
+        "reasoning_output_tokens": 984
+      }
+    },
+    {
+      "task_id": "planetary_fixed_ring_ratio_analytic_s0001",
+      "family": "planetary_fixed_ring_ratio_analytic",
+      "tier": "transmission_analytic",
+      "agent_ok": true,
+      "agent_cost_usd": 0.052185999999999996,
+      "agent_duration_s": 47.09017885616049,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.168986143078655,
+      "usage": {
+        "input_tokens": 62928,
+        "cached_input_tokens": 45568,
+        "output_tokens": 1987,
+        "reasoning_output_tokens": 492
+      }
+    },
+    {
+      "task_id": "planetary_fixed_sun_ratio_analytic_s0001",
+      "family": "planetary_fixed_sun_ratio_analytic",
+      "tier": "transmission_analytic",
+      "agent_ok": true,
+      "agent_cost_usd": 0.048245750000000004,
+      "agent_duration_s": 46.4355680430308,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.1748886511195451,
+      "usage": {
+        "input_tokens": 63059,
+        "cached_input_tokens": 50176,
+        "output_tokens": 2071,
+        "reasoning_output_tokens": 516
+      }
+    },
+    {
+      "task_id": "press_fit_hub_interference_s0001",
+      "family": "press_fit_hub_interference",
+      "tier": "artifact_static",
+      "agent_ok": true,
+      "agent_cost_usd": 0.02951,
+      "agent_duration_s": 34.570089514832944,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": false,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "wrong_topology"
+      ],
+      "eval_duration_s": 0.17834847909398377,
+      "usage": {
+        "input_tokens": 61752,
+        "cached_input_tokens": 53760,
+        "output_tokens": 1178,
+        "reasoning_output_tokens": 102
+      }
+    },
+    {
+      "task_id": "pulley_bore_alignment_static_s0001",
+      "family": "pulley_bore_alignment_static",
+      "tier": "artifact_static",
+      "agent_ok": true,
+      "agent_cost_usd": 0.031379,
+      "agent_duration_s": 36.05951999314129,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.15306269703432918,
+      "usage": {
+        "input_tokens": 61988,
+        "cached_input_tokens": 54272,
+        "output_tokens": 1349,
+        "reasoning_output_tokens": 146
+      }
+    },
+    {
+      "task_id": "rack_pinion_contact_stub_s0001",
+      "family": "rack_pinion_contact_stub",
+      "tier": "contact_dynamics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.0444745,
+      "agent_duration_s": 38.34761606901884,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "invalid_artifact"
+      ],
+      "eval_duration_s": 0.19365320215001702,
+      "usage": {
+        "input_tokens": 62130,
+        "cached_input_tokens": 45056,
+        "output_tokens": 1555,
+        "reasoning_output_tokens": 195
+      }
+    },
+    {
+      "task_id": "rack_pinion_conversion_s0001",
+      "family": "rack_pinion_conversion",
+      "tier": "transmission_analytic",
+      "agent_ok": true,
+      "agent_cost_usd": 0.033342000000000004,
+      "agent_duration_s": 36.847079379018396,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.17276008985936642,
+      "usage": {
+        "input_tokens": 62120,
+        "cached_input_tokens": 52736,
+        "output_tokens": 1353,
+        "reasoning_output_tokens": 149
+      }
+    },
+    {
+      "task_id": "rack_pinion_force_direction_s0001",
+      "family": "rack_pinion_force_direction",
+      "tier": "transmission_analytic",
+      "agent_ok": true,
+      "agent_cost_usd": 0.03687625,
+      "agent_duration_s": 44.31305459002033,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "invalid_artifact"
+      ],
+      "eval_duration_s": 0.182136190822348,
+      "usage": {
+        "input_tokens": 62261,
+        "cached_input_tokens": 53760,
+        "output_tokens": 1641,
+        "reasoning_output_tokens": 312
+      }
+    },
+    {
+      "task_id": "ratchet_pawl_engagement_stub_s0001",
+      "family": "ratchet_pawl_engagement_stub",
+      "tier": "contact_dynamics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.035309,
+      "agent_duration_s": 45.953112127957866,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.18863812601193786,
+      "usage": {
+        "input_tokens": 62620,
+        "cached_input_tokens": 56832,
+        "output_tokens": 1870,
+        "reasoning_output_tokens": 227
+      }
+    },
+    {
+      "task_id": "reciprocating_pump_plunger_s0001",
+      "family": "reciprocating_pump_plunger",
+      "tier": "planar_kinematics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.04223425,
+      "agent_duration_s": 39.3190578550566,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "wrong_ratio"
+      ],
+      "eval_duration_s": 0.20695701497606933,
+      "usage": {
+        "input_tokens": 62469,
+        "cached_input_tokens": 49664,
+        "output_tokens": 1783,
+        "reasoning_output_tokens": 219
+      }
+    },
+    {
+      "task_id": "rocker_limit_stop_topology_s0001",
+      "family": "rocker_limit_stop_topology",
+      "tier": "planar_kinematics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.054517750000000004,
+      "agent_duration_s": 58.43667323794216,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "invalid_artifact"
+      ],
+      "eval_duration_s": 2.1009541291277856,
+      "usage": {
+        "input_tokens": 108931,
+        "cached_input_tokens": 99072,
+        "output_tokens": 2324,
+        "reasoning_output_tokens": 657
+      }
+    },
+    {
+      "task_id": "shaft_collar_clearance_s0001",
+      "family": "shaft_collar_clearance",
+      "tier": "artifact_static",
+      "agent_ok": true,
+      "agent_cost_usd": 0.04106325,
+      "agent_duration_s": 33.14078156393953,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.3,
+      "eval_failure_codes": [
+        "invalid_artifact"
+      ],
+      "eval_duration_s": 0.1626712209545076,
+      "usage": {
+        "input_tokens": 62193,
+        "cached_input_tokens": 45056,
+        "output_tokens": 1247,
+        "reasoning_output_tokens": 154
+      }
+    },
+    {
+      "task_id": "simple_hinge_fit_s0001",
+      "family": "simple_hinge_fit",
+      "tier": "artifact_static",
+      "agent_ok": true,
+      "agent_cost_usd": 0.027213,
+      "agent_duration_s": 29.19634183892049,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.31854447396472096,
+      "usage": {
+        "input_tokens": 61804,
+        "cached_input_tokens": 54784,
+        "output_tokens": 1159,
+        "reasoning_output_tokens": 0
+      }
+    },
+    {
+      "task_id": "slider_crank_quick_return_proxy_s0001",
+      "family": "slider_crank_quick_return_proxy",
+      "tier": "planar_kinematics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.043154250000000005,
+      "agent_duration_s": 50.29537723190151,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.25778799690306187,
+      "usage": {
+        "input_tokens": 63045,
+        "cached_input_tokens": 54784,
+        "output_tokens": 2063,
+        "reasoning_output_tokens": 535
+      }
+    },
+    {
+      "task_id": "slider_crank_stroke_precision_s0001",
+      "family": "slider_crank_stroke_precision",
+      "tier": "planar_kinematics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.030326500000000003,
+      "agent_duration_s": 37.484671536134556,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.3538264238741249,
+      "usage": {
+        "input_tokens": 62226,
+        "cached_input_tokens": 56832,
+        "output_tokens": 1537,
+        "reasoning_output_tokens": 111
+      }
+    },
+    {
+      "task_id": "slider_crank_stroke_s0001",
+      "family": "slider_crank_stroke",
+      "tier": "planar_kinematics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.036682,
+      "agent_duration_s": 43.78287856304087,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.23188448301516473,
+      "usage": {
+        "input_tokens": 62432,
+        "cached_input_tokens": 52736,
+        "output_tokens": 1598,
+        "reasoning_output_tokens": 199
+      }
+    },
+    {
+      "task_id": "snap_tab_clearance_static_s0001",
+      "family": "snap_tab_clearance_static",
+      "tier": "artifact_static",
+      "agent_ok": true,
+      "agent_cost_usd": 0.02505025,
+      "agent_duration_s": 38.73301678802818,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": false,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "wrong_topology"
+      ],
+      "eval_duration_s": 0.20655062794685364,
+      "usage": {
+        "input_tokens": 61597,
+        "cached_input_tokens": 56832,
+        "output_tokens": 1083,
+        "reasoning_output_tokens": 116
+      }
+    },
+    {
+      "task_id": "spacer_stack_height_s0001",
+      "family": "spacer_stack_height",
+      "tier": "artifact_static",
+      "agent_ok": true,
+      "agent_cost_usd": 0.03997325,
+      "agent_duration_s": 47.181494493968785,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 0.9999999999999943,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.19500617287121713,
+      "usage": {
+        "input_tokens": 62609,
+        "cached_input_tokens": 52736,
+        "output_tokens": 1776,
+        "reasoning_output_tokens": 328
+      }
+    },
+    {
+      "task_id": "spur_gear_ratio_analytic_s0001",
+      "family": "spur_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "agent_ok": true,
+      "agent_cost_usd": 0.02767025,
+      "agent_duration_s": 41.62935089087114,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.23932921211235225,
+      "usage": {
+        "input_tokens": 46885,
+        "cached_input_tokens": 42112,
+        "output_tokens": 1493,
+        "reasoning_output_tokens": 151
+      }
+    },
+    {
+      "task_id": "standoff_pattern_square_s0001",
+      "family": "standoff_pattern_square",
+      "tier": "artifact_static",
+      "agent_ok": true,
+      "agent_cost_usd": 0.02965775,
+      "agent_duration_s": 42.49933157302439,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": false,
+      "eval_score": 0.0,
+      "eval_failure_codes": [
+        "wrong_topology"
+      ],
+      "eval_duration_s": 0.17280727392062545,
+      "usage": {
+        "input_tokens": 62003,
+        "cached_input_tokens": 56832,
+        "output_tokens": 1342,
+        "reasoning_output_tokens": 267
+      }
+    },
+    {
+      "task_id": "static_fit_bracket_s0001",
+      "family": "static_fit_bracket",
+      "tier": "artifact_static",
+      "agent_ok": true,
+      "agent_cost_usd": 0.027790250000000002,
+      "agent_duration_s": 35.329513089032844,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.14792371913790703,
+      "usage": {
+        "input_tokens": 61741,
+        "cached_input_tokens": 54272,
+        "output_tokens": 1056,
+        "reasoning_output_tokens": 111
+      }
+    },
+    {
+      "task_id": "timing_belt_center_distance_s0001",
+      "family": "timing_belt_center_distance",
+      "tier": "transmission_analytic",
+      "agent_ok": true,
+      "agent_cost_usd": 0.033571500000000004,
+      "agent_duration_s": 44.54350324696861,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.15764783788472414,
+      "usage": {
+        "input_tokens": 62294,
+        "cached_input_tokens": 56832,
+        "output_tokens": 1647,
+        "reasoning_output_tokens": 317
+      }
+    },
+    {
+      "task_id": "toggle_overcenter_margin_s0001",
+      "family": "toggle_overcenter_margin",
+      "tier": "planar_kinematics",
+      "agent_ok": true,
+      "agent_cost_usd": 0.0407155,
+      "agent_duration_s": 47.06508239801042,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.16839765384793282,
+      "usage": {
+        "input_tokens": 62422,
+        "cached_input_tokens": 52224,
+        "output_tokens": 1809,
+        "reasoning_output_tokens": 335
+      }
+    },
+    {
+      "task_id": "worm_gear_ratio_analytic_s0001",
+      "family": "worm_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "agent_ok": true,
+      "agent_cost_usd": 0.0296515,
+      "agent_duration_s": 40.37775841308758,
+      "agent_exit_code": 0,
+      "agent_error": "",
+      "submission_exists": true,
+      "eval_valid": true,
+      "eval_hard_gate_passed": true,
+      "eval_score": 1.0,
+      "eval_failure_codes": [],
+      "eval_duration_s": 0.1536351281683892,
+      "usage": {
+        "input_tokens": 62022,
+        "cached_input_tokens": 56832,
+        "output_tokens": 1430,
+        "reasoning_output_tokens": 176
+      }
+    }
+  ],
+  "wall_clock_s": 623.8531121960841
+}

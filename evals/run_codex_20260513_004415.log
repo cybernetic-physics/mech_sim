@@ -1,0 +1,70 @@
+[codex-eval] 51 tasks; model=gpt-5.5; timeout=300s; concurrency=4; sandbox=workspace-write
+[PASS] box_lid_register_fit_s0001                        score=1.00  cost~=$0.0337  agent= 33.9s  eval= 0.2s
+[PASS] bearing_seat_clearance_s0001                      score=1.00  cost~=$0.0334  agent= 34.8s  eval= 0.2s
+[PASS] belt_pulley_ratio_s0001                           score=1.00  cost~=$0.0380  agent= 36.4s  eval= 0.1s
+[PASS] bevel_gear_ratio_analytic_s0001                   score=1.00  cost~=$0.0408  agent= 42.2s  eval= 0.2s
+[PASS] cam_follower_contact_stub_s0001                   score=0.80  cost~=$0.0361  agent= 39.8s  eval= 0.2s
+[PASS] brake_caliper_contact_stub_s0001                  score=0.80  cost~=$0.0492  agent= 46.9s  eval= 0.2s
+[PASS] chain_sprocket_ratio_s0001                        score=1.00  cost~=$0.0444  agent= 44.6s  eval= 0.2s
+[PASS] compound_gear_ratio_analytic_s0001                score=1.00  cost~=$0.0536  agent= 47.2s  eval= 0.2s
+[FAIL] contact_gear_pair_stub_s0001                      score=0.00  cost~=$0.0478  agent= 42.0s  eval= 0.2s
+[PASS] flange_bolt_circle_s0001                          score=1.00  cost~=$0.0320  agent= 36.1s  eval= 0.2s
+[FAIL] cycloidal_lowN_stub_s0001                         score=0.00  cost~=$0.0478  agent= 55.5s  eval= 0.2s
+[PASS] detent_spring_contact_stub_s0001                  score=0.75  cost~=$0.0702  agent= 59.7s  eval= 0.3s
+[FAIL] fourbar_dwell_path_s0001                          score=0.00  cost~=$0.0398  agent= 45.3s  eval= 0.2s
+[PASS] fourbar_crank_rocker_sweep_s0001                  score=1.00  cost~=$0.0594  agent= 61.7s  eval= 0.2s
+[PASS] fourbar_pump_handle_s0001                         score=1.00  cost~=$0.0460  agent= 37.5s  eval= 0.2s
+[PASS] fourbar_path_s0001                                score=1.00  cost~=$0.1551  agent= 96.3s  eval= 0.2s
+[FAIL] fourbar_straight_line_approx_s0001                score=0.00  cost~=$0.0438  agent= 55.3s  eval= 0.2s
+[FAIL] fourbar_wiper_arc_s0001                           score=0.00  cost~=$0.0448  agent= 54.2s  eval= 0.2s
+[PASS] friction_clutch_torque_stub_s0001                 score=0.94  cost~=$0.0367  agent= 38.1s  eval= 0.2s
+[PASS] gear_pair_load_trial_stub_s0001                   score=1.00  cost~=$0.0469  agent= 40.2s  eval= 0.2s
+[FAIL] geneva_indexing_stub_s0001                        score=0.00  cost~=$0.0375  agent= 37.7s  eval= 0.2s
+[FAIL] keyed_shaft_hub_fit_s0001                         score=0.00  cost~=$0.0321  agent= 32.9s  eval= 0.1s
+[PASS] idler_gear_direction_analytic_s0001               score=1.00  cost~=$0.0584  agent= 57.9s  eval= 0.2s
+[FAIL] latch_release_force_stub_s0001                    score=0.00  cost~=$0.0438  agent= 45.7s  eval= 0.2s
+[PASS] lead_screw_linear_travel_s0001                    score=1.00  cost~=$0.0294  agent= 39.3s  eval= 0.2s
+[FAIL] mounting_plate_hole_pitch_s0001                   score=0.00  cost~=$0.0250  agent= 28.4s  eval= 0.2s
+[PASS] fourbar_path_t001                                 score=1.00  cost~=$0.3118  agent=228.4s  eval= 0.2s
+[PASS] planetary_fixed_ring_ratio_analytic_s0001         score=1.00  cost~=$0.0522  agent= 47.1s  eval= 0.2s
+[FAIL] press_fit_hub_interference_s0001                  score=0.00  cost~=$0.0295  agent= 34.6s  eval= 0.2s
+[PASS] planetary_fixed_sun_ratio_analytic_s0001          score=1.00  cost~=$0.0482  agent= 46.4s  eval= 0.2s
+[FAIL] parallel_gripper_retention_stub_s0001             score=0.00  cost~=$0.0579  agent= 62.9s  eval= 0.2s
+[PASS] pulley_bore_alignment_static_s0001                score=1.00  cost~=$0.0314  agent= 36.1s  eval= 0.2s
+[PASS] rack_pinion_conversion_s0001                      score=1.00  cost~=$0.0333  agent= 36.8s  eval= 0.2s
+[FAIL] rack_pinion_contact_stub_s0001                    score=0.00  cost~=$0.0445  agent= 38.3s  eval= 0.2s
+[FAIL] rack_pinion_force_direction_s0001                 score=0.00  cost~=$0.0369  agent= 44.3s  eval= 0.2s
+[PASS] ratchet_pawl_engagement_stub_s0001                score=1.00  cost~=$0.0353  agent= 46.0s  eval= 0.2s
+[FAIL] reciprocating_pump_plunger_s0001                  score=0.00  cost~=$0.0422  agent= 39.3s  eval= 0.2s
+[PASS] shaft_collar_clearance_s0001                      score=0.30  cost~=$0.0411  agent= 33.1s  eval= 0.2s
+[FAIL] rocker_limit_stop_topology_s0001                  score=0.00  cost~=$0.0545  agent= 58.4s  eval= 2.1s
+[PASS] simple_hinge_fit_s0001                            score=1.00  cost~=$0.0272  agent= 29.2s  eval= 0.3s
+[PASS] slider_crank_stroke_precision_s0001               score=1.00  cost~=$0.0303  agent= 37.5s  eval= 0.4s
+[PASS] slider_crank_quick_return_proxy_s0001             score=1.00  cost~=$0.0432  agent= 50.3s  eval= 0.3s
+[FAIL] snap_tab_clearance_static_s0001                   score=0.00  cost~=$0.0251  agent= 38.7s  eval= 0.2s
+[PASS] slider_crank_stroke_s0001                         score=1.00  cost~=$0.0367  agent= 43.8s  eval= 0.2s
+[PASS] spacer_stack_height_s0001                         score=1.00  cost~=$0.0400  agent= 47.2s  eval= 0.2s
+[PASS] spur_gear_ratio_analytic_s0001                    score=1.00  cost~=$0.0277  agent= 41.6s  eval= 0.2s
+[PASS] static_fit_bracket_s0001                          score=1.00  cost~=$0.0278  agent= 35.3s  eval= 0.1s
+[FAIL] standoff_pattern_square_s0001                     score=0.00  cost~=$0.0297  agent= 42.5s  eval= 0.2s
+[PASS] timing_belt_center_distance_s0001                 score=1.00  cost~=$0.0336  agent= 44.5s  eval= 0.2s
+[PASS] toggle_overcenter_margin_s0001                    score=1.00  cost~=$0.0407  agent= 47.1s  eval= 0.2s
+[PASS] worm_gear_ratio_analytic_s0001                    score=1.00  cost~=$0.0297  agent= 40.4s  eval= 0.2s
+
+[codex-eval] wrote summary -> /tmp/codex_eval_full/codex_eval_summary.json
+{
+  "agent": "codex",
+  "model": "gpt-5.5",
+  "n_tasks": 51,
+  "n_passed": 34,
+  "pass_rate": 0.667,
+  "total_cost_usd_estimate": 2.4362,
+  "wall_clock_s": 623.9,
+  "by_tier": {
+    "artifact_static": "8/13",
+    "transmission_analytic": "12/13",
+    "contact_dynamics": "6/12",
+    "planar_kinematics": "7/12",
+    "unknown": "1/1"
+  }
+}

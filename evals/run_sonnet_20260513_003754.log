@@ -1,0 +1,68 @@
+[claude-eval] 51 tasks; model=sonnet; budget=$0.3/task; timeout=300s; concurrency=6
+[PASS] belt_pulley_ratio_s0001                           score=1.00  cost=$0.0854  agent= 32.6s  eval= 0.2s
+[PASS] cam_follower_contact_stub_s0001                   score=0.80  cost=$0.0903  agent= 33.7s  eval= 0.2s
+[FAIL] bearing_seat_clearance_s0001                      score=0.00  cost=$0.0862  agent= 35.0s  eval= 0.2s
+[PASS] bevel_gear_ratio_analytic_s0001                   score=0.70  cost=$0.0984  agent= 35.4s  eval= 0.2s
+[PASS] box_lid_register_fit_s0001                        score=1.00  cost=$0.0979  agent= 47.6s  eval= 0.1s
+[PASS] brake_caliper_contact_stub_s0001                  score=0.80  cost=$0.1022  agent= 51.0s  eval= 0.1s
+[PASS] chain_sprocket_ratio_s0001                        score=1.00  cost=$0.0958  agent= 43.3s  eval= 0.2s
+[FAIL] contact_gear_pair_stub_s0001                      score=0.00  cost=$0.0956  agent= 44.7s  eval= 0.2s
+[PASS] flange_bolt_circle_s0001                          score=1.00  cost=$0.1060  agent= 47.3s  eval= 0.1s
+[PASS] detent_spring_contact_stub_s0001                  score=0.75  cost=$0.1182  agent= 52.7s  eval= 0.1s
+[PASS] compound_gear_ratio_analytic_s0001                score=1.00  cost=$0.1583  agent= 75.1s  eval= 0.1s
+[PASS] fourbar_crank_rocker_sweep_s0001                  score=1.00  cost=$0.1194  agent= 48.2s  eval= 0.2s
+[PASS] fourbar_pump_handle_s0001                         score=1.00  cost=$0.1720  agent= 99.9s  eval= 0.2s
+[FAIL] fourbar_dwell_path_s0001                          score=0.00  cost=$0.2864  agent=156.8s  eval= 0.2s
+[PASS] friction_clutch_torque_stub_s0001                 score=0.94  cost=$0.1092  agent= 54.7s  eval= 0.2s
+[FAIL] cycloidal_lowN_stub_s0001                         score=—  cost=$?  agent=300.1s  eval= 0.0s
+[PASS] gear_pair_load_trial_stub_s0001                   score=1.00  cost=$0.1101  agent= 45.7s  eval= 0.2s
+[FAIL] geneva_indexing_stub_s0001                        score=0.00  cost=$0.1024  agent= 52.7s  eval= 0.2s
+[FAIL] fourbar_path_s0001                                score=—  cost=$?  agent=300.1s  eval= 0.0s
+[FAIL] fourbar_path_t001                                 score=—  cost=$?  agent=300.1s  eval= 0.0s
+[FAIL] lead_screw_linear_travel_s0001                    score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] mounting_plate_hole_pitch_s0001                   score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] parallel_gripper_retention_stub_s0001             score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] planetary_fixed_ring_ratio_analytic_s0001         score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] planetary_fixed_sun_ratio_analytic_s0001          score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] press_fit_hub_interference_s0001                  score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] pulley_bore_alignment_static_s0001                score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] rack_pinion_contact_stub_s0001                    score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] rack_pinion_conversion_s0001                      score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] rack_pinion_force_direction_s0001                 score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] ratchet_pawl_engagement_stub_s0001                score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] reciprocating_pump_plunger_s0001                  score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] rocker_limit_stop_topology_s0001                  score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] shaft_collar_clearance_s0001                      score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] simple_hinge_fit_s0001                            score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] slider_crank_quick_return_proxy_s0001             score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] slider_crank_stroke_precision_s0001               score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] slider_crank_stroke_s0001                         score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] snap_tab_clearance_static_s0001                   score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] spacer_stack_height_s0001                         score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] spur_gear_ratio_analytic_s0001                    score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] standoff_pattern_square_s0001                     score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] static_fit_bracket_s0001                          score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] timing_belt_center_distance_s0001                 score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] toggle_overcenter_margin_s0001                    score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] worm_gear_ratio_analytic_s0001                    score=—  cost=$?  agent=  0.0s  eval= 0.0s
+[FAIL] fourbar_straight_line_approx_s0001                score=—  cost=$?  agent=300.1s  eval= 0.0s
+[FAIL] keyed_shaft_hub_fit_s0001                         score=0.00  cost=$0.0995  agent= 43.9s  eval= 0.2s
+[FAIL] latch_release_force_stub_s0001                    score=0.00  cost=$0.1018  agent= 42.7s  eval= 0.2s
+[FAIL] idler_gear_direction_analytic_s0001               score=0.00  cost=$0.2425  agent=162.7s  eval= 0.2s
+[FAIL] fourbar_wiper_arc_s0001                           score=—  cost=$?  agent=300.1s  eval= 0.0s
+
+[claude-eval] wrote summary -> /tmp/claude_eval_full/claude_eval_summary.json
+{
+  "n_tasks": 51,
+  "n_passed": 13,
+  "pass_rate": 0.255,
+  "total_cost_usd": 2.4777,
+  "wall_clock_s": 509.4,
+  "by_tier": {
+    "artifact_static": "2/13",
+    "transmission_analytic": "4/13",
+    "contact_dynamics": "5/12",
+    "planar_kinematics": "2/12",
+    "unknown": "0/1"
+  }
+}

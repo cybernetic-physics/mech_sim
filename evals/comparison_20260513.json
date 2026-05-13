@@ -1,0 +1,867 @@
+{
+  "version": "mech_bench.agent_eval_comparison.v1",
+  "left": {
+    "label": "claude:sonnet",
+    "path": "evals/claude_full_20260513.json",
+    "n_tasks": 51,
+    "n_passed": 13,
+    "pass_rate": 0.2549019607843137,
+    "total_cost_usd": 2.47772305,
+    "wall_clock_s": 509.36653085798025,
+    "by_tier": {
+      "artifact_static": {
+        "n": 13,
+        "passed": 2,
+        "pass_rate": 0.15384615384615385
+      },
+      "transmission_analytic": {
+        "n": 13,
+        "passed": 4,
+        "pass_rate": 0.3076923076923077
+      },
+      "contact_dynamics": {
+        "n": 12,
+        "passed": 5,
+        "pass_rate": 0.4166666666666667
+      },
+      "planar_kinematics": {
+        "n": 12,
+        "passed": 2,
+        "pass_rate": 0.16666666666666666
+      },
+      "unknown": {
+        "n": 1,
+        "passed": 0,
+        "pass_rate": 0.0
+      }
+    },
+    "failure_histogram": {
+      "invalid_artifact": 5,
+      "wrong_topology": 2,
+      "capability_unavailable": 1,
+      "path_error": 1
+    }
+  },
+  "right": {
+    "label": "codex:gpt-5.5",
+    "path": "evals/codex_full_20260513.json",
+    "n_tasks": 51,
+    "n_passed": 34,
+    "pass_rate": 0.6666666666666666,
+    "total_cost_usd": 2.4361625,
+    "wall_clock_s": 623.8531121960841,
+    "by_tier": {
+      "artifact_static": {
+        "n": 13,
+        "passed": 8,
+        "pass_rate": 0.6153846153846154
+      },
+      "transmission_analytic": {
+        "n": 13,
+        "passed": 12,
+        "pass_rate": 0.9230769230769231
+      },
+      "contact_dynamics": {
+        "n": 12,
+        "passed": 6,
+        "pass_rate": 0.5
+      },
+      "planar_kinematics": {
+        "n": 12,
+        "passed": 7,
+        "pass_rate": 0.5833333333333334
+      },
+      "unknown": {
+        "n": 1,
+        "passed": 1,
+        "pass_rate": 1.0
+      }
+    },
+    "failure_histogram": {
+      "invalid_artifact": 8,
+      "wrong_topology": 5,
+      "path_error": 3,
+      "capability_unavailable": 2,
+      "wrong_ratio": 1
+    }
+  },
+  "head_to_head": {
+    "common_tasks": 51,
+    "both_pass": 13,
+    "neither_pass": 17,
+    "only_claude:sonnet_passes": 0,
+    "only_codex:gpt-5.5_passes": 21,
+    "agreement_rate": 0.5882352941176471,
+    "disagreements": 21
+  },
+  "tasks": [
+    {
+      "task_id": "bearing_seat_clearance_s0001",
+      "tier": "artifact_static",
+      "family": "bearing_seat_clearance",
+      "L_passed": false,
+      "L_score": 0.0,
+      "L_codes": [
+        "wrong_topology"
+      ],
+      "L_cost_usd": 0.08617174999999999,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.03344925,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "belt_pulley_ratio_s0001",
+      "tier": "transmission_analytic",
+      "family": "belt_pulley_ratio",
+      "L_passed": true,
+      "L_score": 1.0,
+      "L_codes": [],
+      "L_cost_usd": 0.0853929,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.03798825,
+      "winner": "both"
+    },
+    {
+      "task_id": "bevel_gear_ratio_analytic_s0001",
+      "tier": "transmission_analytic",
+      "family": "bevel_gear_ratio_analytic",
+      "L_passed": true,
+      "L_score": 0.7,
+      "L_codes": [
+        "invalid_artifact"
+      ],
+      "L_cost_usd": 0.09842525,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.040841749999999996,
+      "winner": "both"
+    },
+    {
+      "task_id": "box_lid_register_fit_s0001",
+      "tier": "artifact_static",
+      "family": "box_lid_register_fit",
+      "L_passed": true,
+      "L_score": 1.0,
+      "L_codes": [],
+      "L_cost_usd": 0.0979101,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.03365675,
+      "winner": "both"
+    },
+    {
+      "task_id": "brake_caliper_contact_stub_s0001",
+      "tier": "contact_dynamics",
+      "family": "brake_caliper_contact_stub",
+      "L_passed": true,
+      "L_score": 0.8,
+      "L_codes": [],
+      "L_cost_usd": 0.10218174999999999,
+      "R_passed": true,
+      "R_score": 0.8,
+      "R_codes": [],
+      "R_cost_usd": 0.04921175,
+      "winner": "both"
+    },
+    {
+      "task_id": "cam_follower_contact_stub_s0001",
+      "tier": "contact_dynamics",
+      "family": "cam_follower_contact_stub",
+      "L_passed": true,
+      "L_score": 0.8,
+      "L_codes": [],
+      "L_cost_usd": 0.09027335,
+      "R_passed": true,
+      "R_score": 0.8,
+      "R_codes": [],
+      "R_cost_usd": 0.0361355,
+      "winner": "both"
+    },
+    {
+      "task_id": "chain_sprocket_ratio_s0001",
+      "tier": "transmission_analytic",
+      "family": "chain_sprocket_ratio",
+      "L_passed": true,
+      "L_score": 1.0,
+      "L_codes": [],
+      "L_cost_usd": 0.09582065000000001,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.0444325,
+      "winner": "both"
+    },
+    {
+      "task_id": "compound_gear_ratio_analytic_s0001",
+      "tier": "transmission_analytic",
+      "family": "compound_gear_ratio_analytic",
+      "L_passed": true,
+      "L_score": 1.0,
+      "L_codes": [],
+      "L_cost_usd": 0.1582588,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.053551,
+      "winner": "both"
+    },
+    {
+      "task_id": "contact_gear_pair_stub_s0001",
+      "tier": "contact_dynamics",
+      "family": "contact_gear_pair_stub",
+      "L_passed": false,
+      "L_score": 0.0,
+      "L_codes": [
+        "capability_unavailable"
+      ],
+      "L_cost_usd": 0.0956272,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "capability_unavailable"
+      ],
+      "R_cost_usd": 0.0477645,
+      "winner": "neither"
+    },
+    {
+      "task_id": "cycloidal_lowN_stub_s0001",
+      "tier": "contact_dynamics",
+      "family": "cycloidal_lowN_stub",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "capability_unavailable"
+      ],
+      "R_cost_usd": 0.0477795,
+      "winner": "neither"
+    },
+    {
+      "task_id": "detent_spring_contact_stub_s0001",
+      "tier": "contact_dynamics",
+      "family": "detent_spring_contact_stub",
+      "L_passed": true,
+      "L_score": 0.75,
+      "L_codes": [],
+      "L_cost_usd": 0.1182321,
+      "R_passed": true,
+      "R_score": 0.75,
+      "R_codes": [],
+      "R_cost_usd": 0.07016875,
+      "winner": "both"
+    },
+    {
+      "task_id": "flange_bolt_circle_s0001",
+      "tier": "artifact_static",
+      "family": "flange_bolt_circle",
+      "L_passed": true,
+      "L_score": 1.0,
+      "L_codes": [],
+      "L_cost_usd": 0.10601094999999999,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.0319855,
+      "winner": "both"
+    },
+    {
+      "task_id": "fourbar_crank_rocker_sweep_s0001",
+      "tier": "planar_kinematics",
+      "family": "fourbar_crank_rocker_sweep",
+      "L_passed": true,
+      "L_score": 1.0,
+      "L_codes": [],
+      "L_cost_usd": 0.11944900000000001,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.0594255,
+      "winner": "both"
+    },
+    {
+      "task_id": "fourbar_dwell_path_s0001",
+      "tier": "planar_kinematics",
+      "family": "fourbar_dwell_path",
+      "L_passed": false,
+      "L_score": 0.0,
+      "L_codes": [
+        "path_error"
+      ],
+      "L_cost_usd": 0.2864291,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "path_error"
+      ],
+      "R_cost_usd": 0.039845500000000006,
+      "winner": "neither"
+    },
+    {
+      "task_id": "fourbar_path_s0001",
+      "tier": "planar_kinematics",
+      "family": "fourbar_path",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 0.9999996364431545,
+      "R_codes": [],
+      "R_cost_usd": 0.15512175,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "fourbar_path_t001",
+      "tier": "unknown",
+      "family": "fourbar_path_t001",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 0.9999997077644183,
+      "R_codes": [],
+      "R_cost_usd": 0.31184525,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "fourbar_pump_handle_s0001",
+      "tier": "planar_kinematics",
+      "family": "fourbar_pump_handle",
+      "L_passed": true,
+      "L_score": 1.0,
+      "L_codes": [],
+      "L_cost_usd": 0.1719544,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.046040250000000005,
+      "winner": "both"
+    },
+    {
+      "task_id": "fourbar_straight_line_approx_s0001",
+      "tier": "planar_kinematics",
+      "family": "fourbar_straight_line_approx",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "path_error"
+      ],
+      "R_cost_usd": 0.0438305,
+      "winner": "neither"
+    },
+    {
+      "task_id": "fourbar_wiper_arc_s0001",
+      "tier": "planar_kinematics",
+      "family": "fourbar_wiper_arc",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "path_error"
+      ],
+      "R_cost_usd": 0.0448195,
+      "winner": "neither"
+    },
+    {
+      "task_id": "friction_clutch_torque_stub_s0001",
+      "tier": "contact_dynamics",
+      "family": "friction_clutch_torque_stub",
+      "L_passed": true,
+      "L_score": 0.9444444444444445,
+      "L_codes": [],
+      "L_cost_usd": 0.10917325,
+      "R_passed": true,
+      "R_score": 0.9444444444444445,
+      "R_codes": [],
+      "R_cost_usd": 0.0366755,
+      "winner": "both"
+    },
+    {
+      "task_id": "gear_pair_load_trial_stub_s0001",
+      "tier": "contact_dynamics",
+      "family": "gear_pair_load_trial_stub",
+      "L_passed": true,
+      "L_score": 1.0,
+      "L_codes": [],
+      "L_cost_usd": 0.11014745000000002,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.046926999999999996,
+      "winner": "both"
+    },
+    {
+      "task_id": "geneva_indexing_stub_s0001",
+      "tier": "contact_dynamics",
+      "family": "geneva_indexing_stub",
+      "L_passed": false,
+      "L_score": 0.0,
+      "L_codes": [
+        "invalid_artifact"
+      ],
+      "L_cost_usd": 0.102419,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "invalid_artifact"
+      ],
+      "R_cost_usd": 0.037493,
+      "winner": "neither"
+    },
+    {
+      "task_id": "idler_gear_direction_analytic_s0001",
+      "tier": "transmission_analytic",
+      "family": "idler_gear_direction_analytic",
+      "L_passed": false,
+      "L_score": 0.0,
+      "L_codes": [
+        "invalid_artifact"
+      ],
+      "L_cost_usd": 0.24254349999999997,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.05838525,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "keyed_shaft_hub_fit_s0001",
+      "tier": "artifact_static",
+      "family": "keyed_shaft_hub_fit",
+      "L_passed": false,
+      "L_score": 0.0,
+      "L_codes": [
+        "invalid_artifact"
+      ],
+      "L_cost_usd": 0.09947990000000001,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "invalid_artifact"
+      ],
+      "R_cost_usd": 0.03206325,
+      "winner": "neither"
+    },
+    {
+      "task_id": "latch_release_force_stub_s0001",
+      "tier": "contact_dynamics",
+      "family": "latch_release_force_stub",
+      "L_passed": false,
+      "L_score": 0.0,
+      "L_codes": [
+        "wrong_topology",
+        "invalid_artifact"
+      ],
+      "L_cost_usd": 0.10182264999999999,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "wrong_topology",
+        "invalid_artifact"
+      ],
+      "R_cost_usd": 0.04381575,
+      "winner": "neither"
+    },
+    {
+      "task_id": "lead_screw_linear_travel_s0001",
+      "tier": "transmission_analytic",
+      "family": "lead_screw_linear_travel",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.0294215,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "mounting_plate_hole_pitch_s0001",
+      "tier": "artifact_static",
+      "family": "mounting_plate_hole_pitch",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "wrong_topology"
+      ],
+      "R_cost_usd": 0.02498175,
+      "winner": "neither"
+    },
+    {
+      "task_id": "parallel_gripper_retention_stub_s0001",
+      "tier": "contact_dynamics",
+      "family": "parallel_gripper_retention_stub",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "invalid_artifact"
+      ],
+      "R_cost_usd": 0.0579125,
+      "winner": "neither"
+    },
+    {
+      "task_id": "planetary_fixed_ring_ratio_analytic_s0001",
+      "tier": "transmission_analytic",
+      "family": "planetary_fixed_ring_ratio_analytic",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.052185999999999996,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "planetary_fixed_sun_ratio_analytic_s0001",
+      "tier": "transmission_analytic",
+      "family": "planetary_fixed_sun_ratio_analytic",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.048245750000000004,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "press_fit_hub_interference_s0001",
+      "tier": "artifact_static",
+      "family": "press_fit_hub_interference",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "wrong_topology"
+      ],
+      "R_cost_usd": 0.02951,
+      "winner": "neither"
+    },
+    {
+      "task_id": "pulley_bore_alignment_static_s0001",
+      "tier": "artifact_static",
+      "family": "pulley_bore_alignment_static",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.031379,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "rack_pinion_contact_stub_s0001",
+      "tier": "contact_dynamics",
+      "family": "rack_pinion_contact_stub",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "invalid_artifact"
+      ],
+      "R_cost_usd": 0.0444745,
+      "winner": "neither"
+    },
+    {
+      "task_id": "rack_pinion_conversion_s0001",
+      "tier": "transmission_analytic",
+      "family": "rack_pinion_conversion",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.033342000000000004,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "rack_pinion_force_direction_s0001",
+      "tier": "transmission_analytic",
+      "family": "rack_pinion_force_direction",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "invalid_artifact"
+      ],
+      "R_cost_usd": 0.03687625,
+      "winner": "neither"
+    },
+    {
+      "task_id": "ratchet_pawl_engagement_stub_s0001",
+      "tier": "contact_dynamics",
+      "family": "ratchet_pawl_engagement_stub",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.035309,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "reciprocating_pump_plunger_s0001",
+      "tier": "planar_kinematics",
+      "family": "reciprocating_pump_plunger",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "wrong_ratio"
+      ],
+      "R_cost_usd": 0.04223425,
+      "winner": "neither"
+    },
+    {
+      "task_id": "rocker_limit_stop_topology_s0001",
+      "tier": "planar_kinematics",
+      "family": "rocker_limit_stop_topology",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "invalid_artifact"
+      ],
+      "R_cost_usd": 0.054517750000000004,
+      "winner": "neither"
+    },
+    {
+      "task_id": "shaft_collar_clearance_s0001",
+      "tier": "artifact_static",
+      "family": "shaft_collar_clearance",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 0.3,
+      "R_codes": [
+        "invalid_artifact"
+      ],
+      "R_cost_usd": 0.04106325,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "simple_hinge_fit_s0001",
+      "tier": "artifact_static",
+      "family": "simple_hinge_fit",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.027213,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "slider_crank_quick_return_proxy_s0001",
+      "tier": "planar_kinematics",
+      "family": "slider_crank_quick_return_proxy",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.043154250000000005,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "slider_crank_stroke_precision_s0001",
+      "tier": "planar_kinematics",
+      "family": "slider_crank_stroke_precision",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.030326500000000003,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "slider_crank_stroke_s0001",
+      "tier": "planar_kinematics",
+      "family": "slider_crank_stroke",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.036682,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "snap_tab_clearance_static_s0001",
+      "tier": "artifact_static",
+      "family": "snap_tab_clearance_static",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "wrong_topology"
+      ],
+      "R_cost_usd": 0.02505025,
+      "winner": "neither"
+    },
+    {
+      "task_id": "spacer_stack_height_s0001",
+      "tier": "artifact_static",
+      "family": "spacer_stack_height",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 0.9999999999999943,
+      "R_codes": [],
+      "R_cost_usd": 0.03997325,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "spur_gear_ratio_analytic_s0001",
+      "tier": "transmission_analytic",
+      "family": "spur_gear_ratio_analytic",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.02767025,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "standoff_pattern_square_s0001",
+      "tier": "artifact_static",
+      "family": "standoff_pattern_square",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": false,
+      "R_score": 0.0,
+      "R_codes": [
+        "wrong_topology"
+      ],
+      "R_cost_usd": 0.02965775,
+      "winner": "neither"
+    },
+    {
+      "task_id": "static_fit_bracket_s0001",
+      "tier": "artifact_static",
+      "family": "static_fit_bracket",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.027790250000000002,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "timing_belt_center_distance_s0001",
+      "tier": "transmission_analytic",
+      "family": "timing_belt_center_distance",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.033571500000000004,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "toggle_overcenter_margin_s0001",
+      "tier": "planar_kinematics",
+      "family": "toggle_overcenter_margin",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.0407155,
+      "winner": "codex:gpt-5.5"
+    },
+    {
+      "task_id": "worm_gear_ratio_analytic_s0001",
+      "tier": "transmission_analytic",
+      "family": "worm_gear_ratio_analytic",
+      "L_passed": false,
+      "L_score": null,
+      "L_codes": [],
+      "L_cost_usd": null,
+      "R_passed": true,
+      "R_score": 1.0,
+      "R_codes": [],
+      "R_cost_usd": 0.0296515,
+      "winner": "codex:gpt-5.5"
+    }
+  ]
+}
