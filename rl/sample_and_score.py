@@ -82,6 +82,31 @@ def _build_user_prompt(task_dir: Path) -> str:
     )
 
 
+_WLD_CACHE: dict[str, tuple[Any, Any, Any]] = {}
+
+
+def _get_clients(base_url: str, api_key: str, base_model: str):
+    """Cache (ServiceClient, SamplingClient, tokenizer) per base_model."""
+    if base_model in _WLD_CACHE:
+        return _WLD_CACHE[base_model]
+    try:
+        from worldlines import ServiceClient  # type: ignore[import-not-found]
+    except ImportError as e:
+        raise RuntimeError(
+            "`worldlines` SDK not importable. Run inside the "
+            "worldlines venv (/dev/shm/wld-venv/bin/python)."
+        ) from e
+    from transformers import AutoTokenizer  # type: ignore[import-not-found]
+
+    os.environ["WORLDLINES_BASE_URL"] = base_url
+    os.environ["WORLDLINES_API_KEY"] = api_key
+    service = ServiceClient()
+    sampling = service.create_sampling_client(base_model=base_model)
+    tokenizer = AutoTokenizer.from_pretrained(base_model)
+    _WLD_CACHE[base_model] = (service, sampling, tokenizer)
+    return _WLD_CACHE[base_model]
+
+
 def sample_from_worldlines(
     *,
     base_url: str,
@@ -95,39 +120,39 @@ def sample_from_worldlines(
 ) -> tuple[str, dict[str, int]]:
     """Sample a single completion via the Tinker-shaped SamplingClient.
 
-    The Worldlines client speaks the same wire protocol as Tinker —
-    we use its public ``sample`` entrypoint so the trainer can
-    later swap backends transparently.
+    Builds a chat-templated prompt (Qwen3 chat template), tokenizes,
+    calls ``sampling.sample(num_samples=1, max_tokens, temperature)``,
+    and decodes the first sample.
     """
-    try:
-        from worldlines.lib.public_interfaces import (
-            sampling_client as sc_mod,
-        )
-    except ImportError as e:
-        raise RuntimeError(
-            "`worldlines` SDK is not importable. Activate the "
-            "worldlines venv (`/dev/shm/wld-venv`) before running."
-        ) from e
+    from worldlines import types as wld_types  # type: ignore[import-not-found]
 
-    os.environ.setdefault("WORLDLINES_BASE_URL", base_url)
-    os.environ.setdefault("WORLDLINES_API_KEY", api_key)
-
-    client = sc_mod.SamplingClient(  # type: ignore[attr-defined]
-        base_model=base_model,
-    )
+    _, sampling, tokenizer = _get_clients(base_url, api_key, base_model)
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
     ]
-    rsp = client.sample(  # type: ignore[attr-defined]
-        messages=messages,
-        max_tokens=max_tokens,
-        temperature=temperature,
-        timeout_s=timeout_s,
+    prompt_text = tokenizer.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=True,
     )
-    text = getattr(rsp, "text", None) or getattr(rsp, "completion", "")
-    usage = getattr(rsp, "usage", {}) or {}
-    return str(text), dict(usage)
+    prompt_ids = tokenizer.encode(prompt_text, add_special_tokens=False)
+    prompt = wld_types.ModelInput.from_ints(prompt_ids)
+    params = wld_types.SamplingParams(
+        max_tokens=int(max_tokens),
+        temperature=float(temperature),
+    )
+    future = sampling.sample(
+        prompt=prompt, sampling_params=params, num_samples=1,
+    )
+    rsp = future.result(timeout=timeout_s)
+    sample = rsp.sequences[0]
+    completion_ids = list(sample.tokens)
+    text = tokenizer.decode(
+        completion_ids, skip_special_tokens=True)
+    usage = {
+        "input_tokens": len(prompt_ids),
+        "output_tokens": len(completion_ids),
+    }
+    return str(text), usage
 
 
 # --------------------------------------------------------------------- #
