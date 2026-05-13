@@ -47,7 +47,8 @@ class TurnTrace:
     """One assistant turn worth of evidence."""
     turn_idx: int
     assistant_text: str
-    score: float
+    score: float          # verified score (0 unless hard gate + valid)
+    dense_pct: float      # mean(per-probe score)*100 — always defined
     passed: bool
     parsed_ok: bool
     failure_codes: list[str]
@@ -63,7 +64,9 @@ class Rollout:
     turns: list[TurnTrace] = field(default_factory=list)
     best_turn: int = -1
     best_score: float = 0.0
+    best_dense_pct: float = 0.0
     final_score: float = 0.0
+    final_dense_pct: float = 0.0
     final_passed: bool = False
     total_tokens_in: int = 0
     total_tokens_out: int = 0
@@ -235,6 +238,7 @@ def run_rollout(
             turn_idx=turn_idx,
             assistant_text=assistant_text,
             score=ep.score,
+            dense_pct=ep.dense_pct,
             passed=ep.passed,
             parsed_ok=ep.parsed_ok,
             failure_codes=ep.failure_codes,
@@ -245,6 +249,8 @@ def run_rollout(
         if ep.score > rollout.best_score:
             rollout.best_score = ep.score
             rollout.best_turn = turn_idx
+        if ep.dense_pct > rollout.best_dense_pct:
+            rollout.best_dense_pct = ep.dense_pct
 
         # Append assistant message and decide whether to continue.
         messages.append({"role": "assistant", "content": assistant_text})
@@ -260,6 +266,7 @@ def run_rollout(
     if rollout.turns:
         last = rollout.turns[-1]
         rollout.final_score = last.score
+        rollout.final_dense_pct = last.dense_pct
         rollout.final_passed = last.passed
     rollout.wall_clock_s = time.perf_counter() - started
     rollout.messages = messages

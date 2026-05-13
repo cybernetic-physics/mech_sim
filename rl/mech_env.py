@@ -72,6 +72,10 @@ class EpisodeResult:
     completion_tokens: int = 0
     failure_codes: list[str] = field(default_factory=list)
     evaluation_valid: bool = False
+    # Dense per-probe reward — mean(probe.score) * 100. Always
+    # defined whether or not the hard gate passed, so the RL loop
+    # has a continuous signal even on hard-gate failures.
+    dense_pct: float = 0.0
 
 
 # --------------------------------------------------------------------- #
@@ -260,14 +264,16 @@ def score(
     # mech_bench returns score in [0,1]; rescale to [0,100] for parity
     # with engdesign reward magnitudes.
     final_score = (raw_score * 100.0) if (valid and gate) else 0.0
-    # Pull per-probe scores as subscores so a future dashboard can show
-    # what's improving over training.
+    # Pull per-probe scores. These power the dense_pct reward used by
+    # RL — they're emitted on every run, even when the hard gate
+    # fails, so the loop has a smooth signal to climb.
     subs: list[float] = []
     for r in blob.get("probe_results") or []:
         try:
             subs.append(float(r.get("score", 0.0)))
         except (TypeError, ValueError):
             pass
+    dense_pct = (sum(subs) / len(subs) * 100.0) if subs else 0.0
 
     if cleanup:
         # Keep design.py for diagnostic; only clean the heavy scratch.
@@ -286,6 +292,7 @@ def score(
         parse_bonus=parse_bonus if parsed else 0.0,
         failure_codes=codes,
         evaluation_valid=valid,
+        dense_pct=dense_pct,
     )
 
 

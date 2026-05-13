@@ -31,7 +31,13 @@ export WORLDLINES_BASE_URL="${WORLDLINES_BASE_URL:-http://${HOST}:${PORT}}"
 # For now the local LoRA trainer + HF sampler is enough.
 
 cd "$REPO_ROOT"
-exec "$VENV/bin/python" scripts/launch_trainer.py \
+# Use our in-process monkey-patched entrypoint (see
+# /home/freiza/mech_sim/rl/launch_trainer_patched.py) so the
+# PEFT trainer's tensor-device hygiene bug is fixed without
+# touching the worldlines submodule itself.
+PATCHED="${PATCHED_ENTRY:-/home/freiza/mech_sim/rl/launch_trainer_patched.py}"
+WORLDLINES_ROOT="$REPO_ROOT" \
+exec "$VENV/bin/python" "$PATCHED" \
   --host "$HOST" \
   --port "$PORT" \
   --artifact-root "$ARTIFACTS" \

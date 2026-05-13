@@ -200,6 +200,9 @@ def main() -> int:
     p.add_argument("--lora-rank", type=int, default=16)
     p.add_argument("--length-alpha", type=float, default=0.0)
     p.add_argument("--parse-bonus", type=float, default=5.0)
+    p.add_argument("--pass-bonus", type=float, default=25.0,
+                   help="extra reward when the final-turn hard gate "
+                        "passes (on top of dense_pct)")
     p.add_argument("--adv-clip", type=float, default=5.0)
     p.add_argument("--drop-zero-var", action="store_true", default=True)
     p.add_argument("--mask-truncated", action="store_true", default=True)
@@ -319,6 +322,8 @@ def main() -> int:
                 rollouts.append({
                     "task": ti,
                     "ep_score": last.score,
+                    "dense_pct": last.dense_pct,
+                    "best_dense_pct": r.best_dense_pct,
                     "passed": last.passed,
                     "parsed_ok": last.parsed_ok,
                     "completion_tokens": last.completion_tokens,
@@ -332,11 +337,17 @@ def main() -> int:
 
             if not rollouts:
                 continue
-            best = max(r["ep_score"] for r in rollouts)
+            best_pass = max(r["ep_score"] for r in rollouts)
+            best_dense = max(r["best_dense_pct"] for r in rollouts)
+            mean_dense = (
+                sum(r["best_dense_pct"] for r in rollouts) / len(rollouts)
+            )
             n_passed = sum(1 for r in rollouts if r["passed"])
             n_parsed = sum(1 for r in rollouts if r["parsed_ok"])
             print(
-                f"  {ti.task_id:48}  best={best:5.1f}  "
+                f"  {ti.task_id:48}  pass={best_pass:5.1f}  "
+                f"dense_best={best_dense:5.1f}  "
+                f"dense_avg={mean_dense:5.1f}  "
                 f"parsed={n_parsed}/{len(rollouts)}  "
                 f"passed={n_passed}/{len(rollouts)}"
             )
@@ -347,6 +358,8 @@ def main() -> int:
                     "tier": ti.tier, "family": ti.family,
                     "score": r["ep_score"],
                     "best_score": r["best_score"],
+                    "dense_pct": r["dense_pct"],
+                    "best_dense_pct": r["best_dense_pct"],
                     "passed": r["passed"],
                     "parsed_ok": r["parsed_ok"],
                     "failure_codes": r["failure_codes"],
@@ -367,8 +380,15 @@ def main() -> int:
         for g in groups:
             rewards: list[float] = []
             for r in g["rollouts"]:
+                # Dense reward = best-across-turns dense_pct (mean of
+                # per-probe scores) + verified-pass bonus on the
+                # final turn. Continuous in [0, 100+]; gives RL
+                # signal even when the hard gate fails.
+                base = max(r["dense_pct"], r["best_dense_pct"])
+                if r["passed"]:
+                    base += float(args.pass_bonus)
                 rewards.append(_adjust_reward(
-                    r["ep_score"],
+                    base,
                     args.parse_bonus if r["parsed_ok"] else 0.0,
                     r["completion_tokens"], args.length_alpha,
                 ))
