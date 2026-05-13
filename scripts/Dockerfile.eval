@@ -1,0 +1,46 @@
+# Reproducible image for running Claude Code against mech_bench.
+#
+# Build:
+#   docker build -f scripts/Dockerfile.eval -t mech-bench-eval .
+#
+# Run a small slice:
+#   docker run --rm \
+#       -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \
+#       -v "$PWD":/work -w /work \
+#       mech-bench-eval \
+#       python scripts/run_claude_on_eval.py \
+#           --tasks tasks \
+#           --report-dir /work/_claude_eval \
+#           --families mounting_plate_hole_pitch,spur_gear_ratio_analytic \
+#           --concurrency 2
+
+FROM python:3.11-slim
+
+# Node 20+ is required by Claude Code 2.x.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl \
+        ca-certificates \
+        gnupg \
+        git \
+        ffmpeg \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g @anthropic-ai/claude-code
+
+WORKDIR /work
+COPY pyproject.toml /work/pyproject.toml
+RUN pip install --no-cache-dir -e .
+
+# Lock the harness inside the image so it works without --add-dir.
+COPY . /work
+
+# The agent must NEVER auto-write outside the per-task scratch dir.
+ENV CLAUDE_CODE_SIMPLE=1
+
+ENTRYPOINT []
+CMD ["python", "scripts/run_claude_on_eval.py", \
+     "--tasks", "tasks", \
+     "--report-dir", "/work/_claude_eval", \
+     "--concurrency", "1"]

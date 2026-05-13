@@ -529,6 +529,47 @@ assert graph.ok, graph.preflight_failures
 
 ---
 
+## Running an agent against the benchmark
+
+`scripts/run_claude_on_eval.py` drives **Claude Code in headless
+print mode** as the agent. Per task it spawns `claude -p` with a
+strict tool allowlist (Read / Write / Edit / Glob / Grep + a few
+harmless Bash idioms), an `--add-dir` for the task inputs and a
+per-task submission scratch dir, `--max-budget-usd` as a hard cost
+cap, and a wall-clock `--timeout`. The system prompt
+(`scripts/agent_system_prompt.md`) tells the agent the DesignIR
+contract; the per-task user prompt is fed on stdin.
+
+```bash
+python scripts/run_claude_on_eval.py \
+    --tasks tasks \
+    --report-dir /tmp/claude_eval_reports \
+    --model sonnet \
+    --max-budget-usd 0.25 \
+    --timeout 240 \
+    --concurrency 4 \
+    --families mounting_plate_hole_pitch,spur_gear_ratio_analytic
+```
+
+The harness writes per-task workdirs / submissions under
+`--report-dir`, then runs `python -m mech_bench evaluate` against
+each `design.py`. Aggregate results land in
+`<report-dir>/claude_eval_summary.json` (n_tasks, n_passed,
+pass_rate, total_cost_usd, breakdowns by tier / family). A
+reference run on 6 mixed-tier tasks: 6/6 passed at score 1.00,
+~$0.67 total, ~2 min wall-clock at concurrency 3.
+
+**Auth.** By default the harness relies on the user's existing
+Claude Code session (OAuth / keychain). Pass `--claude-arg --bare`
+to lock down to `ANTHROPIC_API_KEY` only.
+
+**Docker (optional).** `scripts/Dockerfile.eval` builds an image
+with Python 3.11, Node 20, Claude Code, and the repo installed.
+Useful for a fully-reproducible run; mount the repo and pass the
+API key through the environment.
+
+---
+
 ## Tests
 
 ```bash
