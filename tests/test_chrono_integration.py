@@ -315,18 +315,22 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
 
     ir = build_chrono_design_ir_from_assets(assets)
     cfg_base = _cycloidal_cfg("nsc")
+    cfg_base["_mech_bench"]["probe_specs"][0]["config"][
+        "min_output_speed_rad_s"
+    ] = 0.5
     cfg_base.update(
         samples=60,
-        duration_s=0.06,
-        timestep=5.0e-4,
+        duration_s=0.03,
+        timestep=1.0e-4,
         procedural_cycloidal_fallback=False,
         contact_margin=2.0e-5,
         contact_envelope=5.0e-5,
-        friction=0.05,
-        young_modulus=1.0e7,
-        normal_stiffness=1.0e5,
-        damping=10.0,
-        solver_iterations=200,
+        friction=0.02,
+        restitution=0.0,
+        young_modulus=3.0e6,
+        normal_stiffness=3.0e7,
+        damping=1200.0,
+        solver_iterations=500,
     )
     cfg_base["_mech_bench"]["build_root"] = str(assets.root)
 
@@ -368,10 +372,16 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
 
     smc_metrics = results["smc"]["scalar_metrics"]
     nsc_metrics = results["nsc"]["scalar_metrics"]
+    assert nsc_metrics["lockup_detected"] == 1.0
+    assert abs(nsc_metrics["out_omega_med"]) < 0.5
     assert smc_metrics["lockup_detected"] == 0.0
     assert abs(smc_metrics["out_omega_med"]) > 0.5
     assert np.isfinite(smc_metrics["ratio_observed"])
+    assert smc_metrics["max_constraint_error_mm"] < 0.1
     assert smc_metrics["n_contacts_max"] < nsc_metrics["n_contacts_max"]
+    top_pairs = {p["pair"] for p in smc_metrics["top_contact_pairs"]}
+    assert "cycloidalDisk1:driverDisk" in top_pairs
+    assert "cycloidalDisk1:pinDisk" in top_pairs
     assert smc_metrics["failure_mode"] != "lockup_mechanism_jammed"
     assert smc_metrics["failure_mode"] in {
         "none",

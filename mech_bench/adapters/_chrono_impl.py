@@ -728,18 +728,32 @@ def _make_system(
         _call_first(solver, ("SetTolerance", "SetTol"), solver_tol)
     if hasattr(chrono, "ChSolver"):
         solver_type = str(cfg.get("solver_type", "BARZILAIBORWEIN")).upper()
-        st = getattr(getattr(chrono, "ChSolver"), "Type", None)
-        if st is not None and hasattr(st, solver_type):
-            _call_first(system, ("SetSolverType",), getattr(st, solver_type))
+        solver_enum = _chrono_enum_value(
+            getattr(chrono, "ChSolver"), "Type", solver_type)
+        if solver_enum is not None:
+            _call_first(system, ("SetSolverType",), solver_enum)
     if hasattr(chrono, "ChTimestepper"):
         stepper_type = str(
             cfg.get("timestepper_type", "EULER_IMPLICIT_PROJECTED")
         ).upper()
-        tt = getattr(getattr(chrono, "ChTimestepper"), "Type", None)
-        if tt is not None and hasattr(tt, stepper_type):
-            _call_first(system, ("SetTimestepperType",), getattr(tt, stepper_type))
+        stepper_enum = _chrono_enum_value(
+            getattr(chrono, "ChTimestepper"), "Type", stepper_type)
+        if stepper_enum is not None:
+            _call_first(system, ("SetTimestepperType",), stepper_enum)
     _configure_contact_global(chrono, cfg)
     return system, method
+
+
+def _chrono_enum_value(owner: Any, enum_name: str, value_name: str) -> Any | None:
+    nested = getattr(owner, enum_name, None)
+    for source, attr in (
+        (nested, value_name),
+        (owner, f"{enum_name}_{value_name}"),
+        (owner, value_name),
+    ):
+        if source is not None and hasattr(source, attr):
+            return getattr(source, attr)
+    return None
 
 
 def _make_contact_material(chrono: Any, cfg: dict[str, Any], method: str) -> Any:
@@ -812,10 +826,11 @@ def _add_bodies(
     bodies: dict[str, Any] = {}
     issues: list[str] = []
     for part in ir.parts:
-        body = chrono.ChBody()
+        body = _new_body(chrono)
         _call_first(body, ("SetNameString", "SetName"), part.id)
         _call_first(body, ("SetMass",), max(float(part.mass_kg), 1e-12))
         _set_inertia(chrono, body, part)
+        _set_com_frame(chrono, body, part)
         _set_body_pose(chrono, body, part)
         _call_first(body, ("SetFixed", "SetBodyFixed"), bool(part.fixed))
         shape = _collision_spec(part)
@@ -832,6 +847,16 @@ def _add_bodies(
         _call_first(system, ("AddBody", "Add"), body)
         bodies[part.id] = body
     return bodies, issues
+
+
+def _new_body(chrono: Any) -> Any:
+    aux_cls = getattr(chrono, "ChBodyAuxRef", None)
+    if aux_cls is not None:
+        try:
+            return aux_cls()
+        except TypeError:
+            pass
+    return chrono.ChBody()
 
 
 def _add_joints(
@@ -1007,11 +1032,25 @@ class _Recorder:
         self.penetration: dict[str, np.ndarray] = {
             p: np.zeros(samples, dtype=float) for p in contact_pairs
         }
+        self.constraint_errors: dict[str, np.ndarray] = {}
         self.contact_counts = np.zeros(samples, dtype=float)
+        initial_positions = {
+            p.id: _part_initial_pose_mm(p) for p in ir.parts
+        }
+        self._fixed_joint_offsets_mm: dict[str, tuple[float, float, float]] = {}
         for joint in ir.joints:
             if joint.type != "contact_pair":
                 self.joint_positions[joint.id] = np.zeros(samples, dtype=float)
                 self.joint_velocities[joint.id] = np.zeros(samples, dtype=float)
+                self.constraint_errors[joint.id] = np.zeros(samples, dtype=float)
+                if joint.type == "fixed":
+                    parent = initial_positions.get(joint.parent, (0.0, 0.0, 0.0))
+                    child = initial_positions.get(joint.child, (0.0, 0.0, 0.0))
+                    self._fixed_joint_offsets_mm[joint.id] = (
+                        child[0] - parent[0],
+                        child[1] - parent[1],
+                        child[2] - parent[2],
+                    )
         for pid, port in ir.ports.items():
             if port.kind in ("revolute_joint", "prismatic_joint"):
                 self.joint_positions[pid] = np.zeros(samples, dtype=float)
@@ -1050,6 +1089,12 @@ class _Recorder:
             pos, vel = _measure_joint(link, joint, bodies)
             self.joint_positions[joint.id][i] = pos
             self.joint_velocities[joint.id][i] = vel
+            self.constraint_errors[joint.id][i] = _measure_constraint_error_mm(
+                link,
+                joint,
+                bodies,
+                self._fixed_joint_offsets_mm.get(joint.id),
+            )
         for pid, port in self.ir.ports.items():
             if port.kind not in ("revolute_joint", "prismatic_joint"):
                 continue
@@ -1159,7 +1204,12 @@ def _scalar_metrics(
     max_force = max((float(np.max(np.abs(v))) for v in record.contact_forces.values()),
                     default=0.0)
     metrics["max_penetration_mm"] = max_pen
-    metrics["max_constraint_error_mm"] = 0.0
+    max_constraint = max(
+        (float(np.nanmax(np.abs(v))) for v in record.constraint_errors.values()
+         if np.asarray(v).size),
+        default=0.0,
+    )
+    metrics["max_constraint_error_mm"] = max_constraint
     metrics["max_contact_force_N"] = max_force
     metrics["n_contacts_max"] = float(np.max(record.contact_counts)) if record.contact_counts.size else 0.0
     metrics["top_contact_pairs"] = _top_contact_pairs(record.contact_forces)
@@ -1175,8 +1225,24 @@ def _scalar_metrics(
         metrics["contact_force_rms_N"] = 0.0
     min_out = _min_output_speed(spec)
     out_med = float(metrics.get("out_omega_med", 0.0))
-    lockup = abs(out_med) < min_out if spec.loads else False
+    in_med = float(metrics.get("in_omega_med", 0.0))
+    finite_core = math.isfinite(out_med) and math.isfinite(in_med)
+    lockup = abs(out_med) < min_out if spec.loads and finite_core else False
     metrics["lockup_detected"] = 1.0 if lockup else 0.0
+    diverged = _record_has_nonfinite(record) or not finite_core
+    ratio_val = metrics.get("ratio_observed")
+    if spec.loads and not lockup:
+        try:
+            diverged = diverged or not math.isfinite(float(ratio_val))
+        except (TypeError, ValueError):
+            diverged = True
+    for key, value in metrics.items():
+        if key in {"ratio_observed", "ratio_error_pct"} and lockup:
+            continue
+        if isinstance(value, (int, float)) and not math.isfinite(float(value)):
+            diverged = True
+            break
+    metrics["solver_diverged"] = 1.0 if diverged else 0.0
     metrics.setdefault("input_torque_ripple_pct", 0.0)
     metrics.setdefault("torque_ripple_pct", metrics["input_torque_ripple_pct"])
     metrics.setdefault("power_balance_error_pct", 0.0)
@@ -1185,7 +1251,10 @@ def _scalar_metrics(
     max_ripple = torque_cfg.get("max_torque_ripple_pct")
     passed = not lockup
     failure_mode = "none"
-    if lockup:
+    if diverged:
+        failure_mode = "solver_diverged"
+        passed = False
+    elif lockup:
         failure_mode = "lockup_mechanism_jammed"
         passed = False
     elif max_power is not None and (
@@ -1199,6 +1268,28 @@ def _scalar_metrics(
     metrics["failure_mode"] = failure_mode
     metrics["passed"] = 1.0 if passed else 0.0
     return metrics
+
+
+def _record_has_nonfinite(record: _Recorder) -> bool:
+    collections = (
+        record.joint_positions,
+        record.joint_velocities,
+        record.body_poses,
+        record.body_twists,
+        record.motor_torques,
+        record.contact_forces,
+        record.penetration,
+        record.constraint_errors,
+    )
+    for collection in collections:
+        for arr in collection.values():
+            data = np.asarray(arr, dtype=float)
+            if data.size and not np.all(np.isfinite(data)):
+                return True
+    return bool(
+        record.contact_counts.size
+        and not np.all(np.isfinite(record.contact_counts))
+    )
 
 
 def _metadata(
@@ -1346,6 +1437,10 @@ def _attach_collision_shape(
             ok, msg = _add_mesh_shape(chrono, body, shape, material, build_root)
             if not ok:
                 return False, msg
+        elif kind in {"convex_hull", "convexhull", "convex"}:
+            ok, msg = _add_convex_hull_shape(chrono, body, shape, material)
+            if not ok:
+                return False, msg
         else:
             return False, f"unsupported collision shape {kind!r}"
     except Exception as e:  # noqa: BLE001
@@ -1460,6 +1555,36 @@ def _add_mesh_shape(
         path = (build_root / path).resolve()
     if not path.exists():
         return False, f"mesh path does not exist: {path}"
+    mesh_cls = getattr(chrono, "ChTriangleMeshConnected", None)
+    shape_cls = getattr(chrono, "ChCollisionShapeTriangleMesh", None)
+    if mesh_cls is not None and shape_cls is not None and hasattr(
+        body, "AddCollisionShape"
+    ):
+        mesh = mesh_cls()
+        suffix = path.suffix.lower()
+        loaded = False
+        if suffix == ".obj":
+            loaded = _call_first(mesh, ("LoadWavefrontMesh",), str(path), False, True)
+        elif suffix == ".stl":
+            loaded = _call_first(mesh, ("LoadSTLMesh", "LoadStlMesh"),
+                                 str(path))
+        if not loaded:
+            return False, f"could not load mesh {path}"
+        margin = float(shape.get("sweep_sphere_radius_m", 0.0))
+        is_static = bool(shape.get("is_static", shape.get("static", False)))
+        is_convex = bool(shape.get("is_convex", shape.get("convex", False)))
+        for args in (
+            (material, mesh, is_static, is_convex, margin),
+            (material, mesh, is_static, is_convex),
+            (mesh, is_static, is_convex, margin, material),
+        ):
+            try:
+                col_shape = shape_cls(*args)
+                body.AddCollisionShape(col_shape)
+                return True, ""
+            except TypeError:
+                continue
+
     easy = getattr(chrono, "ChBodyEasyMesh", None)
     if easy is not None:
         try:
@@ -1471,35 +1596,56 @@ def _add_mesh_shape(
             return True, ""
         except Exception:
             pass
-    mesh_cls = getattr(chrono, "ChTriangleMeshConnected", None)
-    shape_cls = getattr(chrono, "ChCollisionShapeTriangleMesh", None)
-    if mesh_cls is None or shape_cls is None or not hasattr(body, "AddCollisionShape"):
-        return False, "Chrono triangle-mesh collision API unavailable"
-    mesh = mesh_cls()
-    suffix = path.suffix.lower()
-    loaded = False
-    if suffix == ".obj":
-        loaded = _call_first(mesh, ("LoadWavefrontMesh",), str(path), False, True)
-    elif suffix == ".stl":
-        loaded = _call_first(mesh, ("LoadSTLMesh", "LoadStlMesh"),
-                             str(path))
-    if not loaded:
-        return False, f"could not load mesh {path}"
-    margin = float(shape.get("sweep_sphere_radius_m", 0.0))
-    is_static = bool(shape.get("is_static", shape.get("static", False)))
-    is_convex = bool(shape.get("is_convex", shape.get("convex", False)))
-    for args in (
-        (material, mesh, is_static, is_convex, margin),
-        (material, mesh, is_static, is_convex),
-        (mesh, is_static, is_convex, margin, material),
-    ):
+    return False, "could not construct Chrono triangle-mesh collision shape"
+
+
+def _add_convex_hull_shape(
+    chrono: Any,
+    body: Any,
+    shape: dict[str, Any],
+    material: Any,
+) -> tuple[bool, str]:
+    cls = getattr(chrono, "ChCollisionShapeConvexHull", None)
+    if cls is None or not hasattr(body, "AddCollisionShape"):
+        return False, "Chrono build has no convex-hull collision shape API"
+    raw_points = shape.get("points_mm")
+    points_are_mm = True
+    if raw_points is None:
+        raw_points = shape.get("points_m", shape.get("points"))
+        points_are_mm = False
+    if not isinstance(raw_points, Iterable) or isinstance(raw_points, (str, bytes)):
+        return False, "convex hull collision shape has no point list"
+
+    points = []
+    for raw in raw_points:
         try:
-            col_shape = shape_cls(*args)
-            body.AddCollisionShape(col_shape)
+            vals = [float(v) for v in list(raw)[:3]]
+        except (TypeError, ValueError):
+            return False, "convex hull collision shape has an invalid point"
+        if len(vals) < 3:
+            return False, "convex hull collision shape has a short point"
+        scale = 0.001 if points_are_mm else 1.0
+        points.append(_vec(
+            chrono,
+            vals[0] * scale,
+            vals[1] * scale,
+            vals[2] * scale,
+        ))
+    if len(points) < 4:
+        return False, "convex hull collision shape needs at least four points"
+
+    frame = _collision_frame(chrono, shape)
+    for args in ((material, points), (points, material), (points,)):
+        try:
+            col_shape = cls(*args)
+            try:
+                body.AddCollisionShape(col_shape, frame)
+            except TypeError:
+                body.AddCollisionShape(col_shape)
             return True, ""
         except TypeError:
             continue
-    return False, "could not construct ChCollisionShapeTriangleMesh"
+    return False, "could not construct Chrono convex-hull collision shape"
 
 
 def _report_contacts(
@@ -1590,6 +1736,59 @@ def _measure_joint(
     return body_pos, body_vel
 
 
+def _measure_constraint_error_mm(
+    link: Any,
+    joint: Joint,
+    bodies: dict[str, Any],
+    expected_fixed_offset_mm: tuple[float, float, float] | None,
+) -> float:
+    link_error = _link_constraint_error_mm(link)
+    if link_error is not None and math.isfinite(link_error):
+        return max(0.0, float(link_error))
+    if joint.type != "fixed" or expected_fixed_offset_mm is None:
+        return 0.0
+    parent = bodies.get(joint.parent)
+    child = bodies.get(joint.child)
+    if parent is None or child is None:
+        return 0.0
+    parent_pos = _extract_vec(_try_call(parent, ("GetPos",)))
+    child_pos = _extract_vec(_try_call(child, ("GetPos",)))
+    rel = (
+        (child_pos[0] - parent_pos[0]) * 1000.0,
+        (child_pos[1] - parent_pos[1]) * 1000.0,
+        (child_pos[2] - parent_pos[2]) * 1000.0,
+    )
+    err = (
+        rel[0] - expected_fixed_offset_mm[0],
+        rel[1] - expected_fixed_offset_mm[1],
+        rel[2] - expected_fixed_offset_mm[2],
+    )
+    return math.sqrt(err[0] * err[0] + err[1] * err[1] + err[2] * err[2])
+
+
+def _link_constraint_error_mm(link: Any) -> float | None:
+    if link is None:
+        return None
+    for meth in (
+        "GetConstraintViolation",
+        "GetConstraintViolationVector",
+        "GetViolation",
+        "GetC",
+    ):
+        value = _try_call(link, (meth,))
+        if value is None:
+            continue
+        arr = _numeric_array(value)
+        if arr.size == 0:
+            continue
+        finite = arr[np.isfinite(arr)]
+        if finite.size == 0:
+            return math.nan
+        translational = finite[: min(3, finite.size)]
+        return float(np.linalg.norm(translational) * 1000.0)
+    return None
+
+
 def _measure_joint_from_bodies(
     joint: Joint, bodies: dict[str, Any],
 ) -> tuple[float, float]:
@@ -1630,7 +1829,7 @@ def _joint_velocity_value(value: Any, joint: Joint) -> float | None:
 
 def _new_link_for_joint(chrono: Any, kind: str) -> Any | None:
     names = {
-        "fixed": ("ChLinkMateFix", "ChLinkLockLock"),
+        "fixed": ("ChLinkLockLock", "ChLinkMateFix"),
         "revolute": ("ChLinkLockRevolute",),
         "prismatic": ("ChLinkLockPrismatic",),
         "spherical": ("ChLinkLockSpherical", "ChLinkMateSpherical"),
@@ -1674,10 +1873,34 @@ def _set_inertia(chrono: Any, body: Any, part: Part) -> None:
     _call_first(body, ("SetInertiaXY",), _vec(chrono, *offdiag))
 
 
-def _set_body_pose(chrono: Any, body: Any, part: Part) -> None:
+def _set_com_frame(chrono: Any, body: Any, part: Part) -> None:
+    if not hasattr(body, "SetFrameCOMToRef"):
+        return
+    com = part.com_local_mm or (0.0, 0.0, 0.0)
+    vals = [float(v) for v in list(com)[:3]]
+    while len(vals) < 3:
+        vals.append(0.0)
+    # DesignIR stores REF->COM; Chrono AuxRef expects COM->REF.
+    frame = _frame(
+        chrono,
+        _vec(chrono, -_mm_to_m(vals[0]), -_mm_to_m(vals[1]), -_mm_to_m(vals[2])),
+        _quat(chrono, 1.0, 0.0, 0.0, 0.0),
+    )
+    _call_first(body, ("SetFrameCOMToRef",), frame)
+
+
+def _part_initial_pose_mm(part: Part) -> tuple[float, float, float]:
     params = part.params or {}
     pos_mm = params.get("initial_pose_mm", part.com_local_mm)
-    x, y, z = [float(v) for v in list(pos_mm)[:3]]
+    vals = [float(v) for v in list(pos_mm or (0.0, 0.0, 0.0))[:3]]
+    while len(vals) < 3:
+        vals.append(0.0)
+    return (vals[0], vals[1], vals[2])
+
+
+def _set_body_pose(chrono: Any, body: Any, part: Part) -> None:
+    params = part.params or {}
+    x, y, z = _part_initial_pose_mm(part)
     _call_first(body, ("SetPos",), _vec(chrono, _mm_to_m(x), _mm_to_m(y),
                                         _mm_to_m(z)))
     quat_raw = params.get("initial_orientation_quat", (1.0, 0.0, 0.0, 0.0))
@@ -1854,6 +2077,30 @@ def _config_float(
             except (TypeError, ValueError):
                 return float(default)
     return float(default)
+
+
+def _numeric_array(obj: Any) -> np.ndarray:
+    if obj is None:
+        return np.zeros(0, dtype=float)
+    try:
+        return np.asarray(obj, dtype=float).reshape(-1)
+    except Exception:
+        pass
+    vals = []
+    for attr in ("x", "y", "z", "e0", "e1", "e2", "e3"):
+        v = getattr(obj, attr, None)
+        if v is None:
+            continue
+        try:
+            vals.append(float(v() if callable(v) else v))
+        except (TypeError, ValueError):
+            pass
+    if vals:
+        return np.asarray(vals, dtype=float)
+    try:
+        return np.asarray(list(obj), dtype=float).reshape(-1)
+    except Exception:
+        return np.zeros(0, dtype=float)
 
 
 def _extract_vec(obj: Any) -> tuple[float, float, float]:

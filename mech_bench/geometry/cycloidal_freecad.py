@@ -55,6 +55,7 @@ class CycloidalReducerAssets:
     manifest_path: Path
     bodies: dict[str, dict[str, Any]]
     collision_meshes: dict[str, dict[str, Any]]
+    collision_primitives: dict[str, dict[str, Any]]
     parameters: dict[str, Any]
     source: dict[str, Any]
 
@@ -68,6 +69,7 @@ class CycloidalReducerAssets:
             manifest_path=path,
             bodies=dict(data.get("bodies", {})),
             collision_meshes=dict(data.get("collision_meshes", {})),
+            collision_primitives=dict(data.get("collision_primitives", {})),
             parameters=dict(data.get("parameters", {})),
             source=dict(data.get("source", {})),
         )
@@ -78,6 +80,7 @@ class CycloidalReducerAssets:
             "manifest_path": str(self.manifest_path),
             "bodies": self.bodies,
             "collision_meshes": self.collision_meshes,
+            "collision_primitives": self.collision_primitives,
             "parameters": self.parameters,
             "source": self.source,
         }
@@ -208,7 +211,7 @@ def build_chrono_design_ir_from_assets(
     include_secondary_disc: bool = True,
     collidable_body_names: set[str] | None = None,
     collision_sweep_radius_m: float = 2.0e-4,
-    use_primitive_pin_collision: bool = False,
+    use_primitive_pin_collision: bool = True,
 ) -> DesignIR:
     """Build a DesignIR that feeds generated STL meshes to Chrono."""
 
@@ -226,6 +229,7 @@ def build_chrono_design_ir_from_assets(
                     manifest_path=root / "cycloidal_assets_manifest.json",
                     bodies=dict(assets.get("bodies", {})),
                     collision_meshes=dict(assets.get("collision_meshes", {})),
+                    collision_primitives=dict(assets.get("collision_primitives", {})),
                     parameters=dict(assets.get("parameters", {})),
                     source=dict(assets.get("source", {})),
                 )
@@ -260,6 +264,8 @@ def build_chrono_design_ir_from_assets(
     collision_primitives = (
         _collision_primitives_by_body(assets) if use_primitive_pin_collision else {}
     )
+    collision_primitives.update(_cad_collision_primitives_by_body(assets))
+    density_kg_m3 = float(assets.parameters.get("density_kg_m3", 7850.0))
     for name in selected:
         body = assets.bodies.get(name)
         if not body:
@@ -275,6 +281,13 @@ def build_chrono_design_ir_from_assets(
         params = {
             "cad_body_name": name,
             "initial_pose_mm": (0.0, 0.0, 0.0),
+        }
+        mass_kg, com_mm, inertia = _mass_properties_for_body(
+            body, density_kg_m3, masses.get(name, 0.1))
+        params["cad_mass_properties"] = {
+            "mass_kg": mass_kg,
+            "com_local_mm": com_mm,
+            "inertia_kg_m2": inertia,
         }
         collision_body = collision_meshes.get(name, body)
         if name in collidable_body_names:
@@ -296,7 +309,9 @@ def build_chrono_design_ir_from_assets(
             id=name,
             role=roles.get(name, ""),
             fixed=fixed,
-            mass_kg=masses.get(name, 0.1),
+            mass_kg=mass_kg,
+            com_local_mm=com_mm,
+            inertia_kg_m2=inertia,
             geometry={"mesh": stl, "step": str(body.get("step", ""))},
             params=params,
         ))
@@ -423,6 +438,72 @@ def _collision_meshes_by_body(
     return out
 
 
+def _cad_collision_primitives_by_body(
+    assets: CycloidalReducerAssets,
+) -> dict[str, dict[str, Any]]:
+    raw = getattr(assets, "collision_primitives", None)
+    if raw is None:
+        data = json.loads(assets.manifest_path.read_text())
+        raw = data.get("collision_primitives", {})
+    if not isinstance(raw, dict):
+        return {}
+    out: dict[str, dict[str, Any]] = {}
+    for body_name in ("cycloidalDisk1", "cycloidalDisk2"):
+        spec = raw.get(body_name)
+        children = spec.get("children") if isinstance(spec, dict) else None
+        if (
+            isinstance(spec, dict)
+            and spec.get("shape") == "compound"
+            and isinstance(children, list)
+            and children
+        ):
+            out[body_name] = dict(spec)
+    return out
+
+
+def _mass_properties_for_body(
+    body: dict[str, Any],
+    density_kg_m3: float,
+    fallback_mass_kg: float,
+) -> tuple[
+    float,
+    tuple[float, float, float],
+    tuple[tuple[float, float, float], tuple[float, float, float], tuple[float, float, float]],
+]:
+    props = body.get("mass_properties")
+    if isinstance(props, dict):
+        try:
+            mass = float(props["mass_kg"])
+            com_vals = [float(v) for v in list(props["com_mm"])[:3]]
+            inertia_raw = props["inertia_kg_m2"]
+            inertia = tuple(
+                tuple(float(v) for v in list(row)[:3])
+                for row in list(inertia_raw)[:3]
+            )
+            if len(com_vals) == 3 and len(inertia) == 3:
+                return mass, tuple(com_vals), inertia  # type: ignore[return-value]
+        except (KeyError, TypeError, ValueError):
+            pass
+
+    bbox = [float(v) for v in list(body.get("bbox_mm", (0, 0, 0, 1, 1, 1)))[:6]]
+    while len(bbox) < 6:
+        bbox.append(0.0)
+    sx = max((bbox[3] - bbox[0]) / 1000.0, 1e-6)
+    sy = max((bbox[4] - bbox[1]) / 1000.0, 1e-6)
+    sz = max((bbox[5] - bbox[2]) / 1000.0, 1e-6)
+    volume_m3 = sx * sy * sz
+    mass = max(float(fallback_mass_kg), density_kg_m3 * volume_m3 * 0.35)
+    com = (
+        (bbox[0] + bbox[3]) / 2.0,
+        (bbox[1] + bbox[4]) / 2.0,
+        (bbox[2] + bbox[5]) / 2.0,
+    )
+    ixx = mass * (sy * sy + sz * sz) / 12.0
+    iyy = mass * (sx * sx + sz * sz) / 12.0
+    izz = mass * (sx * sx + sy * sy) / 12.0
+    return mass, com, ((ixx, 0.0, 0.0), (0.0, iyy, 0.0), (0.0, 0.0, izz))
+
+
 def _collision_primitives_by_body(
     assets: CycloidalReducerAssets,
 ) -> dict[str, dict[str, Any]]:
@@ -447,7 +528,13 @@ def _collision_primitives_by_body(
     ring_pin_radius = roller_diameter / 2.0
     ring_height = base_height + disk_height * 3.0
     driver_radius = driver_circle_diameter / 2.0
-    driver_pin_radius = driver_hole_diameter / 2.0
+    shrink = float(params.get(
+        "driver_pin_collision_shrink_mm",
+        min(max(clearance, 0.0), 0.5),
+    ))
+    # Keep the SMC contact proxy inside the CAD clearance band so generated
+    # pin/hole assemblies do not start with artificial interference.
+    driver_pin_radius = max(driver_hole_diameter / 2.0 - shrink, 0.1)
     driver_z = base_height - disk_height
     driver_height = disk_height * 4.0
 
@@ -656,6 +743,89 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
             ],
         }
 
+    def _bbox_inertia_kg_m2(shape, mass_kg):
+        bb = shape.BoundBox
+        sx = max(float(bb.XLength) / 1000.0, 1.0e-9)
+        sy = max(float(bb.YLength) / 1000.0, 1.0e-9)
+        sz = max(float(bb.ZLength) / 1000.0, 1.0e-9)
+        ixx = mass_kg * (sy * sy + sz * sz) / 12.0
+        iyy = mass_kg * (sx * sx + sz * sz) / 12.0
+        izz = mass_kg * (sx * sx + sy * sy) / 12.0
+        return [[ixx, 0.0, 0.0], [0.0, iyy, 0.0], [0.0, 0.0, izz]]
+
+    def _shape_mass_properties(shape, density_kg_m3):
+        volume_mm3 = max(float(getattr(shape, "Volume", 0.0)), 0.0)
+        mass_kg = max(volume_mm3 * 1.0e-9 * density_kg_m3, 1.0e-9)
+        com = getattr(shape, "CenterOfMass", App.Vector(0, 0, 0))
+        inertia = None
+        moi = getattr(shape, "MatrixOfInertia", None)
+        if moi is not None:
+            try:
+                vals = [
+                    [float(moi.A11), float(moi.A12), float(moi.A13)],
+                    [float(moi.A21), float(moi.A22), float(moi.A23)],
+                    [float(moi.A31), float(moi.A32), float(moi.A33)],
+                ]
+                c = [float(com.x), float(com.y), float(com.z)]
+                c2 = c[0] * c[0] + c[1] * c[1] + c[2] * c[2]
+                shift = [
+                    [c2 - c[0] * c[0], -c[0] * c[1], -c[0] * c[2]],
+                    [-c[1] * c[0], c2 - c[1] * c[1], -c[1] * c[2]],
+                    [-c[2] * c[0], -c[2] * c[1], c2 - c[2] * c[2]],
+                ]
+                inertia = [
+                    [
+                        (vals[r][cidx] - volume_mm3 * shift[r][cidx])
+                        * density_kg_m3 * 1.0e-15
+                        for cidx in range(3)
+                    ]
+                    for r in range(3)
+                ]
+                if min(inertia[0][0], inertia[1][1], inertia[2][2]) <= 0.0:
+                    inertia = None
+            except Exception:
+                inertia = None
+        if inertia is None:
+            inertia = _bbox_inertia_kg_m2(shape, mass_kg)
+        return {
+            "volume_mm3": volume_mm3,
+            "density_kg_m3": float(density_kg_m3),
+            "mass_kg": mass_kg,
+            "com_mm": [float(com.x), float(com.y), float(com.z)],
+            "inertia_kg_m2": inertia,
+        }
+
+    def _triangle_area_xy(a, b, c):
+        return abs(
+            (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
+        ) * 0.5
+
+    def _convex_prism_decomposition(shape, *, tessellation_mm=0.6):
+        zmin = float(shape.BoundBox.ZMin)
+        zmax = float(shape.BoundBox.ZMax)
+        vertices, facets = shape.tessellate(float(tessellation_mm))
+        children = []
+        tol = max(0.02, (zmax - zmin) * 0.02)
+        for i, j, k in facets:
+            tri = (vertices[i], vertices[j], vertices[k])
+            if not all(abs(float(v.z) - zmax) <= tol for v in tri):
+                continue
+            if _triangle_area_xy(*tri) <= 0.01:
+                continue
+            points = []
+            for z in (zmin, zmax):
+                for v in tri:
+                    points.append([float(v.x), float(v.y), float(z)])
+            children.append({
+                "shape": "convex_hull",
+                "points_mm": points,
+            })
+        return {
+            "shape": "compound",
+            "source": "freecad_occt_top_face_prism_decomposition",
+            "children": children,
+        }
+
     def _ready_part(doc, name):
         part = cycloidFun.ready_part(doc, name)
         return part
@@ -690,6 +860,7 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
                 params[key] = value
                 continue
             params[key] = value
+        density_kg_m3 = float(params.get("density_kg_m3", 7850.0))
         _generate_parts(doc, params)
 
         root = manifest_path.parent
@@ -697,6 +868,7 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
         exports_dir.mkdir(parents=True, exist_ok=True)
         bodies = {}
         collision_meshes = {}
+        collision_primitives = {}
         exported_objects = []
         for name in BODY_NAMES:
             obj = doc.getObject(name)
@@ -722,7 +894,10 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
                     float(bb.XMin), float(bb.YMin), float(bb.ZMin),
                     float(bb.XMax), float(bb.YMax), float(bb.ZMax),
                 ],
+                "mass_properties": _shape_mass_properties(shape, density_kg_m3),
             }
+            if name in {"cycloidalDisk1", "cycloidalDisk2"}:
+                collision_primitives[name] = _convex_prism_decomposition(shape)
             exported_objects.append(obj)
 
         tooth_count = int(params["tooth_count"])
@@ -777,6 +952,7 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
             "body_names": list(BODY_NAMES),
             "bodies": bodies,
             "collision_meshes": collision_meshes,
+            "collision_primitives": collision_primitives,
             "assembly_step": str(assembly_step.relative_to(root)),
             "freecad_document": str(doc_path.relative_to(root)),
             "parameters": params,
