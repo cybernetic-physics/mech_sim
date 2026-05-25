@@ -9,6 +9,11 @@ simplifications:
     descriptions alone).
   * The `params` bag is task-scoped (the task author decides what
     keys mean) rather than schema-enforced.
+
+The v2 physical metadata fields are intentionally explicit even when
+the current runtime cannot consume all of them yet. They keep
+high-fidelity tasks from smuggling units, materials, load cases, and
+contact assumptions through opaque params bags.
 """
 
 from __future__ import annotations
@@ -26,6 +31,20 @@ JointType = Literal["revolute", "prismatic", "fixed", "contact_pair", "spherical
 
 
 @dataclass
+class MaterialSpec:
+    id: str
+    name: str = ""
+    density_kg_m3: float | None = None
+    elastic_modulus_pa: float | None = None
+    poisson_ratio: float | None = None
+    yield_strength_pa: float | None = None
+    process: str = ""
+    provenance: str = ""
+    uncertainty: dict[str, Any] = field(default_factory=dict)
+    properties: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
 class Part:
     id: str
     role: str = ""
@@ -38,6 +57,7 @@ class Part:
     ] = ((1e-6, 0, 0), (0, 1e-6, 0), (0, 0, 1e-6))
     fixed: bool = False
     geometry: dict[str, str] = field(default_factory=dict)
+    material: str = ""
     params: dict[str, Any] = field(default_factory=dict)
 
 
@@ -67,10 +87,25 @@ class DesignIR:
     parts: list[Part]
     joints: list[Joint]
     ports: dict[str, Port]
+    units: str = "mm"
+    frames: dict[str, Any] = field(default_factory=dict)
+    materials: dict[str, MaterialSpec] = field(default_factory=dict)
+    load_cases: dict[str, Any] = field(default_factory=dict)
+    actuators: dict[str, Any] = field(default_factory=dict)
+    contacts: dict[str, Any] = field(default_factory=dict)
+    tolerances: dict[str, Any] = field(default_factory=dict)
+    provenance: dict[str, Any] = field(default_factory=dict)
     params: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, d: dict) -> "DesignIR":
+        materials = {
+            str(k): (
+                v if isinstance(v, MaterialSpec)
+                else MaterialSpec(**({"id": str(k)} | dict(v)))
+            )
+            for k, v in d.get("materials", {}).items()
+        }
         return cls(
             schema_version=d["schema_version"],
             parts=[Part(**p) if not isinstance(p, Part) else p
@@ -79,6 +114,14 @@ class DesignIR:
                     for j in d["joints"]],
             ports={k: (Port(**v) if not isinstance(v, Port) else v)
                    for k, v in d["ports"].items()},
+            units=d.get("units", "mm"),
+            frames=d.get("frames", {}),
+            materials=materials,
+            load_cases=d.get("load_cases", {}),
+            actuators=d.get("actuators", {}),
+            contacts=d.get("contacts", {}),
+            tolerances=d.get("tolerances", {}),
+            provenance=d.get("provenance", {}),
             params=d.get("params", {}),
         )
 
@@ -132,6 +175,30 @@ class DesignIR:
                 f"{type(raw_params).__name__}."
             )
             raw_params = {}
+        raw_materials = raw.get("materials", {})
+        if raw_materials is None:
+            raw_materials = {}
+        if not isinstance(raw_materials, dict):
+            errors.append(
+                f"'materials' must be a dict if present, got "
+                f"{type(raw_materials).__name__}."
+            )
+            raw_materials = {}
+        top_dict_fields: dict[str, dict] = {}
+        for field_name in (
+            "frames", "load_cases", "actuators", "contacts",
+            "tolerances", "provenance",
+        ):
+            raw_field = raw.get(field_name, {})
+            if raw_field is None:
+                raw_field = {}
+            if not isinstance(raw_field, dict):
+                errors.append(
+                    f"'{field_name}' must be a dict if present, got "
+                    f"{type(raw_field).__name__}."
+                )
+                raw_field = {}
+            top_dict_fields[field_name] = raw_field
 
         parts: list[Part] = []
         for i, p in enumerate(raw_parts):
@@ -190,6 +257,27 @@ class DesignIR:
                     f"{type(e).__name__}: {e}"
                 )
 
+        materials: dict[str, MaterialSpec] = {}
+        for k, v in raw_materials.items():
+            if isinstance(v, MaterialSpec):
+                materials[str(k)] = v
+                continue
+            if not isinstance(v, dict):
+                errors.append(
+                    f"materials[{k!r}] must be a dict, got "
+                    f"{type(v).__name__}."
+                )
+                continue
+            try:
+                payload = {"id": str(k)}
+                payload.update(v)
+                materials[str(k)] = MaterialSpec(**payload)
+            except (TypeError, ValueError, AttributeError, KeyError) as e:
+                errors.append(
+                    f"materials[{k!r}] malformed: "
+                    f"{type(e).__name__}: {e}"
+                )
+
         if errors:
             return None, errors
         return cls(
@@ -197,6 +285,9 @@ class DesignIR:
             parts=parts,
             joints=joints,
             ports=ports,
+            units=raw.get("units", "mm"),
+            materials=materials,
+            **top_dict_fields,
             params=raw_params,
         ), []
 

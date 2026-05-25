@@ -17,7 +17,7 @@ from typing import Any, Iterable
 import numpy as np
 
 from mech_bench.feedback import Failure, FailureCode, Severity
-from mech_bench.schema import DesignIR, Joint, Part, Port, TaskSpec
+from mech_bench.schema import DesignIR, MaterialSpec, Part, TaskSpec
 
 
 SCHEMA_VERSION = "design_ir.v2"
@@ -43,6 +43,7 @@ _JOINT_TYPES = frozenset({
 _PORT_KINDS = frozenset({
     "frame", "revolute_joint", "prismatic_joint",
 })
+_UNITS = frozenset({"mm", "m"})
 
 _CONTROL_CHARS = frozenset(range(0, 32)) | {127}
 
@@ -293,6 +294,13 @@ def _check_part_basic(p: Part) -> list[Failure]:
             f"{type(p.params).__name__}.",
             where=f"parts.{p.id}.params",
         ))
+    if not isinstance(p.material, str):
+        failures.append(_make(
+            FailureCode.SCHEMA_ERROR, Severity.CRITICAL,
+            f"Part {p.id!r} material must be a string material id, got "
+            f"{type(p.material).__name__}.",
+            where=f"parts.{p.id}.material",
+        ))
     if not isinstance(p.geometry, dict):
         failures.append(_make(
             FailureCode.INVALID_ARTIFACT, Severity.CRITICAL,
@@ -314,6 +322,113 @@ def _check_part_basic(p: Part) -> list[Failure]:
                     f"Part {p.id!r} geometry[{k!r}] value must be a "
                     f"string path, got {type(v).__name__}.",
                     where=f"parts.{p.id}.geometry.{k}",
+                ))
+    return failures
+
+
+def _check_top_level_physics_fields(ir: DesignIR) -> list[Failure]:
+    failures: list[Failure] = []
+    if not isinstance(ir.units, str) or ir.units not in _UNITS:
+        failures.append(_make(
+            FailureCode.SCHEMA_ERROR, Severity.CRITICAL,
+            f"DesignIR units must be one of {sorted(_UNITS)}, got "
+            f"{ir.units!r}.",
+            where="units",
+        ))
+    for name in (
+        "frames", "materials", "load_cases", "actuators",
+        "contacts", "tolerances", "provenance",
+    ):
+        value = getattr(ir, name, None)
+        if not isinstance(value, dict):
+            failures.append(_make(
+                FailureCode.SCHEMA_ERROR, Severity.CRITICAL,
+                f"DesignIR {name} must be a dict, got "
+                f"{type(value).__name__}.",
+                where=name,
+            ))
+    return failures
+
+
+def _check_materials(ir: DesignIR) -> list[Failure]:
+    failures: list[Failure] = []
+    if not isinstance(ir.materials, dict):
+        return [_make(
+            FailureCode.SCHEMA_ERROR, Severity.CRITICAL,
+            f"DesignIR materials must be a dict, got "
+            f"{type(ir.materials).__name__}.",
+            where="materials",
+        )]
+
+    for key, mat in ir.materials.items():
+        failures.extend(_check_id_grammar(key, "materials",
+                                          f"materials[{key!r}]"))
+        if not isinstance(mat, MaterialSpec):
+            failures.append(_make(
+                FailureCode.SCHEMA_ERROR, Severity.CRITICAL,
+                f"Material {key!r} must be a MaterialSpec, got "
+                f"{type(mat).__name__}.",
+                where=f"materials.{key}",
+            ))
+            continue
+        if mat.id != key:
+            failures.append(_make(
+                FailureCode.SCHEMA_ERROR, Severity.CRITICAL,
+                f"Material dict key {key!r} does not match material.id "
+                f"{mat.id!r}.",
+                where=f"materials.{key}.id",
+            ))
+        for text_field in ("name", "process", "provenance"):
+            if not isinstance(getattr(mat, text_field), str):
+                failures.append(_make(
+                    FailureCode.SCHEMA_ERROR, Severity.CRITICAL,
+                    f"Material {key!r} {text_field} must be a string.",
+                    where=f"materials.{key}.{text_field}",
+                ))
+        for dict_field in ("uncertainty", "properties"):
+            if not isinstance(getattr(mat, dict_field), dict):
+                failures.append(_make(
+                    FailureCode.SCHEMA_ERROR, Severity.CRITICAL,
+                    f"Material {key!r} {dict_field} must be a dict.",
+                    where=f"materials.{key}.{dict_field}",
+                ))
+        for fld in (
+            "density_kg_m3", "elastic_modulus_pa", "yield_strength_pa",
+        ):
+            val = getattr(mat, fld)
+            if val is None:
+                continue
+            if not _is_finite_number(val) or float(val) <= 0.0:
+                failures.append(_make(
+                    FailureCode.SCHEMA_ERROR, Severity.CRITICAL,
+                    f"Material {key!r} {fld} must be a positive finite "
+                    f"number when supplied.",
+                    where=f"materials.{key}.{fld}",
+                ))
+        if mat.poisson_ratio is not None:
+            v = mat.poisson_ratio
+            if (not _is_finite_number(v)
+                    or not (-1.0 < float(v) < 0.5)):
+                failures.append(_make(
+                    FailureCode.SCHEMA_ERROR, Severity.CRITICAL,
+                    f"Material {key!r} poisson_ratio must be finite and "
+                    f"in (-1, 0.5), got {v!r}.",
+                    where=f"materials.{key}.poisson_ratio",
+                ))
+
+    material_ids = set(ir.materials)
+    for p in ir.parts:
+        if isinstance(p.material, str) and p.material:
+            if p.material not in material_ids:
+                failures.append(_make(
+                    FailureCode.SCHEMA_ERROR, Severity.CRITICAL,
+                    f"Part {p.id!r} references material {p.material!r}, "
+                    f"but no matching material record exists.",
+                    where=f"parts.{p.id}.material",
+                    public_hint=(
+                        "Add this id to DesignIR.materials with "
+                        "density/provenance before using it on a part."
+                    ),
                 ))
     return failures
 
@@ -695,8 +810,10 @@ def validate_design_ir(
                                 "joints"))
     failures.extend(_wrap_total(_check_unique_nonempty_ids,
                                 list(ir.ports.values()), "ports"))
+    failures.extend(_wrap_total(_check_top_level_physics_fields, ir))
     for p in ir.parts:
         failures.extend(_wrap_total(_check_part_basic, p))
+    failures.extend(_wrap_total(_check_materials, ir))
     failures.extend(_wrap_total(_check_joints, ir))
     failures.extend(_wrap_total(_check_ports, ir))
     failures.extend(_wrap_total(_check_required_ports, ir, task))

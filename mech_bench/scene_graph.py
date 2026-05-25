@@ -145,7 +145,7 @@ class SceneGraph:
     loads: list[SceneLoad] = field(default_factory=list)
     contact_pairs: list[SceneContactPair] = field(default_factory=list)
     collision_filters: list[tuple[str, str]] = field(default_factory=list)
-    materials: dict[str, dict[str, float]] = field(default_factory=dict)
+    materials: dict[str, dict[str, Any]] = field(default_factory=dict)
     initial_poses: dict[str, tuple[float, float, float]] = field(
         default_factory=dict)
     ports: dict[str, ScenePort] = field(default_factory=dict)
@@ -263,9 +263,12 @@ def build_scene_graph_from_design_ir(
     """
     bodies: list[SceneBody] = []
     initial_poses: dict[str, tuple[float, float, float]] = {}
-    materials: dict[str, dict[str, float]] = {}
+    materials: dict[str, dict[str, Any]] = {}
     for p in ir.parts:
-        material = str(p.params.get("material", "")) if p.params else ""
+        material = str(
+            getattr(p, "material", "")
+            or (p.params.get("material", "") if p.params else "")
+        )
         bodies.append(SceneBody(
             id=p.id,
             role=p.role,
@@ -279,7 +282,16 @@ def build_scene_graph_from_design_ir(
         ))
         initial_poses[p.id] = tuple(p.com_local_mm)
         if material and material not in materials:
-            materials[material] = {}
+            mat = (ir.materials or {}).get(material)
+            if mat is None:
+                materials[material] = {}
+            else:
+                materials[material] = {
+                    "density_kg_m3": mat.density_kg_m3,
+                    "elastic_modulus_pa": mat.elastic_modulus_pa,
+                    "poisson_ratio": mat.poisson_ratio,
+                    "yield_strength_pa": mat.yield_strength_pa,
+                }
 
     joints: list[SceneJoint] = []
     for j in ir.joints:
@@ -439,6 +451,7 @@ def build_scene_graph_from_design_ir(
         "task_id": task.id,
         "task_family": task.family,
         "schema_version": ir.schema_version,
+        "units": ir.units,
         "n_bodies": len(bodies),
         "n_joints": len(joints),
         "n_contact_pairs": len(contact_pairs),

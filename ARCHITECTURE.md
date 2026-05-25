@@ -4,6 +4,13 @@
 > `phys-sim` mechanism-specific harness, with empirical findings).
 > This doc proposes the architecture of the **generic runtime** we
 > are building here.
+>
+> Long-horizon note:
+> `docs/high-fidelity-simulation-roadmap.md` is the canonical decision
+> record for the full high-fidelity simulation stack. This architecture
+> document describes the current evaluator/control plane; the roadmap
+> defines the CAD, Chrono, FEA, calibration, and V&V work needed to make
+> physical simulation claims credible.
 
 ## The inversion
 

@@ -129,6 +129,72 @@ def test_required_ports_grounded_check():
 
 
 # --------------------------------------------------------------------- #
+# trusted_asset_preflight                                               #
+# --------------------------------------------------------------------- #
+
+
+def test_trusted_asset_preflight_passes_metadata_gate():
+    probe = get_probe("trusted_asset_preflight")
+    raw = {
+        "schema_version": "design_ir.v2",
+        "units": "mm",
+        "materials": {
+            "al6061": {
+                "density_kg_m3": 2700.0,
+                "provenance": "datasheet",
+            },
+        },
+        "parts": [
+            {"id": "frame", "fixed": True, "mass_kg": 0.0,
+             "geometry": {"cad": "frame.step"},
+             "material": "al6061"},
+            {"id": "link", "mass_kg": 0.1,
+             "geometry": {"cad": "link.step"},
+             "material": "al6061"},
+        ],
+        "joints": [
+            {"id": "j1", "type": "revolute",
+             "parent": "frame", "child": "link"},
+        ],
+        "ports": {},
+    }
+    result = probe.run(DesignIR.from_dict(raw), {}, {
+        "require_geometry_roles": ["cad"],
+        "require_materials": True,
+        "require_material_properties": ["density_kg_m3"],
+        "require_provenance": True,
+    })
+    assert result.passed
+    assert result.metrics["trusted_mass_properties_recomputed"] == 0.0
+
+
+def test_trusted_asset_preflight_missing_cad_and_material_fail():
+    probe = get_probe("trusted_asset_preflight")
+    ir = _ir_minimal()
+    result = probe.run(ir, {}, {
+        "require_geometry_roles": ["cad"],
+        "require_materials": True,
+    })
+    assert not result.passed
+    codes = {f.code for f in result.failures}
+    assert FailureCode.INVALID_ARTIFACT in codes
+    assert FailureCode.SCHEMA_ERROR in codes
+
+
+def test_trusted_asset_preflight_refuses_unimplemented_trusted_mass():
+    probe = get_probe("trusted_asset_preflight")
+    ir = _ir_minimal()
+    result = probe.run(ir, {}, {
+        "require_trusted_mass_properties": True,
+    })
+    assert not result.passed
+    assert any(
+        f.code == FailureCode.INVALID_MASS_PROPERTIES
+        for f in result.failures
+    )
+
+
+# --------------------------------------------------------------------- #
 # port_velocity_ratio                                                   #
 # --------------------------------------------------------------------- #
 

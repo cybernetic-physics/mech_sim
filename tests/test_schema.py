@@ -7,6 +7,7 @@ from mech_bench.schema import (
     DesignIR,
     EvalConfig,
     Joint,
+    MaterialSpec,
     Part,
     Port,
     ProbeSpec,
@@ -44,6 +45,44 @@ def test_design_ir_from_dict_roundtrip():
     assert isinstance(ir.joints[0], Joint)
     assert isinstance(ir.ports["input_port"], Port)
     assert ir.parts[0].id == "ground"
+
+
+def test_design_ir_v2_physical_metadata_roundtrip():
+    raw = {
+        "schema_version": "design_ir.v2",
+        "units": "mm",
+        "materials": {
+            "al6061": {
+                "name": "6061-T6 aluminum",
+                "density_kg_m3": 2700.0,
+                "elastic_modulus_pa": 69e9,
+                "poisson_ratio": 0.33,
+                "yield_strength_pa": 276e6,
+                "process": "machined",
+                "provenance": "MIL-HDBK-5 nominal values",
+            },
+        },
+        "load_cases": {"static_pull": {"force_N": 100.0}},
+        "actuators": {"motor_1": {"type": "speed"}},
+        "contacts": {"pad:disc": {"mu": 0.4}},
+        "tolerances": {"default_clearance_mm": 0.1},
+        "provenance": {"author": "test"},
+        "parts": [
+            {"id": "ground", "fixed": True, "mass_kg": 0.0,
+             "material": "al6061"},
+            {"id": "link", "mass_kg": 0.1, "material": "al6061"},
+        ],
+        "joints": [
+            {"id": "j1", "type": "revolute",
+             "parent": "ground", "child": "link"},
+        ],
+        "ports": {},
+    }
+    ir = DesignIR.from_dict(raw)
+    assert ir.units == "mm"
+    assert isinstance(ir.materials["al6061"], MaterialSpec)
+    assert ir.parts[1].material == "al6061"
+    assert ir.load_cases["static_pull"]["force_N"] == 100.0
 
 
 def test_task_spec_from_dict():

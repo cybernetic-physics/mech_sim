@@ -25,7 +25,10 @@ The deliverables today:
 
 See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the design rationale and
 [`mech-sim-state.md`](mech-sim-state.md) for the distillation of the
-prior `phys-sim` harness that seeded this design.
+prior `phys-sim` harness that seeded this design. The canonical
+long-horizon plan for turning this runtime into a full high-fidelity
+mechanical simulation stack lives in
+[`docs/high-fidelity-simulation-roadmap.md`](docs/high-fidelity-simulation-roadmap.md).
 
 ---
 
@@ -209,6 +212,7 @@ The five core abstractions are documented in `ARCHITECTURE.md`:
 | `printability_dfam`    | `mesh`                                      | Min wall, max overhang per process.                      |
 | `safety_factor`        | `safety_factor`                             | FOS check against allowable stress.                      |
 | `analytic_param_check` | none                                        | Closed-form parameter relationships (ratios, formulas).  |
+| `trusted_asset_preflight` | none                                     | CAD/material/provenance readiness for high-fidelity tasks. |
 
 Each probe declares `capabilities_required`. The evaluator runs a
 probe only when an adapter is registered whose advertised

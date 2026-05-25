@@ -190,3 +190,36 @@ def test_geometry_path_inside_build_root_accepted(tmp_path: Path):
     ir = DesignIR.from_dict(raw)
     failures = validate_design_ir(ir, build_root=tmp_path)
     assert failures == []
+
+
+def test_material_reference_must_exist():
+    raw = _good_ir_dict()
+    raw["parts"][1]["material"] = "missing_material"
+    ir = DesignIR.from_dict(raw)
+    codes = _codes(validate_design_ir(ir))
+    assert FailureCode.SCHEMA_ERROR.value in codes
+
+
+def test_material_properties_are_validated():
+    raw = _good_ir_dict()
+    raw["materials"] = {
+        "bad": {
+            "density_kg_m3": -1.0,
+            "poisson_ratio": 0.75,
+        },
+    }
+    raw["parts"][1]["material"] = "bad"
+    ir = DesignIR.from_dict(raw)
+    failures = validate_design_ir(ir)
+    codes = _codes(failures)
+    assert FailureCode.SCHEMA_ERROR.value in codes
+    assert any("density_kg_m3" in f.message for f in failures)
+    assert any("poisson_ratio" in f.message for f in failures)
+
+
+def test_top_level_physics_fields_must_be_dicts():
+    raw = _good_ir_dict()
+    raw["load_cases"] = ["not", "a", "dict"]
+    ir, errors = DesignIR.try_from_dict(raw)
+    assert ir is None
+    assert any("'load_cases' must be a dict" in e for e in errors)

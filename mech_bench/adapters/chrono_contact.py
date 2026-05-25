@@ -254,6 +254,16 @@ def _ir_to_dict(ir: DesignIR) -> dict[str, Any]:
         "parts": [vars(p) for p in ir.parts],
         "joints": [vars(j) for j in ir.joints],
         "ports": {k: vars(v) for k, v in ir.ports.items()},
+        "units": ir.units,
+        "frames": dict(ir.frames or {}),
+        "materials": {
+            k: vars(v) for k, v in (ir.materials or {}).items()
+        },
+        "load_cases": dict(ir.load_cases or {}),
+        "actuators": dict(ir.actuators or {}),
+        "contacts": dict(ir.contacts or {}),
+        "tolerances": dict(ir.tolerances or {}),
+        "provenance": dict(ir.provenance or {}),
         "params": dict(ir.params or {}),
     }
 
