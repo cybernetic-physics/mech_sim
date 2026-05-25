@@ -872,6 +872,7 @@ def _reported_contact_config(cfg: dict[str, Any], dt: float) -> dict[str, float 
                 cfg.get("use_material_properties", True),
             )
         ),
+        "cad_reference_frames": bool(cfg.get("cad_reference_frames", False)),
         "timestep": float(dt),
         "solver_iterations": float(cfg.get("solver_max_iterations", 100)),
     }
@@ -891,14 +892,20 @@ def _add_bodies(
         body = _new_body(chrono)
         _call_first(body, ("SetNameString", "SetName"), part.id)
         _call_first(body, ("SetMass",), max(float(part.mass_kg), 1e-12))
+        use_reference_frames = bool(cfg.get("cad_reference_frames", False))
         _set_inertia(chrono, body, part)
-        _set_com_frame(chrono, body, part)
-        _set_body_pose(chrono, body, part)
+        _set_com_frame(chrono, body, part, use_reference_frames)
+        _set_body_pose(chrono, body, part, use_reference_frames)
         _call_first(body, ("SetFixed", "SetBodyFixed"), bool(part.fixed))
         shape = _collision_spec(part)
         if shape:
+            ref_to_com_mm = (
+                _part_com_local_mm(part)
+                if use_reference_frames
+                else (0.0, 0.0, 0.0)
+            )
             ok, msg = _attach_collision_shape(
-                chrono, body, shape, material, spec.build_root)
+                chrono, body, shape, material, spec.build_root, ref_to_com_mm)
             if not ok:
                 issues.append(f"body {part.id}: {msg}")
         elif _body_in_contact_pair(part.id, spec.contact_pairs):
@@ -1656,6 +1663,7 @@ def _attach_collision_shape(
     shape: dict[str, Any],
     material: Any,
     build_root: Path | None,
+    ref_to_com_mm: tuple[float, float, float] = (0.0, 0.0, 0.0),
 ) -> tuple[bool, str]:
     kind = str(shape.get("shape", "")).lower()
     try:
@@ -1671,7 +1679,7 @@ def _attach_collision_shape(
                 if child is None:
                     return False, "compound collision shape has an invalid child"
                 ok, msg = _attach_collision_shape(
-                    chrono, body, child, material, build_root)
+                    chrono, body, child, material, build_root, ref_to_com_mm)
                 if not ok:
                     return False, msg
                 count += 1
@@ -1680,14 +1688,14 @@ def _attach_collision_shape(
             ok = True
         elif kind == "box":
             sx, sy, sz = _box_half_extents_m(shape)
-            frame = _collision_frame(chrono, shape)
+            frame = _collision_frame(chrono, shape, ref_to_com_mm)
             ok = _add_modern_shape(
                 chrono, body, "ChCollisionShapeBox", material, frame, sx, sy, sz)
             if not ok:
                 ok = _add_legacy_box(body, sx, sy, sz, material)
         elif kind == "sphere":
             radius = _mm_to_m(float(shape.get("radius_mm", 1.0)))
-            frame = _collision_frame(chrono, shape)
+            frame = _collision_frame(chrono, shape, ref_to_com_mm)
             ok = _add_modern_shape(
                 chrono, body, "ChCollisionShapeSphere", material, frame, radius)
             if not ok:
@@ -1696,18 +1704,20 @@ def _attach_collision_shape(
             radius = _mm_to_m(float(shape.get("radius_mm", 1.0)))
             length = _mm_to_m(float(
                 shape.get("length_mm", shape.get("height_mm", 1.0))))
-            frame = _collision_frame(chrono, shape)
+            frame = _collision_frame(chrono, shape, ref_to_com_mm)
             ok = _add_modern_shape(
                 chrono, body, "ChCollisionShapeCylinder", material,
                 frame, radius, length)
             if not ok:
                 ok = _add_legacy_cylinder(body, radius, length, material)
         elif kind == "mesh":
-            ok, msg = _add_mesh_shape(chrono, body, shape, material, build_root)
+            ok, msg = _add_mesh_shape(
+                chrono, body, shape, material, build_root, ref_to_com_mm)
             if not ok:
                 return False, msg
         elif kind in {"convex_hull", "convexhull", "convex"}:
-            ok, msg = _add_convex_hull_shape(chrono, body, shape, material)
+            ok, msg = _add_convex_hull_shape(
+                chrono, body, shape, material, ref_to_com_mm)
             if not ok:
                 return False, msg
         else:
@@ -1741,7 +1751,11 @@ def _add_modern_shape(
     return False
 
 
-def _collision_frame(chrono: Any, shape: dict[str, Any]) -> Any:
+def _collision_frame(
+    chrono: Any,
+    shape: dict[str, Any],
+    ref_to_com_mm: tuple[float, float, float] = (0.0, 0.0, 0.0),
+) -> Any:
     center = (
         shape.get("center_mm")
         or shape.get("pos_mm")
@@ -1751,7 +1765,9 @@ def _collision_frame(chrono: Any, shape: dict[str, Any]) -> Any:
     center_vals = [float(v) for v in list(center)[:3]]
     while len(center_vals) < 3:
         center_vals.append(0.0)
-    cx, cy, cz = center_vals
+    cx = center_vals[0] - ref_to_com_mm[0]
+    cy = center_vals[1] - ref_to_com_mm[1]
+    cz = center_vals[2] - ref_to_com_mm[2]
     quat_raw = shape.get("orientation_quat")
     if quat_raw is not None:
         quat_vals = [float(v) for v in list(quat_raw)[:4]]
@@ -1812,6 +1828,7 @@ def _add_mesh_shape(
     shape: dict[str, Any],
     material: Any,
     build_root: Path | None,
+    ref_to_com_mm: tuple[float, float, float] = (0.0, 0.0, 0.0),
 ) -> tuple[bool, str]:
     rel = (shape.get("mesh") or shape.get("collision_mesh")
            or shape.get("obj") or shape.get("stl"))
@@ -1849,7 +1866,13 @@ def _add_mesh_shape(
         ):
             try:
                 col_shape = shape_cls(*args)
-                body.AddCollisionShape(col_shape)
+                try:
+                    body.AddCollisionShape(
+                        col_shape,
+                        _collision_frame(chrono, {}, ref_to_com_mm),
+                    )
+                except TypeError:
+                    body.AddCollisionShape(col_shape)
                 return True, ""
             except TypeError:
                 continue
@@ -1873,6 +1896,7 @@ def _add_convex_hull_shape(
     body: Any,
     shape: dict[str, Any],
     material: Any,
+    ref_to_com_mm: tuple[float, float, float] = (0.0, 0.0, 0.0),
 ) -> tuple[bool, str]:
     cls = getattr(chrono, "ChCollisionShapeConvexHull", None)
     if cls is None or not hasattr(body, "AddCollisionShape"):
@@ -1903,7 +1927,7 @@ def _add_convex_hull_shape(
     if len(points) < 4:
         return False, "convex hull collision shape needs at least four points"
 
-    frame = _collision_frame(chrono, shape)
+    frame = _collision_frame(chrono, shape, ref_to_com_mm)
     for args in ((material, points), (points, material), (points,)):
         try:
             col_shape = cls(*args)
@@ -2142,17 +2166,27 @@ def _set_inertia(chrono: Any, body: Any, part: Part) -> None:
     _call_first(body, ("SetInertiaXY",), _vec(chrono, *offdiag))
 
 
-def _set_com_frame(chrono: Any, body: Any, part: Part) -> None:
+def _set_com_frame(
+    chrono: Any,
+    body: Any,
+    part: Part,
+    use_reference_frames: bool = False,
+) -> None:
     if not hasattr(body, "SetFrameCOMToRef"):
         return
     com = part.com_local_mm or (0.0, 0.0, 0.0)
     vals = [float(v) for v in list(com)[:3]]
     while len(vals) < 3:
         vals.append(0.0)
-    # DesignIR stores REF->COM; Chrono AuxRef expects COM->REF.
+    sign = 1.0 if use_reference_frames else -1.0
     frame = _frame(
         chrono,
-        _vec(chrono, -_mm_to_m(vals[0]), -_mm_to_m(vals[1]), -_mm_to_m(vals[2])),
+        _vec(
+            chrono,
+            sign * _mm_to_m(vals[0]),
+            sign * _mm_to_m(vals[1]),
+            sign * _mm_to_m(vals[2]),
+        ),
         _quat(chrono, 1.0, 0.0, 0.0, 0.0),
     )
     _call_first(body, ("SetFrameCOMToRef",), frame)
@@ -2167,14 +2201,31 @@ def _part_initial_pose_mm(part: Part) -> tuple[float, float, float]:
     return (vals[0], vals[1], vals[2])
 
 
-def _set_body_pose(chrono: Any, body: Any, part: Part) -> None:
+def _part_com_local_mm(part: Part) -> tuple[float, float, float]:
+    vals = [float(v) for v in list(part.com_local_mm or (0.0, 0.0, 0.0))[:3]]
+    while len(vals) < 3:
+        vals.append(0.0)
+    return (vals[0], vals[1], vals[2])
+
+
+def _set_body_pose(
+    chrono: Any,
+    body: Any,
+    part: Part,
+    use_reference_frames: bool = False,
+) -> None:
     params = part.params or {}
     x, y, z = _part_initial_pose_mm(part)
-    _call_first(body, ("SetPos",), _vec(chrono, _mm_to_m(x), _mm_to_m(y),
-                                        _mm_to_m(z)))
     quat_raw = params.get("initial_orientation_quat", (1.0, 0.0, 0.0, 0.0))
     q = [float(v) for v in list(quat_raw)[:4]]
-    _call_first(body, ("SetRot",), _quat(chrono, q[0], q[1], q[2], q[3]))
+    pos = _vec(chrono, _mm_to_m(x), _mm_to_m(y), _mm_to_m(z))
+    rot = _quat(chrono, q[0], q[1], q[2], q[3])
+    if use_reference_frames and _call_first(
+        body, ("SetFrameRefToAbs",), _frame(chrono, pos, rot)
+    ):
+        return
+    _call_first(body, ("SetPos",), pos)
+    _call_first(body, ("SetRot",), rot)
 
 
 def _joint_frame(chrono: Any, joint: Joint) -> Any:
