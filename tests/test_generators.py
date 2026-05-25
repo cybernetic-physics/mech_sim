@@ -5,7 +5,7 @@ These prove that:
 * The generator framework writes a valid task-contract directory.
 * Reference solutions for static_fit_* and fourbar_* families pass.
 * Each generator's negative controls fail with the expected codes.
-* Tier 3 stubs surface ``capability_unavailable`` as documented.
+* Capability-unavailable Tier 3 stubs surface that status as documented.
 """
 
 from __future__ import annotations
@@ -105,7 +105,6 @@ def test_reference_solution_passes(suite_dir: Path, family: str, tmp_path):
 
 @pytest.mark.parametrize("family,expected_codes", [
     ("contact_gear_pair_stub", {"capability_unavailable"}),
-    ("cycloidal_lowN_stub", {"capability_unavailable"}),
 ])
 def test_tier3_stubs_surface_capability_unavailable(
     suite_dir: Path, family: str, expected_codes: set[str], tmp_path,

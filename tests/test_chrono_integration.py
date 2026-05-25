@@ -262,3 +262,89 @@ def test_chrono_cycloidal_nsc_vs_smc_thresholds():
         "torque_ripple_pct",
     ):
         assert key in smc_m
+
+
+def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
+    if importlib.util.find_spec("pychrono") is None:
+        pytest.skip("requires PyChrono")
+
+    from mech_bench.adapters import _chrono_impl
+    from mech_bench.geometry.cycloidal_freecad import (
+        CycloidalCadExportError,
+        build_chrono_design_ir_from_assets,
+        find_cycloid_gearbox_path,
+        find_freecad_command,
+        generate_cycloidal_reducer_assets,
+    )
+
+    if find_freecad_command() is None:
+        pytest.skip("requires headless FreeCAD")
+    if find_cycloid_gearbox_path() is None:
+        pytest.skip("requires CycloidGearBox source checkout")
+
+    try:
+        assets = generate_cycloidal_reducer_assets(
+            tmp_path / "cad",
+            {
+                "pins": 10,
+                "line_segment_count": 42,
+                "clearance": 0.6,
+            },
+            timeout_s=300.0,
+        )
+    except CycloidalCadExportError as exc:
+        pytest.fail(f"missing bridge {exc.stage}: {exc}")
+
+    assert set(assets.bodies) == {
+        "pinDisk",
+        "driverDisk",
+        "inputShaft",
+        "cycloidalDisk1",
+        "cycloidalDisk2",
+        "eccentricKey",
+        "outputShaft",
+    }
+    for body in assets.bodies.values():
+        assert (assets.root / body["step"]).is_file()
+        assert (assets.root / body["stl"]).is_file()
+
+    ir = build_chrono_design_ir_from_assets(assets)
+    cfg_base = _cycloidal_cfg("nsc")
+    cfg_base["samples"] = 8
+    cfg_base["duration_s"] = 0.008
+    cfg_base["timestep"] = 1.0e-3
+    cfg_base["procedural_cycloidal_fallback"] = False
+    cfg_base["_mech_bench"]["build_root"] = str(assets.root)
+
+    for contact_model in ("nsc", "smc"):
+        cfg = dict(cfg_base)
+        cfg["contact_model"] = contact_model
+        cfg["_mech_bench"] = dict(cfg_base["_mech_bench"])
+        out = _chrono_impl.run(ir, cfg)
+        if out.get("__capability_unavailable__"):
+            issues = out["metadata"].get("preflight_issues", [])
+            pytest.fail(
+                f"missing bridge collision mesh import/contact setup: {issues}")
+        assert out["metadata"].get("execution_mode") != (
+            "procedural_cycloidal_contact_fallback"
+        )
+        assert out["metadata"]["contact_model"] == contact_model
+        assert out["metadata"]["build_meta"]["n_bodies"] == len(ir.parts)
+        assert out["scalar_metrics"]["n_contacts_max"] > 0.0
+        assert out["scalar_metrics"]["contact_force_rms_N"] > 0.0
+        assert set(ir.params["cad_source"]) >= {"generator", "commit", "kernel"}
+        assert "cycloidalDisk1" in out["body_poses"]
+        for key in (
+            "lockup_detected",
+            "ratio_observed",
+            "in_omega_med",
+            "out_omega_med",
+            "max_penetration_mm",
+            "max_constraint_error_mm",
+            "n_contacts_max",
+            "top_contact_pairs",
+            "contact_force_rms_N",
+            "power_balance_error_pct",
+            "torque_ripple_pct",
+        ):
+            assert key in out["scalar_metrics"]

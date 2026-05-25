@@ -130,7 +130,7 @@ def test_dashboard_payload_includes_media_block_when_rendered(
     evidence = evaluate_with_evidence(
         task_dir, task_dir / "reference_solution")
     out = tmp_path / "bundle"
-    write_run_bundle(evidence, out)
+    write_run_bundle(evidence, out, render_media=True)
     payload = json.loads((out / "dashboard_payload.json").read_text())
     media = payload.get("media") or {}
     assert media.get("thumbnail_png")

@@ -69,7 +69,7 @@ def test_run_suite_tier_and_family_metrics_present(suite_dir: Path, tmp_path):
 def test_run_suite_capability_unavailable_counted(suite_dir: Path, tmp_path):
     summary = run_suite(suite_dir, report_dir=tmp_path / "reports",
                           eval_mode="public")
-    assert summary["capability_unavailable_n"] >= 2  # Tier 3 stubs
+    assert summary["capability_unavailable_n"] >= 1  # contact gear stub
 
 
 def test_run_suite_both_emits_generalization_gap(suite_dir: Path, tmp_path):

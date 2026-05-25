@@ -697,6 +697,14 @@ def _make_system(
         system = chrono.ChSystem()
         method = "default"
 
+    collision_system = getattr(chrono, "ChCollisionSystem", None)
+    if collision_system is not None and hasattr(system, "SetCollisionSystemType"):
+        requested = str(cfg.get("collision_system", "BULLET")).upper()
+        attr = f"Type_{requested}"
+        if hasattr(collision_system, attr):
+            _call_first(system, ("SetCollisionSystemType",),
+                        getattr(collision_system, attr))
+
     gravity = cfg.get("gravity_m_s2", (0.0, 0.0, 0.0))
     if isinstance(gravity, Iterable) and not isinstance(gravity, (str, bytes)):
         gx, gy, gz = [float(x) for x in list(gravity)[:3]]
@@ -1354,10 +1362,12 @@ def _add_mesh_shape(
     if not loaded:
         return False, f"could not load mesh {path}"
     margin = float(shape.get("sweep_sphere_radius_m", 0.0))
+    is_static = bool(shape.get("is_static", shape.get("static", False)))
+    is_convex = bool(shape.get("is_convex", shape.get("convex", False)))
     for args in (
-        (material, mesh, False, False, margin),
-        (material, mesh, False, False),
-        (mesh, False, False, margin, material),
+        (material, mesh, is_static, is_convex, margin),
+        (material, mesh, is_static, is_convex),
+        (mesh, is_static, is_convex, margin, material),
     ):
         try:
             col_shape = shape_cls(*args)
@@ -1388,12 +1398,12 @@ def _report_contacts(
             self.samples: dict[str, tuple[float, float]] = {}
 
         def OnReportContact(self, *args: Any) -> bool:  # noqa: N802
-            if len(args) < 6:
+            if len(args) < 9:
                 return True
             distance = _safe_float(args[3], 0.0)
             force = _vec_norm(args[5])
-            body_a = _physics_item_name(args[-2], name_by_obj)
-            body_b = _physics_item_name(args[-1], name_by_obj)
+            body_a = _physics_item_name(args[7], name_by_obj)
+            body_b = _physics_item_name(args[8], name_by_obj)
             if body_a and body_b:
                 pair = _normalize_pair(f"{body_a}:{body_b}")
                 prev_f, prev_p = self.samples.get(pair, (0.0, 0.0))

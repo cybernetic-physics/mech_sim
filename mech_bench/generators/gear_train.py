@@ -712,7 +712,7 @@ class CycloidalLowNStubGenerator(TaskGenerator):
             f"Single-stage cycloidal reducer with {N_pins} ring pins "
             f"(target ratio {target_ratio:g}).\n\n"
             "Requires torque-load and contact-force capabilities; "
-            "expected to surface `capability_unavailable` in this build.\n"
+            "evaluated by the Chrono contact adapter when available.\n"
         )
 
         ref_py = (
@@ -793,7 +793,7 @@ class CycloidalLowNStubGenerator(TaskGenerator):
             },
             "capability": {
                 "requires_adapter": "rigid_body_dynamics+contact_forces",
-                "expect_capability_unavailable": True,
+                "expect_capability_unavailable": False,
             },
         }
 
@@ -846,15 +846,13 @@ class CycloidalLowNStubGenerator(TaskGenerator):
         }
         expected = {
             "description": (
-                "Tier 3 cycloidal_lowN_stub — capability-unavailable "
-                "regression."),
+                "Tier 3 cycloidal_lowN_stub — Chrono contact regression."),
             "controls": [
                 {
                     "id": "wrong_ratio",
                     "submission": "negative_solutions/wrong_ratio",
                     "expected_failure_codes":
-                        ["wrong_ratio", "capability_unavailable"],
-                    "expected_hard_gate_passed": False,
+                        ["wrong_ratio"],
                     "expected_score_below": 0.5,
                 },
                 {

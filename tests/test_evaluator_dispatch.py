@@ -47,6 +47,13 @@ def _codes(report) -> set[str]:
             for f in report.feedback}
 
 
+@pytest.fixture
+def _no_contact_adapters(monkeypatch):
+    for name, adapter in list(ADAPTER_REGISTRY.items()):
+        if Capability.CONTACT_FORCES in adapter.capabilities_provided:
+            monkeypatch.delitem(ADAPTER_REGISTRY, name, raising=False)
+
+
 # --------------------------------------------------------------------- #
 # Planner unit tests                                                    #
 # --------------------------------------------------------------------- #
@@ -84,7 +91,7 @@ def test_planner_picks_planar_adapter_for_planar_probes():
     assert adapters == ["planar_kinematics"]
 
 
-def test_planner_marks_unavailable_for_unsatisfied_cap():
+def test_planner_marks_unavailable_for_unsatisfied_cap(_no_contact_adapters):
     cfg = EvalConfig(
         probes=[
             ProbeSpec(id="ce", type="contact_engagement", config={
@@ -254,7 +261,9 @@ def test_multi_adapter_run_mixes_none_and_planar(tmp_path):
     assert FailureCode.SIMULATOR_DIVERGENCE.value not in codes
 
 
-def test_contact_probe_without_adapter_is_capability_unavailable(tmp_path):
+def test_contact_probe_without_adapter_is_capability_unavailable(
+    _no_contact_adapters, tmp_path,
+):
     """A task asking for contact_engagement without any contact-force-
     capable adapter registered must yield CAPABILITY_UNAVAILABLE on
     that probe — not a silent pass or an opaque exception."""
