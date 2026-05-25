@@ -30,7 +30,7 @@
           "bytes": 131114,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/cycloidalDisk1.step",
-          "sha256": "2ec10e94c30e09d8eba98aabbbe89e461823c9765474fa9f9460f23e0e6a2ffb"
+          "sha256": "38807b7a63fb284911493e3021b796793bbd1dca5c9f852afe0fce755779d0da"
         },
         "stl": {
           "bytes": 790584,
@@ -52,7 +52,7 @@
           "bytes": 131114,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/cycloidalDisk2.step",
-          "sha256": "44a53af92017de6f4c764d3bffef13fb1000e2bd81cc144f239ddec3b2de1ae5"
+          "sha256": "4a69133dbca5c08101eccda5cad58c1e9c1cbf1c1dfcb991966bf8aad255f817"
         },
         "stl": {
           "bytes": 790584,
@@ -74,7 +74,7 @@
           "bytes": 15702,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/driverDisk.step",
-          "sha256": "9a1094919e54289b09679c54baedeea10a3e822933a5651b72cde6387df9c9c8"
+          "sha256": "7cab8a3b935c772224b11b95ce2e461fc093f67adeb2a33bf87ea28153f151d1"
         },
         "stl": {
           "bytes": 201684,
@@ -96,7 +96,7 @@
           "bytes": 10432,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/eccentricKey.step",
-          "sha256": "4121338c5658cf803300fbd16d1e2f2256de5b30e365352502740679ef663e46"
+          "sha256": "004652cd90bceff15f0ab321e76a9a637ddeb1aedf471f6df8a79bf7ddaf775f"
         },
         "stl": {
           "bytes": 78784,
@@ -118,7 +118,7 @@
           "bytes": 14380,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/inputShaft.step",
-          "sha256": "cd5fa4a15a973f205f9b04be93d4cb2afe0cc7a6069faf79b6dba7b6b67430d3"
+          "sha256": "f76df936d1c1be291220f342c945fe4e2bd232e3cb4881b864861ccbf14c3f00"
         },
         "stl": {
           "bytes": 89684,
@@ -140,7 +140,7 @@
           "bytes": 15896,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/outputShaft.step",
-          "sha256": "f21c7c925fb1dc3e549fe10e0f3a608434bb98d805d5ff2e3dfc0fb0f8d632ac"
+          "sha256": "afd5b47d7644f4adcc6b964af63c0c9692ce6d866b07407b734a4800590b6a51"
         },
         "stl": {
           "bytes": 199684,
@@ -162,7 +162,7 @@
           "bytes": 65005,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/pinDisk.step",
-          "sha256": "a7ba92535e1c412718b03532cfcf2ad3cfb65aef15981869da7f75ab6324f92a"
+          "sha256": "65a6e07950e428e00252a5871448495827cb6ebb8a9175ecc8c52a8d5c619096"
         },
         "stl": {
           "bytes": 831684,
@@ -195,7 +195,7 @@
           "bytes": 13730,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/driverPinsCollision.step",
-          "sha256": "22433595efc474b216651a8b7e560997879dd15dec1ce2e8c4150398fbf351d6"
+          "sha256": "150c3913668373baeebeeaafbb7a47baef88e4cddfaa0c7fac3e39038705b047"
         },
         "stl": {
           "bytes": 150084,
@@ -217,7 +217,7 @@
           "bytes": 22688,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/ringPinsCollision.step",
-          "sha256": "6cdb3fe13cf2d44e79bc882ea485b3ec9e8cddde45d926a771d8633b2d21d5f9"
+          "sha256": "c5af48cf95e4bd1048de241895ade2af9b177a6702c3227b9bf207c17dbc9af1"
         },
         "stl": {
           "bytes": 250084,
@@ -350,14 +350,19 @@
             "cycloidalDisk1:pinDisk": 78.81519742896897
           },
           "in_omega_med": 10.0,
+          "input_power_W_mean": 9.019857775803711,
+          "kinetic_energy_rate_W_mean": -0.0017067563228442225,
           "lockup_detected": 0.0,
           "max_constraint_error_mm": 8.672517110694892e-06,
           "max_penetration_mm": 0.9235189718310721,
+          "mechanical_efficiency_pct": 0.0,
           "n_contacts_max": 167.0,
           "out_omega_fit_rad_s": -1.0180334127148898,
           "out_omega_med": -1.0180334127148898,
           "out_omega_med_raw": -0.2881246872766965,
+          "output_power_W_mean": 0.0,
           "power_balance_error_pct": 100.0,
+          "power_balance_residual_pct": 100.01892220881157,
           "ratio_error_pct": 9.142892289556768,
           "ratio_observed": 9.82286030606011,
           "top_contact_pairs": [
@@ -378,7 +383,8 @@
               "rms_penetration_mm": 0.6053225530979413
             }
           ],
-          "torque_ripple_pct": 400.9854436067558
+          "torque_ripple_pct": 400.9854436067558,
+          "unaccounted_power_W_mean": 9.021564532126556
         },
         "missing_metric_keys": [],
         "ok": true,
@@ -415,14 +421,19 @@
             "cycloidalDisk1:pinDisk": 65.84431233924877
           },
           "in_omega_med": 10.0,
+          "input_power_W_mean": 6.21118187895096,
+          "kinetic_energy_rate_W_mean": 0.001281735882738468,
           "lockup_detected": 0.0,
           "max_constraint_error_mm": 5.353476733790635e-06,
           "max_penetration_mm": 0.950414287217427,
+          "mechanical_efficiency_pct": 0.0,
           "n_contacts_max": 173.0,
           "out_omega_fit_rad_s": -1.0523452142418426,
           "out_omega_med": -1.0523452142418426,
           "out_omega_med_raw": -0.7558667962707218,
+          "output_power_W_mean": 0.0,
           "power_balance_error_pct": 100.0,
+          "power_balance_residual_pct": 99.9793640581178,
           "ratio_error_pct": 5.584279386076377,
           "ratio_observed": 9.502585144746874,
           "top_contact_pairs": [
@@ -443,7 +454,8 @@
               "rms_penetration_mm": 0.5881497613135598
             }
           ],
-          "torque_ripple_pct": 307.5491783370448
+          "torque_ripple_pct": 307.5491783370448,
+          "unaccounted_power_W_mean": 6.2099001430682215
         },
         "missing_metric_keys": [],
         "ok": true,
@@ -480,14 +492,19 @@
             "cycloidalDisk1:pinDisk": 82.66288293272115
           },
           "in_omega_med": 10.0,
+          "input_power_W_mean": 8.50217372240413,
+          "kinetic_energy_rate_W_mean": -0.002350306007142112,
           "lockup_detected": 0.0,
           "max_constraint_error_mm": 1.9029106728924906e-05,
           "max_penetration_mm": 0.9750794342835434,
+          "mechanical_efficiency_pct": 0.0,
           "n_contacts_max": 172.0,
           "out_omega_fit_rad_s": -1.0322424525808234,
           "out_omega_med": -1.0322424525808234,
           "out_omega_med_raw": -0.42321614018825443,
+          "output_power_W_mean": 0.0,
           "power_balance_error_pct": 100.0,
+          "power_balance_residual_pct": 100.02764358955578,
           "ratio_error_pct": 7.64051685077468,
           "ratio_observed": 9.687646516569721,
           "top_contact_pairs": [
@@ -508,7 +525,8 @@
               "rms_penetration_mm": 0.6033171729936587
             }
           ],
-          "torque_ripple_pct": 208.98758148433373
+          "torque_ripple_pct": 208.98758148433373,
+          "unaccounted_power_W_mean": 8.504524028411272
         },
         "missing_metric_keys": [],
         "ok": true,
@@ -627,7 +645,7 @@
     "repo_branch": null,
     "repo_commit": null
   },
-  "generated_at_utc": "2026-05-25T08:13:44.056115+00:00",
+  "generated_at_utc": "2026-05-25T08:25:24.961841+00:00",
   "missing_bridge": null,
   "ok": true,
   "proof_json": "/workspace/docs/cycloidal_real_geometry_proof.json",
@@ -658,14 +676,19 @@
           "cycloidalDisk1:pinDisk": 350389.67035716196
         },
         "in_omega_med": 10.0,
+        "input_power_W_mean": 202.76889305397324,
+        "kinetic_energy_rate_W_mean": -43.08933222376077,
         "lockup_detected": 0.0,
         "max_constraint_error_mm": 2.578907855047329,
         "max_penetration_mm": 3.680246249132324,
+        "mechanical_efficiency_pct": 0.4840154761057187,
         "n_contacts_max": 807.0,
         "out_omega_fit_rad_s": 1.3085770974793123,
         "out_omega_med": 1.3085770974793123,
         "out_omega_med_raw": -19.05927020103848,
+        "output_power_W_mean": 0.9814328231094842,
         "power_balance_error_pct": 99.51598452389429,
+        "power_balance_residual_pct": 120.76644931401927,
         "ratio_error_pct": 15.09013009234047,
         "ratio_observed": 7.641888291689358,
         "top_contact_pairs": [
@@ -686,7 +709,8 @@
             "rms_penetration_mm": 0.6085641951831714
           }
         ],
-        "torque_ripple_pct": 7852.1768942248955
+        "torque_ripple_pct": 7852.1768942248955,
+        "unaccounted_power_W_mean": 244.87679245462454
       },
       "missing_metric_keys": [],
       "ok": true,
@@ -723,14 +747,19 @@
           "cycloidalDisk1:pinDisk": 18.68043747254251
         },
         "in_omega_med": 10.0,
+        "input_power_W_mean": 6.638784046232615,
+        "kinetic_energy_rate_W_mean": 0.01072128288515725,
         "lockup_detected": 0.0,
         "max_constraint_error_mm": 2.6316171757590284e-06,
         "max_penetration_mm": 0.8919499305193312,
+        "mechanical_efficiency_pct": 10.814783184941346,
         "n_contacts_max": 165.0,
         "out_omega_fit_rad_s": -0.9572934676220448,
         "out_omega_med": -0.9572934676220448,
         "out_omega_med_raw": -0.5476923290838509,
+        "output_power_W_mean": 0.7179701007165336,
         "power_balance_error_pct": 89.18521681505867,
+        "power_balance_residual_pct": 89.02372213756209,
         "ratio_error_pct": 16.06797170267499,
         "ratio_observed": 10.446117453240749,
         "top_contact_pairs": [
@@ -751,7 +780,8 @@
             "rms_penetration_mm": 0.1948818913546102
           }
         ],
-        "torque_ripple_pct": 277.09342040111306
+        "torque_ripple_pct": 277.09342040111306,
+        "unaccounted_power_W_mean": 5.910092662630925
       },
       "missing_metric_keys": [],
       "ok": true,
@@ -788,14 +818,19 @@
           "cycloidalDisk1:pinDisk": 65.84431233924877
         },
         "in_omega_med": 10.0,
+        "input_power_W_mean": 6.21118187895096,
+        "kinetic_energy_rate_W_mean": 0.001281735882738468,
         "lockup_detected": 0.0,
         "max_constraint_error_mm": 5.353476733790635e-06,
         "max_penetration_mm": 0.950414287217427,
+        "mechanical_efficiency_pct": 0.0,
         "n_contacts_max": 173.0,
         "out_omega_fit_rad_s": -1.0523452142418426,
         "out_omega_med": -1.0523452142418426,
         "out_omega_med_raw": -0.7558667962707218,
+        "output_power_W_mean": 0.0,
         "power_balance_error_pct": 100.0,
+        "power_balance_residual_pct": 99.9793640581178,
         "ratio_error_pct": 5.584279386076377,
         "ratio_observed": 9.502585144746874,
         "top_contact_pairs": [
@@ -816,7 +851,8 @@
             "rms_penetration_mm": 0.5881497613135598
           }
         ],
-        "torque_ripple_pct": 307.5491783370448
+        "torque_ripple_pct": 307.5491783370448,
+        "unaccounted_power_W_mean": 6.2099001430682215
       },
       "missing_metric_keys": [],
       "ok": true,
@@ -845,7 +881,7 @@
         "part_id": "pinDisk",
         "path": "cycloidal_freecad_assets/pinDisk.step",
         "role": "step",
-        "sha256": "a7ba92535e1c412718b03532cfcf2ad3cfb65aef15981869da7f75ab6324f92a",
+        "sha256": "65a6e07950e428e00252a5871448495827cb6ebb8a9175ecc8c52a8d5c619096",
         "size_bytes": 65005
       },
       {
@@ -861,7 +897,7 @@
         "part_id": "driverDisk",
         "path": "cycloidal_freecad_assets/driverDisk.step",
         "role": "step",
-        "sha256": "9a1094919e54289b09679c54baedeea10a3e822933a5651b72cde6387df9c9c8",
+        "sha256": "7cab8a3b935c772224b11b95ce2e461fc093f67adeb2a33bf87ea28153f151d1",
         "size_bytes": 15702
       },
       {
@@ -877,7 +913,7 @@
         "part_id": "inputShaft",
         "path": "cycloidal_freecad_assets/inputShaft.step",
         "role": "step",
-        "sha256": "cd5fa4a15a973f205f9b04be93d4cb2afe0cc7a6069faf79b6dba7b6b67430d3",
+        "sha256": "f76df936d1c1be291220f342c945fe4e2bd232e3cb4881b864861ccbf14c3f00",
         "size_bytes": 14380
       },
       {
@@ -893,7 +929,7 @@
         "part_id": "cycloidalDisk1",
         "path": "cycloidal_freecad_assets/cycloidalDisk1.step",
         "role": "step",
-        "sha256": "2ec10e94c30e09d8eba98aabbbe89e461823c9765474fa9f9460f23e0e6a2ffb",
+        "sha256": "38807b7a63fb284911493e3021b796793bbd1dca5c9f852afe0fce755779d0da",
         "size_bytes": 131114
       },
       {
@@ -909,7 +945,7 @@
         "part_id": "cycloidalDisk2",
         "path": "cycloidal_freecad_assets/cycloidalDisk2.step",
         "role": "step",
-        "sha256": "44a53af92017de6f4c764d3bffef13fb1000e2bd81cc144f239ddec3b2de1ae5",
+        "sha256": "4a69133dbca5c08101eccda5cad58c1e9c1cbf1c1dfcb991966bf8aad255f817",
         "size_bytes": 131114
       },
       {
@@ -925,7 +961,7 @@
         "part_id": "eccentricKey",
         "path": "cycloidal_freecad_assets/eccentricKey.step",
         "role": "step",
-        "sha256": "4121338c5658cf803300fbd16d1e2f2256de5b30e365352502740679ef663e46",
+        "sha256": "004652cd90bceff15f0ab321e76a9a637ddeb1aedf471f6df8a79bf7ddaf775f",
         "size_bytes": 10432
       },
       {
@@ -941,7 +977,7 @@
         "part_id": "outputShaft",
         "path": "cycloidal_freecad_assets/outputShaft.step",
         "role": "step",
-        "sha256": "f21c7c925fb1dc3e549fe10e0f3a608434bb98d805d5ff2e3dfc0fb0f8d632ac",
+        "sha256": "afd5b47d7644f4adcc6b964af63c0c9692ce6d866b07407b734a4800590b6a51",
         "size_bytes": 15896
       }
     ],

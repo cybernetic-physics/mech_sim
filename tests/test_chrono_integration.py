@@ -415,6 +415,7 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
         assert out["metadata"]["build_meta"]["n_bodies"] == len(ir.parts)
         assert out["scalar_metrics"]["n_contacts_max"] > 0.0
         assert out["scalar_metrics"]["contact_force_rms_N"] > 0.0
+        assert "kinetic_J" in out["energies"]
         assert set(ir.params["cad_source"]) >= {"generator", "commit", "kernel"}
         assert "cycloidalDisk1" in out["body_poses"]
         for key in (
@@ -428,6 +429,10 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
             "top_contact_pairs",
             "contact_force_rms_N",
             "power_balance_error_pct",
+            "power_balance_residual_pct",
+            "mechanical_efficiency_pct",
+            "unaccounted_power_W_mean",
+            "kinetic_energy_rate_W_mean",
             "torque_ripple_pct",
             "out_omega_med_raw",
             "out_omega_fit_rad_s",

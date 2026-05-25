@@ -148,6 +148,7 @@ def run(ir: DesignIR, config: dict[str, Any]) -> dict[str, Any]:
             "body_poses": record.body_poses,
             "body_twists": record.body_twists,
             "motor_torques": record.motor_torques,
+            "energies": {"kinetic_J": record.kinetic_energy_J},
             "contact_forces": record.contact_forces,
             "penetration": record.penetration,
             "scalar_metrics": scalar_metrics,
@@ -1118,6 +1119,11 @@ class _Recorder:
         self.constraint_errors: dict[str, np.ndarray] = {}
         self.contact_counts = np.zeros(samples, dtype=float)
         self.time_s = np.zeros(samples, dtype=float)
+        self.kinetic_energy_J = np.zeros(samples, dtype=float)
+        self._part_masses = {p.id: float(p.mass_kg) for p in ir.parts}
+        self._part_inertia = {
+            p.id: np.asarray(p.inertia_kg_m2, dtype=float) for p in ir.parts
+        }
         initial_positions = {
             p.id: _part_initial_pose_mm(p) for p in ir.parts
         }
@@ -1152,6 +1158,7 @@ class _Recorder:
         spec: RuntimeSpec,
     ) -> None:
         self.time_s[i] = float(t)
+        kinetic = 0.0
         for name, body in bodies.items():
             pos = _extract_vec(_try_call(body, ("GetPos",)))
             rot = _extract_quat(_try_call(body, ("GetRot",)))
@@ -1159,6 +1166,13 @@ class _Recorder:
                 body, ("GetPosDt", "GetLinVel", "GetVelocity")))
             ang = _extract_vec(_call_first_value(
                 body, ("GetAngVelParent", "GetWvel_par", "GetWvel_loc")))
+            kinetic += _rigid_body_kinetic_energy_J(
+                self._part_masses.get(name, 0.0),
+                self._part_inertia.get(name),
+                lin,
+                ang,
+                rot,
+            )
             self.body_poses[name][i, :] = (
                 pos[0] * 1000.0, pos[1] * 1000.0, pos[2] * 1000.0,
                 rot[0], rot[1], rot[2], rot[3],
@@ -1167,6 +1181,7 @@ class _Recorder:
                 lin[0] * 1000.0, lin[1] * 1000.0, lin[2] * 1000.0,
                 ang[0], ang[1], ang[2],
             )
+        self.kinetic_energy_J[i] = kinetic
         for joint in self.ir.joints:
             if joint.type == "contact_pair":
                 continue
@@ -1290,6 +1305,27 @@ def _scalar_metrics(
             metrics["power_balance_error_pct"] = (
                 abs(pin - pout) / pin * 100.0 if pin > 0.0 else 0.0
             )
+    if record.kinetic_energy_J.size:
+        metrics["kinetic_energy_J_start"] = float(record.kinetic_energy_J[0])
+        metrics["kinetic_energy_J_end"] = float(record.kinetic_energy_J[-1])
+        metrics["kinetic_energy_J_mean_tail"] = float(
+            np.mean(_tail_array(record.kinetic_energy_J))
+        )
+        energy_rate = _slope_tail(record.time_s, record.kinetic_energy_J)
+        if energy_rate is not None:
+            metrics["kinetic_energy_rate_W_mean"] = energy_rate
+    if "input_power_W_mean" in metrics and "output_power_W_mean" in metrics:
+        pin = float(metrics["input_power_W_mean"])
+        pout = float(metrics["output_power_W_mean"])
+        dkin = float(metrics.get("kinetic_energy_rate_W_mean", 0.0))
+        metrics["mechanical_efficiency_pct"] = (
+            pout / pin * 100.0 if pin > 1e-12 else 0.0
+        )
+        metrics["unaccounted_power_W_mean"] = pin - pout - dkin
+        metrics["power_balance_residual_pct"] = (
+            abs(metrics["unaccounted_power_W_mean"]) / pin * 100.0
+            if pin > 1e-12 else 0.0
+        )
     declared = (ir.params or {}).get("declared_ratio")
     if declared is not None and "ratio_observed" in metrics:
         d = float(declared)
@@ -1386,6 +1422,7 @@ def _record_has_nonfinite(record: _Recorder) -> bool:
         record.contact_forces,
         record.penetration,
         record.constraint_errors,
+        {"kinetic_energy_J": record.kinetic_energy_J},
     )
     for collection in collections:
         for arr in collection.values():
@@ -1433,12 +1470,87 @@ def _body_yaw_slope_tail(
     return slope if math.isfinite(slope) else None
 
 
+def _slope_tail(
+    x: np.ndarray,
+    y: np.ndarray,
+    warmup_fraction: float = 0.25,
+) -> float | None:
+    xx = np.asarray(x, dtype=float)
+    yy = np.asarray(y, dtype=float)
+    if xx.size != yy.size or xx.size < 3:
+        return None
+    start = min(xx.size - 2, max(0, int(xx.size * warmup_fraction)))
+    xx = xx[start:]
+    yy = yy[start:]
+    if (
+        xx.size < 3
+        or not np.all(np.isfinite(xx))
+        or not np.all(np.isfinite(yy))
+    ):
+        return None
+    xx0 = xx - float(np.mean(xx))
+    yy0 = yy - float(np.mean(yy))
+    denom = float(np.dot(xx0, xx0))
+    if denom <= 1e-24:
+        return None
+    slope = float(np.dot(xx0, yy0) / denom)
+    return slope if math.isfinite(slope) else None
+
+
 def _yaw_from_quat(q: tuple[float, float, float, float]) -> float:
     w, x, y, z = q
     return math.atan2(
         2.0 * (w * z + x * y),
         1.0 - 2.0 * (y * y + z * z),
     )
+
+
+def _rigid_body_kinetic_energy_J(
+    mass_kg: float,
+    inertia_body_kg_m2: np.ndarray | None,
+    linear_velocity_m_s: tuple[float, float, float],
+    angular_velocity_rad_s: tuple[float, float, float],
+    quat_wxyz: tuple[float, float, float, float],
+) -> float:
+    if mass_kg <= 0.0:
+        return 0.0
+    v = np.asarray(linear_velocity_m_s, dtype=float)
+    w = np.asarray(angular_velocity_rad_s, dtype=float)
+    translational = 0.5 * mass_kg * float(np.dot(v, v))
+    rotational = 0.0
+    if inertia_body_kg_m2 is not None and inertia_body_kg_m2.shape == (3, 3):
+        rot = _quat_to_rotation_matrix(quat_wxyz)
+        inertia_world = rot @ inertia_body_kg_m2 @ rot.T
+        rotational = 0.5 * float(w @ inertia_world @ w)
+    total = translational + rotational
+    return total if math.isfinite(total) else math.nan
+
+
+def _quat_to_rotation_matrix(
+    quat_wxyz: tuple[float, float, float, float],
+) -> np.ndarray:
+    w, x, y, z = quat_wxyz
+    norm = math.sqrt(w * w + x * x + y * y + z * z)
+    if norm <= 1e-24:
+        return np.eye(3)
+    w, x, y, z = w / norm, x / norm, y / norm, z / norm
+    return np.asarray([
+        [
+            1.0 - 2.0 * (y * y + z * z),
+            2.0 * (x * y - z * w),
+            2.0 * (x * z + y * w),
+        ],
+        [
+            2.0 * (x * y + z * w),
+            1.0 - 2.0 * (x * x + z * z),
+            2.0 * (y * z - x * w),
+        ],
+        [
+            2.0 * (x * z - y * w),
+            2.0 * (y * z + x * w),
+            1.0 - 2.0 * (x * x + y * y),
+        ],
+    ], dtype=float)
 
 
 def _metadata(
