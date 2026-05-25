@@ -131,7 +131,8 @@ def run(ir: DesignIR, config: dict[str, Any]) -> dict[str, Any]:
                 system.DoStepDynamics(step)
                 current_t += step
             record.sample(
-                chrono, system, i, float(sample_t), bodies, links, motors, spec)
+                chrono, system, i, float(sample_t), bodies, links, motors,
+                load_targets, spec)
 
         scalar_metrics = _scalar_metrics(ir, cfg, spec, record)
         metadata = _metadata(
@@ -1232,6 +1233,8 @@ def _resolve_loads(
         axis = _unit3(joint.axis_world or (0.0, 0.0, 1.0))
         out.append({
             "id": spec.get("id", ""),
+            "joint_id": spec.get("joint_id", ""),
+            "port_id": spec.get("port_id", ""),
             "body": body,
             "axis": axis,
             "mode": spec.get("mode", "torque"),
@@ -1324,10 +1327,11 @@ def _apply_loads(
         mode = load.get("mode")
         if mode not in {"torque", "brake_torque"}:
             continue
-        if mode == "torque" and load.get("chrono_load") is not None:
-            continue
         body = load["body"]
         value = _load_torque_value(load, time_s)
+        load["current_torque_Nm"] = value
+        if mode == "torque" and load.get("chrono_load") is not None:
+            continue
         ax = load["axis"]
         torque = _vec(chrono, value * ax[0], value * ax[1], value * ax[2])
         chrono_load = load.get("chrono_load")
@@ -1393,6 +1397,7 @@ class _Recorder:
         self.contact_counts = np.zeros(samples, dtype=float)
         self.time_s = np.zeros(samples, dtype=float)
         self.kinetic_energy_J = np.zeros(samples, dtype=float)
+        self.load_torques: dict[str, np.ndarray] = {}
         self._part_masses = {p.id: float(p.mass_kg) for p in ir.parts}
         self._part_inertia = {
             p.id: np.asarray(p.inertia_kg_m2, dtype=float) for p in ir.parts
@@ -1428,6 +1433,7 @@ class _Recorder:
         bodies: dict[str, Any],
         links: dict[str, Any],
         motors: dict[str, Any],
+        loads: list[dict[str, Any]],
         spec: RuntimeSpec,
     ) -> None:
         self.time_s[i] = float(t)
@@ -1509,6 +1515,16 @@ class _Recorder:
             if port_id:
                 self.motor_torques.setdefault(
                     port_id, np.zeros_like(self.contact_counts))[i] = torque
+        for load in loads:
+            torque = float(load.get("current_torque_Nm", 0.0) or 0.0)
+            for key in (
+                str(load.get("id", "")),
+                str(load.get("joint_id", "")),
+                str(load.get("port_id", "")),
+            ):
+                if key:
+                    self.load_torques.setdefault(
+                        key, np.zeros_like(self.contact_counts))[i] = torque
 
 
 def _scalar_metrics(
@@ -1560,14 +1576,26 @@ def _scalar_metrics(
             metrics["output_speed_rad_s_mean_raw"] = raw_out_speed
             metrics["out_omega_fit_rad_s"] = fit_out_omega
         out_load = abs(float(spec.loads[0].get("value", 0.0)))
+        output_torque = _load_torque_series(record, load_spec, out_port)
         metrics["output_speed_rad_s_mean"] = out_speed
         metrics["out_omega_med"] = out_omega_med
         metrics["output_load_Nm"] = out_load
+        if output_torque is not None and np.asarray(output_torque).size:
+            torque_tail = _tail_array(output_torque)
+            metrics["output_torque_Nm_mean"] = float(
+                np.mean(np.abs(torque_tail)))
+            metrics["output_torque_Nm_signed_mean"] = float(
+                np.mean(torque_tail))
+        else:
+            metrics["output_torque_Nm_mean"] = out_load
+            metrics["output_torque_Nm_signed_mean"] = -out_load
         if abs(out_omega_med) <= 1e-12:
             metrics["ratio_observed"] = math.inf
         elif abs(in_omega_med) > 1e-12:
             metrics["ratio_observed"] = abs(in_omega_med / out_omega_med)
-        metrics["output_power_W_mean"] = out_load * out_speed
+        metrics["output_power_W_mean"] = (
+            float(metrics["output_torque_Nm_mean"]) * out_speed
+        )
         if "input_power_W_mean" in metrics:
             pin = metrics["input_power_W_mean"]
             pout = metrics["output_power_W_mean"]
@@ -1576,7 +1604,10 @@ def _scalar_metrics(
             )
         elif in_speed > 1e-12 and out_speed > 1e-12:
             ratio = abs(in_omega_med / out_omega_med) if abs(out_omega_med) > 1e-12 else in_speed / out_speed
-            metrics["input_torque_Nm_mean"] = out_load / max(ratio, 1e-12)
+            effective_out_load = float(metrics["output_torque_Nm_mean"])
+            metrics["input_torque_Nm_mean"] = (
+                effective_out_load / max(ratio, 1e-12)
+            )
             metrics["input_power_W_mean"] = metrics["input_torque_Nm_mean"] * in_speed
             pin = metrics["input_power_W_mean"]
             pout = metrics["output_power_W_mean"]
@@ -1720,6 +1751,7 @@ def _record_has_nonfinite(record: _Recorder) -> bool:
         record.body_poses,
         record.body_twists,
         record.motor_torques,
+        record.load_torques,
         record.contact_forces,
         record.all_contact_forces,
         record.penetration,
@@ -1736,6 +1768,23 @@ def _record_has_nonfinite(record: _Recorder) -> bool:
         record.contact_counts.size
         and not np.all(np.isfinite(record.contact_counts))
     )
+
+
+def _load_torque_series(
+    record: _Recorder,
+    load_spec: dict[str, Any],
+    out_port: str,
+) -> np.ndarray | None:
+    for key in (
+        str(load_spec.get("id", "")),
+        str(load_spec.get("joint_id", "")),
+        str(load_spec.get("port_id", "")),
+        out_port,
+    ):
+        values = record.load_torques.get(key)
+        if values is not None:
+            return values
+    return None
 
 
 def _joint_child_body_id(ir: DesignIR, joint_id: str) -> str | None:

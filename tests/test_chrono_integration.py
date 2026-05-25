@@ -754,6 +754,8 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
             "n_contacts_max",
             "top_contact_pairs",
             "contact_force_rms_N",
+            "output_torque_Nm_mean",
+            "output_torque_Nm_signed_mean",
             "power_balance_error_pct",
             "power_balance_residual_pct",
             "mechanical_efficiency_pct",
