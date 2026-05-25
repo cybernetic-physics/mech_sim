@@ -10,7 +10,8 @@
     "nsc_bad_regime_observed": true,
     "smc_minimum_success_threshold": true,
     "smc_ratio_convergence": true,
-    "smc_unloaded_ratio_near_declared": true
+    "smc_unloaded_ratio_near_declared": true,
+    "trusted_cad_mass_properties": true
   },
   "asset_generation": {
     "all_body_step_stl_nonempty": true,
@@ -29,7 +30,7 @@
           "bytes": 131114,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/cycloidalDisk1.step",
-          "sha256": "3ee1a1a40f904a7152c385f1e017c0cc689d38eec781b184c2f11f79694d5a62"
+          "sha256": "2ec10e94c30e09d8eba98aabbbe89e461823c9765474fa9f9460f23e0e6a2ffb"
         },
         "stl": {
           "bytes": 790584,
@@ -51,7 +52,7 @@
           "bytes": 131114,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/cycloidalDisk2.step",
-          "sha256": "fbb8deb396fa329c4942c207be06f13b45360955bd1da8ec21b3fb8d52008986"
+          "sha256": "44a53af92017de6f4c764d3bffef13fb1000e2bd81cc144f239ddec3b2de1ae5"
         },
         "stl": {
           "bytes": 790584,
@@ -73,7 +74,7 @@
           "bytes": 15702,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/driverDisk.step",
-          "sha256": "8d62755cb826c3d6e0221f603562589ffd040eb430e45be095a1ab93f36a141b"
+          "sha256": "9a1094919e54289b09679c54baedeea10a3e822933a5651b72cde6387df9c9c8"
         },
         "stl": {
           "bytes": 201684,
@@ -95,7 +96,7 @@
           "bytes": 10432,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/eccentricKey.step",
-          "sha256": "9ecf2a7c847db58a21e078c86c5c044b6f318086a4c921fa56f1a98d3c51fd62"
+          "sha256": "4121338c5658cf803300fbd16d1e2f2256de5b30e365352502740679ef663e46"
         },
         "stl": {
           "bytes": 78784,
@@ -117,7 +118,7 @@
           "bytes": 14380,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/inputShaft.step",
-          "sha256": "440704a3d26445d20cebbaa4d4164c36cfeeaf64558d641829c5ca67ef11e96c"
+          "sha256": "cd5fa4a15a973f205f9b04be93d4cb2afe0cc7a6069faf79b6dba7b6b67430d3"
         },
         "stl": {
           "bytes": 89684,
@@ -139,7 +140,7 @@
           "bytes": 15896,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/outputShaft.step",
-          "sha256": "c2805234b6298d38990e14bfdc0c48e7b15d393e9c67ca432f12e9ca286e3b58"
+          "sha256": "f21c7c925fb1dc3e549fe10e0f3a608434bb98d805d5ff2e3dfc0fb0f8d632ac"
         },
         "stl": {
           "bytes": 199684,
@@ -161,7 +162,7 @@
           "bytes": 65005,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/pinDisk.step",
-          "sha256": "fb2960b0480d44320c8ca7f15419c3186bd8a81c60b0343448b58ba9c65da86f"
+          "sha256": "a7ba92535e1c412718b03532cfcf2ad3cfb65aef15981869da7f75ab6324f92a"
         },
         "stl": {
           "bytes": 831684,
@@ -194,7 +195,7 @@
           "bytes": 13730,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/driverPinsCollision.step",
-          "sha256": "ddc5711f2ace82352085dc026736b013e4ebdd27cb01d25e3b5d99a8ec34198f"
+          "sha256": "22433595efc474b216651a8b7e560997879dd15dec1ce2e8c4150398fbf351d6"
         },
         "stl": {
           "bytes": 150084,
@@ -216,7 +217,7 @@
           "bytes": 22688,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/ringPinsCollision.step",
-          "sha256": "17bebeba9081bbf210faae68022c423d47fc69a61635b26998356d27c113bbba"
+          "sha256": "6cdb3fe13cf2d44e79bc882ea485b3ec9e8cddde45d926a771d8633b2d21d5f9"
         },
         "stl": {
           "bytes": 250084,
@@ -626,7 +627,7 @@
     "repo_branch": null,
     "repo_commit": null
   },
-  "generated_at_utc": "2026-05-25T07:50:18.093588+00:00",
+  "generated_at_utc": "2026-05-25T08:13:44.056115+00:00",
   "missing_bridge": null,
   "ok": true,
   "proof_json": "/workspace/docs/cycloidal_real_geometry_proof.json",
@@ -828,5 +829,341 @@
     }
   },
   "schema": "mech_bench.cycloidal_real_geometry_chrono_proof.v1",
+  "trusted_asset_manifest": {
+    "design_units": "mm",
+    "geometry": [
+      {
+        "exists": true,
+        "part_id": "pinDisk",
+        "path": "cycloidal_freecad_assets/pinDisk.stl",
+        "role": "mesh",
+        "sha256": "731e0d4032890e3110c3905ad10252de5eacbc7c17649c4edb07b85cafa1a3ef",
+        "size_bytes": 831684
+      },
+      {
+        "exists": true,
+        "part_id": "pinDisk",
+        "path": "cycloidal_freecad_assets/pinDisk.step",
+        "role": "step",
+        "sha256": "a7ba92535e1c412718b03532cfcf2ad3cfb65aef15981869da7f75ab6324f92a",
+        "size_bytes": 65005
+      },
+      {
+        "exists": true,
+        "part_id": "driverDisk",
+        "path": "cycloidal_freecad_assets/driverDisk.stl",
+        "role": "mesh",
+        "sha256": "9fdbf5777e45d69b6343cf3fdc7855950bac07e1d8a34a9855c7acdbf01fba89",
+        "size_bytes": 201684
+      },
+      {
+        "exists": true,
+        "part_id": "driverDisk",
+        "path": "cycloidal_freecad_assets/driverDisk.step",
+        "role": "step",
+        "sha256": "9a1094919e54289b09679c54baedeea10a3e822933a5651b72cde6387df9c9c8",
+        "size_bytes": 15702
+      },
+      {
+        "exists": true,
+        "part_id": "inputShaft",
+        "path": "cycloidal_freecad_assets/inputShaft.stl",
+        "role": "mesh",
+        "sha256": "a061c801eb7b4567155c84cc6df4a83b4f33823f2c4abd5322f6413f39233a3f",
+        "size_bytes": 89684
+      },
+      {
+        "exists": true,
+        "part_id": "inputShaft",
+        "path": "cycloidal_freecad_assets/inputShaft.step",
+        "role": "step",
+        "sha256": "cd5fa4a15a973f205f9b04be93d4cb2afe0cc7a6069faf79b6dba7b6b67430d3",
+        "size_bytes": 14380
+      },
+      {
+        "exists": true,
+        "part_id": "cycloidalDisk1",
+        "path": "cycloidal_freecad_assets/cycloidalDisk1.stl",
+        "role": "mesh",
+        "sha256": "8be2b1ffe99b7d85cb187955bb6f3156a80b48600ccf9ae4c81b645c330b188f",
+        "size_bytes": 790584
+      },
+      {
+        "exists": true,
+        "part_id": "cycloidalDisk1",
+        "path": "cycloidal_freecad_assets/cycloidalDisk1.step",
+        "role": "step",
+        "sha256": "2ec10e94c30e09d8eba98aabbbe89e461823c9765474fa9f9460f23e0e6a2ffb",
+        "size_bytes": 131114
+      },
+      {
+        "exists": true,
+        "part_id": "cycloidalDisk2",
+        "path": "cycloidal_freecad_assets/cycloidalDisk2.stl",
+        "role": "mesh",
+        "sha256": "bdc2f98aa42441e55c7cd29d424565652dacc6e3457f3418cb28a35bcae19a3e",
+        "size_bytes": 790584
+      },
+      {
+        "exists": true,
+        "part_id": "cycloidalDisk2",
+        "path": "cycloidal_freecad_assets/cycloidalDisk2.step",
+        "role": "step",
+        "sha256": "44a53af92017de6f4c764d3bffef13fb1000e2bd81cc144f239ddec3b2de1ae5",
+        "size_bytes": 131114
+      },
+      {
+        "exists": true,
+        "part_id": "eccentricKey",
+        "path": "cycloidal_freecad_assets/eccentricKey.stl",
+        "role": "mesh",
+        "sha256": "26714ad59d9693e00e0c2dda7505c0bc40c80b14a88a3bf1f51aadbdde21ce1e",
+        "size_bytes": 78784
+      },
+      {
+        "exists": true,
+        "part_id": "eccentricKey",
+        "path": "cycloidal_freecad_assets/eccentricKey.step",
+        "role": "step",
+        "sha256": "4121338c5658cf803300fbd16d1e2f2256de5b30e365352502740679ef663e46",
+        "size_bytes": 10432
+      },
+      {
+        "exists": true,
+        "part_id": "outputShaft",
+        "path": "cycloidal_freecad_assets/outputShaft.stl",
+        "role": "mesh",
+        "sha256": "d0e246b9893a36bd07d5a7d11019960d8eebf4db5f4561a9e8d295a8a20bec5a",
+        "size_bytes": 199684
+      },
+      {
+        "exists": true,
+        "part_id": "outputShaft",
+        "path": "cycloidal_freecad_assets/outputShaft.step",
+        "role": "step",
+        "sha256": "f21c7c925fb1dc3e549fe10e0f3a608434bb98d805d5ff2e3dfc0fb0f8d632ac",
+        "size_bytes": 15896
+      }
+    ],
+    "mass_properties": [
+      {
+        "com_local_mm": [
+          -1.777308029562524e-15,
+          -3.2778781360743894e-15,
+          6.438658258426925
+        ],
+        "inertia_kg_m2": [
+          [
+            0.000331522563103793,
+            2.2471681404567797e-20,
+            9.806828939172056e-21
+          ],
+          [
+            2.2471681404567797e-20,
+            0.0003315225631037875,
+            -1.7338009882685172e-20
+          ],
+          [
+            9.806828939172056e-21,
+            -1.7338009882685172e-20,
+            0.0006682835687529233
+          ]
+        ],
+        "kernel": "FreeCAD/OCCT",
+        "mass_kg": 0.48179298215990257,
+        "part_id": "pinDisk",
+        "reason": "",
+        "recomputed": true,
+        "source": "trusted_cad_kernel"
+      },
+      {
+        "com_local_mm": [
+          4.752979397291227e-16,
+          -2.3919426807265573e-15,
+          10.419628420089413
+        ],
+        "inertia_kg_m2": [
+          [
+            4.2952486393346747e-05,
+            -2.1910620108237407e-21,
+            -2.910048612778107e-21
+          ],
+          [
+            -2.1910620108237407e-21,
+            4.295248639334588e-05,
+            -6.0125982470561765e-21
+          ],
+          [
+            -2.910048612778107e-21,
+            -6.0125982470561765e-21,
+            0.00011667347868431624
+          ]
+        ],
+        "kernel": "FreeCAD/OCCT",
+        "mass_kg": 0.19005288434043405,
+        "part_id": "driverDisk",
+        "reason": "",
+        "recomputed": true,
+        "source": "trusted_cad_kernel"
+      },
+      {
+        "com_local_mm": [
+          -0.07954063002873507,
+          -0.002107491929194017,
+          5.3950148261918685
+        ],
+        "inertia_kg_m2": [
+          [
+            4.3780993506912694e-07,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            4.3794603542510036e-07,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            4.3780993506912694e-07
+          ]
+        ],
+        "kernel": "FreeCAD/OCCT",
+        "mass_kg": 0.011678560944669344,
+        "part_id": "inputShaft",
+        "reason": "",
+        "recomputed": true,
+        "source": "trusted_cad_kernel"
+      },
+      {
+        "com_local_mm": [
+          2.0000372269969957,
+          -0.03879067921870943,
+          12.5
+        ],
+        "inertia_kg_m2": [
+          [
+            1.9869299356428707e-05,
+            -8.791664708189458e-09,
+            2.832689672482281e-06
+          ],
+          [
+            -8.791664708189458e-09,
+            1.9416173948520544e-05,
+            -5.493995558092488e-08
+          ],
+          [
+            2.832689672482281e-06,
+            -5.493995558092488e-08,
+            7.422153373629387e-05
+          ]
+        ],
+        "kernel": "FreeCAD/OCCT",
+        "mass_kg": 0.11330547788794877,
+        "part_id": "cycloidalDisk1",
+        "reason": "",
+        "recomputed": true,
+        "source": "trusted_cad_kernel"
+      },
+      {
+        "com_local_mm": [
+          -2.0004133638246113,
+          -2.8584632339569876e-15,
+          17.5
+        ],
+        "inertia_kg_m2": [
+          [
+            2.873648187385273e-06,
+            9.00721050001578e-21,
+            -3.966511362827766e-06
+          ],
+          [
+            9.00721050001578e-21,
+            2.4201817511793593e-06,
+            -5.7859399858815326e-21
+          ],
+          [
+            -3.966511362827766e-06,
+            -5.7859399858815326e-21,
+            7.422153373629384e-05
+          ]
+        ],
+        "kernel": "FreeCAD/OCCT",
+        "mass_kg": 0.11330547788794874,
+        "part_id": "cycloidalDisk2",
+        "reason": "",
+        "recomputed": true,
+        "source": "trusted_cad_kernel"
+      },
+      {
+        "com_local_mm": [
+          0.1322084233304823,
+          -3.109685621925143e-16,
+          15.155539321565273
+        ],
+        "inertia_kg_m2": [
+          [
+            2.198569300487127e-07,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            3.179815120234198e-07,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            3.7435180349968013e-07
+          ]
+        ],
+        "kernel": "FreeCAD/OCCT",
+        "mass_kg": 0.00980919831434714,
+        "part_id": "eccentricKey",
+        "reason": "",
+        "recomputed": true,
+        "source": "trusted_cad_kernel"
+      },
+      {
+        "com_local_mm": [
+          -6.819971175638119e-16,
+          -0.0005989431303703466,
+          22.685026309677003
+        ],
+        "inertia_kg_m2": [
+          [
+            5.132947551747107e-05,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            5.1358842958928787e-05,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            9.446968412234999e-05
+          ]
+        ],
+        "kernel": "FreeCAD/OCCT",
+        "mass_kg": 0.12327951531074813,
+        "part_id": "outputShaft",
+        "reason": "",
+        "recomputed": true,
+        "source": "trusted_cad_kernel"
+      }
+    ],
+    "materials": {},
+    "notes": [
+      "Mass, COM, and inertia were recomputed by a trusted CAD bridge for every positive-mass part."
+    ],
+    "schema_version": "trusted_asset_manifest.v1",
+    "trusted_geometry_kernel": "FreeCAD/OCCT",
+    "trusted_mass_properties_recomputed": true
+  },
   "validation_scope": "real-geometry solver acceptance; not empirical hardware calibration"
 }

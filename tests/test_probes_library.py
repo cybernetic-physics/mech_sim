@@ -194,6 +194,43 @@ def test_trusted_asset_preflight_refuses_unimplemented_trusted_mass():
     )
 
 
+def test_trusted_asset_preflight_accepts_trusted_cad_mass_properties():
+    probe = get_probe("trusted_asset_preflight")
+    inertia = ((1.0e-5, 0.0, 0.0), (0.0, 2.0e-5, 0.0), (0.0, 0.0, 3.0e-5))
+    raw = {
+        "schema_version": "design_ir.v2",
+        "units": "mm",
+        "params": {"cad_source": {"kernel": "FreeCAD/OCCT"}},
+        "parts": [
+            {"id": "frame", "fixed": True, "mass_kg": 0.0},
+            {
+                "id": "link",
+                "mass_kg": 0.1,
+                "geometry": {"cad": "link.step"},
+                "params": {
+                    "cad_mass_properties": {
+                        "mass_kg": 0.1,
+                        "com_local_mm": (1.0, 2.0, 3.0),
+                        "inertia_kg_m2": inertia,
+                    },
+                },
+            },
+        ],
+        "joints": [
+            {"id": "j1", "type": "revolute",
+             "parent": "frame", "child": "link"},
+        ],
+        "ports": {},
+    }
+    result = probe.run(DesignIR.from_dict(raw), {}, {
+        "require_trusted_mass_properties": True,
+    })
+    assert result.passed
+    assert result.metrics["trusted_mass_properties_recomputed"] == 1.0
+    assert result.metrics["parts_requiring_trusted_mass_properties"] == 1.0
+    assert result.metrics["parts_with_trusted_mass_properties"] == 1.0
+
+
 # --------------------------------------------------------------------- #
 # port_velocity_ratio                                                   #
 # --------------------------------------------------------------------- #

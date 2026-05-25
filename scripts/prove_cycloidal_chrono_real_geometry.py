@@ -37,6 +37,7 @@ from mech_bench.geometry.cycloidal_freecad import (
     find_freecad_command,
     generate_cycloidal_reducer_assets,
 )
+from mech_bench.trusted_assets import build_trusted_asset_manifest
 
 
 METRIC_KEYS = (
@@ -129,6 +130,12 @@ def main() -> int:
             assets,
             collision_sweep_radius_m=2.0e-5,
         )
+        trusted_manifest = build_trusted_asset_manifest(
+            ir, build_root=assets.root)
+        proof["trusted_asset_manifest"] = trusted_manifest.to_dict()
+        proof["acceptance"]["trusted_cad_mass_properties"] = (
+            trusted_manifest.trusted_mass_properties_recomputed
+        )
         proof["design_ir"] = _design_ir_proof(ir, assets)
         collision_issue = _collision_shape_issue(proof["design_ir"], assets)
         if collision_issue:
@@ -200,6 +207,7 @@ def _base_proof(out_dir: Path, proof_json: Path, args: argparse.Namespace) -> di
             "chrono_procedural_fallback_false": False,
             "chrono_nsc_real_geometry_metrics": False,
             "chrono_smc_real_geometry_metrics": False,
+            "trusted_cad_mass_properties": False,
             "nsc_bad_regime_observed": False,
             "smc_minimum_success_threshold": False,
             "smc_unloaded_ratio_near_declared": False,

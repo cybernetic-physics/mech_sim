@@ -9,6 +9,7 @@ fails rather than treating declared mass/inertia as trusted physics.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from mech_bench.feedback import Failure, FailureCode, Severity
@@ -53,10 +54,17 @@ class TrustedAssetPreflight(Probe):
         require_trusted_mass = bool(
             config.get("require_trusted_mass_properties", False))
 
-        manifest = build_trusted_asset_manifest(ir)
+        build_root_raw = config.get("build_root")
+        build_root = Path(str(build_root_raw)) if build_root_raw else None
+        manifest = build_trusted_asset_manifest(ir, build_root=build_root)
         failures: list[Failure] = []
 
         geometry_ok = 0
+        trusted_mass_parts = {
+            evidence.part_id
+            for evidence in manifest.mass_properties
+            if evidence.recomputed
+        }
         for p in parts:
             geom = p.geometry if isinstance(p.geometry, dict) else {}
             missing = [role for role in required_roles if role not in geom]
@@ -119,19 +127,32 @@ class TrustedAssetPreflight(Probe):
                     ))
 
         if require_trusted_mass:
+            parts_requiring_mass = [
+                p.id for p in parts
+                if float(getattr(p, "mass_kg", 0.0) or 0.0) > 0.0
+            ]
+            missing_mass = [
+                part_id for part_id in parts_requiring_mass
+                if part_id not in trusted_mass_parts
+            ]
+        else:
+            parts_requiring_mass = []
+            missing_mass = []
+
+        if missing_mass:
             failures.append(Failure(
                 code=FailureCode.INVALID_MASS_PROPERTIES,
                 severity=Severity.CRITICAL,
                 message=(
-                    "Trusted CAD mass-property recomputation is required "
-                    "by this probe, but no trusted CAD kernel is currently "
-                    "integrated."
+                    "Trusted CAD mass-property recomputation is required, "
+                    "but these positive-mass parts still lack trusted "
+                    f"mass/COM/inertia evidence: {missing_mass!r}."
                 ),
                 where="trusted_assets.mass_properties",
                 public_hint=(
-                    "This task cannot claim high-fidelity physical "
-                    "validation until mass/inertia are recomputed on the "
-                    "trusted side."
+                    "This task cannot claim high-fidelity physical validation "
+                    "until mass, COM, and inertia are recomputed on the "
+                    "trusted side for every checked positive-mass part."
                 ),
             ))
 
@@ -143,6 +164,12 @@ class TrustedAssetPreflight(Probe):
             "material_records": float(len(ir.materials or {})),
             "trusted_mass_properties_recomputed": (
                 1.0 if manifest.trusted_mass_properties_recomputed else 0.0
+            ),
+            "parts_requiring_trusted_mass_properties": float(
+                len(parts_requiring_mass) if require_trusted_mass else 0
+            ),
+            "parts_with_trusted_mass_properties": float(
+                len([p for p in parts if p.id in trusted_mass_parts])
             ),
         }
         passed = not failures

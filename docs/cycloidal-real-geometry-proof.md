@@ -21,6 +21,8 @@ Acceptance requires:
 
 - FreeCAD/CycloidGearBox writes `cycloidal_assets_manifest.json`.
 - All seven named reducer bodies have nonempty STEP and STL exports.
+- The trusted asset manifest records FreeCAD/OCCT recomputed mass, COM,
+  and inertia for every positive-mass body.
 - The Chrono DesignIR uses non-procedural Chrono collision for `pinDisk`,
   `driverDisk`, and `cycloidalDisk1`, backed by exported CAD meshes and
   CAD-derived feature frames.
