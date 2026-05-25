@@ -1,14 +1,12 @@
 {
-  "description": "Tier 3 cycloidal_lowN_stub \u2014 capability-unavailable regression.",
+  "description": "Tier 3 cycloidal_lowN_stub negative controls.",
   "controls": [
     {
       "id": "wrong_ratio",
       "submission": "negative_solutions/wrong_ratio",
       "expected_failure_codes": [
-        "wrong_ratio",
-        "capability_unavailable"
+        "wrong_ratio"
       ],
-      "expected_hard_gate_passed": false,
       "expected_score_below": 0.5
     },
     {

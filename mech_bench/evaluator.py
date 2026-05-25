@@ -165,6 +165,43 @@ def _resolve_forced_adapter(
     return None
 
 
+def _adapter_runtime_context(
+    *,
+    task: TaskSpec,
+    cfg: EvalConfig,
+    plan: ExecutionPlan,
+    adapter_name: str,
+    build_root: Path,
+) -> dict[str, Any]:
+    """Serializable task/probe context for one adapter run."""
+    by_id = {p.probe_id: p for p in plan.probes}
+    probe_specs: list[dict[str, Any]] = []
+    for spec in cfg.probes:
+        pplan = by_id.get(spec.id)
+        if pplan is None or pplan.adapter_type != adapter_name:
+            continue
+        probe_specs.append({
+            "id": spec.id,
+            "type": spec.type,
+            "config": dict(spec.config),
+            "weight": float(spec.weight),
+            "severity": spec.severity,
+            "hard_gate": bool(spec.hard_gate),
+            "tier": spec.tier,
+            "class_metric": spec.class_metric,
+        })
+    return {
+        "task": {
+            "id": task.id,
+            "family": task.family,
+            "difficulty": task.difficulty,
+            "units": task.units,
+        },
+        "build_root": str(Path(build_root).resolve()),
+        "probe_specs": probe_specs,
+    }
+
+
 def _fake_oracle_is_explicit(
     cfg: EvalConfig, forced_adapter: str | None,
 ) -> bool:
@@ -849,6 +886,13 @@ def evaluate_with_evidence(
         adapter = adapter_cls()
         adapter_cfg: dict[str, Any] = {"samples": 360}
         adapter_cfg.update(cfg.adapter_configs.get(adapter_name, {}))
+        adapter_cfg["_mech_bench"] = _adapter_runtime_context(
+            task=task,
+            cfg=cfg,
+            plan=plan,
+            adapter_name=adapter_name,
+            build_root=Path(scratch_dir),
+        )
         t0 = time.perf_counter()
         try:
             raw = adapter.run(ir, adapter_cfg)
