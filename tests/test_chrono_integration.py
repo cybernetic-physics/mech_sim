@@ -358,6 +358,13 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
     assert audit["feature_frame_counts"]["driver_pins"] == 6
     assert audit["feature_frame_counts"]["cycloidalDisk1_output_holes"] == 6
     assert audit["feature_frame_counts"]["cycloidalDisk2_output_holes"] == 6
+    axes = assets.feature_frames["axes"]
+    assert axes["cycloidalDisk1_eccentric_axis"]["body"] == "cycloidalDisk1"
+    assert axes["cycloidalDisk2_eccentric_axis"]["body"] == "cycloidalDisk2"
+    assert axes["cycloidalDisk1_eccentric_axis"]["center_mm"][2] == 12.5
+    assert axes["cycloidalDisk2_eccentric_axis"]["center_mm"][2] == 17.5
+    assert axes["cycloidalDisk1_eccentric_axis"]["center_mm"] != axes[
+        "cycloidalDisk2_eccentric_axis"]["center_mm"]
     for disk_name in ("cycloidalDisk1", "cycloidalDisk2"):
         pin_hole = audit[f"driver_pins_to_{disk_name}_output_holes"]
         assert pin_hole["status"] == "ok"

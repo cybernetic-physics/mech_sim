@@ -1039,6 +1039,16 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
                 "eccentric_axis": _point_feature(
                     "eccentric_axis", "inputShaft",
                     [eccentricity, 0.0, base_height + disk_height / 2.0]),
+                "cycloidalDisk1_eccentric_axis": _point_feature(
+                    "cycloidalDisk1_eccentric_axis",
+                    "cycloidalDisk1",
+                    _world_point(disk1_obj, eccentricity, 0.0, disk_z_local),
+                ),
+                "cycloidalDisk2_eccentric_axis": _point_feature(
+                    "cycloidalDisk2_eccentric_axis",
+                    "cycloidalDisk2",
+                    _world_point(disk2_obj, eccentricity, 0.0, disk_z_local),
+                ),
             },
         }
 
