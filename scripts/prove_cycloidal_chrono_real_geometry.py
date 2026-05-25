@@ -4,7 +4,8 @@
 The proof intentionally exercises the non-procedural path:
 
 1. FreeCAD/OCCT exports named STEP/STL bodies through CycloidGearBox.
-2. DesignIR is built from the manifest with mesh collision for contact bodies.
+2. DesignIR is built from the manifest with Chrono collision for contact bodies
+   backed by exported CAD meshes and CAD-derived feature frames.
 3. Chrono runs NSC and SMC with ``procedural_cycloidal_fallback=false``.
 
 The emitted JSON stores hashes and sizes for the CAD exports plus the scalar

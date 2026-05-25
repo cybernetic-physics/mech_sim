@@ -1,0 +1,284 @@
+{
+  "commands": {
+    "cycloidal_real_geometry_proof": "MECH_BENCH_FREECAD_CMD=/tmp/corl-freecad-env/bin/freecadcmd MECH_BENCH_CYCLOID_GEARBOX_PATH=/tmp/CycloidGearBox PYTHONPATH=/tmp/corl-chrono-env/lib/python3.12/site-packages uv run --extra dev python scripts/prove_cycloidal_chrono_real_geometry.py --out-dir /tmp/mech_bench_paper_results/cycloidal_real_geometry --proof-json /tmp/mech_bench_paper_results/cycloidal_real_geometry_proof.json",
+    "negative_controls_both": "MECH_BENCH_FREECAD_CMD=/tmp/corl-freecad-env/bin/freecadcmd MECH_BENCH_CYCLOID_GEARBOX_PATH=/tmp/CycloidGearBox PYTHONPATH=/tmp/corl-chrono-env/lib/python3.12/site-packages uv run --extra dev mech-bench check-negative-controls --tasks tasks --eval both",
+    "reference_suite_both": "MECH_BENCH_FREECAD_CMD=/tmp/corl-freecad-env/bin/freecadcmd MECH_BENCH_CYCLOID_GEARBOX_PATH=/tmp/CycloidGearBox PYTHONPATH=/tmp/corl-chrono-env/lib/python3.12/site-packages uv run --extra dev mech-bench run-suite --tasks tasks --submissions reference --eval both --report-dir /tmp/mech_bench_paper_results/reference_both"
+  },
+  "cycloidal_real_geometry": {
+    "acceptance": {
+      "chrono_nsc_real_geometry_metrics": true,
+      "chrono_procedural_fallback_false": true,
+      "chrono_smc_real_geometry_metrics": true,
+      "freecad_export_ran": true,
+      "manifest_written": true,
+      "named_bodies_exported": true,
+      "nonempty_step_stl_exports": true,
+      "nsc_bad_regime_observed": true,
+      "smc_minimum_success_threshold": true
+    },
+    "missing_bridge": null,
+    "nsc": {
+      "contact_force_rms_N": 1580813.773546876,
+      "lockup_detected": 0.0,
+      "max_penetration_mm": 3.934181593649555,
+      "n_contacts_max": 958.0,
+      "out_omega_med": 17.350619271663227,
+      "ratio_observed": 0.5763483045433342,
+      "top_contact_pairs": [
+        {
+          "active_sample_count": 50.0,
+          "max_force_N": 7863039.976165678,
+          "max_penetration_mm": 3.934181593649555,
+          "pair": "cycloidalDisk1:driverDisk",
+          "rms_force_N": 2233667.969636246,
+          "rms_penetration_mm": 1.7847300795686596
+        },
+        {
+          "active_sample_count": 58.0,
+          "max_force_N": 396887.2973121759,
+          "max_penetration_mm": 0.940445410378743,
+          "pair": "cycloidalDisk1:pinDisk",
+          "rms_force_N": 93122.36408144659,
+          "rms_penetration_mm": 0.47869990862765105
+        }
+      ]
+    },
+    "nsc_failure_mode": "power_balance_error",
+    "proof_ok": true,
+    "smc": {
+      "contact_force_rms_N": 66.35794956346487,
+      "lockup_detected": 0.0,
+      "max_penetration_mm": 0.9753714039106853,
+      "n_contacts_max": 171.0,
+      "out_omega_med": -0.6708155273694723,
+      "ratio_observed": 14.907227981459936,
+      "top_contact_pairs": [
+        {
+          "active_sample_count": 60.0,
+          "max_force_N": 255.74863081716313,
+          "max_penetration_mm": 0.9193377991323359,
+          "pair": "cycloidalDisk1:pinDisk",
+          "rms_force_N": 60.00489741437925,
+          "rms_penetration_mm": 0.46081907822691065
+        },
+        {
+          "active_sample_count": 60.0,
+          "max_force_N": 210.49996469866275,
+          "max_penetration_mm": 0.9753714039106853,
+          "pair": "cycloidalDisk1:driverDisk",
+          "rms_force_N": 72.15377486191915,
+          "rms_penetration_mm": 0.6250001300839525
+        }
+      ]
+    },
+    "smc_failure_mode": "power_balance_error",
+    "smc_vs_nsc": {
+      "contact_force_rms_ratio_smc_over_nsc": 4.1977082104097163e-05,
+      "contact_force_rms_reduction_factor_nsc_over_smc": 23822.522907145925,
+      "max_penetration_ratio_smc_over_nsc": 0.24792231387719935,
+      "max_penetration_reduction_factor_nsc_over_smc": 4.033521567144291,
+      "n_contacts_ratio_smc_over_nsc": 0.17849686847599164,
+      "n_contacts_reduction_factor_nsc_over_smc": 5.60233918128655
+    }
+  },
+  "generated_at_utc": "2026-05-25T06:49:43.933781+00:00",
+  "negative_controls": {
+    "all_passed": true,
+    "failures": [],
+    "n_checks": 104,
+    "n_passed": 104
+  },
+  "reference_controls": {
+    "capability_unavailable_n": 1,
+    "evaluation_valid_rate": 0.9803921568627451,
+    "failure_code_histogram": {
+      "capability_unavailable": 1,
+      "excessive_torque_ripple": 1,
+      "insufficient_clearance": 2,
+      "lockup": 1,
+      "power_balance_error": 1
+    },
+    "generalization_gap_mean": 0.007568940868889382,
+    "hard_gate_pass_rate": 0.9803921568627451,
+    "hidden_score_mean": 0.9452632731933964,
+    "invalid_or_hard_gate_failures": [
+      {
+        "family": "contact_gear_pair_stub",
+        "hidden_failure_codes": [
+          "capability_unavailable",
+          "capability_unavailable"
+        ],
+        "hidden_score": 0.0,
+        "public_failure_codes": [
+          "capability_unavailable",
+          "capability_unavailable"
+        ],
+        "public_score": 0.0,
+        "task_id": "contact_gear_pair_stub_s0001",
+        "tier": "contact_dynamics"
+      }
+    ],
+    "n_by_tier": {
+      "artifact_static": 13,
+      "contact_dynamics": 12,
+      "planar_kinematics": 12,
+      "transmission_analytic": 13,
+      "unknown": 1
+    },
+    "n_families": 51,
+    "n_tasks": 51,
+    "overall_score_mean": 0.9452632731933964,
+    "overall_score_median": 1.0,
+    "pass_by_tier": {
+      "artifact_static": {
+        "n": 13,
+        "n_passed": 13,
+        "pass_rate": 1.0
+      },
+      "contact_dynamics": {
+        "n": 12,
+        "n_passed": 11,
+        "pass_rate": 0.9166666666666666
+      },
+      "planar_kinematics": {
+        "n": 12,
+        "n_passed": 12,
+        "pass_rate": 1.0
+      },
+      "transmission_analytic": {
+        "n": 13,
+        "n_passed": 13,
+        "pass_rate": 1.0
+      },
+      "unknown": {
+        "n": 1,
+        "n_passed": 1,
+        "pass_rate": 1.0
+      }
+    },
+    "pass_rate": 0.9803921568627451,
+    "public_score_mean": 0.9528322140622859,
+    "score_by_tier": {
+      "artifact_static": {
+        "mean": 0.9694172494172494,
+        "n": 13
+      },
+      "contact_dynamics": {
+        "mean": 0.8182870370370371,
+        "n": 12
+      },
+      "planar_kinematics": {
+        "mean": 0.9822132115191762,
+        "n": 12
+      },
+      "transmission_analytic": {
+        "mean": 1.0,
+        "n": 13
+      },
+      "unknown": {
+        "mean": 0.9999997077644183,
+        "n": 1
+      }
+    },
+    "synthetic_oracle_n": 11,
+    "valid_low_score_reference_cases_hidden_lt_0_95": [
+      {
+        "failure_codes": [],
+        "family": "brake_caliper_contact_stub",
+        "hidden_score": 0.9,
+        "public_score": 0.8,
+        "task_id": "brake_caliper_contact_stub_s0001",
+        "tier": "contact_dynamics"
+      },
+      {
+        "failure_codes": [],
+        "family": "cam_follower_contact_stub",
+        "hidden_score": 0.8,
+        "public_score": 0.8,
+        "task_id": "cam_follower_contact_stub_s0001",
+        "tier": "contact_dynamics"
+      },
+      {
+        "failure_codes": [
+          "excessive_torque_ripple",
+          "lockup",
+          "power_balance_error"
+        ],
+        "family": "cycloidal_lowN_stub",
+        "hidden_score": 0.3,
+        "public_score": 0.3,
+        "task_id": "cycloidal_lowN_stub_s0001",
+        "tier": "contact_dynamics"
+      },
+      {
+        "failure_codes": [],
+        "family": "detent_spring_contact_stub",
+        "hidden_score": 0.875,
+        "public_score": 0.75,
+        "task_id": "detent_spring_contact_stub_s0001",
+        "tier": "contact_dynamics"
+      },
+      {
+        "failure_codes": [],
+        "family": "fourbar_path",
+        "hidden_score": 0.8932625298680621,
+        "public_score": 0.9999996364431545,
+        "task_id": "fourbar_path_s0001",
+        "tier": "planar_kinematics"
+      },
+      {
+        "failure_codes": [],
+        "family": "fourbar_wiper_arc",
+        "hidden_score": 0.8932967203590861,
+        "public_score": 0.9999996981221875,
+        "task_id": "fourbar_wiper_arc_s0001",
+        "tier": "planar_kinematics"
+      },
+      {
+        "failure_codes": [],
+        "family": "friction_clutch_torque_stub",
+        "hidden_score": 0.9444444444444445,
+        "public_score": 0.9444444444444445,
+        "task_id": "friction_clutch_torque_stub_s0001",
+        "tier": "contact_dynamics"
+      },
+      {
+        "failure_codes": [
+          "insufficient_clearance"
+        ],
+        "family": "pulley_bore_alignment_static",
+        "hidden_score": 0.6933333333333334,
+        "public_score": 1.0,
+        "task_id": "pulley_bore_alignment_static_s0001",
+        "tier": "artifact_static"
+      },
+      {
+        "failure_codes": [
+          "insufficient_clearance"
+        ],
+        "family": "static_fit_bracket",
+        "hidden_score": 0.9090909090909091,
+        "public_score": 1.0,
+        "task_id": "static_fit_bracket_s0001",
+        "tier": "artifact_static"
+      }
+    ],
+    "verified_pass_rate": 0.9607843137254902
+  },
+  "repo_branch": "mech-sim-natalia",
+  "repo_commit": "1f18ec5519ea417a56051539728585244d796ae9",
+  "schema": "mech_bench.paper_results.v1",
+  "supported_claims": [
+    "MechBench can evaluate 51 checked-in mechanical tasks across static artifact, analytic transmission, planar kinematics, and contact-dynamics tiers.",
+    "Reference controls pass 50/51 tasks under public+hidden evaluation; the only invalid/hard-gate reference miss is contact_gear_pair_stub_s0001 due to capability_unavailable.",
+    "All 104 checked-in negative-control expectations are detected.",
+    "The cycloidal reducer path has a real FreeCAD/CycloidGearBox asset export and Chrono NSC/SMC execution with procedural_cycloidal_fallback=false.",
+    "On the real-geometry cycloidal fixture, SMC reduces contact-force RMS, maximum penetration, and maximum contact count relative to NSC."
+  ],
+  "unsupported_claims": [
+    "No agent-learning or RLVR improvement result has been run.",
+    "No empirical hardware calibration has been performed.",
+    "The cycloidal reducer is not yet a validated predictive reducer model; both NSC and SMC runs still report power_balance_error in the proof fixture.",
+    "The current evidence supports a benchmark/runtime paper more than a high-fidelity mechanical-simulator paper."
+  ]
+}

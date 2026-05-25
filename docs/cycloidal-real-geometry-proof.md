@@ -19,8 +19,9 @@ Acceptance requires:
 
 - FreeCAD/CycloidGearBox writes `cycloidal_assets_manifest.json`.
 - All seven named reducer bodies have nonempty STEP and STL exports.
-- The Chrono DesignIR uses exported STL mesh collision for `pinDisk`,
-  `driverDisk`, and `cycloidalDisk1`.
+- The Chrono DesignIR uses non-procedural Chrono collision for `pinDisk`,
+  `driverDisk`, and `cycloidalDisk1`, backed by exported CAD meshes and
+  CAD-derived feature frames.
 - `_chrono_impl.run(...)` runs with `procedural_cycloidal_fallback=false`.
 - Both NSC and SMC emit finite real-geometry metrics:
   `lockup_detected`, `ratio_observed`, `out_omega_med`,
