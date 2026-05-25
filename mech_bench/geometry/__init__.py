@@ -3,6 +3,7 @@
 from mech_bench.geometry.cycloidal_freecad import (
     CycloidalCadExportError,
     CycloidalReducerAssets,
+    audit_cycloidal_static_geometry,
     build_chrono_design_ir_from_assets,
     find_cycloid_gearbox_path,
     find_freecad_command,
@@ -12,6 +13,7 @@ from mech_bench.geometry.cycloidal_freecad import (
 __all__ = [
     "CycloidalCadExportError",
     "CycloidalReducerAssets",
+    "audit_cycloidal_static_geometry",
     "build_chrono_design_ir_from_assets",
     "find_cycloid_gearbox_path",
     "find_freecad_command",

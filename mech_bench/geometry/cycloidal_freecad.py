@@ -56,6 +56,8 @@ class CycloidalReducerAssets:
     bodies: dict[str, dict[str, Any]]
     collision_meshes: dict[str, dict[str, Any]]
     collision_primitives: dict[str, dict[str, Any]]
+    feature_frames: dict[str, Any]
+    static_audit: dict[str, Any]
     parameters: dict[str, Any]
     source: dict[str, Any]
 
@@ -70,6 +72,8 @@ class CycloidalReducerAssets:
             bodies=dict(data.get("bodies", {})),
             collision_meshes=dict(data.get("collision_meshes", {})),
             collision_primitives=dict(data.get("collision_primitives", {})),
+            feature_frames=dict(data.get("feature_frames", {})),
+            static_audit=dict(data.get("static_audit", {})),
             parameters=dict(data.get("parameters", {})),
             source=dict(data.get("source", {})),
         )
@@ -81,6 +85,8 @@ class CycloidalReducerAssets:
             "bodies": self.bodies,
             "collision_meshes": self.collision_meshes,
             "collision_primitives": self.collision_primitives,
+            "feature_frames": self.feature_frames,
+            "static_audit": self.static_audit,
             "parameters": self.parameters,
             "source": self.source,
         }
@@ -212,6 +218,7 @@ def build_chrono_design_ir_from_assets(
     collidable_body_names: set[str] | None = None,
     collision_sweep_radius_m: float = 2.0e-4,
     use_primitive_pin_collision: bool = True,
+    use_cad_collision_primitives: bool = True,
 ) -> DesignIR:
     """Build a DesignIR that feeds generated STL meshes to Chrono."""
 
@@ -230,6 +237,8 @@ def build_chrono_design_ir_from_assets(
                     bodies=dict(assets.get("bodies", {})),
                     collision_meshes=dict(assets.get("collision_meshes", {})),
                     collision_primitives=dict(assets.get("collision_primitives", {})),
+                    feature_frames=dict(assets.get("feature_frames", {})),
+                    static_audit=dict(assets.get("static_audit", {})),
                     parameters=dict(assets.get("parameters", {})),
                     source=dict(assets.get("source", {})),
                 )
@@ -264,7 +273,8 @@ def build_chrono_design_ir_from_assets(
     collision_primitives = (
         _collision_primitives_by_body(assets) if use_primitive_pin_collision else {}
     )
-    collision_primitives.update(_cad_collision_primitives_by_body(assets))
+    if use_cad_collision_primitives:
+        collision_primitives.update(_cad_collision_primitives_by_body(assets))
     density_kg_m3 = float(assets.parameters.get("density_kg_m3", 7850.0))
     for name in selected:
         body = assets.bodies.get(name)
@@ -413,8 +423,44 @@ def build_chrono_design_ir_from_assets(
                 "declared_ratio", max(1, ring_pins - 1))),
             "cad_assets_manifest": str(assets.manifest_path),
             "cad_source": assets.source,
+            "cad_feature_frames": assets.feature_frames,
+            "cad_static_audit": assets.static_audit,
         },
     )
+
+
+def audit_cycloidal_static_geometry(
+    assets: CycloidalReducerAssets | dict[str, Any] | str | Path,
+) -> dict[str, Any]:
+    """Return CAD-exported static geometry checks for the reducer assembly."""
+
+    if not isinstance(assets, CycloidalReducerAssets):
+        if isinstance(assets, (str, Path)):
+            assets = CycloidalReducerAssets.from_manifest(assets)
+        else:
+            manifest = assets.get("manifest_path")
+            if manifest:
+                assets = CycloidalReducerAssets.from_manifest(manifest)
+            else:
+                root = Path(str(assets["root"])).resolve()
+                assets = CycloidalReducerAssets(
+                    root=root,
+                    manifest_path=root / "cycloidal_assets_manifest.json",
+                    bodies=dict(assets.get("bodies", {})),
+                    collision_meshes=dict(assets.get("collision_meshes", {})),
+                    collision_primitives=dict(assets.get("collision_primitives", {})),
+                    feature_frames=dict(assets.get("feature_frames", {})),
+                    static_audit=dict(assets.get("static_audit", {})),
+                    parameters=dict(assets.get("parameters", {})),
+                    source=dict(assets.get("source", {})),
+                )
+    audit = dict(assets.static_audit or {})
+    audit["feature_frame_counts"] = {
+        key: len(value)
+        for key, value in (assets.feature_frames or {}).items()
+        if isinstance(value, list)
+    }
+    return audit
 
 
 def _collision_meshes_by_body(
@@ -826,6 +872,176 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
             "children": children,
         }
 
+    def _world_point(obj, x, y, z):
+        p = obj.Placement.multVec(App.Vector(float(x), float(y), float(z)))
+        return [float(p.x), float(p.y), float(p.z)]
+
+    def _point_feature(name, body, center_mm, radius_mm=None):
+        out = {
+            "name": str(name),
+            "body": str(body),
+            "center_mm": [float(v) for v in center_mm],
+            "axis": [0.0, 0.0, 1.0],
+        }
+        if radius_mm is not None:
+            out["radius_mm"] = float(radius_mm)
+        return out
+
+    def _circular_pattern_features(
+        *,
+        name,
+        body,
+        count,
+        radius_mm,
+        feature_radius_mm,
+        z_local_mm,
+        obj=None,
+        origin_x_mm=0.0,
+        origin_y_mm=0.0,
+    ):
+        features = []
+        for idx in range(int(count)):
+            angle = 2.0 * math.pi * idx / int(count)
+            x = float(origin_x_mm) + float(radius_mm) * math.cos(angle)
+            y = float(origin_y_mm) + float(radius_mm) * math.sin(angle)
+            center = (
+                _world_point(obj, x, y, z_local_mm)
+                if obj is not None
+                else [float(x), float(y), float(z_local_mm)]
+            )
+            item = _point_feature(
+                f"{name}_{idx:02d}",
+                body,
+                center,
+                feature_radius_mm,
+            )
+            item["index"] = idx
+            item["angle_rad"] = float(angle)
+            features.append(item)
+        return features
+
+    def _shape_distance_mm(shape_a, shape_b):
+        try:
+            result = shape_a.distToShape(shape_b)
+            return float(result[0])
+        except Exception:
+            return None
+
+    def _pin_hole_clearance_audit(pin_features, hole_features):
+        pairs = []
+        for pin in pin_features:
+            pc = pin["center_mm"]
+            pr = float(pin.get("radius_mm", 0.0))
+            best = None
+            for hole in hole_features:
+                hc = hole["center_mm"]
+                hr = float(hole.get("radius_mm", 0.0))
+                dx = float(pc[0]) - float(hc[0])
+                dy = float(pc[1]) - float(hc[1])
+                dist = math.sqrt(dx * dx + dy * dy)
+                clearance = hr - pr - dist
+                row = {
+                    "pin": pin["name"],
+                    "hole": hole["name"],
+                    "center_distance_mm": float(dist),
+                    "radial_clearance_mm": float(clearance),
+                }
+                if best is None or dist < best["center_distance_mm"]:
+                    best = row
+            if best is not None:
+                pairs.append(best)
+        clearances = [p["radial_clearance_mm"] for p in pairs]
+        if not clearances:
+            return {
+                "status": "missing_features",
+                "pair_count": 0,
+                "pairs": [],
+            }
+        return {
+            "status": "ok",
+            "pair_count": len(pairs),
+            "min_radial_clearance_mm": float(min(clearances)),
+            "max_radial_clearance_mm": float(max(clearances)),
+            "mean_radial_clearance_mm": float(sum(clearances) / len(clearances)),
+            "pairs": pairs,
+        }
+
+    def _cycloidal_feature_frames(doc, params):
+        tooth_count = int(params["tooth_count"])
+        ring_count = tooth_count + 1
+        disk_height = float(params["disk_height"])
+        base_height = float(params["base_height"])
+        clearance = float(params.get("clearance", 0.0))
+        eccentricity = float(params["eccentricity"])
+        driver_count = int(params["driver_disk_hole_count"])
+        driver_radius = float(params["driver_circle_diameter"]) / 2.0
+        driver_hole_radius = float(params["driver_hole_diameter"]) / 2.0
+        disk_output_hole_radius = driver_hole_radius + eccentricity
+        ring_radius = float(params["roller_circle_diameter"]) / 2.0 + clearance
+        ring_pin_radius = float(params["roller_diameter"]) / 2.0
+        driver_shrink = float(params.get(
+            "driver_pin_collision_shrink_mm",
+            min(max(clearance, 0.0), 0.5),
+        ))
+        driver_collision_radius = max(driver_hole_radius - driver_shrink, 0.1)
+
+        driver_obj = doc.getObject("driverDisk")
+        disk1_obj = doc.getObject("cycloidalDisk1")
+        disk2_obj = doc.getObject("cycloidalDisk2")
+        driver_z_local = disk_height * 2.0
+        disk_z_local = disk_height / 2.0
+        return {
+            "ring_pins": _circular_pattern_features(
+                name="ring_pin",
+                body="pinDisk",
+                count=ring_count,
+                radius_mm=ring_radius,
+                feature_radius_mm=ring_pin_radius,
+                z_local_mm=(base_height + disk_height * 3.0) / 2.0,
+            ),
+            "driver_pins": _circular_pattern_features(
+                name="driver_pin",
+                body="driverDisk",
+                count=driver_count,
+                radius_mm=driver_radius,
+                feature_radius_mm=driver_collision_radius,
+                z_local_mm=driver_z_local,
+                obj=driver_obj,
+            ),
+            "driver_pin_nominal_radius_mm": float(driver_hole_radius),
+            "driver_pin_collision_radius_mm": float(driver_collision_radius),
+            "cycloidalDisk1_output_holes": _circular_pattern_features(
+                name="cycloidalDisk1_output_hole",
+                body="cycloidalDisk1",
+                count=driver_count,
+                radius_mm=driver_radius,
+                feature_radius_mm=disk_output_hole_radius,
+                z_local_mm=disk_z_local,
+                obj=disk1_obj,
+                origin_x_mm=eccentricity,
+            ),
+            "cycloidalDisk2_output_holes": _circular_pattern_features(
+                name="cycloidalDisk2_output_hole",
+                body="cycloidalDisk2",
+                count=driver_count,
+                radius_mm=driver_radius,
+                feature_radius_mm=disk_output_hole_radius,
+                z_local_mm=disk_z_local,
+                obj=disk2_obj,
+                origin_x_mm=eccentricity,
+            ),
+            "axes": {
+                "input_axis": _point_feature(
+                    "input_axis", "inputShaft", [0.0, 0.0, base_height / 2.0]),
+                "output_axis": _point_feature(
+                    "output_axis", "outputShaft",
+                    [0.0, 0.0, base_height + disk_height * 3.0]),
+                "eccentric_axis": _point_feature(
+                    "eccentric_axis", "inputShaft",
+                    [eccentricity, 0.0, base_height + disk_height / 2.0]),
+            },
+        }
+
     def _ready_part(doc, name):
         part = cycloidFun.ready_part(doc, name)
         return part
@@ -869,6 +1085,8 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
         bodies = {}
         collision_meshes = {}
         collision_primitives = {}
+        feature_frames = _cycloidal_feature_frames(doc, params)
+        static_audit = {}
         exported_objects = []
         for name in BODY_NAMES:
             obj = doc.getObject(name)
@@ -918,9 +1136,10 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
                 "radius": ring_pin_radius,
                 "height": ring_pin_height,
             })
+        ring_shape = _cylinder_compound(ring_cylinders)
         collision_meshes["ringPins"] = _export_collision_feature(
             doc, "ringPinsCollision",
-            _cylinder_compound(ring_cylinders), exports_dir, root)
+            ring_shape, exports_dir, root)
 
         driver_count = int(params["driver_disk_hole_count"])
         driver_radius = float(params["driver_circle_diameter"]) / 2.0
@@ -937,9 +1156,24 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
                 "radius": driver_pin_radius,
                 "height": driver_height,
             })
+        driver_shape = _cylinder_compound(driver_cylinders)
         collision_meshes["driverPins"] = _export_collision_feature(
             doc, "driverPinsCollision",
-            _cylinder_compound(driver_cylinders), exports_dir, root)
+            driver_shape, exports_dir, root)
+
+        disk1_shape = doc.getObject("cycloidalDisk1").Shape
+        static_audit = {
+            "ring_pins_to_cycloidalDisk1_distance_mm": _shape_distance_mm(
+                ring_shape, disk1_shape),
+            "driver_pins_to_cycloidalDisk1_distance_mm": _shape_distance_mm(
+                driver_shape, disk1_shape),
+            "driver_pins_to_cycloidalDisk1_output_holes": (
+                _pin_hole_clearance_audit(
+                    feature_frames["driver_pins"],
+                    feature_frames["cycloidalDisk1_output_holes"],
+                )
+            ),
+        }
 
         assembly_step = exports_dir / "cycloidal_reducer_assembly.step"
         _export_step(exported_objects, assembly_step)
@@ -953,6 +1187,8 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
             "bodies": bodies,
             "collision_meshes": collision_meshes,
             "collision_primitives": collision_primitives,
+            "feature_frames": feature_frames,
+            "static_audit": static_audit,
             "assembly_step": str(assembly_step.relative_to(root)),
             "freecad_document": str(doc_path.relative_to(root)),
             "parameters": params,
