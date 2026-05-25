@@ -166,6 +166,8 @@ def main() -> int:
                 ),
             }
             proof["convergence"] = _run_smc_sample_convergence(ir, assets)
+            proof["timestep_sensitivity"] = _run_smc_timestep_sensitivity(
+                ir, assets)
             _evaluate_runs(proof)
     except CycloidalCadExportError as exc:
         _mark_failed(proof, exc.stage, str(exc))
@@ -365,6 +367,7 @@ def _run_chrono(
     *,
     output_load_nm: float = 0.75,
     samples: int = 61,
+    timestep: float = 5.0e-5,
     max_power_error_pct: float = 25.0,
     max_torque_ripple_pct: float = 30.0,
 ) -> dict[str, Any]:
@@ -373,6 +376,7 @@ def _run_chrono(
         contact_model,
         output_load_nm=output_load_nm,
         samples=samples,
+        timestep=timestep,
         max_power_error_pct=max_power_error_pct,
         max_torque_ripple_pct=max_torque_ripple_pct,
     )
@@ -394,6 +398,7 @@ def _run_chrono(
         "passed": bool(out.get("passed", False)),
         "output_load_Nm": output_load_nm,
         "samples": samples,
+        "timestep": timestep,
         "metrics": {key: metrics.get(key) for key in METRIC_KEYS},
         "failure_mode": metrics.get("failure_mode"),
         "solver_diverged": metrics.get("solver_diverged"),
@@ -411,13 +416,14 @@ def _chrono_config(
     *,
     output_load_nm: float,
     samples: int,
+    timestep: float,
     max_power_error_pct: float,
     max_torque_ripple_pct: float,
 ) -> dict[str, Any]:
     return {
         "samples": samples,
         "duration_s": 0.2,
-        "timestep": 5.0e-5,
+        "timestep": float(timestep),
         "contact_model": contact_model,
         "contact_method": contact_model.upper(),
         "procedural_cycloidal_fallback": False,
@@ -503,6 +509,68 @@ def _run_smc_sample_convergence(
             and max(penetrations, default=math.inf) < 1.0
             and max(lockups, default=1.0) == 0.0
         ),
+    }
+
+
+def _run_smc_timestep_sensitivity(
+    ir: Any, assets: CycloidalReducerAssets,
+) -> dict[str, Any]:
+    runs = [
+        _run_chrono(
+            ir,
+            assets,
+            "smc",
+            output_load_nm=0.0,
+            samples=61,
+            timestep=timestep,
+            max_power_error_pct=1.0e12,
+            max_torque_ripple_pct=1.0e12,
+        )
+        for timestep in (7.5e-5, 5.0e-5, 2.5e-5)
+    ]
+    ratios = [
+        _metric_float(run.get("metrics", {}), "ratio_observed", math.inf)
+        for run in runs
+    ]
+    errors = [
+        _metric_float(run.get("metrics", {}), "ratio_error_pct", math.inf)
+        for run in runs
+    ]
+    penetrations = [
+        _metric_float(run.get("metrics", {}), "max_penetration_mm", math.inf)
+        for run in runs
+    ]
+    lockups = [
+        _metric_float(run.get("metrics", {}), "lockup_detected", 1.0)
+        for run in runs
+    ]
+    finite_ratios = [r for r in ratios if math.isfinite(r)]
+    ratio_span = (
+        max(finite_ratios) - min(finite_ratios)
+        if finite_ratios else math.inf
+    )
+    ok = (
+        all(run.get("ok") for run in runs)
+        and len(finite_ratios) == len(runs)
+        and max(errors, default=math.inf) <= 15.0
+        and ratio_span <= 1.5
+        and max(penetrations, default=math.inf) < 1.0
+        and max(lockups, default=1.0) == 0.0
+    )
+    return {
+        "status": "stable" if ok else "unstable",
+        "ok": ok,
+        "note": (
+            "Non-gating diagnostic. A credible final validated contact "
+            "claim should make this stable across timestep refinement."
+        ),
+        "timesteps": [run["timestep"] for run in runs],
+        "runs": runs,
+        "ratio_observed_values": ratios,
+        "ratio_error_pct_max": max(errors) if errors else math.inf,
+        "ratio_observed_span": ratio_span,
+        "max_penetration_mm_max": max(penetrations) if penetrations else math.inf,
+        "lockup_detected_max": max(lockups) if lockups else math.inf,
     }
 
 

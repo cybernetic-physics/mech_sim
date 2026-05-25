@@ -38,6 +38,9 @@ Acceptance requires:
 - Unloaded SMC reports ratio within 15% of the declared ratio.
 - SMC ratio convergence across sample counts 41/61/81 stays within the proof
   tolerance.
+- The proof also records non-gating SMC timestep-sensitivity diagnostics. These
+  currently document whether the CAD/contact setup is stable under timestep
+  refinement; they are not yet treated as a passing validation claim.
 - NSC, loaded SMC, and unloaded SMC emit finite real-geometry metrics:
   `lockup_detected`, `ratio_observed`, `out_omega_med`,
   `max_penetration_mm`, `n_contacts_max`, `contact_force_rms_N`, and
