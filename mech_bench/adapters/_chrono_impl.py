@@ -86,6 +86,8 @@ def run(ir: DesignIR, config: dict[str, Any]) -> dict[str, Any]:
         material = _make_contact_material(chrono, cfg, contact_method)
         bodies, body_issues = _add_bodies(chrono, system, ir, cfg, spec,
                                          material)
+        filter_issues, collision_filter = _configure_collision_filters(
+            bodies, spec, cfg)
         missing_contact_geom = [
             issue for issue in body_issues
             if "no Chrono collision geometry" in issue
@@ -106,8 +108,8 @@ def run(ir: DesignIR, config: dict[str, Any]) -> dict[str, Any]:
         load_api_issues = _install_loads(chrono, system, load_targets)
 
         preflight_issues = (
-            body_issues + joint_issues + motor_issues + load_issues
-            + load_api_issues
+            body_issues + filter_issues + joint_issues + motor_issues
+            + load_issues + load_api_issues
         )
 
         record = _Recorder(ir, spec.contact_pairs, samples)
@@ -139,6 +141,7 @@ def run(ir: DesignIR, config: dict[str, Any]) -> dict[str, Any]:
             n_joints=len(links),
             n_motors=len(motors),
             n_loads=len(load_targets),
+            collision_filter=collision_filter,
         )
 
         return {
@@ -381,6 +384,8 @@ def _maybe_run_cycloidal_procedural(
     system, contact_method = _make_system(chrono, cfg)
     material = _make_contact_material(chrono, cfg, contact_method)
     bodies, body_issues = _add_bodies(chrono, system, ir, cfg, spec, material)
+    filter_issues, collision_filter = _configure_collision_filters(
+        bodies, spec, cfg)
     motor_joint_ids = {
         str(m["joint_id"]) for m in spec.motors if m.get("mode") == "speed"
     }
@@ -556,7 +561,8 @@ def _maybe_run_cycloidal_procedural(
         "dt": float(dt),
         "wall_clock_s": float(time.perf_counter() - started),
         "preflight_issues": (
-            body_issues + joint_issues + motor_issues + load_issues
+            body_issues + filter_issues + joint_issues + motor_issues
+            + load_issues
         ),
         "failure_mode": failure_mode,
         "build_meta": {
@@ -568,6 +574,7 @@ def _maybe_run_cycloidal_procedural(
             "pins": pins,
             "declared_ratio": ratio,
         },
+        "collision_filter": collision_filter,
         "top_contact_pairs": top_pairs,
     }
     return {
@@ -873,6 +880,11 @@ def _reported_contact_config(cfg: dict[str, Any], dt: float) -> dict[str, float 
             )
         ),
         "cad_reference_frames": bool(cfg.get("cad_reference_frames", False)),
+        "cad_body_frame": str(cfg.get("cad_body_frame", "legacy")),
+        "collision_filter_named_pairs": bool(
+            cfg.get("collision_filter_named_pairs", False)),
+        "use_visual_geometry_as_collision": bool(
+            cfg.get("use_visual_geometry_as_collision", False)),
         "timestep": float(dt),
         "solver_iterations": float(cfg.get("solver_max_iterations", 100)),
     }
@@ -888,20 +900,26 @@ def _add_bodies(
 ) -> tuple[dict[str, Any], list[str]]:
     bodies: dict[str, Any] = {}
     issues: list[str] = []
+    cad_body_frame = str(cfg.get("cad_body_frame", "")).lower()
+    use_reference_frames = bool(cfg.get("cad_reference_frames", False))
+    use_com_bodies = cad_body_frame in {"com", "center_of_mass", "center-of-mass"}
     for part in ir.parts:
-        body = _new_body(chrono)
+        body = _new_body(chrono, use_auxref=not use_com_bodies)
         _call_first(body, ("SetNameString", "SetName"), part.id)
         _call_first(body, ("SetMass",), max(float(part.mass_kg), 1e-12))
-        use_reference_frames = bool(cfg.get("cad_reference_frames", False))
         _set_inertia(chrono, body, part)
         _set_com_frame(chrono, body, part, use_reference_frames)
-        _set_body_pose(chrono, body, part, use_reference_frames)
+        _set_body_pose(chrono, body, part, use_reference_frames, use_com_bodies)
         _call_first(body, ("SetFixed", "SetBodyFixed"), bool(part.fixed))
-        shape = _collision_spec(part)
+        shape = _collision_spec(
+            part,
+            include_visual_geometry=bool(
+                cfg.get("use_visual_geometry_as_collision", False)),
+        )
         if shape:
             ref_to_com_mm = (
                 _part_com_local_mm(part)
-                if use_reference_frames
+                if (use_reference_frames or use_com_bodies)
                 else (0.0, 0.0, 0.0)
             )
             ok, msg = _attach_collision_shape(
@@ -918,14 +936,99 @@ def _add_bodies(
     return bodies, issues
 
 
-def _new_body(chrono: Any) -> Any:
-    aux_cls = getattr(chrono, "ChBodyAuxRef", None)
+def _new_body(chrono: Any, *, use_auxref: bool = True) -> Any:
+    aux_cls = getattr(chrono, "ChBodyAuxRef", None) if use_auxref else None
     if aux_cls is not None:
         try:
             return aux_cls()
         except TypeError:
             pass
     return chrono.ChBody()
+
+
+def _configure_collision_filters(
+    bodies: dict[str, Any],
+    spec: RuntimeSpec,
+    cfg: dict[str, Any],
+) -> tuple[list[str], dict[str, Any]]:
+    """Restrict Chrono collision models to explicit DesignIR contact pairs."""
+    enabled = bool(cfg.get("collision_filter_named_pairs", False))
+    collidable: dict[str, Any] = {}
+    for name, body in bodies.items():
+        model = _try_call(body, ("GetCollisionModel",))
+        if model is None:
+            continue
+        shape_count = _safe_int(_try_call(model, ("GetNumShapes",)), 0)
+        if shape_count <= 0:
+            continue
+        collidable[name] = model
+
+    allowed_pairs = []
+    for pair in spec.contact_pairs:
+        a, b = _pair_names(pair)
+        if a in collidable and b in collidable:
+            allowed_pairs.append(_normalize_pair(pair))
+    allowed_pairs = sorted(set(allowed_pairs))
+    collidable_names = sorted(collidable)
+    all_pairs = sorted(
+        _normalize_pair(f"{a}:{b}")
+        for i, a in enumerate(collidable_names)
+        for b in collidable_names[i + 1:]
+    )
+    blocked_pairs = [pair for pair in all_pairs if pair not in allowed_pairs]
+    meta: dict[str, Any] = {
+        "enabled": False,
+        "mode": "named_pairs",
+        "requested": enabled,
+        "collidable_bodies": sorted(collidable),
+        "allowed_pairs": allowed_pairs,
+        "blocked_pairs": blocked_pairs,
+        "families": {},
+    }
+    if not enabled:
+        meta["reason"] = "disabled_by_config"
+        return [], meta
+    if not spec.contact_pairs:
+        meta["reason"] = "no_named_contact_pairs"
+        return [], meta
+    if len(collidable) <= 1:
+        meta["reason"] = "fewer_than_two_collidable_bodies"
+        return [], meta
+    if len(collidable) > 15:
+        issue = (
+            "collision filter named-pairs skipped: Chrono family masks expose "
+            f"15 usable families but {len(collidable)} collidable bodies exist"
+        )
+        meta["reason"] = "too_many_collidable_bodies"
+        return [issue], meta
+
+    family_by_body = {name: idx for idx, name in enumerate(sorted(collidable))}
+    for name, model in collidable.items():
+        if not (
+            hasattr(model, "SetFamily")
+            and hasattr(model, "SetFamilyMask")
+            and hasattr(model, "AllowCollisionsWith")
+        ):
+            issue = (
+                "collision filter named-pairs skipped: Chrono collision model "
+                f"for {name} lacks family/mask API"
+            )
+            meta["reason"] = "missing_chrono_filter_api"
+            return [issue], meta
+        model.SetFamily(family_by_body[name])
+        model.SetFamilyMask(0)
+
+    for pair in allowed_pairs:
+        a, b = _pair_names(pair)
+        collidable[a].AllowCollisionsWith(family_by_body[b])
+        collidable[b].AllowCollisionsWith(family_by_body[a])
+
+    for body in bodies.values():
+        _call_first(body, ("SyncCollisionModels",))
+
+    meta["enabled"] = True
+    meta["families"] = dict(family_by_body)
+    return [], meta
 
 
 def _add_joints(
@@ -1136,10 +1239,12 @@ class _Recorder:
         self.contact_forces: dict[str, np.ndarray] = {
             p: np.zeros(samples, dtype=float) for p in contact_pairs
         }
+        self.all_contact_forces: dict[str, np.ndarray] = {}
         self.motor_torques: dict[str, np.ndarray] = {}
         self.penetration: dict[str, np.ndarray] = {
             p: np.zeros(samples, dtype=float) for p in contact_pairs
         }
+        self.all_penetration: dict[str, np.ndarray] = {}
         self.constraint_errors: dict[str, np.ndarray] = {}
         self.contact_counts = np.zeros(samples, dtype=float)
         self.time_s = np.zeros(samples, dtype=float)
@@ -1230,6 +1335,11 @@ class _Recorder:
         self.contact_counts[i] = float(
             _safe_num_contacts(system) or len(contact_snapshot)
         )
+        for pair, (force, pen) in contact_snapshot.items():
+            self.all_contact_forces.setdefault(
+                pair, np.zeros_like(self.contact_counts))[i] = force
+            self.all_penetration.setdefault(
+                pair, np.zeros_like(self.contact_counts))[i] = pen
         for pair in self.contact_pairs:
             if pair in contact_snapshot:
                 force, pen = contact_snapshot[pair]
@@ -1370,6 +1480,19 @@ def _scalar_metrics(
     metrics["n_contacts_max"] = float(np.max(record.contact_counts)) if record.contact_counts.size else 0.0
     metrics["top_contact_pairs"] = _top_contact_pairs(
         record.contact_forces, record.penetration)
+    metrics["all_top_contact_pairs"] = _top_contact_pairs(
+        record.all_contact_forces, record.all_penetration)
+    unmonitored_forces = {
+        pair: values for pair, values in record.all_contact_forces.items()
+        if pair not in record.contact_forces
+    }
+    unmonitored_penetration = {
+        pair: values for pair, values in record.all_penetration.items()
+        if pair not in record.penetration
+    }
+    metrics["unmonitored_top_contact_pairs"] = _top_contact_pairs(
+        unmonitored_forces, unmonitored_penetration)
+    metrics["unmonitored_contact_pair_count"] = float(len(unmonitored_forces))
     metrics["contact_pair_max_penetration_mm"] = {
         pair: float(np.max(np.abs(values))) if np.asarray(values).size else 0.0
         for pair, values in record.penetration.items()
@@ -1389,6 +1512,16 @@ def _scalar_metrics(
             np.sqrt(np.mean(all_forces * all_forces)))
     else:
         metrics["contact_force_rms_N"] = 0.0
+    all_force_samples = [
+        np.asarray(v, dtype=float).reshape(-1)
+        for v in record.all_contact_forces.values() if np.asarray(v).size
+    ]
+    if all_force_samples:
+        all_forces = np.concatenate(all_force_samples)
+        metrics["all_contact_force_rms_N"] = float(
+            np.sqrt(np.mean(all_forces * all_forces)))
+    else:
+        metrics["all_contact_force_rms_N"] = 0.0
     min_out = _min_output_speed(spec)
     out_med = float(metrics.get("out_omega_med", 0.0))
     in_med = float(metrics.get("in_omega_med", 0.0))
@@ -1444,7 +1577,9 @@ def _record_has_nonfinite(record: _Recorder) -> bool:
         record.body_twists,
         record.motor_torques,
         record.contact_forces,
+        record.all_contact_forces,
         record.penetration,
+        record.all_penetration,
         record.constraint_errors,
         {"kinetic_energy_J": record.kinetic_energy_J},
     )
@@ -1592,8 +1727,23 @@ def _metadata(
     n_joints: int,
     n_motors: int,
     n_loads: int,
+    collision_filter: dict[str, Any],
 ) -> dict[str, Any]:
     top_pairs = _top_contact_pairs(record.contact_forces, record.penetration)
+    all_top_pairs = _top_contact_pairs(
+        record.all_contact_forces, record.all_penetration)
+    unmonitored_top_pairs = _top_contact_pairs(
+        {
+            pair: values
+            for pair, values in record.all_contact_forces.items()
+            if pair not in record.contact_forces
+        },
+        {
+            pair: values
+            for pair, values in record.all_penetration.items()
+            if pair not in record.penetration
+        },
+    )
     return {
         "adapter": "chrono_contact",
         "simulator": "project_chrono",
@@ -1612,6 +1762,7 @@ def _metadata(
         "dt": float(dt),
         "wall_clock_s": float(time.perf_counter() - started),
         "preflight_issues": preflight_issues,
+        "collision_filter": collision_filter,
         "build_meta": {
             "n_bodies": n_bodies,
             "n_joints": n_joints,
@@ -1620,16 +1771,24 @@ def _metadata(
             "n_contacts_reported": int(_safe_num_contacts(system)),
         },
         "top_contact_pairs": top_pairs[:8],
+        "all_top_contact_pairs": all_top_pairs[:12],
+        "unmonitored_top_contact_pairs": unmonitored_top_pairs[:12],
     }
 
 
-def _collision_spec(part: Part) -> dict[str, Any] | None:
-    for source in (
+def _collision_spec(
+    part: Part,
+    *,
+    include_visual_geometry: bool = False,
+) -> dict[str, Any] | None:
+    sources: list[Any] = [
         (part.params or {}).get("chrono_collision"),
         (part.params or {}).get("collision"),
         (part.params or {}).get("geometry"),
-        part.geometry,
-    ):
+    ]
+    if include_visual_geometry:
+        sources.append(part.geometry)
+    for source in sources:
         if isinstance(source, dict) and source:
             shape = _canonical_shape_dict(source)
             if shape:
@@ -2213,9 +2372,15 @@ def _set_body_pose(
     body: Any,
     part: Part,
     use_reference_frames: bool = False,
+    use_com_body: bool = False,
 ) -> None:
     params = part.params or {}
     x, y, z = _part_initial_pose_mm(part)
+    if use_com_body:
+        cx, cy, cz = _part_com_local_mm(part)
+        x += cx
+        y += cy
+        z += cz
     quat_raw = params.get("initial_orientation_quat", (1.0, 0.0, 0.0, 0.0))
     q = [float(v) for v in list(quat_raw)[:4]]
     pos = _vec(chrono, _mm_to_m(x), _mm_to_m(y), _mm_to_m(z))
@@ -2309,6 +2474,12 @@ def _normalize_pair(pair: str) -> str:
     if not b:
         return str(pair)
     return ":".join(sorted([a, b]))
+
+
+def _pair_names(pair: str) -> tuple[str, str]:
+    normalized = _normalize_pair(pair)
+    a, _, b = normalized.partition(":")
+    return a, b
 
 
 def _dedupe(items: list[str]) -> list[str]:
@@ -2464,6 +2635,13 @@ def _safe_float(value: Any, default: float) -> float:
         return float(value)
     except (TypeError, ValueError):
         return float(default)
+
+
+def _safe_int(value: Any, default: int) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return int(default)
 
 
 def _safe_num_contacts(system: Any) -> int:
