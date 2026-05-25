@@ -785,6 +785,17 @@ def _make_system(
             getattr(chrono, "ChTimestepper"), "Type", stepper_type)
         if stepper_enum is not None:
             _call_first(system, ("SetTimestepperType",), stepper_enum)
+    if method == "SMC" and (
+        "smc_use_material_properties" in cfg
+        or "use_material_properties" in cfg
+    ):
+        use_material_properties = bool(
+            cfg.get(
+                "smc_use_material_properties",
+                cfg.get("use_material_properties", True),
+            )
+        )
+        _call_first(system, ("UseMaterialProperties",), use_material_properties)
     _configure_contact_global(chrono, cfg)
     return system, method
 
@@ -855,6 +866,12 @@ def _reported_contact_config(cfg: dict[str, Any], dt: float) -> dict[str, float 
             cfg, ("contact_margin_m", "contact_margin"), 0.0),
         "contact_envelope_m": _config_float(
             cfg, ("contact_envelope_m", "contact_envelope"), 0.0),
+        "smc_use_material_properties": bool(
+            cfg.get(
+                "smc_use_material_properties",
+                cfg.get("use_material_properties", True),
+            )
+        ),
         "timestep": float(dt),
         "solver_iterations": float(cfg.get("solver_max_iterations", 100)),
     }

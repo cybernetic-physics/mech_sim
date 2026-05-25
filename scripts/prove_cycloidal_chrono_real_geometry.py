@@ -390,6 +390,7 @@ def _run_chrono(
         "chrono_version": metadata.get("chrono_version"),
         "preflight_issues": metadata.get("preflight_issues", []),
         "build_meta": metadata.get("build_meta", {}),
+        "contact_config": metadata.get("config", {}),
         "passed": bool(out.get("passed", False)),
         "output_load_Nm": output_load_nm,
         "samples": samples,

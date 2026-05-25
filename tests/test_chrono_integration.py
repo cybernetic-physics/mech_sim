@@ -412,6 +412,7 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
             "procedural_cycloidal_contact_fallback"
         )
         assert out["metadata"]["contact_model"] == contact_model
+        assert "smc_use_material_properties" in out["metadata"]["config"]
         assert out["metadata"]["build_meta"]["n_bodies"] == len(ir.parts)
         assert out["scalar_metrics"]["n_contacts_max"] > 0.0
         assert out["scalar_metrics"]["contact_force_rms_N"] > 0.0
