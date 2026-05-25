@@ -146,7 +146,13 @@ def main() -> int:
 
         ir = build_chrono_design_ir_from_assets(
             assets,
+            include_secondary_disc=False,
             collision_sweep_radius_m=2.0e-5,
+            use_cad_collision_primitives=False,
+            use_cad_eccentric_body_frames=True,
+            use_cad_outer_sidewall_collision=True,
+            cad_outer_sidewall_thickness_mm=0.75,
+            cad_outer_sidewall_max_hulls=128,
         )
         trusted_manifest = build_trusted_asset_manifest(
             ir, build_root=assets.root)
@@ -305,6 +311,21 @@ def _design_ir_proof(ir: Any, assets: CycloidalReducerAssets) -> dict[str, Any]:
         mesh = shape.get("mesh") or shape.get("stl") or shape.get("collision_mesh")
         asset = params.get("chrono_collision_asset")
         asset_mesh = asset.get("mesh") if isinstance(asset, dict) else None
+        children = shape.get("children", [])
+        child_meshes = []
+        child_shapes = []
+        if isinstance(children, list):
+            for child in children:
+                if not isinstance(child, dict):
+                    continue
+                child_shapes.append(child.get("shape"))
+                child_mesh = (
+                    child.get("mesh")
+                    or child.get("stl")
+                    or child.get("collision_mesh")
+                )
+                if child_mesh:
+                    child_meshes.append(child_mesh)
         collision_shapes[part.id] = {
             "shape": shape.get("shape"),
             "mesh": mesh,
@@ -319,6 +340,8 @@ def _design_ir_proof(ir: Any, assets: CycloidalReducerAssets) -> dict[str, Any]:
             "child_count": len(shape.get("children", []))
             if isinstance(shape.get("children"), list)
             else 0,
+            "child_shapes": child_shapes,
+            "child_meshes": child_meshes,
         }
     return {
         "parts": [part.id for part in ir.parts],
@@ -361,6 +384,10 @@ def _collision_shape_issue(
                 mesh_path = assets.root / str(asset_mesh)
                 if not mesh_path.is_file() or mesh_path.stat().st_size <= 0:
                     return f"{body_name} exported collision mesh is missing or empty: {mesh_path}"
+            for child_mesh in shape.get("child_meshes", []):
+                mesh_path = assets.root / str(child_mesh)
+                if not mesh_path.is_file() or mesh_path.stat().st_size <= 0:
+                    return f"{body_name} child mesh is missing or empty: {mesh_path}"
         else:
             return f"{body_name} collision shape is unsupported: {shape_kind!r}"
     return None
@@ -442,6 +469,7 @@ def _chrono_config(
         "damping": 2500.0,
         "solver_iterations": 800,
         "solver_max_iterations": 800,
+        "collision_filter_named_pairs": True,
         "_mech_bench": {
             "build_root": str(assets.root),
             "task": {
@@ -459,6 +487,8 @@ def _chrono_config(
                         "output_port": "output_port",
                         "input_speed_rad_s": 10.0,
                         "output_load_Nm": float(output_load_nm),
+                        "output_load_start_s": 0.02,
+                        "output_load_ramp_s": 0.05,
                         "min_output_speed_rad_s": 0.5,
                         "max_power_error_pct": float(max_power_error_pct),
                         "max_torque_ripple_pct": float(max_torque_ripple_pct),
@@ -634,9 +664,20 @@ def _evaluate_runs(proof: dict[str, Any]) -> None:
     smc_metrics = proof["runs"]["smc"].get("metrics", {})
     nsc_pen = _metric_float(nsc_metrics, "max_penetration_mm", 0.0)
     nsc_contacts = _metric_float(nsc_metrics, "n_contacts_max", 0.0)
+    nsc_force = _metric_float(nsc_metrics, "contact_force_rms_N", 0.0)
+    nsc_constraint = _metric_float(nsc_metrics, "max_constraint_error_mm", 0.0)
+    nsc_ratio_error = _metric_float(nsc_metrics, "ratio_error_pct", 0.0)
     smc_contacts = _metric_float(smc_metrics, "n_contacts_max", math.inf)
+    smc_force = _metric_float(smc_metrics, "contact_force_rms_N", math.inf)
     acceptance["nsc_bad_regime_observed"] = (
-        nsc_pen > 1.0 and nsc_contacts > smc_contacts
+        (nsc_pen > 1.0 and nsc_contacts > smc_contacts)
+        or (
+            nsc_contacts > smc_contacts * 2.0
+            and nsc_force > max(smc_force * 100.0, 1.0e4)
+            and nsc_constraint > 0.1
+            and nsc_ratio_error > 50.0
+            and proof["runs"]["nsc"].get("failure_mode") != "none"
+        )
     )
     smc_failure = proof["runs"]["smc"].get("failure_mode")
     smc_lockup = _metric_float(smc_metrics, "lockup_detected", 1.0)

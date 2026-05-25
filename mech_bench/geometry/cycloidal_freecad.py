@@ -13,6 +13,7 @@ import math
 import os
 import shlex
 import shutil
+import struct
 import subprocess
 import textwrap
 from dataclasses import dataclass
@@ -219,6 +220,10 @@ def build_chrono_design_ir_from_assets(
     collision_sweep_radius_m: float = 2.0e-4,
     use_primitive_pin_collision: bool = True,
     use_cad_collision_primitives: bool = True,
+    use_cad_eccentric_body_frames: bool = False,
+    use_cad_outer_sidewall_collision: bool = False,
+    cad_outer_sidewall_thickness_mm: float = 0.75,
+    cad_outer_sidewall_max_hulls: int = 128,
 ) -> DesignIR:
     """Build a DesignIR that feeds generated STL meshes to Chrono."""
 
@@ -300,21 +305,55 @@ def build_chrono_design_ir_from_assets(
             "inertia_kg_m2": inertia,
         }
         collision_body = collision_meshes.get(name, body)
+        cad_frame_origin = (
+            _cad_eccentric_axis_origin(assets, name)
+            if use_cad_eccentric_body_frames
+            else None
+        )
+        if cad_frame_origin is not None:
+            params["initial_pose_mm"] = cad_frame_origin
+
         if name in collidable_body_names:
             if name in collision_primitives:
-                params["chrono_collision"] = collision_primitives[name]
+                shape = dict(collision_primitives[name])
+                if cad_frame_origin is not None:
+                    shape = _offset_collision_shape(
+                        shape, tuple(-v for v in cad_frame_origin))
+                params["chrono_collision"] = shape
                 params["chrono_collision_asset"] = {
                     "mesh": str(collision_body.get("stl", stl)),
                     "step": str(collision_body.get("step", body.get("step", ""))),
                 }
             else:
-                params["chrono_collision"] = {
+                shape = {
                     "shape": "mesh",
                     "mesh": str(collision_body.get("stl", stl)),
                     "is_static": fixed,
                     "is_convex": False,
                     "sweep_sphere_radius_m": float(collision_sweep_radius_m),
                 }
+                if cad_frame_origin is not None:
+                    shape["center_mm"] = tuple(-v for v in cad_frame_origin)
+                sidewall = (
+                    _cad_outer_sidewall_collision_shape(
+                        assets,
+                        name,
+                        shell_thickness_mm=cad_outer_sidewall_thickness_mm,
+                        max_hulls=cad_outer_sidewall_max_hulls,
+                    )
+                    if use_cad_outer_sidewall_collision
+                    else None
+                )
+                if sidewall is not None:
+                    if cad_frame_origin is not None:
+                        sidewall = _offset_collision_shape(
+                            sidewall, tuple(-v for v in cad_frame_origin))
+                    shape = {
+                        "shape": "compound",
+                        "source": "cad_mesh_plus_outer_sidewall",
+                        "children": [shape, *sidewall["children"]],
+                    }
+                params["chrono_collision"] = shape
         parts.append(Part(
             id=name,
             role=roles.get(name, ""),
@@ -327,6 +366,11 @@ def build_chrono_design_ir_from_assets(
         ))
 
     eccentricity = float(assets.parameters.get("eccentricity", 2.0))
+    disk1_axis = (
+        _cad_eccentric_axis_origin(assets, "cycloidalDisk1")
+        if use_cad_eccentric_body_frames
+        else None
+    )
     joints = [
         Joint(
             id="input_revolute",
@@ -342,7 +386,7 @@ def build_chrono_design_ir_from_assets(
             parent="inputShaft",
             child="cycloidalDisk1",
             axis_world=(0.0, 0.0, 1.0),
-            anchor_world_mm=(eccentricity, 0.0, 0.0),
+            anchor_world_mm=disk1_axis or (eccentricity, 0.0, 0.0),
         ),
         Joint(
             id="output_revolute",
@@ -507,6 +551,116 @@ def _cad_collision_primitives_by_body(
     return out
 
 
+def _cad_outer_sidewall_collision_shape(
+    assets: CycloidalReducerAssets,
+    body_name: str,
+    *,
+    shell_thickness_mm: float,
+    max_hulls: int,
+) -> dict[str, Any] | None:
+    if not body_name.startswith("cycloidalDisk"):
+        return None
+    body = assets.bodies.get(body_name)
+    if not isinstance(body, dict):
+        return None
+    rel = body.get("stl")
+    if not rel:
+        return None
+    path = assets.root / str(rel)
+    if not path.is_file():
+        return None
+
+    bbox = [float(v) for v in list(body.get("bbox_mm", ()))[:6]]
+    if len(bbox) < 6:
+        return None
+    zmin, zmax = bbox[2], bbox[5]
+    height = max(zmax - zmin, 1.0e-9)
+    params = assets.parameters
+    try:
+        cutoff_radius = (
+            float(params["driver_circle_diameter"]) / 2.0
+            + float(params["driver_hole_diameter"]) / 2.0
+            + float(params.get("clearance", 0.0))
+            + 0.75
+        )
+    except (KeyError, TypeError, ValueError):
+        cutoff_radius = max(
+            math.hypot(bbox[0], bbox[1]),
+            math.hypot(bbox[3], bbox[4]),
+        ) * 0.78
+
+    children: list[dict[str, Any]] = []
+    thickness = max(float(shell_thickness_mm), 1.0e-6)
+    for triangle in _read_stl_triangles_mm(path):
+        zs = [p[2] for p in triangle]
+        if max(zs) - min(zs) < 0.45 * height:
+            continue
+        cx = sum(p[0] for p in triangle) / 3.0
+        cy = sum(p[1] for p in triangle) / 3.0
+        radius = math.hypot(cx, cy)
+        if radius < cutoff_radius:
+            continue
+        ux, uy = (-cx / radius, -cy / radius) if radius > 1.0e-9 else (0.0, 0.0)
+        points = [[p[0], p[1], p[2]] for p in triangle]
+        points.extend(
+            [p[0] + ux * thickness, p[1] + uy * thickness, p[2]]
+            for p in triangle
+        )
+        children.append({"shape": "convex_hull", "points_mm": points})
+
+    if not children:
+        return None
+    max_hulls = max(int(max_hulls), 1)
+    if len(children) > max_hulls:
+        stride = max(1, len(children) // max_hulls)
+        children = children[::stride][:max_hulls]
+    return {
+        "shape": "compound",
+        "source": "cad_stl_outer_sidewall",
+        "children": children,
+        "shell_thickness_mm": thickness,
+        "radial_cutoff_mm": cutoff_radius,
+    }
+
+
+def _read_stl_triangles_mm(
+    path: Path,
+) -> list[tuple[
+    tuple[float, float, float],
+    tuple[float, float, float],
+    tuple[float, float, float],
+]]:
+    data = path.read_bytes()
+    if len(data) >= 84:
+        count = struct.unpack_from("<I", data, 80)[0]
+        expected = 84 + count * 50
+        if expected == len(data):
+            triangles = []
+            offset = 84
+            for _ in range(count):
+                vals = struct.unpack_from("<12fH", data, offset)
+                offset += 50
+                triangles.append((
+                    (vals[3] * 1000.0, vals[4] * 1000.0, vals[5] * 1000.0),
+                    (vals[6] * 1000.0, vals[7] * 1000.0, vals[8] * 1000.0),
+                    (vals[9] * 1000.0, vals[10] * 1000.0, vals[11] * 1000.0),
+                ))
+            return triangles
+
+    vertices: list[tuple[float, float, float]] = []
+    for line in data.decode("utf-8", errors="ignore").splitlines():
+        parts = line.strip().split()
+        if len(parts) == 4 and parts[0].lower() == "vertex":
+            try:
+                vertices.append(tuple(float(v) * 1000.0 for v in parts[1:4]))
+            except ValueError:
+                continue
+    return [
+        (vertices[i], vertices[i + 1], vertices[i + 2])
+        for i in range(0, len(vertices) - 2, 3)
+    ]
+
+
 def _mass_properties_for_body(
     body: dict[str, Any],
     density_kg_m3: float,
@@ -633,6 +787,78 @@ def _cylinder_pattern(
             "axis": (0.0, 0.0, 1.0),
         })
     return shapes
+
+
+def _cad_eccentric_axis_origin(
+    assets: CycloidalReducerAssets,
+    body_name: str,
+) -> tuple[float, float, float] | None:
+    axes = assets.feature_frames.get("axes")
+    if not isinstance(axes, dict):
+        return None
+    feature = axes.get(f"{body_name}_eccentric_axis")
+    if not isinstance(feature, dict):
+        return None
+    if feature.get("body") not in (None, body_name):
+        return None
+    center = feature.get("center_mm")
+    try:
+        vals = [float(v) for v in list(center)[:3]]
+    except (TypeError, ValueError):
+        return None
+    if len(vals) != 3 or not all(math.isfinite(v) for v in vals):
+        return None
+    return (vals[0], vals[1], vals[2])
+
+
+def _offset_collision_shape(
+    shape: dict[str, Any],
+    offset_mm: tuple[float, float, float],
+) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    for key, value in shape.items():
+        if isinstance(value, dict):
+            out[key] = _offset_collision_shape(value, offset_mm)
+        elif key in {"children", "shapes"} and isinstance(value, list):
+            out[key] = [
+                _offset_collision_shape(child, offset_mm)
+                if isinstance(child, dict) else child
+                for child in value
+            ]
+        else:
+            out[key] = value
+
+    for key in ("center_mm", "pos_mm", "position_mm"):
+        if key in out:
+            out[key] = _offset_vec3(out[key], offset_mm)
+            break
+    else:
+        if str(out.get("shape", "")).lower() == "mesh":
+            out["center_mm"] = tuple(float(v) for v in offset_mm)
+    if isinstance(out.get("points_mm"), list):
+        out["points_mm"] = [
+            _offset_vec3(point, offset_mm) for point in out["points_mm"]
+        ]
+    if isinstance(out.get("points_m"), list):
+        offset_m = tuple(v * 0.001 for v in offset_mm)
+        out["points_m"] = [
+            _offset_vec3(point, offset_m) for point in out["points_m"]
+        ]
+    return out
+
+
+def _offset_vec3(
+    raw: Any,
+    offset_mm: tuple[float, float, float],
+) -> tuple[float, float, float]:
+    vals = [float(v) for v in list(raw)[:3]]
+    while len(vals) < 3:
+        vals.append(0.0)
+    return (
+        vals[0] + offset_mm[0],
+        vals[1] + offset_mm[1],
+        vals[2] + offset_mm[2],
+    )
 
 
 def _freecad_argv(cmd: list[str] | str | None) -> list[str] | None:

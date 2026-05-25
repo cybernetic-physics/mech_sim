@@ -180,6 +180,8 @@ def test_chrono_runtime_spec_extracts_contacts_drive_and_load(tmp_path):
                         "output_port": "output_port",
                         "input_speed_rad_s": 12.5,
                         "output_load_Nm": 0.75,
+                        "output_load_start_s": 0.05,
+                        "output_load_ramp_s": 0.15,
                     },
                 },
             ],
@@ -205,7 +207,226 @@ def test_chrono_runtime_spec_extracts_contacts_drive_and_load(tmp_path):
         "port_id": "output_port",
         "mode": "torque",
         "value": 0.75,
+        "ramp_s": 0.15,
+        "start_s": 0.05,
     }]
+    resolved_loads, issues = _chrono_impl._resolve_loads(
+        spec.loads, ir, {"output": object()})
+    assert issues == []
+    assert resolved_loads[0]["start_s"] == 0.05
+    assert resolved_loads[0]["ramp_s"] == 0.15
+
+
+def test_chrono_load_modulation_function_ramps_after_start():
+    from mech_bench.adapters import _chrono_impl
+
+    class FakeInterp:
+        def __init__(self):
+            self.points = []
+
+        def AddPoint(self, t, value):  # noqa: N802 - Chrono API shape
+            self.points.append((t, value))
+
+    class FakeChrono:
+        ChFunctionInterp = FakeInterp
+
+    fun = _chrono_impl._load_modulation_function(FakeChrono, 0.05, 0.15)
+
+    assert fun.points == [(0.0, 0.0), (0.05, 0.0), (0.2, 1.0)]
+
+
+def test_chrono_mesh_shape_uses_collision_frame_center(tmp_path):
+    from mech_bench.adapters import _chrono_impl
+
+    class FakeVec:
+        def __init__(self, x, y, z):
+            self.x = x
+            self.y = y
+            self.z = z
+
+    class FakeQuat:
+        def __init__(self, e0, e1, e2, e3):
+            self.e0 = e0
+            self.e1 = e1
+            self.e2 = e2
+            self.e3 = e3
+
+    class FakeFrame:
+        def __init__(self, pos, quat):
+            self.pos = pos
+            self.quat = quat
+
+    class FakeMesh:
+        def LoadSTLMesh(self, path):  # noqa: N802 - Chrono API shape
+            self.path = path
+            return True
+
+    class FakeCollisionShape:
+        def __init__(self, *args):
+            self.args = args
+
+    class FakeChrono:
+        ChVector3d = FakeVec
+        ChQuaterniond = FakeQuat
+        ChFramed = FakeFrame
+        ChTriangleMeshConnected = FakeMesh
+        ChCollisionShapeTriangleMesh = FakeCollisionShape
+
+    class FakeBody:
+        def __init__(self):
+            self.calls = []
+
+        def AddCollisionShape(self, shape, frame):  # noqa: N802
+            self.calls.append((shape, frame))
+
+    mesh = tmp_path / "disk.stl"
+    mesh.write_text("solid disk\nendsolid disk\n", encoding="utf-8")
+    body = FakeBody()
+
+    ok, msg = _chrono_impl._add_mesh_shape(
+        FakeChrono,
+        body,
+        {"shape": "mesh", "mesh": str(mesh), "center_mm": (1.0, 2.0, 3.0)},
+        object(),
+        tmp_path,
+    )
+
+    assert ok is True
+    assert msg == ""
+    assert len(body.calls) == 1
+    frame = body.calls[0][1]
+    assert frame.pos.x == 0.001
+    assert frame.pos.y == 0.002
+    assert frame.pos.z == 0.003
+
+
+def test_freecad_cycloidal_cad_eccentric_body_frames(tmp_path):
+    import struct
+
+    from mech_bench.geometry.cycloidal_freecad import (
+        BODY_NAMES,
+        CycloidalReducerAssets,
+        _offset_collision_shape,
+        build_chrono_design_ir_from_assets,
+    )
+
+    def write_binary_stl(path, triangles):
+        data = bytearray(b"test".ljust(80, b" "))
+        data.extend(struct.pack("<I", len(triangles)))
+        for tri in triangles:
+            data.extend(struct.pack("<3f", 0.0, 0.0, 1.0))
+            for point in tri:
+                data.extend(struct.pack(
+                    "<3f",
+                    point[0] / 1000.0,
+                    point[1] / 1000.0,
+                    point[2] / 1000.0,
+                ))
+            data.extend(struct.pack("<H", 0))
+        path.write_bytes(data)
+
+    bodies = {
+        name: {
+            "stl": f"{name}.stl",
+            "step": f"{name}.step",
+            "bbox_mm": (0.0, 0.0, 0.0, 1.0, 1.0, 1.0),
+        }
+        for name in BODY_NAMES
+    }
+    bodies["cycloidalDisk1"]["bbox_mm"] = (
+        -36.0, -36.0, 10.0, 36.0, 36.0, 15.0)
+    write_binary_stl(
+        tmp_path / "cycloidalDisk1.stl",
+        [
+            ((35.0, 0.0, 10.0), (36.0, 0.0, 15.0), (35.0, 1.0, 10.0)),
+            ((25.0, 0.0, 10.0), (26.0, 0.0, 15.0), (25.0, 1.0, 10.0)),
+        ],
+    )
+    assets = CycloidalReducerAssets(
+        root=tmp_path,
+        manifest_path=tmp_path / "cycloidal_assets_manifest.json",
+        bodies=bodies,
+        collision_meshes={},
+        collision_primitives={},
+        feature_frames={
+            "axes": {
+                "cycloidalDisk1_eccentric_axis": {
+                    "body": "cycloidalDisk1",
+                    "center_mm": [2.0, 0.0, 12.5],
+                },
+            },
+        },
+        static_audit={},
+        parameters={
+            "ring_pin_count": 10,
+            "declared_ratio": 9.0,
+            "driver_circle_diameter": 50.0,
+            "driver_hole_diameter": 10.0,
+            "clearance": 0.6,
+        },
+        source={},
+    )
+
+    ir = build_chrono_design_ir_from_assets(
+        assets,
+        include_secondary_disc=False,
+        collidable_body_names={"cycloidalDisk1"},
+        use_primitive_pin_collision=False,
+        use_cad_collision_primitives=False,
+        use_cad_eccentric_body_frames=True,
+    )
+
+    parts = {part.id: part for part in ir.parts}
+    disk = parts["cycloidalDisk1"]
+    assert disk.params["initial_pose_mm"] == (2.0, 0.0, 12.5)
+    assert disk.params["chrono_collision"]["shape"] == "mesh"
+    assert disk.params["chrono_collision"]["center_mm"] == (-2.0, -0.0, -12.5)
+    eccentric = {joint.id: joint for joint in ir.joints}["eccentric_disc"]
+    assert eccentric.anchor_world_mm == (2.0, 0.0, 12.5)
+
+    original = {
+        "shape": "compound",
+        "children": [
+            {"shape": "cylinder", "center_mm": (5.0, 1.0, 0.0)},
+            {
+                "shape": "convex_hull",
+                "points_mm": [
+                    (2.0, 0.0, 12.5),
+                    (3.0, 0.0, 12.5),
+                    (2.0, 1.0, 12.5),
+                    (2.0, 0.0, 13.5),
+                ],
+            },
+        ],
+    }
+    shifted = _offset_collision_shape(original, (-2.0, 0.0, -12.5))
+    assert original["children"][0]["center_mm"] == (5.0, 1.0, 0.0)
+    assert shifted["children"][0]["center_mm"] == (3.0, 1.0, -12.5)
+    assert shifted["children"][1]["points_mm"][0] == (0.0, 0.0, 0.0)
+
+    ir = build_chrono_design_ir_from_assets(
+        assets,
+        include_secondary_disc=False,
+        collidable_body_names={"cycloidalDisk1"},
+        use_primitive_pin_collision=False,
+        use_cad_collision_primitives=False,
+        use_cad_eccentric_body_frames=True,
+        use_cad_outer_sidewall_collision=True,
+        cad_outer_sidewall_thickness_mm=0.75,
+        cad_outer_sidewall_max_hulls=16,
+    )
+    disk_shape = {part.id: part for part in ir.parts}[
+        "cycloidalDisk1"
+    ].params["chrono_collision"]
+    assert disk_shape["shape"] == "compound"
+    assert disk_shape["children"][0]["shape"] == "mesh"
+    sidewall_children = [
+        child for child in disk_shape["children"]
+        if child.get("shape") == "convex_hull"
+    ]
+    assert len(sidewall_children) == 1
+    assert sidewall_children[0]["points_mm"][0] == pytest.approx(
+        (33.0, 0.0, -2.5))
 
 
 def test_chrono_impl_direct_run_reports_missing_pychrono():

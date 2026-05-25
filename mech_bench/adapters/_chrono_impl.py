@@ -211,6 +211,7 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
         p for p in mb.get("probe_specs", [])
         if isinstance(p, dict)
     ]
+    torque_probe_cfg = _probe_config_from_raw(probe_specs, "torque_load_trial")
 
     pairs: list[str] = []
     motors: list[dict[str, Any]] = []
@@ -237,6 +238,16 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
                 "port_id": _joint_to_port(ir, load.joint_id),
                 "mode": load.mode,
                 "value": float(load.value),
+                "ramp_s": float(torque_probe_cfg.get(
+                    "output_load_ramp_s",
+                    torque_probe_cfg.get(
+                        "load_ramp_s", cfg.get("output_load_ramp_s", 0.0)),
+                )),
+                "start_s": float(torque_probe_cfg.get(
+                    "output_load_start_s",
+                    torque_probe_cfg.get(
+                        "load_start_s", cfg.get("output_load_start_s", 0.0)),
+                )),
             })
     else:
         for raw in probe_specs:
@@ -270,6 +281,14 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
                     "port_id": output_port,
                     "mode": "torque",
                     "value": out_load,
+                    "ramp_s": float(pcfg.get(
+                        "output_load_ramp_s",
+                        pcfg.get("load_ramp_s", cfg.get("output_load_ramp_s", 0.0)),
+                    )),
+                    "start_s": float(pcfg.get(
+                        "output_load_start_s",
+                        pcfg.get("load_start_s", cfg.get("output_load_start_s", 0.0)),
+                    )),
                 })
 
     for pair in cfg.get("contact_pairs", []) or []:
@@ -296,6 +315,14 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
             "port_id": output_port,
             "mode": "torque",
             "value": float(pcfg.get("output_load_Nm", 0.0)),
+            "ramp_s": float(pcfg.get(
+                "output_load_ramp_s",
+                pcfg.get("load_ramp_s", cfg.get("output_load_ramp_s", 0.0)),
+            )),
+            "start_s": float(pcfg.get(
+                "output_load_start_s",
+                pcfg.get("load_start_s", cfg.get("output_load_start_s", 0.0)),
+            )),
         })
 
     for raw in cfg.get("motors", []) or []:
@@ -316,6 +343,18 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
         probe_specs=probe_specs,
         build_root=build_root,
     )
+
+
+def _probe_config_from_raw(
+    probe_specs: list[dict[str, Any]],
+    probe_type: str,
+) -> dict[str, Any]:
+    for raw in probe_specs:
+        if str(raw.get("type", "")) != probe_type:
+            continue
+        cfg = raw.get("config")
+        return dict(cfg) if isinstance(cfg, dict) else {}
+    return {}
 
 
 def _scene_graph_from_context(
@@ -1173,6 +1212,8 @@ def _resolve_loads(
             "axis": axis,
             "mode": spec.get("mode", "torque"),
             "value": float(spec.get("value", 0.0)),
+            "start_s": float(spec.get("start_s", 0.0) or 0.0),
+            "ramp_s": float(spec.get("ramp_s", 0.0) or 0.0),
         })
     return out, issues
 
@@ -1206,12 +1247,44 @@ def _install_loads(
             chrono_load = torque_cls(load["body"], torque, False)
             _call_first(chrono_load, ("SetName", "SetNameString"),
                         str(load.get("id", "torque_load")))
+            modulation = _load_modulation_function(
+                chrono,
+                float(load.get("start_s", 0.0) or 0.0),
+                float(load.get("ramp_s", 0.0) or 0.0),
+            )
+            if modulation is not None:
+                _call_first(chrono_load, ("SetModulationFunction",),
+                            modulation)
             container.Add(chrono_load)
             load["chrono_load"] = chrono_load
         except Exception as exc:  # noqa: BLE001 - version-dependent Chrono API
             issues.append(
                 f"load {load.get('id', '')}: could not install torque load: {exc}")
     return issues
+
+
+def _load_modulation_function(
+    chrono: Any,
+    start_s: float,
+    ramp_s: float,
+) -> Any | None:
+    start_s = max(0.0, float(start_s))
+    ramp_s = max(0.0, float(ramp_s))
+    if start_s <= 0.0 and ramp_s <= 0.0:
+        return None
+    interp_cls = getattr(chrono, "ChFunctionInterp", None)
+    if interp_cls is None:
+        return None
+    try:
+        fun = interp_cls()
+        fun.AddPoint(0.0, 0.0 if start_s > 0.0 or ramp_s > 0.0 else 1.0)
+        if start_s > 0.0:
+            fun.AddPoint(start_s, 0.0)
+        end_s = start_s + max(ramp_s, 1.0e-12)
+        fun.AddPoint(end_s, 1.0)
+        return fun
+    except Exception:
+        return None
 
 
 def _apply_loads(chrono: Any, loads: list[dict[str, Any]]) -> None:
@@ -2038,7 +2111,7 @@ def _add_mesh_shape(
                 try:
                     body.AddCollisionShape(
                         col_shape,
-                        _collision_frame(chrono, {}, ref_to_com_mm),
+                        _collision_frame(chrono, shape, ref_to_com_mm),
                     )
                 except TypeError:
                     body.AddCollisionShape(col_shape)
