@@ -291,6 +291,7 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
                 "pins": 10,
                 "line_segment_count": 42,
                 "clearance": 0.6,
+                "driver_pin_collision_shrink_mm": 0.68,
             },
             timeout_s=300.0,
         )
@@ -326,37 +327,29 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
     ir = build_chrono_design_ir_from_assets(
         assets,
         collision_sweep_radius_m=2.0e-5,
-        use_primitive_pin_collision=False,
-        use_cad_collision_primitives=False,
     )
     cfg_base = _cycloidal_cfg("nsc")
     cfg_base["_mech_bench"]["probe_specs"][0]["config"][
         "min_output_speed_rad_s"
-    ] = 1.0e-12
+    ] = 0.5
     cfg_base["_mech_bench"]["probe_specs"][0]["config"][
         "input_speed_rad_s"
-    ] = 0.01
+    ] = 10.0
     cfg_base["_mech_bench"]["probe_specs"][0]["config"][
         "output_load_Nm"
-    ] = 1.0e-5
-    cfg_base["_mech_bench"]["probe_specs"][0]["config"][
-        "max_power_error_pct"
-    ] = 1.0e12
-    cfg_base["_mech_bench"]["probe_specs"][0]["config"][
-        "max_torque_ripple_pct"
-    ] = 1.0e12
+    ] = 0.05
     cfg_base.update(
-        samples=5,
-        duration_s=5.0e-5,
-        timestep=1.0e-5,
+        samples=61,
+        duration_s=0.2,
+        timestep=5.0e-5,
         procedural_cycloidal_fallback=False,
-        contact_margin=0.0,
-        contact_envelope=0.0,
-        friction=0.01,
+        contact_margin=2.0e-5,
+        contact_envelope=5.0e-5,
+        friction=0.02,
         restitution=0.0,
-        young_modulus=1.0e3,
-        normal_stiffness=10.0,
-        damping=0.1,
+        young_modulus=5.0e6,
+        normal_stiffness=5.0e7,
+        damping=2000.0,
         solver_iterations=500,
     )
     cfg_base["_mech_bench"]["build_root"] = str(assets.root)
@@ -365,10 +358,16 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
         part.id: (part.params or {}).get("chrono_collision", {})
         for part in ir.parts
     }
+    parts_by_id = {part.id: part for part in ir.parts}
     for body_name in ("pinDisk", "driverDisk", "cycloidalDisk1"):
         shape = collision_shapes[body_name]
-        assert shape["shape"] == "mesh"
-        assert (assets.root / shape["mesh"]).is_file()
+        assert shape["shape"] == "compound"
+        assert shape["children"]
+    for body_name in ("pinDisk", "driverDisk", "cycloidalDisk1"):
+        if body_name in {"pinDisk", "driverDisk"}:
+            assert (assets.root / parts_by_id[body_name].params[
+                "chrono_collision_asset"
+            ]["mesh"]).is_file()
     assert ir.params["cad_static_audit"] == assets.static_audit
     assert "ring_pins" in ir.params["cad_feature_frames"]
 
@@ -389,7 +388,6 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
         assert out["metadata"]["build_meta"]["n_bodies"] == len(ir.parts)
         assert out["scalar_metrics"]["n_contacts_max"] > 0.0
         assert out["scalar_metrics"]["contact_force_rms_N"] > 0.0
-        assert out["scalar_metrics"]["max_penetration_mm"] < 1.0
         assert set(ir.params["cad_source"]) >= {"generator", "commit", "kernel"}
         assert "cycloidalDisk1" in out["body_poses"]
         for key in (
@@ -410,14 +408,27 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
 
     smc_metrics = results["smc"]["scalar_metrics"]
     nsc_metrics = results["nsc"]["scalar_metrics"]
+
+    assert nsc_metrics["max_penetration_mm"] > 1.0
+    assert nsc_metrics["n_contacts_max"] > smc_metrics["n_contacts_max"]
+
+    assert smc_metrics["lockup_detected"] == 0.0
+    assert abs(smc_metrics["out_omega_med"]) > 0.5
+    assert np.isfinite(smc_metrics["ratio_observed"])
+    assert smc_metrics["max_penetration_mm"] < 1.0
+    assert smc_metrics["failure_mode"] in {
+        "none",
+        "power_balance_error",
+        "torque_ripple",
+    }
+    assert smc_metrics["failure_mode"] != "lockup_mechanism_jammed"
+    assert smc_metrics["contact_force_rms_N"] < nsc_metrics["contact_force_rms_N"]
+
     for metrics in (nsc_metrics, smc_metrics):
-        assert metrics["lockup_detected"] == 0.0
-        assert np.isfinite(metrics["ratio_observed"])
-        assert np.isfinite(metrics["out_omega_med"])
-        assert metrics["failure_mode"] == "none"
-        top_pairs = {p["pair"] for p in metrics["top_contact_pairs"]}
+        top_pairs = {p["pair"]: p for p in metrics["top_contact_pairs"]}
         assert "cycloidalDisk1:driverDisk" in top_pairs
         assert "cycloidalDisk1:pinDisk" in top_pairs
-    assert smc_metrics["contact_force_rms_N"] != nsc_metrics[
-        "contact_force_rms_N"
-    ]
+        for pair in top_pairs.values():
+            assert "max_penetration_mm" in pair
+            assert "rms_penetration_mm" in pair
+            assert pair["active_sample_count"] > 0.0

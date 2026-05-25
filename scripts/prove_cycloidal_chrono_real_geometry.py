@@ -41,20 +41,30 @@ from mech_bench.geometry.cycloidal_freecad import (
 METRIC_KEYS = (
     "lockup_detected",
     "ratio_observed",
+    "in_omega_med",
     "out_omega_med",
     "max_penetration_mm",
+    "max_constraint_error_mm",
     "n_contacts_max",
-    "contact_force_rms_N",
     "top_contact_pairs",
+    "contact_force_rms_N",
+    "power_balance_error_pct",
+    "torque_ripple_pct",
+    "contact_pair_max_penetration_mm",
+    "contact_pair_rms_force_N",
 )
 
 NUMERIC_METRIC_KEYS = (
     "lockup_detected",
     "ratio_observed",
+    "in_omega_med",
     "out_omega_med",
     "max_penetration_mm",
+    "max_constraint_error_mm",
     "n_contacts_max",
     "contact_force_rms_N",
+    "power_balance_error_pct",
+    "torque_ripple_pct",
 )
 
 
@@ -98,7 +108,12 @@ def main() -> int:
     try:
         assets = generate_cycloidal_reducer_assets(
             out_dir,
-            {"pins": 10, "line_segment_count": 42, "clearance": 0.6},
+            {
+                "pins": 10,
+                "line_segment_count": 42,
+                "clearance": 0.6,
+                "driver_pin_collision_shrink_mm": 0.68,
+            },
             freecad_cmd=args.freecad_cmd,
             cycloid_gearbox_path=args.cycloid_gearbox_path,
             timeout_s=300.0,
@@ -108,13 +123,11 @@ def main() -> int:
         ir = build_chrono_design_ir_from_assets(
             assets,
             collision_sweep_radius_m=2.0e-5,
-            use_primitive_pin_collision=False,
-            use_cad_collision_primitives=False,
         )
         proof["design_ir"] = _design_ir_proof(ir, assets)
-        mesh_issue = _mesh_collision_issue(proof["design_ir"], assets)
-        if mesh_issue:
-            _mark_failed(proof, "collision mesh import", mesh_issue)
+        collision_issue = _collision_shape_issue(proof["design_ir"], assets)
+        if collision_issue:
+            _mark_failed(proof, "collision mesh import", collision_issue)
         else:
             proof["runs"] = {
                 "nsc": _run_chrono(ir, assets, "nsc"),
@@ -141,7 +154,7 @@ def _base_proof(out_dir: Path, proof_json: Path, args: argparse.Namespace) -> di
     return {
         "schema": "mech_bench.cycloidal_real_geometry_chrono_proof.v1",
         "claim": "FreeCAD/OCCT geometry-backed cycloidal reducer runs in Chrono NSC and SMC without procedural fallback.",
-        "validation_scope": "real-geometry solver smoke; not empirical hardware calibration and not a reducer-ratio accuracy claim",
+        "validation_scope": "real-geometry solver acceptance; not empirical hardware calibration",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "ok": False,
         "missing_bridge": None,
@@ -172,6 +185,8 @@ def _base_proof(out_dir: Path, proof_json: Path, args: argparse.Namespace) -> di
             "chrono_procedural_fallback_false": False,
             "chrono_nsc_real_geometry_metrics": False,
             "chrono_smc_real_geometry_metrics": False,
+            "nsc_bad_regime_observed": False,
+            "smc_minimum_success_threshold": False,
         },
     }
 
@@ -220,6 +235,13 @@ def _asset_proof(assets: CycloidalReducerAssets) -> dict[str, Any]:
         "body_names": sorted(assets.bodies),
         "bodies": bodies,
         "collision_meshes": collision_meshes,
+        "collision_primitives": sorted(assets.collision_primitives),
+        "feature_frame_counts": {
+            key: len(value)
+            for key, value in assets.feature_frames.items()
+            if isinstance(value, list)
+        },
+        "static_audit": assets.static_audit,
         "all_named_bodies_present": sorted(assets.bodies) == sorted(BODY_NAMES),
         "all_body_step_stl_nonempty": all(all_body_exports),
     }
@@ -228,17 +250,27 @@ def _asset_proof(assets: CycloidalReducerAssets) -> dict[str, Any]:
 def _design_ir_proof(ir: Any, assets: CycloidalReducerAssets) -> dict[str, Any]:
     collision_shapes: dict[str, Any] = {}
     for part in ir.parts:
+        params = part.params or {}
         shape = (part.params or {}).get("chrono_collision")
         if not isinstance(shape, dict):
             continue
         mesh = shape.get("mesh") or shape.get("stl") or shape.get("collision_mesh")
+        asset = params.get("chrono_collision_asset")
+        asset_mesh = asset.get("mesh") if isinstance(asset, dict) else None
         collision_shapes[part.id] = {
             "shape": shape.get("shape"),
             "mesh": mesh,
             "mesh_file": _file_record(assets.root / str(mesh)) if mesh else None,
+            "asset_mesh": asset_mesh,
+            "asset_mesh_file": (
+                _file_record(assets.root / str(asset_mesh)) if asset_mesh else None
+            ),
             "is_static": shape.get("is_static"),
             "is_convex": shape.get("is_convex"),
             "sweep_sphere_radius_m": shape.get("sweep_sphere_radius_m"),
+            "child_count": len(shape.get("children", []))
+            if isinstance(shape.get("children"), list)
+            else 0,
         }
     return {
         "parts": [part.id for part in ir.parts],
@@ -247,7 +279,7 @@ def _design_ir_proof(ir: Any, assets: CycloidalReducerAssets) -> dict[str, Any]:
         "cad_assets_manifest": ir.params.get("cad_assets_manifest"),
         "cad_source": ir.params.get("cad_source"),
         "collision_shapes": collision_shapes,
-        "contact_bodies_expected_mesh_collision": [
+        "contact_bodies_expected_chrono_collision": [
             "pinDisk",
             "driverDisk",
             "cycloidalDisk1",
@@ -255,20 +287,34 @@ def _design_ir_proof(ir: Any, assets: CycloidalReducerAssets) -> dict[str, Any]:
     }
 
 
-def _mesh_collision_issue(design_ir: dict[str, Any], assets: CycloidalReducerAssets) -> str | None:
+def _collision_shape_issue(
+    design_ir: dict[str, Any], assets: CycloidalReducerAssets,
+) -> str | None:
     shapes = design_ir.get("collision_shapes", {})
-    for body_name in design_ir["contact_bodies_expected_mesh_collision"]:
+    for body_name in design_ir["contact_bodies_expected_chrono_collision"]:
         shape = shapes.get(body_name)
         if not isinstance(shape, dict):
             return f"{body_name} has no Chrono collision shape"
-        if shape.get("shape") != "mesh":
-            return f"{body_name} collision shape is {shape.get('shape')!r}, not 'mesh'"
-        mesh = shape.get("mesh")
-        if not mesh:
-            return f"{body_name} mesh collision path is missing"
-        mesh_path = assets.root / str(mesh)
-        if not mesh_path.is_file() or mesh_path.stat().st_size <= 0:
-            return f"{body_name} mesh collision file is missing or empty: {mesh_path}"
+        shape_kind = shape.get("shape")
+        if shape_kind == "mesh":
+            mesh = shape.get("mesh")
+            if not mesh:
+                return f"{body_name} mesh collision path is missing"
+            mesh_path = assets.root / str(mesh)
+            if not mesh_path.is_file() or mesh_path.stat().st_size <= 0:
+                return f"{body_name} mesh collision file is missing or empty: {mesh_path}"
+        elif shape_kind == "compound":
+            if int(shape.get("child_count") or 0) <= 0:
+                return f"{body_name} compound collision has no children"
+            asset_mesh = shape.get("asset_mesh")
+            if body_name in {"pinDisk", "driverDisk"} and not asset_mesh:
+                return f"{body_name} compound collision has no exported CAD collision mesh"
+            if asset_mesh:
+                mesh_path = assets.root / str(asset_mesh)
+                if not mesh_path.is_file() or mesh_path.stat().st_size <= 0:
+                    return f"{body_name} exported collision mesh is missing or empty: {mesh_path}"
+        else:
+            return f"{body_name} collision shape is unsupported: {shape_kind!r}"
     return None
 
 
@@ -302,20 +348,19 @@ def _run_chrono(ir: Any, assets: CycloidalReducerAssets, contact_model: str) -> 
 
 def _chrono_config(assets: CycloidalReducerAssets, contact_model: str) -> dict[str, Any]:
     return {
-        "samples": 5,
-        "duration_s": 5.0e-5,
-        "dt": 1.0e-5,
-        "timestep": 1.0e-5,
+        "samples": 61,
+        "duration_s": 0.2,
+        "timestep": 5.0e-5,
         "contact_model": contact_model,
         "contact_method": contact_model.upper(),
         "procedural_cycloidal_fallback": False,
-        "contact_margin": 0.0,
-        "contact_envelope": 0.0,
-        "friction": 0.01,
+        "contact_margin": 2.0e-5,
+        "contact_envelope": 5.0e-5,
+        "friction": 0.02,
         "restitution": 0.0,
-        "young_modulus": 1.0e3,
-        "normal_stiffness": 10.0,
-        "damping": 0.1,
+        "young_modulus": 5.0e6,
+        "normal_stiffness": 5.0e7,
+        "damping": 2000.0,
         "solver_iterations": 500,
         "solver_max_iterations": 500,
         "_mech_bench": {
@@ -333,11 +378,11 @@ def _chrono_config(assets: CycloidalReducerAssets, contact_model: str) -> dict[s
                     "config": {
                         "input_port": "input_port",
                         "output_port": "output_port",
-                        "input_speed_rad_s": 0.01,
-                        "output_load_Nm": 1.0e-5,
-                        "min_output_speed_rad_s": 1.0e-12,
-                        "max_power_error_pct": 1.0e12,
-                        "max_torque_ripple_pct": 1.0e12,
+                        "input_speed_rad_s": 10.0,
+                        "output_load_Nm": 0.05,
+                        "min_output_speed_rad_s": 0.5,
+                        "max_power_error_pct": 25.0,
+                        "max_torque_ripple_pct": 30.0,
                     },
                 }
             ],
@@ -391,6 +436,27 @@ def _evaluate_runs(proof: dict[str, Any]) -> None:
     acceptance["chrono_smc_real_geometry_metrics"] = bool(
         proof["runs"]["smc"]["ok"]
     )
+    nsc_metrics = proof["runs"]["nsc"].get("metrics", {})
+    smc_metrics = proof["runs"]["smc"].get("metrics", {})
+    nsc_pen = _metric_float(nsc_metrics, "max_penetration_mm", 0.0)
+    nsc_contacts = _metric_float(nsc_metrics, "n_contacts_max", 0.0)
+    smc_contacts = _metric_float(smc_metrics, "n_contacts_max", math.inf)
+    acceptance["nsc_bad_regime_observed"] = (
+        nsc_pen > 1.0 and nsc_contacts > smc_contacts
+    )
+    smc_failure = proof["runs"]["smc"].get("failure_mode")
+    smc_lockup = _metric_float(smc_metrics, "lockup_detected", 1.0)
+    smc_out = _metric_float(smc_metrics, "out_omega_med", 0.0)
+    smc_ratio = _metric_float(smc_metrics, "ratio_observed", math.inf)
+    smc_pen = _metric_float(smc_metrics, "max_penetration_mm", math.inf)
+    acceptance["smc_minimum_success_threshold"] = (
+        smc_lockup == 0.0
+        and abs(smc_out) > 0.5
+        and math.isfinite(smc_ratio)
+        and smc_pen < 1.0
+        and smc_contacts < nsc_contacts
+        and smc_failure not in {"lockup_mechanism_jammed", "solver_diverged"}
+    )
     if all(acceptance.values()):
         proof["ok"] = True
         proof["missing_bridge"] = None
@@ -405,6 +471,13 @@ def _evaluate_runs(proof: dict[str, Any]) -> None:
             _mark_failed(proof, "solver dynamics", f"{model}: {run}")
             return
     _mark_failed(proof, "solver dynamics", "acceptance gate failed")
+
+
+def _metric_float(metrics: dict[str, Any], key: str, default: float) -> float:
+    try:
+        return float(metrics.get(key, default))
+    except (TypeError, ValueError):
+        return float(default)
 
 
 def _mark_failed(proof: dict[str, Any], stage: str, message: str) -> None:

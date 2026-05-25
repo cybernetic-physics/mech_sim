@@ -64,7 +64,7 @@ def run(ir: DesignIR, config: dict[str, Any]) -> dict[str, Any]:
     spec = _runtime_spec(ir, cfg)
     samples = max(2, int(cfg.get("samples", 360)))
     duration_s = max(1e-9, float(cfg.get("duration_s", 1.0)))
-    dt = float(cfg.get("dt", duration_s / max(samples - 1, 1)))
+    dt = max(1e-12, float(cfg.get("dt", duration_s / max(samples - 1, 1))))
     time_s = np.linspace(0.0, duration_s, samples, dtype=float)
 
     try:
@@ -107,10 +107,18 @@ def run(ir: DesignIR, config: dict[str, Any]) -> dict[str, Any]:
         preflight_issues = body_issues + joint_issues + motor_issues + load_issues
 
         record = _Recorder(ir, spec.contact_pairs, samples)
-        for i, t in enumerate(time_s):
-            _apply_loads(chrono, load_targets)
-            system.DoStepDynamics(dt)
-            record.sample(chrono, system, i, t, bodies, links, motors, spec)
+        current_t = 0.0
+        eps = max(1e-12, abs(dt) * 1e-9)
+        for i, sample_t in enumerate(time_s):
+            while current_t + eps < float(sample_t):
+                step = min(dt, float(sample_t) - current_t)
+                if step <= 0.0:
+                    break
+                _apply_loads(chrono, load_targets)
+                system.DoStepDynamics(step)
+                current_t += step
+            record.sample(
+                chrono, system, i, float(sample_t), bodies, links, motors, spec)
 
         scalar_metrics = _scalar_metrics(ir, cfg, spec, record)
         metadata = _metadata(
@@ -677,15 +685,28 @@ def _z_quat_trace(theta: np.ndarray) -> np.ndarray:
 
 def _top_contact_pairs(
     contact_forces: dict[str, np.ndarray],
+    penetration: dict[str, np.ndarray] | None = None,
 ) -> list[dict[str, float | str]]:
     top_pairs: list[dict[str, float | str]] = []
     for pair, arr in contact_forces.items():
         if arr.size == 0:
             continue
+        pen = (
+            np.asarray(penetration.get(pair), dtype=float)
+            if penetration is not None and pair in penetration
+            else np.zeros_like(arr, dtype=float)
+        )
+        finite_force = np.asarray(arr, dtype=float)
+        active = np.logical_or(np.abs(finite_force) > 0.0, np.abs(pen) > 0.0)
         top_pairs.append({
             "pair": pair,
-            "max_force_N": float(np.max(np.abs(arr))),
-            "rms_force_N": float(np.sqrt(np.mean(arr * arr))),
+            "max_force_N": float(np.max(np.abs(finite_force))),
+            "rms_force_N": float(np.sqrt(np.mean(finite_force * finite_force))),
+            "max_penetration_mm": float(np.max(np.abs(pen))) if pen.size else 0.0,
+            "rms_penetration_mm": (
+                float(np.sqrt(np.mean(pen * pen))) if pen.size else 0.0
+            ),
+            "active_sample_count": float(np.count_nonzero(active)),
         })
     top_pairs.sort(key=lambda d: float(d["max_force_N"]), reverse=True)
     return top_pairs[:8]
@@ -1212,7 +1233,17 @@ def _scalar_metrics(
     metrics["max_constraint_error_mm"] = max_constraint
     metrics["max_contact_force_N"] = max_force
     metrics["n_contacts_max"] = float(np.max(record.contact_counts)) if record.contact_counts.size else 0.0
-    metrics["top_contact_pairs"] = _top_contact_pairs(record.contact_forces)
+    metrics["top_contact_pairs"] = _top_contact_pairs(
+        record.contact_forces, record.penetration)
+    metrics["contact_pair_max_penetration_mm"] = {
+        pair: float(np.max(np.abs(values))) if np.asarray(values).size else 0.0
+        for pair, values in record.penetration.items()
+    }
+    metrics["contact_pair_rms_force_N"] = {
+        pair: float(np.sqrt(np.mean(values * values)))
+        if np.asarray(values).size else 0.0
+        for pair, values in record.contact_forces.items()
+    }
     force_samples = [
         np.asarray(v, dtype=float).reshape(-1)
         for v in record.contact_forces.values() if np.asarray(v).size
@@ -1308,16 +1339,7 @@ def _metadata(
     n_motors: int,
     n_loads: int,
 ) -> dict[str, Any]:
-    top_pairs: list[dict[str, Any]] = []
-    for pair, arr in record.contact_forces.items():
-        if arr.size == 0:
-            continue
-        top_pairs.append({
-            "pair": pair,
-            "max_force_N": float(np.max(np.abs(arr))),
-            "rms_force_N": float(np.sqrt(np.mean(arr * arr))),
-        })
-    top_pairs.sort(key=lambda d: d["max_force_N"], reverse=True)
+    top_pairs = _top_contact_pairs(record.contact_forces, record.penetration)
     return {
         "adapter": "chrono_contact",
         "simulator": "project_chrono",
