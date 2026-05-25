@@ -660,11 +660,16 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
         for part in ir.parts
     }
     parts_by_id = {part.id: part for part in ir.parts}
-    for body_name in ("pinDisk", "driverDisk", "cycloidalDisk1"):
+    for body_name in ("pinDisk", "driverDisk", "cycloidalDisk1", "cycloidalDisk2"):
         shape = collision_shapes[body_name]
         assert shape["shape"] == "compound"
         assert shape["children"]
-    for body_name in ("pinDisk", "driverDisk", "cycloidalDisk1"):
+    joints_by_id = {joint.id: joint for joint in ir.joints}
+    assert "disc_stack_fixed" not in joints_by_id
+    assert joints_by_id["eccentric_disc_2"].type == "revolute"
+    assert "ring_contact_2" in joints_by_id
+    assert "output_pin_contact_2" in joints_by_id
+    for body_name in ("pinDisk", "driverDisk", "cycloidalDisk1", "cycloidalDisk2"):
         if body_name in {"pinDisk", "driverDisk"}:
             assert (assets.root / parts_by_id[body_name].params[
                 "chrono_collision_asset"

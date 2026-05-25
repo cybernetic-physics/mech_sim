@@ -253,6 +253,8 @@ def build_chrono_design_ir_from_assets(
         selected.remove("cycloidalDisk2")
     if collidable_body_names is None:
         collidable_body_names = {"pinDisk", "driverDisk", "cycloidalDisk1"}
+        if include_secondary_disc:
+            collidable_body_names.add("cycloidalDisk2")
 
     roles = {
         "pinDisk": "ground",
@@ -371,6 +373,11 @@ def build_chrono_design_ir_from_assets(
         if use_cad_eccentric_body_frames
         else None
     )
+    disk2_axis = (
+        _cad_eccentric_axis_origin(assets, "cycloidalDisk2")
+        if use_cad_eccentric_body_frames
+        else None
+    )
     joints = [
         Joint(
             id="input_revolute",
@@ -433,9 +440,25 @@ def build_chrono_design_ir_from_assets(
         ))
     if "cycloidalDisk2" in selected:
         joints.append(Joint(
-            id="disc_stack_fixed",
-            type="fixed",
-            parent="cycloidalDisk1",
+            id="eccentric_disc_2",
+            type="revolute",
+            parent="inputShaft",
+            child="cycloidalDisk2",
+            axis_world=(0.0, 0.0, 1.0),
+            anchor_world_mm=disk2_axis or (-eccentricity, 0.0, 0.0),
+        ))
+        joints.append(Joint(
+            id="ring_contact_2",
+            type="contact_pair",
+            parent="pinDisk",
+            child="cycloidalDisk2",
+            axis_world=(0.0, 0.0, 1.0),
+            anchor_world_mm=(0.0, 0.0, 0.0),
+        ))
+        joints.append(Joint(
+            id="output_pin_contact_2",
+            type="contact_pair",
+            parent="driverDisk",
             child="cycloidalDisk2",
             axis_world=(0.0, 0.0, 1.0),
             anchor_world_mm=(0.0, 0.0, 0.0),
