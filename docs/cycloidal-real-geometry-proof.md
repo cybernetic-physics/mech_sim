@@ -21,6 +21,10 @@ Acceptance requires:
 
 - FreeCAD/CycloidGearBox writes `cycloidal_assets_manifest.json`.
 - All seven named reducer bodies have nonempty STEP and STL exports.
+- CAD datums include the expected ring pins, driver pins, and output-hole
+  feature frames.
+- Static contact audit reports finite ring/disc and driver/disc distances
+  plus positive driver-pin/output-hole radial clearance.
 - The trusted asset manifest records FreeCAD/OCCT recomputed mass, COM,
   and inertia for every positive-mass body.
 - The Chrono DesignIR uses non-procedural Chrono collision for `pinDisk`,

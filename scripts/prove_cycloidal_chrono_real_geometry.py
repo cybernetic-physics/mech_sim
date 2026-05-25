@@ -216,6 +216,8 @@ def _base_proof(out_dir: Path, proof_json: Path, args: argparse.Namespace) -> di
             "manifest_written": False,
             "named_bodies_exported": False,
             "nonempty_step_stl_exports": False,
+            "cad_datums_present": False,
+            "cad_static_contact_audit_passed": False,
             "chrono_procedural_fallback_false": False,
             "chrono_nsc_real_geometry_metrics": False,
             "chrono_smc_real_geometry_metrics": False,
@@ -265,6 +267,7 @@ def _asset_proof(assets: CycloidalReducerAssets) -> dict[str, Any]:
                 "tooth_count",
                 "declared_ratio",
                 "clearance",
+                "driver_disk_hole_count",
                 "roller_diameter",
                 "roller_circle_diameter",
             )
@@ -537,6 +540,10 @@ def _evaluate_runs(proof: dict[str, Any]) -> None:
     )
     acceptance["named_bodies_exported"] = bool(assets["all_named_bodies_present"])
     acceptance["nonempty_step_stl_exports"] = bool(assets["all_body_step_stl_nonempty"])
+    acceptance["cad_datums_present"] = _cad_datums_present(assets)
+    acceptance["cad_static_contact_audit_passed"] = (
+        _cad_static_contact_audit_passed(assets)
+    )
     acceptance["chrono_procedural_fallback_false"] = all(
         run.get("procedural_cycloidal_fallback") is False
         and run.get("execution_mode") != "procedural_cycloidal_contact_fallback"
@@ -592,6 +599,77 @@ def _evaluate_runs(proof: dict[str, Any]) -> None:
             _mark_failed(proof, "solver dynamics", f"{model}: {run}")
             return
     _mark_failed(proof, "solver dynamics", "acceptance gate failed")
+
+
+def _cad_datums_present(assets: dict[str, Any]) -> bool:
+    counts = assets.get("feature_frame_counts", {})
+    params = assets.get("parameters", {})
+    if not isinstance(counts, dict) or not isinstance(params, dict):
+        return False
+    ring_expected = _int_value(params.get("ring_pin_count"))
+    driver_expected = _int_value(params.get("driver_disk_hole_count"))
+    ring_count = _int_value(counts.get("ring_pins"))
+    driver_count = _int_value(counts.get("driver_pins"))
+    disk1_holes = _int_value(counts.get("cycloidalDisk1_output_holes"))
+    disk2_holes = _int_value(counts.get("cycloidalDisk2_output_holes"))
+    return (
+        ring_expected is not None
+        and driver_expected is not None
+        and ring_count == ring_expected
+        and driver_count == driver_expected
+        and disk1_holes == driver_expected
+        and disk2_holes == driver_expected
+    )
+
+
+def _cad_static_contact_audit_passed(assets: dict[str, Any]) -> bool:
+    audit = assets.get("static_audit", {})
+    counts = assets.get("feature_frame_counts", {})
+    if not isinstance(audit, dict) or not isinstance(counts, dict):
+        return False
+    ring_distance = _finite_nonnegative(
+        audit.get("ring_pins_to_cycloidalDisk1_distance_mm"))
+    driver_distance = _finite_nonnegative(
+        audit.get("driver_pins_to_cycloidalDisk1_distance_mm"))
+    hole = audit.get("driver_pins_to_cycloidalDisk1_output_holes", {})
+    if not isinstance(hole, dict):
+        return False
+    pair_count = _int_value(hole.get("pair_count"))
+    driver_count = _int_value(counts.get("driver_pins"))
+    min_clearance = _float_value(hole.get("min_radial_clearance_mm"))
+    mean_clearance = _float_value(hole.get("mean_radial_clearance_mm"))
+    return (
+        ring_distance
+        and driver_distance
+        and hole.get("status") == "ok"
+        and pair_count is not None
+        and driver_count is not None
+        and pair_count == driver_count
+        and min_clearance is not None
+        and min_clearance > 0.0
+        and mean_clearance is not None
+        and mean_clearance > 0.0
+    )
+
+
+def _finite_nonnegative(value: Any) -> bool:
+    numeric = _float_value(value)
+    return numeric is not None and numeric >= 0.0
+
+
+def _float_value(value: Any) -> float | None:
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return None
+    return numeric if math.isfinite(numeric) else None
+
+
+def _int_value(value: Any) -> int | None:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _metric_float(metrics: dict[str, Any], key: str, default: float) -> float:
