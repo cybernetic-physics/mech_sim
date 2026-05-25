@@ -1300,6 +1300,9 @@ def write_trace_hdf5_multi(
         f.attrs["version"] = "mech_bench.trace.v2"
         f.attrs["run_id"] = primary.run_id
         f.attrs["task_id"] = primary.task_id
+        # Keep the legacy root attr for readers that predate the
+        # multi-adapter trace layout.
+        f.attrs["adapter"] = primary.adapter
         f.attrs["primary_adapter"] = primary.adapter
         adapters_grp = f.create_group("adapters")
         for name, td in adapter_traces.items():

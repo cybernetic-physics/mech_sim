@@ -1,0 +1,13 @@
+name: base
+channels:
+  - projectchrono
+  - conda-forge
+dependencies:
+  - python=3.13
+  - pychrono
+  - ocp
+  - gmsh
+  - python-gmsh
+  - h5py
+  - numpy
+  - pip

@@ -31,6 +31,10 @@ calibration, convergence evidence, and validation datasets.
   validation evidence.
 - `chrono_contact` is a skeleton. A real `_chrono_impl` runner must be
   added before contact-dynamics tasks become physically credible.
+- The first native dependency gate now lives in `mech-bench
+  oracle-smoke` plus `docker/solver/environment.yml`: PyChrono,
+  OpenCascade/OCP, Gmsh, HDF5, and NumPy must import and execute minimal
+  kernel operations before any runner can claim real oracle readiness.
 - Many current tasks are analytic, topology, or declared-parameter
   checks. They are valid benchmark tasks, but they do not prove
   high-fidelity simulation credibility.

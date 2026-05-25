@@ -21,6 +21,8 @@ The deliverables today:
 - A **compact RLVR reward API** suitable for an agent loop.
 - A **deterministic fake contact oracle** for testing the contact /
   dynamics probe pipeline without a real physics engine.
+- A reproducible **native solver smoke environment** for PyChrono,
+  OpenCascade/OCP, Gmsh, HDF5, and NumPy.
 - A **planar-mechanism MP4 renderer** for demos.
 
 See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the design rationale and
@@ -50,8 +52,21 @@ Optional extras:
 `ffmpeg` is picked up from `PATH` when present; nothing else is needed
 for video encoding.
 
-PyChrono is **not** wired as a real physics oracle in this repo — see
-[Chrono status](#chrono-status) below.
+The native solver stack is provisioned through
+[`docker/solver/environment.yml`](docker/solver/environment.yml). To
+build it and fail hard if PyChrono, OpenCascade/OCP, Gmsh, HDF5, or
+NumPy is missing:
+
+```bash
+scripts/solver_smoke.sh
+```
+
+On the host, `mech-bench oracle-smoke` prints the same structured
+diagnostic without failing just because the host lacks native packages.
+Use `mech-bench oracle-smoke --require-real` in CI or inside the solver
+container. The script defaults to Docker's native platform; set
+`MECH_BENCH_SOLVER_PLATFORM=linux/amd64` only when you intentionally
+want an amd64 image.
 
 ---
 

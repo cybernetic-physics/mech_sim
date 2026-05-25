@@ -4,6 +4,7 @@ Subcommands:
   evaluate                  Score a submission against a task
   list-probes               Show registered probe types and their capabilities
   list-adapters             Show registered adapters and their capabilities
+  oracle-smoke              Check native solver stack availability
   package-run               Collect/normalize a packaged run directory
   video                     Render an mp4 preview for a packaged run
   generate-suite            Procedurally generate a benchmark suite
@@ -125,6 +126,17 @@ def _cmd_chrono_diagnostic(args: argparse.Namespace) -> int:
         for k, v in diag.items():
             print(f"{k}: {v}")
     return 0 if diag.get("status") == "available" else 1
+
+
+def _cmd_oracle_smoke(args: argparse.Namespace) -> int:
+    from mech_bench.oracle.smoke import (
+        oracle_smoke_exit_code,
+        run_oracle_smoke,
+    )
+
+    report = run_oracle_smoke(require_real=bool(args.require_real))
+    print(json.dumps(report, indent=2, default=str))
+    return oracle_smoke_exit_code(report)
 
 
 def _cmd_package_run(args: argparse.Namespace) -> int:
@@ -320,6 +332,18 @@ def main(argv: list[str] | None = None) -> int:
     cd.add_argument("--json", action="store_true",
                     help="emit a single JSON document")
     cd.set_defaults(func=_cmd_chrono_diagnostic)
+
+    osk = sub.add_parser(
+        "oracle-smoke",
+        help="Run native solver dependency and kernel-operation checks",
+    )
+    osk.add_argument(
+        "--require-real",
+        action="store_true",
+        help=("exit nonzero unless numpy, HDF5, OpenCascade/OCP, Gmsh, "
+              "and PyChrono all import and execute a minimal operation"),
+    )
+    osk.set_defaults(func=_cmd_oracle_smoke)
 
     pr = sub.add_parser(
         "package-run",
