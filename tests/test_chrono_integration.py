@@ -337,7 +337,7 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
     ] = 10.0
     cfg_base["_mech_bench"]["probe_specs"][0]["config"][
         "output_load_Nm"
-    ] = 0.05
+    ] = 0.75
     cfg_base.update(
         samples=61,
         duration_s=0.2,
@@ -371,6 +371,33 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
     assert ir.params["cad_static_audit"] == assets.static_audit
     assert "ring_pins" in ir.params["cad_feature_frames"]
 
+    unloaded_cfg = dict(cfg_base)
+    unloaded_cfg["contact_model"] = "smc"
+    unloaded_cfg["_mech_bench"] = dict(cfg_base["_mech_bench"])
+    unloaded_cfg["_mech_bench"]["probe_specs"] = [
+        dict(cfg_base["_mech_bench"]["probe_specs"][0])
+    ]
+    unloaded_cfg["_mech_bench"]["probe_specs"][0]["config"] = dict(
+        cfg_base["_mech_bench"]["probe_specs"][0]["config"])
+    unloaded_cfg["_mech_bench"]["probe_specs"][0]["config"][
+        "output_load_Nm"
+    ] = 0.0
+    unloaded_cfg["_mech_bench"]["probe_specs"][0]["config"][
+        "max_power_error_pct"
+    ] = 1.0e12
+    unloaded_cfg["_mech_bench"]["probe_specs"][0]["config"][
+        "max_torque_ripple_pct"
+    ] = 1.0e12
+    unloaded = _chrono_impl.run(ir, unloaded_cfg)
+    unloaded_metrics = unloaded["scalar_metrics"]
+    assert unloaded_metrics["lockup_detected"] == 0.0
+    assert unloaded_metrics["ratio_error_pct"] < 15.0
+    assert unloaded_metrics["max_penetration_mm"] < 1.0
+    assert unloaded_metrics["out_omega_med"] == unloaded_metrics[
+        "out_omega_fit_rad_s"
+    ]
+    assert "out_omega_med_raw" in unloaded_metrics
+
     results = {}
     for contact_model in ("nsc", "smc"):
         cfg = dict(cfg_base)
@@ -402,6 +429,8 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
             "contact_force_rms_N",
             "power_balance_error_pct",
             "torque_ripple_pct",
+            "out_omega_med_raw",
+            "out_omega_fit_rad_s",
         ):
             assert key in out["scalar_metrics"]
         results[contact_model] = out
@@ -416,13 +445,10 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
     assert abs(smc_metrics["out_omega_med"]) > 0.5
     assert np.isfinite(smc_metrics["ratio_observed"])
     assert smc_metrics["max_penetration_mm"] < 1.0
-    assert smc_metrics["failure_mode"] in {
-        "none",
-        "power_balance_error",
-        "torque_ripple",
-    }
+    assert smc_metrics["failure_mode"] in {"power_balance_error", "torque_ripple"}
     assert smc_metrics["failure_mode"] != "lockup_mechanism_jammed"
     assert smc_metrics["contact_force_rms_N"] < nsc_metrics["contact_force_rms_N"]
+    assert smc_metrics["power_balance_error_pct"] > 25.0
 
     for metrics in (nsc_metrics, smc_metrics):
         top_pairs = {p["pair"]: p for p in metrics["top_contact_pairs"]}

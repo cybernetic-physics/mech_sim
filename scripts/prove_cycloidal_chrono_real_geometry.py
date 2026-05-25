@@ -42,6 +42,7 @@ from mech_bench.geometry.cycloidal_freecad import (
 METRIC_KEYS = (
     "lockup_detected",
     "ratio_observed",
+    "ratio_error_pct",
     "in_omega_med",
     "out_omega_med",
     "max_penetration_mm",
@@ -51,6 +52,8 @@ METRIC_KEYS = (
     "contact_force_rms_N",
     "power_balance_error_pct",
     "torque_ripple_pct",
+    "out_omega_med_raw",
+    "out_omega_fit_rad_s",
     "contact_pair_max_penetration_mm",
     "contact_pair_rms_force_N",
 )
@@ -58,6 +61,7 @@ METRIC_KEYS = (
 NUMERIC_METRIC_KEYS = (
     "lockup_detected",
     "ratio_observed",
+    "ratio_error_pct",
     "in_omega_med",
     "out_omega_med",
     "max_penetration_mm",
@@ -131,17 +135,27 @@ def main() -> int:
             _mark_failed(proof, "collision mesh import", collision_issue)
         else:
             proof["runs"] = {
-                "nsc": _run_chrono(ir, assets, "nsc"),
-                "smc": _run_chrono(ir, assets, "smc"),
+                "nsc": _run_chrono(ir, assets, "nsc", output_load_nm=0.75),
+                "smc": _run_chrono(ir, assets, "smc", output_load_nm=0.75),
+                "smc_unloaded": _run_chrono(
+                    ir,
+                    assets,
+                    "smc",
+                    output_load_nm=0.0,
+                    max_power_error_pct=1.0e12,
+                    max_torque_ripple_pct=1.0e12,
+                ),
             }
+            proof["convergence"] = _run_smc_sample_convergence(ir, assets)
             _evaluate_runs(proof)
     except CycloidalCadExportError as exc:
         _mark_failed(proof, exc.stage, str(exc))
     except Exception as exc:  # noqa: BLE001 - proof boundary
         _mark_failed(proof, "solver dynamics", f"{type(exc).__name__}: {exc}")
 
-    _write_json(proof_json, proof)
-    print(json.dumps(proof, indent=2, sort_keys=True, allow_nan=False))
+    safe_proof = _json_safe(proof)
+    _write_json(proof_json, safe_proof)
+    print(json.dumps(safe_proof, indent=2, sort_keys=True, allow_nan=False))
     return 0 if proof.get("ok") or args.allow_failure else 1
 
 
@@ -188,6 +202,8 @@ def _base_proof(out_dir: Path, proof_json: Path, args: argparse.Namespace) -> di
             "chrono_smc_real_geometry_metrics": False,
             "nsc_bad_regime_observed": False,
             "smc_minimum_success_threshold": False,
+            "smc_unloaded_ratio_near_declared": False,
+            "smc_ratio_convergence": False,
         },
     }
 
@@ -319,8 +335,24 @@ def _collision_shape_issue(
     return None
 
 
-def _run_chrono(ir: Any, assets: CycloidalReducerAssets, contact_model: str) -> dict[str, Any]:
-    cfg = _chrono_config(assets, contact_model)
+def _run_chrono(
+    ir: Any,
+    assets: CycloidalReducerAssets,
+    contact_model: str,
+    *,
+    output_load_nm: float = 0.75,
+    samples: int = 61,
+    max_power_error_pct: float = 25.0,
+    max_torque_ripple_pct: float = 30.0,
+) -> dict[str, Any]:
+    cfg = _chrono_config(
+        assets,
+        contact_model,
+        output_load_nm=output_load_nm,
+        samples=samples,
+        max_power_error_pct=max_power_error_pct,
+        max_torque_ripple_pct=max_torque_ripple_pct,
+    )
     out = _chrono_impl.run(ir, cfg)
     metadata = out.get("metadata", {})
     metrics = out.get("scalar_metrics", {})
@@ -336,6 +368,8 @@ def _run_chrono(ir: Any, assets: CycloidalReducerAssets, contact_model: str) -> 
         "preflight_issues": metadata.get("preflight_issues", []),
         "build_meta": metadata.get("build_meta", {}),
         "passed": bool(out.get("passed", False)),
+        "output_load_Nm": output_load_nm,
+        "samples": samples,
         "metrics": {key: metrics.get(key) for key in METRIC_KEYS},
         "failure_mode": metrics.get("failure_mode"),
         "solver_diverged": metrics.get("solver_diverged"),
@@ -347,9 +381,17 @@ def _run_chrono(ir: Any, assets: CycloidalReducerAssets, contact_model: str) -> 
     return result
 
 
-def _chrono_config(assets: CycloidalReducerAssets, contact_model: str) -> dict[str, Any]:
+def _chrono_config(
+    assets: CycloidalReducerAssets,
+    contact_model: str,
+    *,
+    output_load_nm: float,
+    samples: int,
+    max_power_error_pct: float,
+    max_torque_ripple_pct: float,
+) -> dict[str, Any]:
     return {
-        "samples": 61,
+        "samples": samples,
         "duration_s": 0.2,
         "timestep": 5.0e-5,
         "contact_model": contact_model,
@@ -380,14 +422,63 @@ def _chrono_config(assets: CycloidalReducerAssets, contact_model: str) -> dict[s
                         "input_port": "input_port",
                         "output_port": "output_port",
                         "input_speed_rad_s": 10.0,
-                        "output_load_Nm": 0.05,
+                        "output_load_Nm": float(output_load_nm),
                         "min_output_speed_rad_s": 0.5,
-                        "max_power_error_pct": 25.0,
-                        "max_torque_ripple_pct": 30.0,
+                        "max_power_error_pct": float(max_power_error_pct),
+                        "max_torque_ripple_pct": float(max_torque_ripple_pct),
                     },
                 }
             ],
         },
+    }
+
+
+def _run_smc_sample_convergence(
+    ir: Any, assets: CycloidalReducerAssets,
+) -> dict[str, Any]:
+    runs = [
+        _run_chrono(
+            ir,
+            assets,
+            "smc",
+            output_load_nm=0.0,
+            samples=samples,
+            max_power_error_pct=1.0e12,
+            max_torque_ripple_pct=1.0e12,
+        )
+        for samples in (41, 61, 81)
+    ]
+    ratios = [
+        _metric_float(run.get("metrics", {}), "ratio_observed", math.inf)
+        for run in runs
+    ]
+    errors = [
+        _metric_float(run.get("metrics", {}), "ratio_error_pct", math.inf)
+        for run in runs
+    ]
+    penetrations = [
+        _metric_float(run.get("metrics", {}), "max_penetration_mm", math.inf)
+        for run in runs
+    ]
+    lockups = [
+        _metric_float(run.get("metrics", {}), "lockup_detected", 1.0)
+        for run in runs
+    ]
+    ratio_span = max(ratios) - min(ratios) if ratios else math.inf
+    return {
+        "samples": [run["samples"] for run in runs],
+        "runs": runs,
+        "ratio_observed_values": ratios,
+        "ratio_error_pct_max": max(errors) if errors else math.inf,
+        "ratio_observed_span": ratio_span,
+        "max_penetration_mm_max": max(penetrations) if penetrations else math.inf,
+        "ok": (
+            all(run.get("ok") for run in runs)
+            and max(errors, default=math.inf) <= 15.0
+            and ratio_span <= 1.5
+            and max(penetrations, default=math.inf) < 1.0
+            and max(lockups, default=1.0) == 0.0
+        ),
     }
 
 
@@ -458,6 +549,15 @@ def _evaluate_runs(proof: dict[str, Any]) -> None:
         and smc_contacts < nsc_contacts
         and smc_failure not in {"lockup_mechanism_jammed", "solver_diverged"}
     )
+    unloaded_metrics = proof["runs"]["smc_unloaded"].get("metrics", {})
+    acceptance["smc_unloaded_ratio_near_declared"] = (
+        proof["runs"]["smc_unloaded"].get("ok")
+        and _metric_float(unloaded_metrics, "lockup_detected", 1.0) == 0.0
+        and _metric_float(unloaded_metrics, "ratio_error_pct", math.inf) <= 15.0
+        and _metric_float(unloaded_metrics, "max_penetration_mm", math.inf) < 1.0
+    )
+    acceptance["smc_ratio_convergence"] = bool(
+        proof.get("convergence", {}).get("ok"))
     if all(acceptance.values()):
         proof["ok"] = True
         proof["missing_bridge"] = None
@@ -532,6 +632,18 @@ def _command_output(argv: list[str]) -> str | None:
 
 def _git(args: list[str]) -> str | None:
     return _command_output(["git", *args])
+
+
+def _json_safe(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {str(k): _json_safe(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_json_safe(v) for v in value]
+    if isinstance(value, tuple):
+        return [_json_safe(v) for v in value]
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    return value
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:

@@ -103,8 +103,12 @@ def run(ir: DesignIR, config: dict[str, Any]) -> dict[str, Any]:
         motors, motor_issues = _add_motors(
             chrono, system, spec.motors, ir, bodies)
         load_targets, load_issues = _resolve_loads(spec.loads, ir, bodies)
+        load_api_issues = _install_loads(chrono, system, load_targets)
 
-        preflight_issues = body_issues + joint_issues + motor_issues + load_issues
+        preflight_issues = (
+            body_issues + joint_issues + motor_issues + load_issues
+            + load_api_issues
+        )
 
         record = _Recorder(ir, spec.contact_pairs, samples)
         current_t = 0.0
@@ -249,20 +253,39 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
                     )),
                 })
                 out_load = float(pcfg.get("output_load_Nm", 0.0))
-                if out_load:
-                    loads.append({
-                        "id": f"load_{raw.get('id', 'torque')}",
-                        "joint_id": output_joint,
-                        "port_id": output_port,
-                        "mode": "torque",
-                        "value": out_load,
-                    })
+                loads.append({
+                    "id": f"load_{raw.get('id', 'torque')}",
+                    "joint_id": output_joint,
+                    "port_id": output_port,
+                    "mode": "torque",
+                    "value": out_load,
+                })
 
     for pair in cfg.get("contact_pairs", []) or []:
         pairs.append(_normalize_pair(str(pair)))
     for j in ir.joints:
         if j.type == "contact_pair":
             pairs.append(_normalize_pair(f"{j.parent}:{j.child}"))
+
+    for raw in probe_specs:
+        if str(raw.get("type", "")) != "torque_load_trial":
+            continue
+        pcfg = raw.get("config") if isinstance(raw.get("config"), dict) else {}
+        output_port = str(pcfg.get("output_port", "output_port"))
+        output_joint = _resolve_port_to_joint(ir, output_port) or output_port
+        if any(
+            str(load.get("port_id", "")) == output_port
+            or str(load.get("joint_id", "")) == output_joint
+            for load in loads
+        ):
+            continue
+        loads.append({
+            "id": f"load_{raw.get('id', 'torque')}",
+            "joint_id": output_joint,
+            "port_id": output_port,
+            "mode": "torque",
+            "value": float(pcfg.get("output_load_Nm", 0.0)),
+        })
 
     for raw in cfg.get("motors", []) or []:
         if isinstance(raw, dict):
@@ -1019,9 +1042,48 @@ def _resolve_loads(
     return out, issues
 
 
+def _install_loads(
+    chrono: Any,
+    system: Any,
+    loads: list[dict[str, Any]],
+) -> list[str]:
+    torque_loads = [
+        load for load in loads
+        if load.get("mode") == "torque" and abs(float(load.get("value", 0.0))) > 0.0
+    ]
+    if not torque_loads:
+        return []
+    container_cls = getattr(chrono, "ChLoadContainer", None)
+    torque_cls = getattr(chrono, "ChLoadBodyTorque", None)
+    if container_cls is None or torque_cls is None:
+        return ["Chrono build has no body torque load API"]
+    try:
+        container = container_cls()
+        _call_first(system, ("Add", "AddLoadContainer"), container)
+    except Exception as exc:  # noqa: BLE001 - version-dependent Chrono API
+        return [f"could not create Chrono load container: {exc}"]
+    issues: list[str] = []
+    for load in torque_loads:
+        value = -float(load.get("value", 0.0))
+        ax = load["axis"]
+        torque = _vec(chrono, value * ax[0], value * ax[1], value * ax[2])
+        try:
+            chrono_load = torque_cls(load["body"], torque, False)
+            _call_first(chrono_load, ("SetName", "SetNameString"),
+                        str(load.get("id", "torque_load")))
+            container.Add(chrono_load)
+            load["chrono_load"] = chrono_load
+        except Exception as exc:  # noqa: BLE001 - version-dependent Chrono API
+            issues.append(
+                f"load {load.get('id', '')}: could not install torque load: {exc}")
+    return issues
+
+
 def _apply_loads(chrono: Any, loads: list[dict[str, Any]]) -> None:
     for load in loads:
         if load.get("mode") != "torque":
+            continue
+        if load.get("chrono_load") is not None:
             continue
         body = load["body"]
         value = -float(load.get("value", 0.0))
@@ -1055,6 +1117,7 @@ class _Recorder:
         }
         self.constraint_errors: dict[str, np.ndarray] = {}
         self.contact_counts = np.zeros(samples, dtype=float)
+        self.time_s = np.zeros(samples, dtype=float)
         initial_positions = {
             p.id: _part_initial_pose_mm(p) for p in ir.parts
         }
@@ -1088,6 +1151,7 @@ class _Recorder:
         motors: dict[str, Any],
         spec: RuntimeSpec,
     ) -> None:
+        self.time_s[i] = float(t)
         for name, body in bodies.items():
             pos = _extract_vec(_try_call(body, ("GetPos",)))
             rot = _extract_quat(_try_call(body, ("GetRot",)))
@@ -1188,9 +1252,20 @@ def _scalar_metrics(
         in_speed = 0.0
         in_omega_med = 0.0
     if spec.loads:
-        out_port = str(spec.loads[0].get("port_id", "output_port"))
-        out_speed = _mean_abs_tail(record.joint_velocities.get(out_port))
-        out_omega_med = _median_tail(record.joint_velocities.get(out_port))
+        load_spec = spec.loads[0]
+        out_port = str(load_spec.get("port_id", "output_port"))
+        raw_out_speed = _mean_abs_tail(record.joint_velocities.get(out_port))
+        raw_out_omega_med = _median_tail(record.joint_velocities.get(out_port))
+        out_omega_med = raw_out_omega_med
+        out_speed = raw_out_speed
+        output_body_id = _joint_child_body_id(ir, str(load_spec.get("joint_id", "")))
+        fit_out_omega = _body_yaw_slope_tail(record, output_body_id)
+        if fit_out_omega is not None:
+            out_omega_med = fit_out_omega
+            out_speed = abs(fit_out_omega)
+            metrics["out_omega_med_raw"] = raw_out_omega_med
+            metrics["output_speed_rad_s_mean_raw"] = raw_out_speed
+            metrics["out_omega_fit_rad_s"] = fit_out_omega
         out_load = abs(float(spec.loads[0].get("value", 0.0)))
         metrics["output_speed_rad_s_mean"] = out_speed
         metrics["out_omega_med"] = out_omega_med
@@ -1320,6 +1395,49 @@ def _record_has_nonfinite(record: _Recorder) -> bool:
     return bool(
         record.contact_counts.size
         and not np.all(np.isfinite(record.contact_counts))
+    )
+
+
+def _joint_child_body_id(ir: DesignIR, joint_id: str) -> str | None:
+    for joint in ir.joints:
+        if joint.id == joint_id:
+            return joint.child
+    return None
+
+
+def _body_yaw_slope_tail(
+    record: _Recorder,
+    body_id: str | None,
+    warmup_fraction: float = 0.25,
+) -> float | None:
+    if not body_id or body_id not in record.body_poses:
+        return None
+    poses = np.asarray(record.body_poses[body_id], dtype=float)
+    t = np.asarray(record.time_s, dtype=float)
+    if poses.ndim != 2 or poses.shape[0] < 3 or t.size != poses.shape[0]:
+        return None
+    yaw = np.unwrap(np.array([
+        _yaw_from_quat(tuple(row[3:7])) for row in poses
+    ], dtype=float))
+    start = min(yaw.size - 2, max(0, int(yaw.size * warmup_fraction)))
+    tt = t[start:]
+    yy = yaw[start:]
+    if tt.size < 3 or float(np.ptp(tt)) <= 1e-12:
+        return None
+    tt0 = tt - float(np.mean(tt))
+    yy0 = yy - float(np.mean(yy))
+    denom = float(np.dot(tt0, tt0))
+    if denom <= 1e-24:
+        return None
+    slope = float(np.dot(tt0, yy0) / denom)
+    return slope if math.isfinite(slope) else None
+
+
+def _yaw_from_quat(q: tuple[float, float, float, float]) -> float:
+    w, x, y, z = q
+    return math.atan2(
+        2.0 * (w * z + x * y),
+        1.0 - 2.0 * (y * y + z * z),
     )
 
 
