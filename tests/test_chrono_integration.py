@@ -209,6 +209,7 @@ def test_chrono_runtime_spec_extracts_contacts_drive_and_load(tmp_path):
         "value": 0.75,
         "ramp_s": 0.15,
         "start_s": 0.05,
+        "brake_smoothing_rad_s": 0.05,
     }]
     resolved_loads, issues = _chrono_impl._resolve_loads(
         spec.loads, ir, {"output": object()})
@@ -233,6 +234,38 @@ def test_chrono_load_modulation_function_ramps_after_start():
     fun = _chrono_impl._load_modulation_function(FakeChrono, 0.05, 0.15)
 
     assert fun.points == [(0.0, 0.0), (0.05, 0.0), (0.2, 1.0)]
+
+
+def test_chrono_passive_brake_load_uses_velocity_opposing_torque():
+    from mech_bench.adapters import _chrono_impl
+
+    class FakeVec:
+        def __init__(self, x, y, z):
+            self.x = x
+            self.y = y
+            self.z = z
+
+    class FakeBody:
+        def __init__(self, omega_z):
+            self.omega_z = omega_z
+
+        def GetAngVelParent(self):  # noqa: N802 - Chrono API shape
+            return FakeVec(0.0, 0.0, self.omega_z)
+
+    load = {
+        "mode": "brake_torque",
+        "body": FakeBody(2.0),
+        "axis": (0.0, 0.0, 1.0),
+        "value": -0.75,
+        "start_s": 0.1,
+        "ramp_s": 0.2,
+        "brake_smoothing_rad_s": 0.05,
+    }
+
+    assert _chrono_impl._load_torque_value(load, 0.05) == 0.0
+    assert _chrono_impl._load_torque_value(load, 0.2) == pytest.approx(-0.375)
+    load["body"] = FakeBody(-2.0)
+    assert _chrono_impl._load_torque_value(load, 0.3) == pytest.approx(0.75)
 
 
 def test_chrono_mesh_shape_uses_collision_frame_center(tmp_path):

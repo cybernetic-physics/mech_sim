@@ -127,7 +127,7 @@ def run(ir: DesignIR, config: dict[str, Any]) -> dict[str, Any]:
                 step = min(dt, float(sample_t) - current_t)
                 if step <= 0.0:
                     break
-                _apply_loads(chrono, load_targets)
+                _apply_loads(chrono, load_targets, current_t)
                 system.DoStepDynamics(step)
                 current_t += step
             record.sample(
@@ -236,7 +236,7 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
                 "id": load.id,
                 "joint_id": load.joint_id,
                 "port_id": _joint_to_port(ir, load.joint_id),
-                "mode": load.mode,
+                "mode": _load_mode_from_config(torque_probe_cfg, cfg, load.mode),
                 "value": float(load.value),
                 "ramp_s": float(torque_probe_cfg.get(
                     "output_load_ramp_s",
@@ -247,6 +247,10 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
                     "output_load_start_s",
                     torque_probe_cfg.get(
                         "load_start_s", cfg.get("output_load_start_s", 0.0)),
+                )),
+                "brake_smoothing_rad_s": float(torque_probe_cfg.get(
+                    "brake_smoothing_rad_s",
+                    cfg.get("brake_smoothing_rad_s", 0.05),
                 )),
             })
     else:
@@ -279,7 +283,7 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
                     "id": f"load_{raw.get('id', 'torque')}",
                     "joint_id": output_joint,
                     "port_id": output_port,
-                    "mode": "torque",
+                    "mode": _load_mode_from_config(pcfg, cfg, "torque"),
                     "value": out_load,
                     "ramp_s": float(pcfg.get(
                         "output_load_ramp_s",
@@ -288,6 +292,10 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
                     "start_s": float(pcfg.get(
                         "output_load_start_s",
                         pcfg.get("load_start_s", cfg.get("output_load_start_s", 0.0)),
+                    )),
+                    "brake_smoothing_rad_s": float(pcfg.get(
+                        "brake_smoothing_rad_s",
+                        cfg.get("brake_smoothing_rad_s", 0.05),
                     )),
                 })
 
@@ -313,7 +321,7 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
             "id": f"load_{raw.get('id', 'torque')}",
             "joint_id": output_joint,
             "port_id": output_port,
-            "mode": "torque",
+            "mode": _load_mode_from_config(pcfg, cfg, "torque"),
             "value": float(pcfg.get("output_load_Nm", 0.0)),
             "ramp_s": float(pcfg.get(
                 "output_load_ramp_s",
@@ -322,6 +330,10 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
             "start_s": float(pcfg.get(
                 "output_load_start_s",
                 pcfg.get("load_start_s", cfg.get("output_load_start_s", 0.0)),
+            )),
+            "brake_smoothing_rad_s": float(pcfg.get(
+                "brake_smoothing_rad_s",
+                cfg.get("brake_smoothing_rad_s", 0.05),
             )),
         })
 
@@ -355,6 +367,18 @@ def _probe_config_from_raw(
         cfg = raw.get("config")
         return dict(cfg) if isinstance(cfg, dict) else {}
     return {}
+
+
+def _load_mode_from_config(
+    probe_cfg: dict[str, Any],
+    cfg: dict[str, Any],
+    default: str,
+) -> str:
+    raw = probe_cfg.get("output_load_model", cfg.get("output_load_model", default))
+    mode = str(raw or default).lower().replace("-", "_")
+    if mode in {"brake", "passive_brake", "resistive", "resistive_torque"}:
+        return "brake_torque"
+    return str(default or "torque")
 
 
 def _scene_graph_from_context(
@@ -1214,6 +1238,8 @@ def _resolve_loads(
             "value": float(spec.get("value", 0.0)),
             "start_s": float(spec.get("start_s", 0.0) or 0.0),
             "ramp_s": float(spec.get("ramp_s", 0.0) or 0.0),
+            "brake_smoothing_rad_s": float(
+                spec.get("brake_smoothing_rad_s", 0.05) or 0.05),
         })
     return out, issues
 
@@ -1225,7 +1251,8 @@ def _install_loads(
 ) -> list[str]:
     torque_loads = [
         load for load in loads
-        if load.get("mode") == "torque" and abs(float(load.get("value", 0.0))) > 0.0
+        if load.get("mode") in {"torque", "brake_torque"}
+        and abs(float(load.get("value", 0.0))) > 0.0
     ]
     if not torque_loads:
         return []
@@ -1240,7 +1267,8 @@ def _install_loads(
         return [f"could not create Chrono load container: {exc}"]
     issues: list[str] = []
     for load in torque_loads:
-        value = -float(load.get("value", 0.0))
+        value = 0.0 if load.get("mode") == "brake_torque" else -float(
+            load.get("value", 0.0))
         ax = load["axis"]
         torque = _vec(chrono, value * ax[0], value * ax[1], value * ax[2])
         try:
@@ -1252,7 +1280,7 @@ def _install_loads(
                 float(load.get("start_s", 0.0) or 0.0),
                 float(load.get("ramp_s", 0.0) or 0.0),
             )
-            if modulation is not None:
+            if modulation is not None and load.get("mode") != "brake_torque":
                 _call_first(chrono_load, ("SetModulationFunction",),
                             modulation)
             container.Add(chrono_load)
@@ -1287,21 +1315,57 @@ def _load_modulation_function(
         return None
 
 
-def _apply_loads(chrono: Any, loads: list[dict[str, Any]]) -> None:
+def _apply_loads(
+    chrono: Any,
+    loads: list[dict[str, Any]],
+    time_s: float = 0.0,
+) -> None:
     for load in loads:
-        if load.get("mode") != "torque":
+        mode = load.get("mode")
+        if mode not in {"torque", "brake_torque"}:
             continue
-        if load.get("chrono_load") is not None:
+        if mode == "torque" and load.get("chrono_load") is not None:
             continue
         body = load["body"]
-        value = -float(load.get("value", 0.0))
+        value = _load_torque_value(load, time_s)
         ax = load["axis"]
         torque = _vec(chrono, value * ax[0], value * ax[1], value * ax[2])
-        if _call_first(body, ("AccumulateTorque",), torque, False):
+        chrono_load = load.get("chrono_load")
+        if chrono_load is not None and (
+            _call_first(chrono_load, ("SetTorque",), torque, False)
+            or _call_first(chrono_load, ("SetTorque",), torque)
+        ):
             continue
-        if _call_first(body, ("AddTorque",), torque):
-            continue
-        _call_first(body, ("SetTorque",), torque)
+
+
+def _load_torque_value(load: dict[str, Any], time_s: float) -> float:
+    magnitude = float(load.get("value", 0.0))
+    scale = _load_scale_at_time(load, time_s)
+    if load.get("mode") == "brake_torque":
+        magnitude = abs(magnitude)
+        omega = _body_omega_about_axis(load.get("body"), load.get("axis", (0, 0, 1)))
+        smoothing = max(float(load.get("brake_smoothing_rad_s", 0.05)), 1.0e-9)
+        return -magnitude * math.tanh(omega / smoothing) * scale
+    return -magnitude * scale
+
+
+def _load_scale_at_time(load: dict[str, Any], time_s: float) -> float:
+    start_s = max(0.0, float(load.get("start_s", 0.0) or 0.0))
+    ramp_s = max(0.0, float(load.get("ramp_s", 0.0) or 0.0))
+    if time_s < start_s:
+        return 0.0
+    if ramp_s <= 0.0:
+        return 1.0
+    return max(0.0, min(1.0, (time_s - start_s) / ramp_s))
+
+
+def _body_omega_about_axis(body: Any, axis: Iterable[float]) -> float:
+    if body is None:
+        return 0.0
+    ax = _unit3(axis)
+    omega = _extract_vec(_call_first_value(
+        body, ("GetAngVelParent", "GetWvel_par", "GetWvel_loc")))
+    return omega[0] * ax[0] + omega[1] * ax[1] + omega[2] * ax[2]
 
 
 class _Recorder:
