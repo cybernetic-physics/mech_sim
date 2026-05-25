@@ -1162,15 +1162,26 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
             driver_shape, exports_dir, root)
 
         disk1_shape = doc.getObject("cycloidalDisk1").Shape
+        disk2_shape = doc.getObject("cycloidalDisk2").Shape
         static_audit = {
             "ring_pins_to_cycloidalDisk1_distance_mm": _shape_distance_mm(
                 ring_shape, disk1_shape),
+            "ring_pins_to_cycloidalDisk2_distance_mm": _shape_distance_mm(
+                ring_shape, disk2_shape),
             "driver_pins_to_cycloidalDisk1_distance_mm": _shape_distance_mm(
                 driver_shape, disk1_shape),
+            "driver_pins_to_cycloidalDisk2_distance_mm": _shape_distance_mm(
+                driver_shape, disk2_shape),
             "driver_pins_to_cycloidalDisk1_output_holes": (
                 _pin_hole_clearance_audit(
                     feature_frames["driver_pins"],
                     feature_frames["cycloidalDisk1_output_holes"],
+                )
+            ),
+            "driver_pins_to_cycloidalDisk2_output_holes": (
+                _pin_hole_clearance_audit(
+                    feature_frames["driver_pins"],
+                    feature_frames["cycloidalDisk2_output_holes"],
                 )
             ),
         }

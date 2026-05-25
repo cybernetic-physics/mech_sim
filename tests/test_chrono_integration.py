@@ -319,10 +319,12 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
     assert audit["feature_frame_counts"]["ring_pins"] == 10
     assert audit["feature_frame_counts"]["driver_pins"] == 6
     assert audit["feature_frame_counts"]["cycloidalDisk1_output_holes"] == 6
-    pin_hole = audit["driver_pins_to_cycloidalDisk1_output_holes"]
-    assert pin_hole["status"] == "ok"
-    assert pin_hole["min_radial_clearance_mm"] > 0.0
-    assert audit["ring_pins_to_cycloidalDisk1_distance_mm"] >= 0.0
+    assert audit["feature_frame_counts"]["cycloidalDisk2_output_holes"] == 6
+    for disk_name in ("cycloidalDisk1", "cycloidalDisk2"):
+        pin_hole = audit[f"driver_pins_to_{disk_name}_output_holes"]
+        assert pin_hole["status"] == "ok"
+        assert pin_hole["min_radial_clearance_mm"] > 0.0
+        assert audit[f"ring_pins_to_{disk_name}_distance_mm"] >= 0.0
 
     ir = build_chrono_design_ir_from_assets(
         assets,

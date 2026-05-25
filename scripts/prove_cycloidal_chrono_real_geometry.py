@@ -702,28 +702,42 @@ def _cad_static_contact_audit_passed(assets: dict[str, Any]) -> bool:
     counts = assets.get("feature_frame_counts", {})
     if not isinstance(audit, dict) or not isinstance(counts, dict):
         return False
-    ring_distance = _finite_nonnegative(
+    ring_distance_1 = _finite_nonnegative(
         audit.get("ring_pins_to_cycloidalDisk1_distance_mm"))
-    driver_distance = _finite_nonnegative(
+    ring_distance_2 = _finite_nonnegative(
+        audit.get("ring_pins_to_cycloidalDisk2_distance_mm"))
+    driver_distance_1 = _finite_nonnegative(
         audit.get("driver_pins_to_cycloidalDisk1_distance_mm"))
-    hole = audit.get("driver_pins_to_cycloidalDisk1_output_holes", {})
-    if not isinstance(hole, dict):
+    driver_distance_2 = _finite_nonnegative(
+        audit.get("driver_pins_to_cycloidalDisk2_distance_mm"))
+    hole_1 = audit.get("driver_pins_to_cycloidalDisk1_output_holes", {})
+    hole_2 = audit.get("driver_pins_to_cycloidalDisk2_output_holes", {})
+    if not isinstance(hole_1, dict) or not isinstance(hole_2, dict):
         return False
-    pair_count = _int_value(hole.get("pair_count"))
     driver_count = _int_value(counts.get("driver_pins"))
-    min_clearance = _float_value(hole.get("min_radial_clearance_mm"))
-    mean_clearance = _float_value(hole.get("mean_radial_clearance_mm"))
+    clearances = []
+    for hole in (hole_1, hole_2):
+        clearances.append((
+            _int_value(hole.get("pair_count")),
+            _float_value(hole.get("min_radial_clearance_mm")),
+            _float_value(hole.get("mean_radial_clearance_mm")),
+            hole.get("status"),
+        ))
     return (
-        ring_distance
-        and driver_distance
-        and hole.get("status") == "ok"
-        and pair_count is not None
+        ring_distance_1
+        and ring_distance_2
+        and driver_distance_1
+        and driver_distance_2
         and driver_count is not None
-        and pair_count == driver_count
-        and min_clearance is not None
-        and min_clearance > 0.0
-        and mean_clearance is not None
-        and mean_clearance > 0.0
+        and all(
+            pair_count == driver_count
+            and min_clearance is not None
+            and min_clearance > 0.0
+            and mean_clearance is not None
+            and mean_clearance > 0.0
+            and status == "ok"
+            for pair_count, min_clearance, mean_clearance, status in clearances
+        )
     )
 
 

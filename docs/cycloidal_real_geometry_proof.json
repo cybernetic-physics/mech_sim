@@ -32,7 +32,7 @@
           "bytes": 131114,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/cycloidalDisk1.step",
-          "sha256": "3ed22f14e251f94ec424bd3fc746fcf50a4ae6b92feabf7b5ee11eb2a9112fa3"
+          "sha256": "b871f8ab4da43a29c72edfc21a0c273449f593449c79406ec815bf8e7dd6a6c2"
         },
         "stl": {
           "bytes": 790584,
@@ -54,7 +54,7 @@
           "bytes": 131114,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/cycloidalDisk2.step",
-          "sha256": "9b56f1297b27e14098a53aa00321537307a0fbb37c0c3fe16f1c4ec3c05124c8"
+          "sha256": "000f7d6db3ea2dc333cf88e29e08b5ea6b809ab7551bbd6c7d55fe7bfce98a7c"
         },
         "stl": {
           "bytes": 790584,
@@ -76,7 +76,7 @@
           "bytes": 15702,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/driverDisk.step",
-          "sha256": "3572af9d61c3d8d42b14b7cf3d47c752573b1450ba09eb0bb8256717423710c3"
+          "sha256": "777b590ffebc08660977e3144180e31f77ab684ee62391cf3aec0a8fb107bfb6"
         },
         "stl": {
           "bytes": 201684,
@@ -98,7 +98,7 @@
           "bytes": 10432,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/eccentricKey.step",
-          "sha256": "78da8c8419a8dc27da9cc087c9cea4f880f3f8b2b421398eca4afa989db1ca8f"
+          "sha256": "405fcfdc084ca970b882c8319561955a41b33e23739bebfb03a6471b92acb702"
         },
         "stl": {
           "bytes": 78784,
@@ -120,7 +120,7 @@
           "bytes": 14380,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/inputShaft.step",
-          "sha256": "567d3cb1dc37b07e8a41d21721be228ec1087722f4b449dadc77441b37218f30"
+          "sha256": "c03290812b18a857814c6a083c12330233bb832cd5608ba9270eaca67461712c"
         },
         "stl": {
           "bytes": 89684,
@@ -142,7 +142,7 @@
           "bytes": 15896,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/outputShaft.step",
-          "sha256": "acb61ae9d5f2e46e79ed7a7a66e8f6cf99e5784c4176a17d4b500e9dbd1e1a82"
+          "sha256": "9a55ad32584572b08e17ddf66f992aaa975d5b54d9e3b55fee53b3f5b4d80105"
         },
         "stl": {
           "bytes": 199684,
@@ -164,7 +164,7 @@
           "bytes": 65005,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/pinDisk.step",
-          "sha256": "0e60b317dc178cd8b5f82e0440b1bcd2c174ee88af314d6ed52d4810c2ee5a50"
+          "sha256": "ba0aba19fec799b5de2c11d2d17de83a9b5c1e33199d404e17c5dc77857b973e"
         },
         "stl": {
           "bytes": 831684,
@@ -197,7 +197,7 @@
           "bytes": 13730,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/driverPinsCollision.step",
-          "sha256": "71a8f745e64c43b57fc38fa7b8098fa66f5153dda7091207720146ce381afc76"
+          "sha256": "aa624541edd41dc100196cf86be50fa4bd189e9ef7cbbf1c1810a07529b56efd"
         },
         "stl": {
           "bytes": 150084,
@@ -219,7 +219,7 @@
           "bytes": 22688,
           "exists": true,
           "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_freecad_assets/ringPinsCollision.step",
-          "sha256": "9bdc42bce180e9dda6d18968b7c8b2851d056522e701150f7d1380c817faf079"
+          "sha256": "f62be57377479fe543d7638f2a1147273b52dc1097de73fec7c71f05b724fe31"
         },
         "stl": {
           "bytes": 250084,
@@ -240,10 +240,10 @@
       "ring_pins": 10
     },
     "manifest": {
-      "bytes": 2418368,
+      "bytes": 2419947,
       "exists": true,
       "path": "/tmp/mech_bench_cycloidal_real_geometry_proof/cycloidal_assets_manifest.json",
-      "sha256": "29ab70f3d36f1c7d72567756269febbf087f9defdb195380b7d437d1b59be5b0"
+      "sha256": "3a08347321fdf217a1092909dcde05e7689d07432ac13065f716b3715521e745"
     },
     "manifest_schema": "cycloidal_freecad_assets.v1",
     "parameters": {
@@ -311,7 +311,54 @@
         ],
         "status": "ok"
       },
-      "ring_pins_to_cycloidalDisk1_distance_mm": 0.15567423265076108
+      "driver_pins_to_cycloidalDisk2_distance_mm": 0.0,
+      "driver_pins_to_cycloidalDisk2_output_holes": {
+        "max_radial_clearance_mm": 0.6799999999999997,
+        "mean_radial_clearance_mm": 0.6799999999999997,
+        "min_radial_clearance_mm": 0.6799999999999997,
+        "pair_count": 6,
+        "pairs": [
+          {
+            "center_distance_mm": 2.0,
+            "hole": "cycloidalDisk2_output_hole_00",
+            "pin": "driver_pin_00",
+            "radial_clearance_mm": 0.6799999999999997
+          },
+          {
+            "center_distance_mm": 2.0,
+            "hole": "cycloidalDisk2_output_hole_01",
+            "pin": "driver_pin_01",
+            "radial_clearance_mm": 0.6799999999999997
+          },
+          {
+            "center_distance_mm": 2.0,
+            "hole": "cycloidalDisk2_output_hole_02",
+            "pin": "driver_pin_02",
+            "radial_clearance_mm": 0.6799999999999997
+          },
+          {
+            "center_distance_mm": 2.0,
+            "hole": "cycloidalDisk2_output_hole_03",
+            "pin": "driver_pin_03",
+            "radial_clearance_mm": 0.6799999999999997
+          },
+          {
+            "center_distance_mm": 2.0,
+            "hole": "cycloidalDisk2_output_hole_04",
+            "pin": "driver_pin_04",
+            "radial_clearance_mm": 0.6799999999999997
+          },
+          {
+            "center_distance_mm": 2.0,
+            "hole": "cycloidalDisk2_output_hole_05",
+            "pin": "driver_pin_05",
+            "radial_clearance_mm": 0.6799999999999997
+          }
+        ],
+        "status": "ok"
+      },
+      "ring_pins_to_cycloidalDisk1_distance_mm": 0.15567423265076108,
+      "ring_pins_to_cycloidalDisk2_distance_mm": 0.5250988258746188
     }
   },
   "asset_out_dir": "/tmp/mech_bench_cycloidal_real_geometry_proof",
@@ -766,7 +813,7 @@
     "repo_commit": null
   },
   "error": "acceptance gate failed",
-  "generated_at_utc": "2026-05-25T13:25:40.493918+00:00",
+  "generated_at_utc": "2026-05-25T13:53:57.099145+00:00",
   "missing_bridge": "solver dynamics",
   "ok": false,
   "proof_json": "/workspace/docs/cycloidal_real_geometry_proof.json",
@@ -1470,7 +1517,7 @@
         "part_id": "pinDisk",
         "path": "cycloidal_freecad_assets/pinDisk.step",
         "role": "step",
-        "sha256": "0e60b317dc178cd8b5f82e0440b1bcd2c174ee88af314d6ed52d4810c2ee5a50",
+        "sha256": "ba0aba19fec799b5de2c11d2d17de83a9b5c1e33199d404e17c5dc77857b973e",
         "size_bytes": 65005
       },
       {
@@ -1486,7 +1533,7 @@
         "part_id": "driverDisk",
         "path": "cycloidal_freecad_assets/driverDisk.step",
         "role": "step",
-        "sha256": "3572af9d61c3d8d42b14b7cf3d47c752573b1450ba09eb0bb8256717423710c3",
+        "sha256": "777b590ffebc08660977e3144180e31f77ab684ee62391cf3aec0a8fb107bfb6",
         "size_bytes": 15702
       },
       {
@@ -1502,7 +1549,7 @@
         "part_id": "inputShaft",
         "path": "cycloidal_freecad_assets/inputShaft.step",
         "role": "step",
-        "sha256": "567d3cb1dc37b07e8a41d21721be228ec1087722f4b449dadc77441b37218f30",
+        "sha256": "c03290812b18a857814c6a083c12330233bb832cd5608ba9270eaca67461712c",
         "size_bytes": 14380
       },
       {
@@ -1518,7 +1565,7 @@
         "part_id": "cycloidalDisk1",
         "path": "cycloidal_freecad_assets/cycloidalDisk1.step",
         "role": "step",
-        "sha256": "3ed22f14e251f94ec424bd3fc746fcf50a4ae6b92feabf7b5ee11eb2a9112fa3",
+        "sha256": "b871f8ab4da43a29c72edfc21a0c273449f593449c79406ec815bf8e7dd6a6c2",
         "size_bytes": 131114
       },
       {
@@ -1534,7 +1581,7 @@
         "part_id": "cycloidalDisk2",
         "path": "cycloidal_freecad_assets/cycloidalDisk2.step",
         "role": "step",
-        "sha256": "9b56f1297b27e14098a53aa00321537307a0fbb37c0c3fe16f1c4ec3c05124c8",
+        "sha256": "000f7d6db3ea2dc333cf88e29e08b5ea6b809ab7551bbd6c7d55fe7bfce98a7c",
         "size_bytes": 131114
       },
       {
@@ -1550,7 +1597,7 @@
         "part_id": "eccentricKey",
         "path": "cycloidal_freecad_assets/eccentricKey.step",
         "role": "step",
-        "sha256": "78da8c8419a8dc27da9cc087c9cea4f880f3f8b2b421398eca4afa989db1ca8f",
+        "sha256": "405fcfdc084ca970b882c8319561955a41b33e23739bebfb03a6471b92acb702",
         "size_bytes": 10432
       },
       {
@@ -1566,7 +1613,7 @@
         "part_id": "outputShaft",
         "path": "cycloidal_freecad_assets/outputShaft.step",
         "role": "step",
-        "sha256": "acb61ae9d5f2e46e79ed7a7a66e8f6cf99e5784c4176a17d4b500e9dbd1e1a82",
+        "sha256": "9a55ad32584572b08e17ddf66f992aaa975d5b54d9e3b55fee53b3f5b4d80105",
         "size_bytes": 15896
       }
     ],
