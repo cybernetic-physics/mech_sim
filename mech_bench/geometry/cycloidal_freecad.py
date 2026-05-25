@@ -9,6 +9,7 @@ DesignIR parts that Chrono can consume as mesh collision geometry.
 from __future__ import annotations
 
 import json
+import math
 import os
 import shlex
 import shutil
@@ -53,6 +54,7 @@ class CycloidalReducerAssets:
     root: Path
     manifest_path: Path
     bodies: dict[str, dict[str, Any]]
+    collision_meshes: dict[str, dict[str, Any]]
     parameters: dict[str, Any]
     source: dict[str, Any]
 
@@ -65,6 +67,7 @@ class CycloidalReducerAssets:
             root=root,
             manifest_path=path,
             bodies=dict(data.get("bodies", {})),
+            collision_meshes=dict(data.get("collision_meshes", {})),
             parameters=dict(data.get("parameters", {})),
             source=dict(data.get("source", {})),
         )
@@ -74,6 +77,7 @@ class CycloidalReducerAssets:
             "root": str(self.root),
             "manifest_path": str(self.manifest_path),
             "bodies": self.bodies,
+            "collision_meshes": self.collision_meshes,
             "parameters": self.parameters,
             "source": self.source,
         }
@@ -204,6 +208,7 @@ def build_chrono_design_ir_from_assets(
     include_secondary_disc: bool = True,
     collidable_body_names: set[str] | None = None,
     collision_sweep_radius_m: float = 2.0e-4,
+    use_primitive_pin_collision: bool = False,
 ) -> DesignIR:
     """Build a DesignIR that feeds generated STL meshes to Chrono."""
 
@@ -220,6 +225,7 @@ def build_chrono_design_ir_from_assets(
                     root=root,
                     manifest_path=root / "cycloidal_assets_manifest.json",
                     bodies=dict(assets.get("bodies", {})),
+                    collision_meshes=dict(assets.get("collision_meshes", {})),
                     parameters=dict(assets.get("parameters", {})),
                     source=dict(assets.get("source", {})),
                 )
@@ -228,7 +234,7 @@ def build_chrono_design_ir_from_assets(
     if not include_secondary_disc:
         selected.remove("cycloidalDisk2")
     if collidable_body_names is None:
-        collidable_body_names = {"pinDisk", "cycloidalDisk1"}
+        collidable_body_names = {"pinDisk", "driverDisk", "cycloidalDisk1"}
 
     roles = {
         "pinDisk": "ground",
@@ -250,6 +256,10 @@ def build_chrono_design_ir_from_assets(
     }
 
     parts: list[Part] = []
+    collision_meshes = _collision_meshes_by_body(assets)
+    collision_primitives = (
+        _collision_primitives_by_body(assets) if use_primitive_pin_collision else {}
+    )
     for name in selected:
         body = assets.bodies.get(name)
         if not body:
@@ -266,14 +276,22 @@ def build_chrono_design_ir_from_assets(
             "cad_body_name": name,
             "initial_pose_mm": (0.0, 0.0, 0.0),
         }
+        collision_body = collision_meshes.get(name, body)
         if name in collidable_body_names:
-            params["chrono_collision"] = {
-                "shape": "mesh",
-                "mesh": stl,
-                "is_static": fixed,
-                "is_convex": False,
-                "sweep_sphere_radius_m": float(collision_sweep_radius_m),
-            }
+            if name in collision_primitives:
+                params["chrono_collision"] = collision_primitives[name]
+                params["chrono_collision_asset"] = {
+                    "mesh": str(collision_body.get("stl", stl)),
+                    "step": str(collision_body.get("step", body.get("step", ""))),
+                }
+            else:
+                params["chrono_collision"] = {
+                    "shape": "mesh",
+                    "mesh": str(collision_body.get("stl", stl)),
+                    "is_static": fixed,
+                    "is_convex": False,
+                    "sweep_sphere_radius_m": float(collision_sweep_radius_m),
+                }
         parts.append(Part(
             id=name,
             role=roles.get(name, ""),
@@ -313,6 +331,14 @@ def build_chrono_design_ir_from_assets(
             id="ring_contact",
             type="contact_pair",
             parent="pinDisk",
+            child="cycloidalDisk1",
+            axis_world=(0.0, 0.0, 1.0),
+            anchor_world_mm=(0.0, 0.0, 0.0),
+        ),
+        Joint(
+            id="output_pin_contact",
+            type="contact_pair",
+            parent="driverDisk",
             child="cycloidalDisk1",
             axis_world=(0.0, 0.0, 1.0),
             anchor_world_mm=(0.0, 0.0, 0.0),
@@ -376,6 +402,106 @@ def build_chrono_design_ir_from_assets(
     )
 
 
+def _collision_meshes_by_body(
+    assets: CycloidalReducerAssets,
+) -> dict[str, dict[str, Any]]:
+    raw = getattr(assets, "collision_meshes", None)
+    if raw is None:
+        data = json.loads(assets.manifest_path.read_text())
+        raw = data.get("collision_meshes", {})
+    if not isinstance(raw, dict):
+        return {}
+    out: dict[str, dict[str, Any]] = {}
+    mapping = {
+        "ringPins": "pinDisk",
+        "driverPins": "driverDisk",
+    }
+    for mesh_name, body_name in mapping.items():
+        spec = raw.get(mesh_name)
+        if isinstance(spec, dict) and spec.get("stl"):
+            out[body_name] = dict(spec)
+    return out
+
+
+def _collision_primitives_by_body(
+    assets: CycloidalReducerAssets,
+) -> dict[str, dict[str, Any]]:
+    """Return exact primitive collision shapes for cylindrical CAD features."""
+
+    params = assets.parameters
+    try:
+        tooth_count = int(params["tooth_count"])
+        ring_count = tooth_count + 1
+        disk_height = float(params["disk_height"])
+        base_height = float(params["base_height"])
+        clearance = float(params.get("clearance", 0.0))
+        roller_circle_diameter = float(params["roller_circle_diameter"])
+        roller_diameter = float(params["roller_diameter"])
+        driver_count = int(params["driver_disk_hole_count"])
+        driver_circle_diameter = float(params["driver_circle_diameter"])
+        driver_hole_diameter = float(params["driver_hole_diameter"])
+    except (KeyError, TypeError, ValueError):
+        return {}
+
+    ring_radius = roller_circle_diameter / 2.0 + clearance
+    ring_pin_radius = roller_diameter / 2.0
+    ring_height = base_height + disk_height * 3.0
+    driver_radius = driver_circle_diameter / 2.0
+    driver_pin_radius = driver_hole_diameter / 2.0
+    driver_z = base_height - disk_height
+    driver_height = disk_height * 4.0
+
+    return {
+        "pinDisk": {
+            "shape": "compound",
+            "children": _cylinder_pattern(
+                count=ring_count,
+                radius_mm=ring_radius,
+                cylinder_radius_mm=ring_pin_radius,
+                height_mm=ring_height,
+                z_base_mm=0.0,
+            ),
+        },
+        "driverDisk": {
+            "shape": "compound",
+            "children": _cylinder_pattern(
+                count=driver_count,
+                radius_mm=driver_radius,
+                cylinder_radius_mm=driver_pin_radius,
+                height_mm=driver_height,
+                z_base_mm=driver_z,
+            ),
+        },
+    }
+
+
+def _cylinder_pattern(
+    *,
+    count: int,
+    radius_mm: float,
+    cylinder_radius_mm: float,
+    height_mm: float,
+    z_base_mm: float,
+) -> list[dict[str, Any]]:
+    shapes: list[dict[str, Any]] = []
+    if count <= 0:
+        return shapes
+    for idx in range(count):
+        angle = 2.0 * math.pi * idx / count
+        shapes.append({
+            "shape": "cylinder",
+            "radius_mm": float(cylinder_radius_mm),
+            "height_mm": float(height_mm),
+            "center_mm": (
+                float(radius_mm * math.cos(angle)),
+                float(radius_mm * math.sin(angle)),
+                float(z_base_mm + height_mm / 2.0),
+            ),
+            "axis": (0.0, 0.0, 1.0),
+        })
+    return shapes
+
+
 def _freecad_argv(cmd: list[str] | str | None) -> list[str] | None:
     if cmd is None:
         return find_freecad_command()
@@ -431,6 +557,7 @@ def _source_commit(path: Path) -> str:
 
 _FREECAD_SCRIPT = textwrap.dedent(r'''
     import json
+    import math
     import os
     import sys
     import traceback
@@ -492,6 +619,43 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
             )
         mesh.write(str(path))
 
+    def _feature_from_shape(doc, name, shape):
+        obj = doc.addObject("Part::Feature", name)
+        obj.Shape = shape
+        return obj
+
+    def _cylinder_compound(cylinders):
+        shapes = []
+        for cyl in cylinders:
+            shapes.append(Part.makeCylinder(
+                cyl["radius"],
+                cyl["height"],
+                App.Vector(cyl["x"], cyl["y"], cyl["z"]),
+                App.Vector(0, 0, 1),
+            ))
+        return Part.makeCompound(shapes)
+
+    def _export_collision_feature(doc, name, shape, exports_dir, root):
+        obj = _feature_from_shape(doc, name, shape)
+        step_path = exports_dir / f"{name}.step"
+        stl_path = exports_dir / f"{name}.stl"
+        _export_step([obj], step_path)
+        _export_stl(obj, stl_path)
+        if not step_path.exists() or step_path.stat().st_size <= 0:
+            _fail("CAD export", f"empty STEP export for {name}")
+        if not stl_path.exists() or stl_path.stat().st_size <= 0:
+            _fail("CAD export", f"empty STL export for {name}")
+        bb = shape.BoundBox
+        return {
+            "step": str(step_path.relative_to(root)),
+            "stl": str(stl_path.relative_to(root)),
+            "stl_units": "m",
+            "bbox_mm": [
+                float(bb.XMin), float(bb.YMin), float(bb.ZMin),
+                float(bb.XMax), float(bb.YMax), float(bb.ZMax),
+            ],
+        }
+
     def _ready_part(doc, name):
         part = cycloidFun.ready_part(doc, name)
         return part
@@ -532,6 +696,7 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
         exports_dir = root / "cycloidal_freecad_assets"
         exports_dir.mkdir(parents=True, exist_ok=True)
         bodies = {}
+        collision_meshes = {}
         exported_objects = []
         for name in BODY_NAMES:
             obj = doc.getObject(name)
@@ -560,6 +725,47 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
             }
             exported_objects.append(obj)
 
+        tooth_count = int(params["tooth_count"])
+        ring_count = tooth_count + 1
+        disk_height = float(params["disk_height"])
+        base_height = float(params["base_height"])
+        clearance = float(params.get("clearance", 0.0))
+        ring_radius = float(params["roller_circle_diameter"]) / 2.0 + clearance
+        ring_pin_radius = float(params["roller_diameter"]) / 2.0
+        ring_pin_height = base_height + disk_height * 3.0
+        ring_cylinders = []
+        for idx in range(ring_count):
+            angle = 2.0 * 3.141592653589793 * idx / ring_count
+            ring_cylinders.append({
+                "x": ring_radius * math.cos(angle),
+                "y": ring_radius * math.sin(angle),
+                "z": 0.0,
+                "radius": ring_pin_radius,
+                "height": ring_pin_height,
+            })
+        collision_meshes["ringPins"] = _export_collision_feature(
+            doc, "ringPinsCollision",
+            _cylinder_compound(ring_cylinders), exports_dir, root)
+
+        driver_count = int(params["driver_disk_hole_count"])
+        driver_radius = float(params["driver_circle_diameter"]) / 2.0
+        driver_pin_radius = float(params["driver_hole_diameter"]) / 2.0
+        driver_z = base_height - disk_height
+        driver_height = disk_height * 4.0
+        driver_cylinders = []
+        for idx in range(driver_count):
+            angle = 2.0 * 3.141592653589793 * idx / driver_count
+            driver_cylinders.append({
+                "x": driver_radius * math.cos(angle),
+                "y": driver_radius * math.sin(angle),
+                "z": driver_z,
+                "radius": driver_pin_radius,
+                "height": driver_height,
+            })
+        collision_meshes["driverPins"] = _export_collision_feature(
+            doc, "driverPinsCollision",
+            _cylinder_compound(driver_cylinders), exports_dir, root)
+
         assembly_step = exports_dir / "cycloidal_reducer_assembly.step"
         _export_step(exported_objects, assembly_step)
         doc_path = exports_dir / "cycloidal_reducer.FCStd"
@@ -570,6 +776,7 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
             "root": str(root),
             "body_names": list(BODY_NAMES),
             "bodies": bodies,
+            "collision_meshes": collision_meshes,
             "assembly_step": str(assembly_step.relative_to(root)),
             "freecad_document": str(doc_path.relative_to(root)),
             "parameters": params,

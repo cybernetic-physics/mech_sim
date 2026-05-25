@@ -135,6 +135,7 @@ def run(ir: DesignIR, config: dict[str, Any]) -> dict[str, Any]:
             "joint_velocities": record.joint_velocities,
             "body_poses": record.body_poses,
             "body_twists": record.body_twists,
+            "motor_torques": record.motor_torques,
             "contact_forces": record.contact_forces,
             "penetration": record.penetration,
             "scalar_metrics": scalar_metrics,
@@ -203,6 +204,8 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
                 "port_id": _joint_to_port(ir, motor.joint_id),
                 "mode": motor.mode,
                 "value": float(motor.value),
+                "ramp_s": _config_float(
+                    cfg, ("motor_ramp_s", "speed_ramp_s"), 0.0),
             })
         for load in scene.loads:
             loads.append({
@@ -232,6 +235,10 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
                     "port_id": input_port,
                     "mode": "speed",
                     "value": float(pcfg.get("input_speed_rad_s", 1.0)),
+                    "ramp_s": float(pcfg.get(
+                        "motor_ramp_s",
+                        cfg.get("motor_ramp_s", cfg.get("speed_ramp_s", 0.0)),
+                    )),
                 })
                 out_load = float(pcfg.get("output_load_Nm", 0.0))
                 if out_load:
@@ -901,11 +908,14 @@ def _add_motors(
         if not _initialize_link(motor, child, parent, frame):
             issues.append(f"motor {spec.get('id', '')}: Initialize() failed")
             continue
-        fun_cls = (getattr(chrono, "ChFunctionConst", None)
-                   or getattr(chrono, "ChFunction_Const", None))
-        if fun_cls is not None:
+        fun = _motor_speed_function(
+            chrono,
+            float(spec.get("value", 0.0)),
+            float(spec.get("ramp_s", 0.0) or 0.0),
+        )
+        if fun is not None:
             _call_first(motor, ("SetSpeedFunction", "SetMotorFunction"),
-                        fun_cls(float(spec.get("value", 0.0))))
+                        fun)
         else:
             issues.append("Chrono build has no constant function for motor speed")
         spindle = getattr(cls, "SpindleConstraint", None)
@@ -915,6 +925,24 @@ def _add_motors(
         _call_first(system, ("AddLink", "Add"), motor)
         out[joint_id] = motor
     return out, issues
+
+
+def _motor_speed_function(chrono: Any, value: float, ramp_s: float) -> Any | None:
+    if ramp_s > 0.0:
+        interp_cls = getattr(chrono, "ChFunctionInterp", None)
+        if interp_cls is not None:
+            try:
+                fun = interp_cls()
+                fun.AddPoint(0.0, 0.0)
+                fun.AddPoint(float(ramp_s), float(value))
+                return fun
+            except Exception:
+                pass
+    fun_cls = (getattr(chrono, "ChFunctionConst", None)
+               or getattr(chrono, "ChFunction_Const", None))
+    if fun_cls is None:
+        return None
+    return fun_cls(float(value))
 
 
 def _resolve_loads(
@@ -975,6 +1003,7 @@ class _Recorder:
         self.contact_forces: dict[str, np.ndarray] = {
             p: np.zeros(samples, dtype=float) for p in contact_pairs
         }
+        self.motor_torques: dict[str, np.ndarray] = {}
         self.penetration: dict[str, np.ndarray] = {
             p: np.zeros(samples, dtype=float) for p in contact_pairs
         }
@@ -1049,6 +1078,14 @@ class _Recorder:
             if port_id in self.joint_velocities:
                 self.joint_velocities[port_id][i] = value
                 self.joint_positions[port_id][i] = value * t
+            motor_obj = motors.get(joint_id)
+            torque = _measure_motor_torque(motor_obj)
+            if joint_id:
+                self.motor_torques.setdefault(
+                    joint_id, np.zeros_like(self.contact_counts))[i] = torque
+            if port_id:
+                self.motor_torques.setdefault(
+                    port_id, np.zeros_like(self.contact_counts))[i] = torque
 
 
 def _scalar_metrics(
@@ -1060,16 +1097,33 @@ def _scalar_metrics(
     metrics: dict[str, Any] = {}
     if spec.motors:
         in_port = str(spec.motors[0].get("port_id", "input_port"))
-        in_speed = _mean_abs(record.joint_velocities.get(in_port))
+        in_speed = _mean_abs_tail(record.joint_velocities.get(in_port))
         in_omega_med = _median_tail(record.joint_velocities.get(in_port))
+        input_torque = record.motor_torques.get(in_port)
         metrics["input_speed_rad_s_mean"] = in_speed
         metrics["in_omega_med"] = in_omega_med
+        if (input_torque is not None
+                and np.any(np.isfinite(input_torque))
+                and float(np.max(np.abs(input_torque))) > 1e-12):
+            torque_tail = _tail_array(input_torque)
+            speed_tail = _tail_array(record.joint_velocities.get(in_port))
+            n = min(torque_tail.size, speed_tail.size)
+            if n:
+                torque_tail = torque_tail[-n:]
+                speed_tail = speed_tail[-n:]
+                metrics["input_torque_Nm_mean"] = float(
+                    np.mean(np.abs(torque_tail)))
+                metrics["input_torque_ripple_pct"] = _ripple_pct(torque_tail)
+                metrics["torque_ripple_pct"] = metrics[
+                    "input_torque_ripple_pct"]
+                metrics["input_power_W_mean"] = float(
+                    np.mean(np.abs(torque_tail * speed_tail)))
     else:
         in_speed = 0.0
         in_omega_med = 0.0
     if spec.loads:
         out_port = str(spec.loads[0].get("port_id", "output_port"))
-        out_speed = _mean_abs(record.joint_velocities.get(out_port))
+        out_speed = _mean_abs_tail(record.joint_velocities.get(out_port))
         out_omega_med = _median_tail(record.joint_velocities.get(out_port))
         out_load = abs(float(spec.loads[0].get("value", 0.0)))
         metrics["output_speed_rad_s_mean"] = out_speed
@@ -1079,9 +1133,15 @@ def _scalar_metrics(
             metrics["ratio_observed"] = math.inf
         elif abs(in_omega_med) > 1e-12:
             metrics["ratio_observed"] = abs(in_omega_med / out_omega_med)
-        if in_speed > 1e-12 and out_speed > 1e-12:
+        metrics["output_power_W_mean"] = out_load * out_speed
+        if "input_power_W_mean" in metrics:
+            pin = metrics["input_power_W_mean"]
+            pout = metrics["output_power_W_mean"]
+            metrics["power_balance_error_pct"] = (
+                abs(pin - pout) / pin * 100.0 if pin > 1e-12 else 0.0
+            )
+        elif in_speed > 1e-12 and out_speed > 1e-12:
             ratio = abs(in_omega_med / out_omega_med) if abs(out_omega_med) > 1e-12 else in_speed / out_speed
-            metrics["output_power_W_mean"] = out_load * out_speed
             metrics["input_torque_Nm_mean"] = out_load / max(ratio, 1e-12)
             metrics["input_power_W_mean"] = metrics["input_torque_Nm_mean"] * in_speed
             pin = metrics["input_power_W_mean"]
@@ -1120,7 +1180,24 @@ def _scalar_metrics(
     metrics.setdefault("input_torque_ripple_pct", 0.0)
     metrics.setdefault("torque_ripple_pct", metrics["input_torque_ripple_pct"])
     metrics.setdefault("power_balance_error_pct", 0.0)
-    metrics["passed"] = 0.0 if lockup else 1.0
+    torque_cfg = _first_probe_config(spec, "torque_load_trial")
+    max_power = torque_cfg.get("max_power_error_pct")
+    max_ripple = torque_cfg.get("max_torque_ripple_pct")
+    passed = not lockup
+    failure_mode = "none"
+    if lockup:
+        failure_mode = "lockup_mechanism_jammed"
+        passed = False
+    elif max_power is not None and (
+        metrics["power_balance_error_pct"] > float(max_power)
+    ):
+        failure_mode = "power_balance_error"
+        passed = False
+    elif max_ripple is not None and metrics["torque_ripple_pct"] > float(max_ripple):
+        failure_mode = "torque_ripple"
+        passed = False
+    metrics["failure_mode"] = failure_mode
+    metrics["passed"] = 1.0 if passed else 0.0
     return metrics
 
 
@@ -1222,25 +1299,47 @@ def _attach_collision_shape(
 ) -> tuple[bool, str]:
     kind = str(shape.get("shape", "")).lower()
     try:
-        if kind == "box":
+        if kind == "compound":
+            children = shape.get("children", shape.get("shapes", ()))
+            if not isinstance(children, Iterable) or isinstance(children, (str, bytes)):
+                return False, "compound collision shape has no child shapes"
+            count = 0
+            for raw_child in children:
+                if not isinstance(raw_child, dict):
+                    return False, "compound collision shape has a non-dict child"
+                child = _canonical_shape_dict(raw_child)
+                if child is None:
+                    return False, "compound collision shape has an invalid child"
+                ok, msg = _attach_collision_shape(
+                    chrono, body, child, material, build_root)
+                if not ok:
+                    return False, msg
+                count += 1
+            if count <= 0:
+                return False, "compound collision shape has no child shapes"
+            ok = True
+        elif kind == "box":
             sx, sy, sz = _box_half_extents_m(shape)
+            frame = _collision_frame(chrono, shape)
             ok = _add_modern_shape(
-                chrono, body, "ChCollisionShapeBox", material, sx, sy, sz)
+                chrono, body, "ChCollisionShapeBox", material, frame, sx, sy, sz)
             if not ok:
                 ok = _add_legacy_box(body, sx, sy, sz, material)
         elif kind == "sphere":
             radius = _mm_to_m(float(shape.get("radius_mm", 1.0)))
+            frame = _collision_frame(chrono, shape)
             ok = _add_modern_shape(
-                chrono, body, "ChCollisionShapeSphere", material, radius)
+                chrono, body, "ChCollisionShapeSphere", material, frame, radius)
             if not ok:
                 ok = _add_legacy_sphere(body, radius, material)
         elif kind == "cylinder":
             radius = _mm_to_m(float(shape.get("radius_mm", 1.0)))
             length = _mm_to_m(float(
                 shape.get("length_mm", shape.get("height_mm", 1.0))))
+            frame = _collision_frame(chrono, shape)
             ok = _add_modern_shape(
                 chrono, body, "ChCollisionShapeCylinder", material,
-                radius, length)
+                frame, radius, length)
             if not ok:
                 ok = _add_legacy_cylinder(body, radius, length, material)
         elif kind == "mesh":
@@ -1262,13 +1361,12 @@ def _add_modern_shape(
     body: Any,
     cls_name: str,
     material: Any,
+    frame: Any,
     *args: float,
 ) -> bool:
     cls = getattr(chrono, cls_name, None)
     if cls is None or not hasattr(body, "AddCollisionShape"):
         return False
-    frame = _frame(chrono, _vec(chrono, 0.0, 0.0, 0.0),
-                   _quat(chrono, 1.0, 0.0, 0.0, 0.0))
     for ctor_args in ((material, *args), (*args, material), args):
         try:
             shape = cls(*ctor_args)
@@ -1277,6 +1375,32 @@ def _add_modern_shape(
         except TypeError:
             continue
     return False
+
+
+def _collision_frame(chrono: Any, shape: dict[str, Any]) -> Any:
+    center = (
+        shape.get("center_mm")
+        or shape.get("pos_mm")
+        or shape.get("position_mm")
+        or (0.0, 0.0, 0.0)
+    )
+    center_vals = [float(v) for v in list(center)[:3]]
+    while len(center_vals) < 3:
+        center_vals.append(0.0)
+    cx, cy, cz = center_vals
+    quat_raw = shape.get("orientation_quat")
+    if quat_raw is not None:
+        quat_vals = [float(v) for v in list(quat_raw)[:4]]
+        while len(quat_vals) < 4:
+            quat_vals.append(0.0)
+        quat = tuple(quat_vals)
+    else:
+        quat = _quat_from_z_to_axis(shape.get("axis", (0.0, 0.0, 1.0)))
+    return _frame(
+        chrono,
+        _vec(chrono, _mm_to_m(cx), _mm_to_m(cy), _mm_to_m(cz)),
+        _quat(chrono, *quat),
+    )
 
 
 def _add_legacy_box(body: Any, sx: float, sy: float, sz: float,
@@ -1434,9 +1558,20 @@ def _physics_item_name(obj: Any, name_by_obj: dict[int, str]) -> str:
     return ""
 
 
+def _measure_motor_torque(motor: Any) -> float:
+    if motor is None:
+        return 0.0
+    for meth in ("GetMotorTorque", "GetMotorForce", "GetActuatorForce"):
+        val = _try_call(motor, (meth,))
+        if val is not None:
+            return _safe_float(val, 0.0)
+    return 0.0
+
+
 def _measure_joint(
     link: Any, joint: Joint, bodies: dict[str, Any],
 ) -> tuple[float, float]:
+    body_pos, body_vel = _measure_joint_from_bodies(joint, bodies)
     if link is not None:
         for meth in ("GetMotorRot", "GetRelAngle", "GetAngle", "GetPos"):
             val = _try_call(link, (meth,))
@@ -1448,21 +1583,49 @@ def _measure_joint(
         for meth in ("GetMotorRotDt", "GetRelWvel", "GetVelocity", "GetSpeed"):
             val = _try_call(link, (meth,))
             if val is not None:
-                return pos, _safe_float(val, 0.0)
-        return pos, 0.0
+                vel = _joint_velocity_value(val, joint)
+                if vel is not None:
+                    return pos, vel
+        return pos, body_vel
+    return body_pos, body_vel
+
+
+def _measure_joint_from_bodies(
+    joint: Joint, bodies: dict[str, Any],
+) -> tuple[float, float]:
     parent = bodies.get(joint.parent)
     child = bodies.get(joint.child)
     if parent is None or child is None:
         return 0.0, 0.0
     axis = _unit3(joint.axis_world or (0.0, 0.0, 1.0))
-    child_w = _extract_vec(_call_first_value(
-        child, ("GetAngVelParent", "GetWvel_par", "GetWvel_loc")))
-    parent_w = _extract_vec(_call_first_value(
-        parent, ("GetAngVelParent", "GetWvel_par", "GetWvel_loc")))
-    rel = (child_w[0] - parent_w[0], child_w[1] - parent_w[1],
-           child_w[2] - parent_w[2])
+    if joint.type == "prismatic":
+        child_v = _extract_vec(_call_first_value(
+            child, ("GetPosDt", "GetLinVel", "GetVelocity")))
+        parent_v = _extract_vec(_call_first_value(
+            parent, ("GetPosDt", "GetLinVel", "GetVelocity")))
+        rel = (child_v[0] - parent_v[0], child_v[1] - parent_v[1],
+               child_v[2] - parent_v[2])
+    else:
+        child_w = _extract_vec(_call_first_value(
+            child, ("GetAngVelParent", "GetWvel_par", "GetWvel_loc")))
+        parent_w = _extract_vec(_call_first_value(
+            parent, ("GetAngVelParent", "GetWvel_par", "GetWvel_loc")))
+        rel = (child_w[0] - parent_w[0], child_w[1] - parent_w[1],
+               child_w[2] - parent_w[2])
     vel = rel[0] * axis[0] + rel[1] * axis[1] + rel[2] * axis[2]
     return 0.0, float(vel)
+
+
+def _joint_velocity_value(value: Any, joint: Joint) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        pass
+    vec = _extract_vec(value)
+    if vec != (0.0, 0.0, 0.0):
+        axis = _unit3(joint.axis_world or (0.0, 0.0, 1.0))
+        return float(vec[0] * axis[0] + vec[1] * axis[1] + vec[2] * axis[2])
+    return None
 
 
 def _new_link_for_joint(chrono: Any, kind: str) -> Any | None:
@@ -1633,10 +1796,34 @@ def _mm_to_m(v: float) -> float:
     return float(v) / 1000.0
 
 
-def _mean_abs(arr: np.ndarray | None) -> float:
-    if arr is None or arr.size == 0:
+def _mean_abs_tail(arr: np.ndarray | None, warmup_fraction: float = 0.25) -> float:
+    data = _tail_array(arr, warmup_fraction)
+    if data.size == 0:
         return 0.0
-    return float(np.mean(np.abs(arr)))
+    return float(np.mean(np.abs(data)))
+
+
+def _tail_array(
+    arr: np.ndarray | None,
+    warmup_fraction: float = 0.25,
+) -> np.ndarray:
+    if arr is None:
+        return np.zeros(0, dtype=float)
+    data = np.asarray(arr, dtype=float).reshape(-1)
+    if data.size == 0:
+        return data
+    start = min(data.size - 1, max(0, int(data.size * warmup_fraction)))
+    return data[start:]
+
+
+def _ripple_pct(arr: np.ndarray | None) -> float:
+    data = _tail_array(arr)
+    if data.size == 0:
+        return 0.0
+    center = float(np.median(data))
+    denom = max(abs(center), 1e-12)
+    lo, hi = np.percentile(data, [5.0, 95.0])
+    return float((hi - lo) / denom * 100.0)
 
 
 def _median_tail(arr: np.ndarray | None, warmup_fraction: float = 0.25) -> float:
