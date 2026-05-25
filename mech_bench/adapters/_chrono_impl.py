@@ -21,7 +21,9 @@ collision descriptions already present in the IR.
 
 from __future__ import annotations
 
+import contextlib
 import math
+import os
 import time
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -32,6 +34,11 @@ import numpy as np
 
 from mech_bench.scene_graph import build_scene_graph_from_design_ir
 from mech_bench.schema import DesignIR, EvalConfig, Joint, Part, ProbeSpec, TaskSpec
+
+_CONVEX_DECOMPOSITION_CACHE: dict[
+    tuple[str, int, int, int, float, float, float],
+    list[tuple[tuple[float, float, float], ...]],
+] = {}
 
 
 class ChronoAdapterError(RuntimeError):
@@ -2000,6 +2007,9 @@ def _add_mesh_shape(
         path = (build_root / path).resolve()
     if not path.exists():
         return False, f"mesh path does not exist: {path}"
+    if bool(shape.get("convex_decomposition", shape.get("decompose", False))):
+        return _add_mesh_convex_decomposition_shape(
+            chrono, body, shape, material, path, ref_to_com_mm)
     mesh_cls = getattr(chrono, "ChTriangleMeshConnected", None)
     shape_cls = getattr(chrono, "ChCollisionShapeTriangleMesh", None)
     if mesh_cls is not None and shape_cls is not None and hasattr(
@@ -2048,6 +2058,161 @@ def _add_mesh_shape(
         except Exception:
             pass
     return False, "could not construct Chrono triangle-mesh collision shape"
+
+
+def _add_mesh_convex_decomposition_shape(
+    chrono: Any,
+    body: Any,
+    shape: dict[str, Any],
+    material: Any,
+    path: Path,
+    ref_to_com_mm: tuple[float, float, float] = (0.0, 0.0, 0.0),
+) -> tuple[bool, str]:
+    if not hasattr(body, "AddCollisionShape"):
+        return False, "Chrono body has no AddCollisionShape API"
+    hulls, msg = _convex_decomposition_hulls(chrono, path, shape)
+    if msg:
+        return False, msg
+    if not hulls:
+        return False, f"convex decomposition produced no hulls for {path}"
+    frame = _collision_frame(chrono, shape, ref_to_com_mm)
+    for hull in hulls:
+        ok = _add_convex_hull_points_shape(
+            chrono, body, material, hull, frame)
+        if not ok:
+            return False, "could not construct Chrono convex hull shape"
+    return True, ""
+
+
+def _convex_decomposition_hulls(
+    chrono: Any,
+    path: Path,
+    shape: dict[str, Any],
+) -> tuple[list[tuple[tuple[float, float, float], ...]], str]:
+    mesh_cls = getattr(chrono, "ChTriangleMeshConnected", None)
+    decomp_cls = (
+        getattr(chrono, "ChConvexDecompositionHACDv2", None)
+        or getattr(chrono, "ChConvexDecompositionHACD", None)
+    )
+    vector_cls = getattr(chrono, "vector_ChVector3d", None)
+    if mesh_cls is None or decomp_cls is None or vector_cls is None:
+        return [], "Chrono build has no HACD convex decomposition API"
+
+    max_hulls = int(shape.get("convex_decomposition_max_hulls", 256))
+    max_merge_hulls = int(shape.get(
+        "convex_decomposition_max_merge_hulls", max_hulls))
+    max_vertices = int(shape.get("convex_decomposition_max_hull_vertices", 64))
+    concavity = float(shape.get("convex_decomposition_concavity", 0.05))
+    small_cluster = float(shape.get(
+        "convex_decomposition_small_cluster_threshold", 0.0))
+    fuse_tol = float(shape.get("convex_decomposition_fuse_tolerance", 1.0e-7))
+    cache_key = (
+        str(path.resolve()),
+        max_hulls,
+        max_merge_hulls,
+        max_vertices,
+        concavity,
+        small_cluster,
+        fuse_tol,
+    )
+    cached = _CONVEX_DECOMPOSITION_CACHE.get(cache_key)
+    if cached is not None:
+        return cached, ""
+
+    mesh = mesh_cls()
+    suffix = path.suffix.lower()
+    if suffix == ".stl":
+        loaded = _call_first(mesh, ("LoadSTLMesh", "LoadStlMesh"), str(path))
+    elif suffix == ".obj":
+        loaded = _call_first(mesh, ("LoadWavefrontMesh",), str(path), False, True)
+    else:
+        loaded = False
+    if not loaded:
+        return [], f"could not load mesh {path}"
+
+    hulls: list[tuple[tuple[float, float, float], ...]] = []
+    with _suppress_native_output():
+        decomp = decomp_cls()
+        if hasattr(decomp, "SetParameters"):
+            try:
+                decomp.SetParameters(
+                    max_hulls,
+                    max_merge_hulls,
+                    max_vertices,
+                    concavity,
+                    small_cluster,
+                    fuse_tol,
+                )
+            except TypeError:
+                decomp.SetParameters(
+                    max_hulls,
+                    max_vertices,
+                    concavity,
+                    small_cluster,
+                    fuse_tol,
+                )
+        if not decomp.AddTriangleMesh(mesh):
+            return [], f"could not add mesh to convex decomposition: {path}"
+        hull_count_result = int(decomp.ComputeConvexDecomposition())
+        hull_count = int(_try_call(decomp, ("GetHullCount",)) or hull_count_result)
+        for index in range(hull_count):
+            points = vector_cls()
+            if not decomp.GetConvexHullResult(index, points):
+                continue
+            hull = tuple(
+                (_vec_component(p, "x"), _vec_component(p, "y"),
+                 _vec_component(p, "z"))
+                for p in points
+            )
+            if len(hull) >= 4:
+                hulls.append(hull)
+        del decomp
+    _CONVEX_DECOMPOSITION_CACHE[cache_key] = hulls
+    return hulls, ""
+
+
+def _add_convex_hull_points_shape(
+    chrono: Any,
+    body: Any,
+    material: Any,
+    points_m: tuple[tuple[float, float, float], ...],
+    frame: Any,
+) -> bool:
+    cls = getattr(chrono, "ChCollisionShapeConvexHull", None)
+    if cls is None:
+        return False
+    points = [_vec(chrono, x, y, z) for x, y, z in points_m]
+    for args in ((material, points), (points, material), (points,)):
+        try:
+            col_shape = cls(*args)
+            try:
+                body.AddCollisionShape(col_shape, frame)
+            except TypeError:
+                body.AddCollisionShape(col_shape)
+            return True
+        except TypeError:
+            continue
+    return False
+
+
+@contextlib.contextmanager
+def _suppress_native_output() -> Any:
+    """Temporarily silence native libraries that write progress to fd 1/2."""
+
+    saved: list[tuple[int, int]] = []
+    devnull = None
+    try:
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        for fd in (1, 2):
+            saved.append((fd, os.dup(fd)))
+            os.dup2(devnull, fd)
+        yield
+    finally:
+        for fd, saved_fd in reversed(saved):
+            os.dup2(saved_fd, fd)
+            os.close(saved_fd)
+        if devnull is not None:
+            os.close(devnull)
 
 
 def _add_convex_hull_shape(
@@ -2607,6 +2772,19 @@ def _extract_vec(obj: Any) -> tuple[float, float, float]:
         return (float(obj[0]), float(obj[1]), float(obj[2]))
     except Exception:
         return (0.0, 0.0, 0.0)
+
+
+def _vec_component(obj: Any, attr: str) -> float:
+    value = getattr(obj, attr, None)
+    if value is not None:
+        try:
+            return float(value() if callable(value) else value)
+        except (TypeError, ValueError):
+            return 0.0
+    try:
+        return float(obj[{"x": 0, "y": 1, "z": 2}[attr]])
+    except Exception:
+        return 0.0
 
 
 def _extract_quat(obj: Any) -> tuple[float, float, float, float]:

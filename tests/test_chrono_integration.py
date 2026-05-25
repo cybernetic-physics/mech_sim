@@ -221,6 +221,44 @@ def test_chrono_impl_direct_run_reports_missing_pychrono():
     assert "pychrono not importable" in out["metadata"]["preflight_issues"][0]
 
 
+def test_chrono_mesh_convex_decomposition_hulls_are_cached(tmp_path):
+    if importlib.util.find_spec("pychrono") is None:
+        pytest.skip("requires PyChrono")
+
+    import pychrono.core as chrono
+
+    from mech_bench.adapters import _chrono_impl
+
+    mesh = tmp_path / "tetra.obj"
+    mesh.write_text(
+        """v 0 0 0
+v 0.01 0 0
+v 0 0.01 0
+v 0 0 0.01
+f 1 2 3
+f 1 4 2
+f 2 4 3
+f 1 3 4
+""",
+        encoding="utf-8",
+    )
+    shape = {
+        "convex_decomposition_max_hulls": 8,
+        "convex_decomposition_max_hull_vertices": 16,
+    }
+
+    hulls, msg = _chrono_impl._convex_decomposition_hulls(
+        chrono, mesh, shape)
+    assert msg == ""
+    assert hulls
+    assert all(len(hull) >= 4 for hull in hulls)
+
+    cached, msg = _chrono_impl._convex_decomposition_hulls(
+        chrono, mesh, shape)
+    assert msg == ""
+    assert cached is hulls
+
+
 def test_chrono_cycloidal_nsc_vs_smc_thresholds():
     if importlib.util.find_spec("pychrono") is None:
         pytest.skip("requires PyChrono")
