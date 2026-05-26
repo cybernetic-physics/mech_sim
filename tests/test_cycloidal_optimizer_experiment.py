@@ -1,0 +1,197 @@
+from __future__ import annotations
+
+import importlib.util
+import math
+import sys
+from pathlib import Path
+
+
+def _load_module():
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "scripts"
+        / "optimize_cycloidal_chrono_candidates.py"
+    )
+    spec = importlib.util.spec_from_file_location(
+        "optimize_cycloidal_chrono_candidates", path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def _good_metrics() -> dict[str, float]:
+    return {
+        "lockup_detected": 0.0,
+        "ratio_observed": 9.1,
+        "ratio_error_pct": 1.1,
+        "out_omega_med": -1.1,
+        "max_penetration_mm": 0.22,
+        "contact_force_rms_N": 950.0,
+        "n_contacts_max": 18.0,
+        "power_balance_error_pct": 15.0,
+        "torque_ripple_pct": 20.0,
+    }
+
+
+def test_fast_reward_favors_plausible_cycloidal_actuator_params():
+    mod = _load_module()
+
+    plausible = mod.fast_cps_actuator_reward({
+        "pins": 10,
+        "clearance": 0.58,
+        "driver_circle_diameter": 38.0,
+        "driver_pin_collision_shrink_mm": 0.58,
+        "line_segment_count": 44,
+    })
+    bad = mod.fast_cps_actuator_reward({
+        "pins": 14,
+        "clearance": 0.05,
+        "driver_circle_diameter": 60.0,
+        "driver_pin_collision_shrink_mm": 1.2,
+        "line_segment_count": 12,
+    })
+
+    assert 0.0 <= plausible["score"] <= 100.0
+    assert 0.0 <= bad["score"] <= 100.0
+    assert plausible["score"] > bad["score"] + 25.0
+    assert plausible["components"]["target_ratio"] == 1.0
+
+
+def test_verified_reward_is_zero_until_all_hard_gates_pass():
+    mod = _load_module()
+    limits = mod.VerificationLimits()
+    metrics = _good_metrics()
+
+    assert mod.verified_gate_passed(
+        cad_generated=True,
+        cad_static_ok=True,
+        chrono_real_geometry=True,
+        metrics=metrics,
+        limits=limits,
+    )
+    assert mod.verified_reward(
+        fast_reward=80.0,
+        cad_generated=True,
+        cad_static_ok=True,
+        chrono_real_geometry=True,
+        metrics=metrics,
+        limits=limits,
+    ) > 0.0
+
+    lockup_metrics = dict(metrics, lockup_detected=1.0, out_omega_med=0.01)
+    assert mod.verified_reward(
+        fast_reward=80.0,
+        cad_generated=True,
+        cad_static_ok=True,
+        chrono_real_geometry=True,
+        metrics=lockup_metrics,
+        limits=limits,
+    ) == 0.0
+
+    nonfinite_ratio = dict(metrics, ratio_observed=math.inf)
+    assert mod.verified_reward(
+        fast_reward=80.0,
+        cad_generated=True,
+        cad_static_ok=True,
+        chrono_real_geometry=True,
+        metrics=nonfinite_ratio,
+        limits=limits,
+    ) == 0.0
+
+    assert mod.verified_reward(
+        fast_reward=80.0,
+        cad_generated=True,
+        cad_static_ok=False,
+        chrono_real_geometry=True,
+        metrics=metrics,
+        limits=limits,
+    ) == 0.0
+
+
+def test_method_table_reports_requested_baseline_columns():
+    mod = _load_module()
+    limits = mod.VerificationLimits()
+    good = _good_metrics()
+    lockup = dict(
+        good,
+        lockup_detected=1.0,
+        out_omega_med=0.0,
+        ratio_observed=math.inf,
+    )
+    rows = [
+        {
+            "method": "seed",
+            "fast_reward": 55.0,
+            "verified_reward": 0.0,
+            "cad_generated": True,
+            "cad_static_ok": True,
+            "chrono_real_geometry": True,
+            "metrics": lockup,
+            "verified_gate_passed": False,
+            "defect_count": 3,
+        },
+        {
+            "method": "random",
+            "fast_reward": 60.0,
+            "verified_reward": 35.0,
+            "cad_generated": True,
+            "cad_static_ok": True,
+            "chrono_real_geometry": True,
+            "metrics": good,
+            "verified_gate_passed": True,
+            "defect_count": 0,
+        },
+        {
+            "method": "cma_es_fast_only",
+            "fast_reward": 78.0,
+            "verified_reward": 0.0,
+            "cad_generated": False,
+            "cad_static_ok": False,
+            "chrono_real_geometry": False,
+            "metrics": {},
+            "verified_gate_passed": False,
+            "defect_count": 1,
+        },
+        {
+            "method": "verifier_gated",
+            "fast_reward": 82.0,
+            "verified_reward": 70.0,
+            "cad_generated": True,
+            "cad_static_ok": True,
+            "chrono_real_geometry": True,
+            "metrics": good,
+            "verified_gate_passed": True,
+            "defect_count": 0,
+        },
+        {
+            "method": "verifier_gated",
+            "fast_reward": 84.0,
+            "verified_reward": 0.0,
+            "cad_generated": True,
+            "cad_static_ok": False,
+            "chrono_real_geometry": True,
+            "metrics": lockup,
+            "verified_gate_passed": False,
+            "defect_count": 4,
+        },
+    ]
+
+    table = mod._method_table(rows, limits=limits)
+    by_method = {row["method"]: row for row in table}
+
+    assert list(by_method) == list(mod.METHOD_ORDER)
+    for column in mod.TABLE_COLUMNS:
+        assert column in by_method["seed"]
+    assert by_method["seed"]["best_verified_reward"] == 0.0
+    assert by_method["seed"]["lockup rate"] == 1.0
+    assert by_method["random"]["CAD pass rate"] == 1.0
+    assert by_method["random"]["Chrono pass rate"] == 1.0
+    assert by_method["cma_es_fast_only"]["CAD pass rate"] == 0.0
+    assert by_method["verifier_gated"]["best_fast_reward"] == 84.0
+    assert by_method["verifier_gated"]["best_verified_reward"] == 70.0
+    assert by_method["verifier_gated"]["CAD pass rate"] == 0.5
+    assert by_method["verifier_gated"]["Chrono pass rate"] == 0.5
+    assert by_method["verifier_gated"]["mean defect count"] == 2.0
