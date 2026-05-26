@@ -1,0 +1,15 @@
+[task]
+id = "toggle_overcenter_margin_s0031"
+family = "toggle_overcenter_margin"
+difficulty = 2
+units = "mm"
+tier = "planar_kinematics"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 1
+max_envelope_mm = [220, 220, 50]
+
+[objective]
+description = "Toggle overcenter margin."
+ground_required = true

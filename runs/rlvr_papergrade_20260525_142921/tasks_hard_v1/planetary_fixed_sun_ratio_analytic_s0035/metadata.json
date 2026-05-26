@@ -1,0 +1,10 @@
+{
+  "family": "planetary_fixed_sun_ratio_analytic",
+  "tier": "transmission_analytic",
+  "seed": 35,
+  "difficulty": 2,
+  "sun": 20,
+  "ring": 44,
+  "ratio": 0.6875,
+  "task_id": "planetary_fixed_sun_ratio_analytic_s0035"
+}

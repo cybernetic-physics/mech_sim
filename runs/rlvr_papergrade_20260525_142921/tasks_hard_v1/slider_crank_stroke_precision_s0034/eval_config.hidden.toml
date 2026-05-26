@@ -1,0 +1,39 @@
+[feedback]
+public_metrics = ["mobility.observed", "stroke.observed"]
+hidden_metrics = ["stroke.error_pct"]
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 1
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["input_port"]
+
+[probes.require_kinds]
+input_port = "revolute_joint"
+output_port = "prismatic_joint"
+
+[[probes]]
+id = "stroke"
+type = "analytic_param_check"
+path = "params.declared_stroke_mm"
+expected = 50.64
+comparator = "eq"
+failure_code = "wrong_ratio"
+weight = 1.0
+severity = "major"
+hard_gate = false
+tolerance_pct = 1.0

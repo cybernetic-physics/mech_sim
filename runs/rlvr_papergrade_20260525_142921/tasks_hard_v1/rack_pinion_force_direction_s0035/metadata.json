@@ -1,0 +1,8 @@
+{
+  "family": "rack_pinion_force_direction",
+  "tier": "transmission_analytic",
+  "seed": 35,
+  "difficulty": 2,
+  "direction": 1,
+  "task_id": "rack_pinion_force_direction_s0035"
+}

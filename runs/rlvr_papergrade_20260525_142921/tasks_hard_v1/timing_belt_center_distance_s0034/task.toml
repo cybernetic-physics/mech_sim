@@ -1,0 +1,15 @@
+[task]
+id = "timing_belt_center_distance_s0034"
+family = "timing_belt_center_distance"
+difficulty = 2
+units = "mm"
+tier = "transmission_analytic"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 2
+max_envelope_mm = [400, 200, 80]
+
+[objective]
+description = "Timing belt geometry."
+ground_required = true

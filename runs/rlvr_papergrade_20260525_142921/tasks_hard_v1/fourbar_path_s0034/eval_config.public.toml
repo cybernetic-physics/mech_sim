@@ -1,0 +1,25 @@
+[feedback]
+public_metrics = ["mobility.observed", "mobility.expected", "coupler_path.chamfer", "coupler_path.n_observed", "coupler_path.n_target"]
+hidden_metrics = []
+
+[hard_gate]
+require = ["mobility"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 1
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "coupler_path"
+type = "path_trace_chamfer"
+moving_frame = "coupler_point"
+target_csv = "target_path.csv"
+normalize = true
+max_chamfer = 0.05
+weight = 1.0
+severity = "major"

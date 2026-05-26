@@ -1,0 +1,55 @@
+[smoke] 42 tasks × 1 samples each; turns=2; model=worldlines://model_bb6988118204/sampler_weights/hard_v1_ref_sft_r8_lr2e5_w1_s250_final; concurrency=1
+[PASS] belt_pulley_ratio_s0038                          k=0 score=1.00 tok= 551  sample= 17.6s  err=
+[PASS] belt_pulley_ratio_s0039                          k=0 score=1.00 tok= 551  sample= 17.6s  err=
+[PASS] bevel_gear_ratio_analytic_s0038                  k=0 score=1.00 tok= 542  sample= 17.2s  err=
+[PASS] bevel_gear_ratio_analytic_s0039                  k=0 score=1.00 tok= 540  sample= 17.0s  err=
+[PASS] chain_sprocket_ratio_s0038                       k=0 score=1.00 tok= 560  sample= 18.2s  err=
+[PASS] chain_sprocket_ratio_s0039                       k=0 score=1.00 tok= 560  sample= 18.3s  err=
+[PASS] compound_gear_ratio_analytic_s0038               k=0 score=1.00 tok= 585  sample= 18.9s  err=
+[PASS] compound_gear_ratio_analytic_s0039               k=0 score=1.00 tok= 585  sample= 18.9s  err=
+[PASS] fourbar_crank_rocker_sweep_s0038                 k=0 score=1.00 tok= 785  sample= 25.4s  err=
+[PASS] fourbar_crank_rocker_sweep_s0039                 k=0 score=1.00 tok= 785  sample= 25.3s  err=
+[PASS] fourbar_pump_handle_s0038                        k=0 score=1.00 tok= 861  sample= 27.6s  err=
+[PASS] fourbar_pump_handle_s0039                        k=0 score=1.00 tok= 861  sample= 27.7s  err=
+[PASS] idler_gear_direction_analytic_s0038              k=0 score=1.00 tok= 539  sample= 17.3s  err=
+[PASS] idler_gear_direction_analytic_s0039              k=0 score=1.00 tok= 541  sample= 17.1s  err=
+[FAIL] lead_screw_linear_travel_s0038                   k=0 score=0.00 tok=1006  sample= 32.5s  err=
+[FAIL] lead_screw_linear_travel_s0039                   k=0 score=0.00 tok=1006  sample= 32.4s  err=
+[PASS] planetary_fixed_ring_ratio_analytic_s0038        k=0 score=1.00 tok= 548  sample= 17.8s  err=
+[PASS] planetary_fixed_ring_ratio_analytic_s0039        k=0 score=1.00 tok= 547  sample= 17.9s  err=
+[PASS] planetary_fixed_sun_ratio_analytic_s0038         k=0 score=1.00 tok= 581  sample= 19.2s  err=
+[PASS] planetary_fixed_sun_ratio_analytic_s0039         k=0 score=1.00 tok= 581  sample= 18.9s  err=
+[PASS] rack_pinion_conversion_s0038                     k=0 score=1.00 tok= 519  sample= 17.1s  err=
+[PASS] rack_pinion_conversion_s0039                     k=0 score=1.00 tok= 518  sample= 16.8s  err=
+[PASS] rack_pinion_force_direction_s0038                k=0 score=1.00 tok= 542  sample= 17.3s  err=
+[PASS] rack_pinion_force_direction_s0039                k=0 score=1.00 tok= 542  sample= 17.7s  err=
+[PASS] reciprocating_pump_plunger_s0038                 k=0 score=1.00 tok= 766  sample= 25.0s  err=
+[PASS] reciprocating_pump_plunger_s0039                 k=0 score=1.00 tok= 761  sample= 24.5s  err=
+[PASS] rocker_limit_stop_topology_s0038                 k=0 score=1.00 tok= 858  sample= 27.4s  err=
+[PASS] rocker_limit_stop_topology_s0039                 k=0 score=1.00 tok= 858  sample= 27.4s  err=
+[PASS] slider_crank_quick_return_proxy_s0038            k=0 score=1.00 tok= 762  sample= 24.8s  err=
+[PASS] slider_crank_quick_return_proxy_s0039            k=0 score=1.00 tok= 762  sample= 24.6s  err=
+[PASS] slider_crank_stroke_precision_s0038              k=0 score=1.00 tok= 728  sample= 23.5s  err=
+[PASS] slider_crank_stroke_precision_s0039              k=0 score=1.00 tok= 728  sample= 23.5s  err=
+[PASS] slider_crank_stroke_s0038                        k=0 score=1.00 tok= 710  sample= 23.0s  err=
+[PASS] slider_crank_stroke_s0039                        k=0 score=1.00 tok= 710  sample= 23.0s  err=
+[PASS] spur_gear_ratio_analytic_s0038                   k=0 score=1.00 tok= 542  sample= 17.5s  err=
+[PASS] spur_gear_ratio_analytic_s0039                   k=0 score=1.00 tok= 542  sample= 17.6s  err=
+[FAIL] timing_belt_center_distance_s0038                k=0 score=0.00 tok=1016  sample= 32.8s  err=
+[FAIL] timing_belt_center_distance_s0039                k=0 score=0.00 tok=1082  sample= 34.5s  err=
+[PASS] toggle_overcenter_margin_s0038                   k=0 score=1.00 tok= 818  sample= 26.0s  err=
+[PASS] toggle_overcenter_margin_s0039                   k=0 score=1.00 tok= 844  sample= 27.0s  err=
+[PASS] worm_gear_ratio_analytic_s0038                   k=0 score=1.00 tok= 546  sample= 17.3s  err=
+[PASS] worm_gear_ratio_analytic_s0039                   k=0 score=1.00 tok= 546  sample= 17.9s  err=
+
+wrote /home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/ref_sft_r8_s250_visible_eval_seed910_bof1_turn2_contractv2_retryfix_sglang_lora_freiza/smoke_summary.json
+{
+  "model": "worldlines://model_bb6988118204/sampler_weights/hard_v1_ref_sft_r8_lr2e5_w1_s250_final",
+  "n_tasks": 42,
+  "samples_per_task": 1,
+  "n_passed_best_of_k": 38,
+  "pass_rate_best_of_k": 0.905,
+  "n_passed_raw": 38,
+  "pass_rate_raw": 0.905,
+  "wall_clock_s": 937.8
+}

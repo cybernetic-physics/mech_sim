@@ -1,0 +1,23 @@
+{
+  "description": "Tier 1 rocker_limit_stop_topology negatives.",
+  "controls": [
+    {
+      "id": "missing_stop_param",
+      "expected_failure_codes": [
+        "invalid_artifact"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.7,
+      "submission": "negative_solutions/missing_stop_param"
+    },
+    {
+      "id": "wrong_output_port",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001,
+      "submission": "negative_solutions/wrong_output_port"
+    }
+  ]
+}

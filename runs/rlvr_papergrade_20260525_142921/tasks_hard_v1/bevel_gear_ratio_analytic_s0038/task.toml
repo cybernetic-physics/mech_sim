@@ -1,0 +1,15 @@
+[task]
+id = "bevel_gear_ratio_analytic_s0038"
+family = "bevel_gear_ratio_analytic"
+difficulty = 2
+units = "mm"
+tier = "transmission_analytic"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 2
+max_envelope_mm = [200, 200, 80]
+
+[objective]
+description = "Bevel pair ratio=3.0, angle=45.0°."
+ground_required = true

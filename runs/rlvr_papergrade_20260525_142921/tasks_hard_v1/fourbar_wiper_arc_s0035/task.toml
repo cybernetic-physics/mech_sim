@@ -1,0 +1,17 @@
+[task]
+id = "fourbar_wiper_arc_s0035"
+family = "fourbar_wiper_arc"
+difficulty = 2
+units = "mm"
+tier = "planar_kinematics"
+
+[requirements]
+required_ports = ["input_port", "output_port", "coupler_point"]
+expected_mobility = 1
+max_envelope_mm = [220, 220, 50]
+
+[objective]
+description = "Wiper-arc coupler trace."
+target_path_csv = "target_path.csv"
+max_chamfer_normalized = 0.05
+ground_required = true

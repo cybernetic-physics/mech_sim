@@ -1,0 +1,23 @@
+{
+  "description": "Tier 1 fourbar_dwell_path negatives.",
+  "controls": [
+    {
+      "id": "no_dwell",
+      "expected_failure_codes": [
+        "path_error"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.6,
+      "submission": "negative_solutions/no_dwell"
+    },
+    {
+      "id": "wrong_ground_spacing",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001,
+      "submission": "negative_solutions/wrong_ground_spacing"
+    }
+  ]
+}

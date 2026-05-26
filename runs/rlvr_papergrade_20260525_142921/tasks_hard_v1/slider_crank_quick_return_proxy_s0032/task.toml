@@ -1,0 +1,15 @@
+[task]
+id = "slider_crank_quick_return_proxy_s0032"
+family = "slider_crank_quick_return_proxy"
+difficulty = 2
+units = "mm"
+tier = "planar_kinematics"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 1
+max_envelope_mm = [220, 80, 50]
+
+[objective]
+description = "Quick-return ratio proxy."
+ground_required = true

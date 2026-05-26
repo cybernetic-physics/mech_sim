@@ -1,0 +1,23 @@
+{
+  "description": "Tier 2 rack_pinion_force_direction negatives.",
+  "controls": [
+    {
+      "id": "wrong_direction",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.6,
+      "submission": "negative_solutions/wrong_direction"
+    },
+    {
+      "id": "wrong_port_kind",
+      "expected_failure_codes": [
+        "wrong_topology"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001,
+      "submission": "negative_solutions/wrong_port_kind"
+    }
+  ]
+}

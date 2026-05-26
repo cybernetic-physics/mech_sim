@@ -1,0 +1,175 @@
+[START] Tue May 26 04:34:20 EDT 2026 seed=910 run=baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza
+[smoke] 42 tasks × 1 samples each; turns=2; model=NousResearch/DeepHermes-3-Llama-3-3B-Preview; concurrency=1
+[FAIL] belt_pulley_ratio_s0038                          k=0 score=0.00 tok=1013  sample= 32.9s  err=
+[FAIL] belt_pulley_ratio_s0039                          k=0 score=0.00 tok= 748  sample= 24.3s  err=
+[PASS] bevel_gear_ratio_analytic_s0038                  k=0 score=1.00 tok= 500  sample= 16.5s  err=
+[PASS] bevel_gear_ratio_analytic_s0039                  k=0 score=1.00 tok= 508  sample= 16.7s  err=
+[PASS] chain_sprocket_ratio_s0038                       k=0 score=1.00 tok= 532  sample= 17.6s  err=
+[FAIL] chain_sprocket_ratio_s0039                       k=0 score=0.00 tok=1351  sample= 43.4s  err=
+[PASS] compound_gear_ratio_analytic_s0038               k=0 score=1.00 tok= 536  sample= 17.2s  err=
+[FAIL] compound_gear_ratio_analytic_s0039               k=0 score=0.00 tok=1041  sample= 33.5s  err=
+[PASS] fourbar_crank_rocker_sweep_s0038                 k=0 score=1.00 tok= 774  sample= 24.8s  err=
+[PASS] fourbar_crank_rocker_sweep_s0039                 k=0 score=1.00 tok= 774  sample= 24.5s  err=
+[PASS] fourbar_pump_handle_s0038                        k=0 score=1.00 tok= 797  sample= 25.2s  err=
+[PASS] fourbar_pump_handle_s0039                        k=0 score=1.00 tok= 797  sample= 25.3s  err=
+[FAIL] idler_gear_direction_analytic_s0038              k=0 score=0.00 tok= 890  sample= 28.7s  err=
+[FAIL] idler_gear_direction_analytic_s0039              k=0 score=0.00 tok= 882  sample= 28.4s  err=
+[PASS] lead_screw_linear_travel_s0038                   k=0 score=1.00 tok= 472  sample= 15.1s  err=
+[PASS] lead_screw_linear_travel_s0039                   k=0 score=1.00 tok= 472  sample= 15.2s  err=
+[FAIL] planetary_fixed_ring_ratio_analytic_s0038        k=0 score=0.00 tok= 892  sample= 28.5s  err=
+[FAIL] planetary_fixed_ring_ratio_analytic_s0039        k=0 score=0.00 tok= 804  sample= 25.5s  err=
+[FAIL] planetary_fixed_sun_ratio_analytic_s0038         k=0 score=0.00 tok= 890  sample= 28.3s  err=
+[RETRY] planetary_fixed_sun_ratio_analytic_s0039         k=0 attempt=1 max_tokens=3000 err=[sampler_error: HTTPError: 400 Client Error: Bad Request for url: http://127.0.0
+[FAIL] planetary_fixed_sun_ratio_analytic_s0039         k=0 score=0.00 tok=1398  sample= 44.1s  err=
+[PASS] rack_pinion_conversion_s0038                     k=0 score=1.00 tok= 534  sample= 17.5s  err=
+[PASS] rack_pinion_conversion_s0039                     k=0 score=1.00 tok= 516  sample= 17.0s  err=
+[PASS] rack_pinion_force_direction_s0038                k=0 score=1.00 tok= 484  sample= 15.6s  err=
+[PASS] rack_pinion_force_direction_s0039                k=0 score=1.00 tok= 484  sample= 15.8s  err=
+[FAIL] reciprocating_pump_plunger_s0038                 k=0 score=0.00 tok=1022  sample= 32.5s  err=
+[FAIL] reciprocating_pump_plunger_s0039                 k=0 score=0.00 tok=1020  sample= 32.3s  err=
+[FAIL] rocker_limit_stop_topology_s0038                 k=0 score=0.00 tok=1352  sample= 43.2s  err=
+[FAIL] rocker_limit_stop_topology_s0039                 k=0 score=0.00 tok=1290  sample= 41.8s  err=
+[FAIL] slider_crank_quick_return_proxy_s0038            k=0 score=0.00 tok= 954  sample= 31.5s  err=
+[FAIL] slider_crank_quick_return_proxy_s0039            k=0 score=0.00 tok=1014  sample= 33.4s  err=
+[FAIL] slider_crank_stroke_precision_s0038              k=0 score=0.00 tok=1086  sample= 35.3s  err=
+[FAIL] slider_crank_stroke_precision_s0039              k=0 score=0.00 tok=1098  sample= 36.0s  err=
+[FAIL] slider_crank_stroke_s0038                        k=0 score=0.00 tok= 946  sample= 31.1s  err=
+[FAIL] slider_crank_stroke_s0039                        k=0 score=0.00 tok= 828  sample= 26.9s  err=
+[PASS] spur_gear_ratio_analytic_s0038                   k=0 score=1.00 tok= 523  sample= 16.8s  err=
+[PASS] spur_gear_ratio_analytic_s0039                   k=0 score=1.00 tok= 523  sample= 17.0s  err=
+[FAIL] timing_belt_center_distance_s0038                k=0 score=0.00 tok= 788  sample= 25.9s  err=
+[FAIL] timing_belt_center_distance_s0039                k=0 score=0.00 tok= 794  sample= 26.3s  err=
+[PASS] toggle_overcenter_margin_s0038                   k=0 score=1.00 tok= 715  sample= 23.3s  err=
+[PASS] toggle_overcenter_margin_s0039                   k=0 score=1.00 tok= 715  sample= 23.1s  err=
+[FAIL] worm_gear_ratio_analytic_s0038                   k=0 score=0.00 tok= 906  sample= 29.4s  err=
+[FAIL] worm_gear_ratio_analytic_s0039                   k=0 score=0.00 tok= 876  sample= 28.3s  err=
+
+wrote /home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/smoke_summary.json
+{
+  "model": "NousResearch/DeepHermes-3-Llama-3-3B-Preview",
+  "n_tasks": 42,
+  "samples_per_task": 1,
+  "n_passed_best_of_k": 18,
+  "pass_rate_best_of_k": 0.429,
+  "n_passed_raw": 18,
+  "pass_rate_raw": 0.429,
+  "wall_clock_s": 1218.9
+}
+[DONE] Tue May 26 04:54:39 EDT 2026 seed=910 rc=0 run=baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza
+[START] Tue May 26 04:54:39 EDT 2026 seed=911 run=baseline_hard_v1_visible_eval_seed911_bof1_turn2_contractv2_retryfix_freiza
+[smoke] 42 tasks × 1 samples each; turns=2; model=NousResearch/DeepHermes-3-Llama-3-3B-Preview; concurrency=1
+[PASS] belt_pulley_ratio_s0038                          k=0 score=1.00 tok= 528  sample= 17.2s  err=
+[FAIL] belt_pulley_ratio_s0039                          k=0 score=0.00 tok= 880  sample= 28.3s  err=
+[PASS] bevel_gear_ratio_analytic_s0038                  k=0 score=1.00 tok= 527  sample= 17.0s  err=
+[PASS] bevel_gear_ratio_analytic_s0039                  k=0 score=1.00 tok= 517  sample= 16.4s  err=
+[FAIL] chain_sprocket_ratio_s0038                       k=0 score=0.00 tok=1044  sample= 33.1s  err=
+[PASS] chain_sprocket_ratio_s0039                       k=0 score=1.00 tok= 594  sample= 18.8s  err=
+[FAIL] compound_gear_ratio_analytic_s0038               k=0 score=0.00 tok=1034  sample= 33.4s  err=
+[PASS] compound_gear_ratio_analytic_s0039               k=0 score=1.00 tok= 531  sample= 17.3s  err=
+[PASS] fourbar_crank_rocker_sweep_s0038                 k=0 score=1.00 tok= 774  sample= 25.2s  err=
+[PASS] fourbar_crank_rocker_sweep_s0039                 k=0 score=1.00 tok= 774  sample= 25.1s  err=
+[FAIL] fourbar_pump_handle_s0038                        k=0 score=0.00 tok=1744  sample= 56.4s  err=
+[PASS] fourbar_pump_handle_s0039                        k=0 score=1.00 tok= 771  sample= 25.2s  err=
+[PASS] idler_gear_direction_analytic_s0038              k=0 score=1.00 tok= 562  sample= 18.4s  err=
+[FAIL] idler_gear_direction_analytic_s0039              k=0 score=0.00 tok= 908  sample= 29.7s  err=
+[PASS] lead_screw_linear_travel_s0038                   k=0 score=1.00 tok= 551  sample= 18.0s  err=
+[PASS] lead_screw_linear_travel_s0039                   k=0 score=1.00 tok= 478  sample= 15.4s  err=
+[FAIL] planetary_fixed_ring_ratio_analytic_s0038        k=0 score=0.00 tok= 788  sample= 25.5s  err=
+[FAIL] planetary_fixed_ring_ratio_analytic_s0039        k=0 score=0.00 tok= 748  sample= 23.9s  err=
+[FAIL] planetary_fixed_sun_ratio_analytic_s0038         k=0 score=0.00 tok= 856  sample= 27.5s  err=
+[RETRY] planetary_fixed_sun_ratio_analytic_s0039         k=0 attempt=1 max_tokens=3000 err=[sampler_error: HTTPError: 400 Client Error: Bad Request for url: http://127.0.0
+[FAIL] planetary_fixed_sun_ratio_analytic_s0039         k=0 score=0.00 tok= 856  sample= 27.4s  err=
+[PASS] rack_pinion_conversion_s0038                     k=0 score=1.00 tok= 516  sample= 16.3s  err=
+[PASS] rack_pinion_conversion_s0039                     k=0 score=1.00 tok= 530  sample= 16.8s  err=
+[PASS] rack_pinion_force_direction_s0038                k=0 score=1.00 tok= 484  sample= 15.3s  err=
+[PASS] rack_pinion_force_direction_s0039                k=0 score=1.00 tok= 484  sample= 15.8s  err=
+[FAIL] reciprocating_pump_plunger_s0038                 k=0 score=0.00 tok= 938  sample= 30.4s  err=
+[FAIL] reciprocating_pump_plunger_s0039                 k=0 score=0.00 tok=1020  sample= 32.8s  err=
+[PASS] rocker_limit_stop_topology_s0038                 k=0 score=1.00 tok= 794  sample= 25.4s  err=
+[PASS] rocker_limit_stop_topology_s0039                 k=0 score=1.00 tok= 794  sample= 25.2s  err=
+[FAIL] slider_crank_quick_return_proxy_s0038            k=0 score=0.00 tok=1012  sample= 32.9s  err=
+[FAIL] slider_crank_quick_return_proxy_s0039            k=0 score=0.00 tok= 954  sample= 31.4s  err=
+[FAIL] slider_crank_stroke_precision_s0038              k=0 score=0.00 tok=1062  sample= 33.8s  err=
+[FAIL] slider_crank_stroke_precision_s0039              k=0 score=0.00 tok= 956  sample= 31.3s  err=
+[FAIL] slider_crank_stroke_s0038                        k=0 score=0.00 tok= 946  sample= 30.5s  err=
+[FAIL] slider_crank_stroke_s0039                        k=0 score=0.00 tok= 943  sample= 30.2s  err=
+[PASS] spur_gear_ratio_analytic_s0038                   k=0 score=1.00 tok= 523  sample= 16.6s  err=
+[PASS] spur_gear_ratio_analytic_s0039                   k=0 score=1.00 tok= 523  sample= 16.7s  err=
+[FAIL] timing_belt_center_distance_s0038                k=0 score=0.00 tok= 894  sample= 29.5s  err=
+[FAIL] timing_belt_center_distance_s0039                k=0 score=0.00 tok= 794  sample= 26.2s  err=
+[PASS] toggle_overcenter_margin_s0038                   k=0 score=1.00 tok= 715  sample= 23.2s  err=
+[PASS] toggle_overcenter_margin_s0039                   k=0 score=1.00 tok= 715  sample= 23.1s  err=
+[FAIL] worm_gear_ratio_analytic_s0038                   k=0 score=0.00 tok= 698  sample= 22.9s  err=
+[FAIL] worm_gear_ratio_analytic_s0039                   k=0 score=0.00 tok= 826  sample= 27.0s  err=
+
+wrote /home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed911_bof1_turn2_contractv2_retryfix_freiza/smoke_summary.json
+{
+  "model": "NousResearch/DeepHermes-3-Llama-3-3B-Preview",
+  "n_tasks": 42,
+  "samples_per_task": 1,
+  "n_passed_best_of_k": 21,
+  "pass_rate_best_of_k": 0.5,
+  "n_passed_raw": 21,
+  "pass_rate_raw": 0.5,
+  "wall_clock_s": 1157.2
+}
+[DONE] Tue May 26 05:13:57 EDT 2026 seed=911 rc=0 run=baseline_hard_v1_visible_eval_seed911_bof1_turn2_contractv2_retryfix_freiza
+[START] Tue May 26 05:13:57 EDT 2026 seed=912 run=baseline_hard_v1_visible_eval_seed912_bof1_turn2_contractv2_retryfix_freiza
+[smoke] 42 tasks × 1 samples each; turns=2; model=NousResearch/DeepHermes-3-Llama-3-3B-Preview; concurrency=1
+[PASS] belt_pulley_ratio_s0038                          k=0 score=1.00 tok= 538  sample= 17.8s  err=
+[PASS] belt_pulley_ratio_s0039                          k=0 score=1.00 tok= 529  sample= 17.4s  err=
+[PASS] bevel_gear_ratio_analytic_s0038                  k=0 score=1.00 tok= 557  sample= 18.3s  err=
+[PASS] bevel_gear_ratio_analytic_s0039                  k=0 score=1.00 tok= 511  sample= 16.6s  err=
+[FAIL] chain_sprocket_ratio_s0038                       k=0 score=0.00 tok=1048  sample= 34.4s  err=
+[FAIL] chain_sprocket_ratio_s0039                       k=0 score=0.00 tok=1202  sample= 39.2s  err=
+[PASS] compound_gear_ratio_analytic_s0038               k=0 score=1.00 tok= 514  sample= 16.6s  err=
+[PASS] compound_gear_ratio_analytic_s0039               k=0 score=1.00 tok= 520  sample= 16.7s  err=
+[PASS] fourbar_crank_rocker_sweep_s0038                 k=0 score=1.00 tok= 774  sample= 24.8s  err=
+[PASS] fourbar_crank_rocker_sweep_s0039                 k=0 score=1.00 tok= 774  sample= 24.9s  err=
+[PASS] fourbar_pump_handle_s0038                        k=0 score=1.00 tok= 788  sample= 25.5s  err=
+[PASS] fourbar_pump_handle_s0039                        k=0 score=1.00 tok= 771  sample= 24.8s  err=
+[PASS] idler_gear_direction_analytic_s0038              k=0 score=1.00 tok= 547  sample= 17.8s  err=
+[FAIL] idler_gear_direction_analytic_s0039              k=0 score=0.00 tok=1301  sample= 41.4s  err=
+[PASS] lead_screw_linear_travel_s0038                   k=0 score=1.00 tok= 551  sample= 17.9s  err=
+[PASS] lead_screw_linear_travel_s0039                   k=0 score=1.00 tok= 478  sample= 15.5s  err=
+[FAIL] planetary_fixed_ring_ratio_analytic_s0038        k=0 score=0.00 tok= 794  sample= 25.3s  err=
+[FAIL] planetary_fixed_ring_ratio_analytic_s0039        k=0 score=0.00 tok= 746  sample= 23.7s  err=
+[RETRY] planetary_fixed_sun_ratio_analytic_s0038         k=0 attempt=1 max_tokens=3000 err=[sampler_error: HTTPError: 400 Client Error: Bad Request for url: http://127.0.0
+[FAIL] planetary_fixed_sun_ratio_analytic_s0038         k=0 score=0.00 tok=1080  sample= 35.1s  err=
+[RETRY] planetary_fixed_sun_ratio_analytic_s0039         k=0 attempt=1 max_tokens=3000 err=[sampler_error: HTTPError: 400 Client Error: Bad Request for url: http://127.0.0
+[FAIL] planetary_fixed_sun_ratio_analytic_s0039         k=0 score=0.00 tok=1298  sample= 42.5s  err=
+[PASS] rack_pinion_conversion_s0038                     k=0 score=1.00 tok= 501  sample= 16.2s  err=
+[PASS] rack_pinion_conversion_s0039                     k=0 score=1.00 tok= 502  sample= 16.6s  err=
+[PASS] rack_pinion_force_direction_s0038                k=0 score=1.00 tok= 484  sample= 15.4s  err=
+[PASS] rack_pinion_force_direction_s0039                k=0 score=1.00 tok= 484  sample= 15.5s  err=
+[FAIL] reciprocating_pump_plunger_s0038                 k=0 score=0.00 tok=1044  sample= 32.9s  err=
+[FAIL] reciprocating_pump_plunger_s0039                 k=0 score=0.00 tok= 938  sample= 29.6s  err=
+[PASS] rocker_limit_stop_topology_s0038                 k=0 score=1.00 tok= 794  sample= 25.1s  err=
+[PASS] rocker_limit_stop_topology_s0039                 k=0 score=1.00 tok= 840  sample= 26.6s  err=
+[FAIL] slider_crank_quick_return_proxy_s0038            k=0 score=0.00 tok=1012  sample= 32.5s  err=
+[FAIL] slider_crank_quick_return_proxy_s0039            k=0 score=0.00 tok=1042  sample= 33.5s  err=
+[FAIL] slider_crank_stroke_precision_s0038              k=0 score=0.00 tok=1062  sample= 34.4s  err=
+[FAIL] slider_crank_stroke_precision_s0039              k=0 score=0.00 tok=1054  sample= 34.0s  err=
+[FAIL] slider_crank_stroke_s0038                        k=0 score=0.00 tok= 921  sample= 30.2s  err=
+[FAIL] slider_crank_stroke_s0039                        k=0 score=0.00 tok= 899  sample= 29.7s  err=
+[PASS] spur_gear_ratio_analytic_s0038                   k=0 score=1.00 tok= 523  sample= 16.9s  err=
+[PASS] spur_gear_ratio_analytic_s0039                   k=0 score=1.00 tok= 521  sample= 17.0s  err=
+[FAIL] timing_belt_center_distance_s0038                k=0 score=0.00 tok= 924  sample= 29.9s  err=
+[FAIL] timing_belt_center_distance_s0039                k=0 score=0.00 tok= 898  sample= 29.1s  err=
+[PASS] toggle_overcenter_margin_s0038                   k=0 score=1.00 tok= 715  sample= 22.4s  err=
+[PASS] toggle_overcenter_margin_s0039                   k=0 score=1.00 tok= 715  sample= 22.7s  err=
+[FAIL] worm_gear_ratio_analytic_s0038                   k=0 score=0.00 tok= 940  sample= 30.2s  err=
+[FAIL] worm_gear_ratio_analytic_s0039                   k=0 score=0.00 tok= 755  sample= 24.2s  err=
+
+wrote /home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed912_bof1_turn2_contractv2_retryfix_freiza/smoke_summary.json
+{
+  "model": "NousResearch/DeepHermes-3-Llama-3-3B-Preview",
+  "n_tasks": 42,
+  "samples_per_task": 1,
+  "n_passed_best_of_k": 23,
+  "pass_rate_best_of_k": 0.548,
+  "n_passed_raw": 23,
+  "pass_rate_raw": 0.548,
+  "wall_clock_s": 1260.8
+}
+[DONE] Tue May 26 05:34:58 EDT 2026 seed=912 rc=0 run=baseline_hard_v1_visible_eval_seed912_bof1_turn2_contractv2_retryfix_freiza

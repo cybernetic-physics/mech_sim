@@ -1,0 +1,376 @@
+{
+  "schema_version": 2,
+  "created_at": "2026-05-26",
+  "benchmark": {
+    "suite": "tasks_hard_v1",
+    "split_file": "hard_v1_eval_visible_s0038_s0039.txt",
+    "n_seeds": 3,
+    "seeds": [
+      910,
+      911,
+      912
+    ],
+    "n_tasks_per_seed": 42,
+    "samples_per_task": 1,
+    "max_turns": 2,
+    "max_tokens": 3000,
+    "temperature": 0.2,
+    "top_p": 0.95,
+    "pass_threshold": 0.999,
+    "serving_path": "SGLang /v1/chat/completions for all final conditions; adapters selected via sglang_lora_path when applicable."
+  },
+  "conditions": {
+    "baseline_clean_retryfix_sglang": {
+      "runs": [
+        {
+          "seed": 910,
+          "run_dir": "baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza",
+          "passed": 18,
+          "n_tasks": 42,
+          "pass_rate": 0.42857142857142855,
+          "wall_clock_s": 1218.9307739649958,
+          "rollout_backend": "sglang_chat",
+          "model_path": null,
+          "sglang_lora_path": null,
+          "sampler_retries": 2,
+          "summary_seed": 910,
+          "sampler_error_count": 0,
+          "failures": [
+            "belt_pulley_ratio_s0038",
+            "belt_pulley_ratio_s0039",
+            "chain_sprocket_ratio_s0039",
+            "compound_gear_ratio_analytic_s0039",
+            "idler_gear_direction_analytic_s0038",
+            "idler_gear_direction_analytic_s0039",
+            "planetary_fixed_ring_ratio_analytic_s0038",
+            "planetary_fixed_ring_ratio_analytic_s0039",
+            "planetary_fixed_sun_ratio_analytic_s0038",
+            "planetary_fixed_sun_ratio_analytic_s0039",
+            "reciprocating_pump_plunger_s0038",
+            "reciprocating_pump_plunger_s0039",
+            "rocker_limit_stop_topology_s0038",
+            "rocker_limit_stop_topology_s0039",
+            "slider_crank_quick_return_proxy_s0038",
+            "slider_crank_quick_return_proxy_s0039",
+            "slider_crank_stroke_precision_s0038",
+            "slider_crank_stroke_precision_s0039",
+            "slider_crank_stroke_s0038",
+            "slider_crank_stroke_s0039",
+            "timing_belt_center_distance_s0038",
+            "timing_belt_center_distance_s0039",
+            "worm_gear_ratio_analytic_s0038",
+            "worm_gear_ratio_analytic_s0039"
+          ]
+        },
+        {
+          "seed": 911,
+          "run_dir": "baseline_hard_v1_visible_eval_seed911_bof1_turn2_contractv2_retryfix_freiza",
+          "passed": 21,
+          "n_tasks": 42,
+          "pass_rate": 0.5,
+          "wall_clock_s": 1157.2256308110082,
+          "rollout_backend": "sglang_chat",
+          "model_path": null,
+          "sglang_lora_path": null,
+          "sampler_retries": 2,
+          "summary_seed": 911,
+          "sampler_error_count": 0,
+          "failures": [
+            "belt_pulley_ratio_s0039",
+            "chain_sprocket_ratio_s0038",
+            "compound_gear_ratio_analytic_s0038",
+            "fourbar_pump_handle_s0038",
+            "idler_gear_direction_analytic_s0039",
+            "planetary_fixed_ring_ratio_analytic_s0038",
+            "planetary_fixed_ring_ratio_analytic_s0039",
+            "planetary_fixed_sun_ratio_analytic_s0038",
+            "planetary_fixed_sun_ratio_analytic_s0039",
+            "reciprocating_pump_plunger_s0038",
+            "reciprocating_pump_plunger_s0039",
+            "slider_crank_quick_return_proxy_s0038",
+            "slider_crank_quick_return_proxy_s0039",
+            "slider_crank_stroke_precision_s0038",
+            "slider_crank_stroke_precision_s0039",
+            "slider_crank_stroke_s0038",
+            "slider_crank_stroke_s0039",
+            "timing_belt_center_distance_s0038",
+            "timing_belt_center_distance_s0039",
+            "worm_gear_ratio_analytic_s0038",
+            "worm_gear_ratio_analytic_s0039"
+          ]
+        },
+        {
+          "seed": 912,
+          "run_dir": "baseline_hard_v1_visible_eval_seed912_bof1_turn2_contractv2_retryfix_freiza",
+          "passed": 23,
+          "n_tasks": 42,
+          "pass_rate": 0.5476190476190477,
+          "wall_clock_s": 1260.7552626990073,
+          "rollout_backend": "sglang_chat",
+          "model_path": null,
+          "sglang_lora_path": null,
+          "sampler_retries": 2,
+          "summary_seed": 912,
+          "sampler_error_count": 0,
+          "failures": [
+            "chain_sprocket_ratio_s0038",
+            "chain_sprocket_ratio_s0039",
+            "idler_gear_direction_analytic_s0039",
+            "planetary_fixed_ring_ratio_analytic_s0038",
+            "planetary_fixed_ring_ratio_analytic_s0039",
+            "planetary_fixed_sun_ratio_analytic_s0038",
+            "planetary_fixed_sun_ratio_analytic_s0039",
+            "reciprocating_pump_plunger_s0038",
+            "reciprocating_pump_plunger_s0039",
+            "slider_crank_quick_return_proxy_s0038",
+            "slider_crank_quick_return_proxy_s0039",
+            "slider_crank_stroke_precision_s0038",
+            "slider_crank_stroke_precision_s0039",
+            "slider_crank_stroke_s0038",
+            "slider_crank_stroke_s0039",
+            "timing_belt_center_distance_s0038",
+            "timing_belt_center_distance_s0039",
+            "worm_gear_ratio_analytic_s0038",
+            "worm_gear_ratio_analytic_s0039"
+          ]
+        }
+      ],
+      "mean_passed": 20.666666666666668,
+      "mean_pass_rate": 0.4920634920634921,
+      "sampler_error_count_total": 0
+    },
+    "ref_sft_r8_s250_retryfix_sglang_lora": {
+      "runs": [
+        {
+          "seed": 910,
+          "run_dir": "ref_sft_r8_s250_visible_eval_seed910_bof1_turn2_contractv2_retryfix_sglang_lora_freiza",
+          "passed": 38,
+          "n_tasks": 42,
+          "pass_rate": 0.9047619047619048,
+          "wall_clock_s": 937.843781314994,
+          "rollout_backend": "sglang_chat",
+          "model_path": "worldlines://model_bb6988118204/sampler_weights/hard_v1_ref_sft_r8_lr2e5_w1_s250_final",
+          "sglang_lora_path": "worldlines_6eb64c00c9fa23d7",
+          "sampler_retries": 2,
+          "summary_seed": 910,
+          "sampler_error_count": 0,
+          "failures": [
+            "lead_screw_linear_travel_s0038",
+            "lead_screw_linear_travel_s0039",
+            "timing_belt_center_distance_s0038",
+            "timing_belt_center_distance_s0039"
+          ]
+        },
+        {
+          "seed": 911,
+          "run_dir": "ref_sft_r8_s250_visible_eval_seed911_bof1_turn2_contractv2_retryfix_sglang_lora_freiza",
+          "passed": 39,
+          "n_tasks": 42,
+          "pass_rate": 0.9285714285714286,
+          "wall_clock_s": 925.3287547939981,
+          "rollout_backend": "sglang_chat",
+          "model_path": "worldlines://model_bb6988118204/sampler_weights/hard_v1_ref_sft_r8_lr2e5_w1_s250_final",
+          "sglang_lora_path": "worldlines_6eb64c00c9fa23d7",
+          "sampler_retries": 2,
+          "summary_seed": 911,
+          "sampler_error_count": 0,
+          "failures": [
+            "lead_screw_linear_travel_s0038",
+            "timing_belt_center_distance_s0038",
+            "timing_belt_center_distance_s0039"
+          ]
+        },
+        {
+          "seed": 912,
+          "run_dir": "ref_sft_r8_s250_visible_eval_seed912_bof1_turn2_contractv2_retryfix_sglang_lora_freiza",
+          "passed": 39,
+          "n_tasks": 42,
+          "pass_rate": 0.9285714285714286,
+          "wall_clock_s": 927.1325209409988,
+          "rollout_backend": "sglang_chat",
+          "model_path": "worldlines://model_bb6988118204/sampler_weights/hard_v1_ref_sft_r8_lr2e5_w1_s250_final",
+          "sglang_lora_path": "worldlines_6eb64c00c9fa23d7",
+          "sampler_retries": 2,
+          "summary_seed": 912,
+          "sampler_error_count": 0,
+          "failures": [
+            "lead_screw_linear_travel_s0038",
+            "timing_belt_center_distance_s0038",
+            "timing_belt_center_distance_s0039"
+          ]
+        }
+      ],
+      "mean_passed": 38.666666666666664,
+      "mean_pass_rate": 0.9206349206349206,
+      "sampler_error_count_total": 0
+    },
+    "rlvr_s8_cap2_retryfix_sglang_lora": {
+      "runs": [
+        {
+          "seed": 910,
+          "run_dir": "rlvr_s8_cap2_visible_eval_seed910_bof1_turn2_contractv2_retryfix_sglang_lora_freiza",
+          "passed": 41,
+          "n_tasks": 42,
+          "pass_rate": 0.9761904761904762,
+          "wall_clock_s": 1298.616170335008,
+          "rollout_backend": "sglang_chat",
+          "model_path": "worldlines://model_cc562c22f4dc/sampler_weights/hard_v1_rlvr_visible_residual_from_sft_state_s8_cap2_final",
+          "sglang_lora_path": "worldlines_c54db85c4d4079d6",
+          "sampler_retries": 2,
+          "summary_seed": 910,
+          "sampler_error_count": 0,
+          "failures": [
+            "rack_pinion_conversion_s0038"
+          ]
+        },
+        {
+          "seed": 911,
+          "run_dir": "rlvr_s8_cap2_visible_eval_seed911_bof1_turn2_contractv2_retryfix_sglang_lora_freiza",
+          "passed": 42,
+          "n_tasks": 42,
+          "pass_rate": 1.0,
+          "wall_clock_s": 1281.3854370929766,
+          "rollout_backend": "sglang_chat",
+          "model_path": "worldlines://model_cc562c22f4dc/sampler_weights/hard_v1_rlvr_visible_residual_from_sft_state_s8_cap2_final",
+          "sglang_lora_path": "worldlines_c54db85c4d4079d6",
+          "sampler_retries": 2,
+          "summary_seed": 911,
+          "sampler_error_count": 0,
+          "failures": []
+        },
+        {
+          "seed": 912,
+          "run_dir": "rlvr_s8_cap2_visible_eval_seed912_bof1_turn2_contractv2_retryfix_sglang_lora_freiza",
+          "passed": 42,
+          "n_tasks": 42,
+          "pass_rate": 1.0,
+          "wall_clock_s": 1344.031652390986,
+          "rollout_backend": "sglang_chat",
+          "model_path": "worldlines://model_cc562c22f4dc/sampler_weights/hard_v1_rlvr_visible_residual_from_sft_state_s8_cap2_final",
+          "sglang_lora_path": "worldlines_c54db85c4d4079d6",
+          "sampler_retries": 2,
+          "summary_seed": 912,
+          "sampler_error_count": 0,
+          "failures": []
+        }
+      ],
+      "mean_passed": 41.666666666666664,
+      "mean_pass_rate": 0.9920634920634921,
+      "sampler_error_count_total": 0
+    }
+  },
+  "comparisons": {
+    "rlvr_vs_clean_prompted_baseline": {
+      "per_seed": [
+        {
+          "seed": 910,
+          "rlvr_wins": 24,
+          "baseline_wins": 1,
+          "both_pass": 17,
+          "both_fail": 0
+        },
+        {
+          "seed": 911,
+          "rlvr_wins": 21,
+          "baseline_wins": 0,
+          "both_pass": 21,
+          "both_fail": 0
+        },
+        {
+          "seed": 912,
+          "rlvr_wins": 19,
+          "baseline_wins": 0,
+          "both_pass": 23,
+          "both_fail": 0
+        }
+      ],
+      "counts": {
+        "rlvr_wins": 64,
+        "baseline_wins": 1,
+        "both_pass": 61,
+        "both_fail": 0
+      },
+      "two_sided_sign_test_p": 3.577867169202165e-18,
+      "mean_delta_tasks": 20.999999999999996,
+      "mean_delta_percentage_points": 49.999999999999986
+    },
+    "rlvr_vs_ref_sft": {
+      "per_seed": [
+        {
+          "seed": 910,
+          "rlvr_wins": 4,
+          "sft_wins": 1,
+          "both_pass": 37,
+          "both_fail": 0
+        },
+        {
+          "seed": 911,
+          "rlvr_wins": 3,
+          "sft_wins": 0,
+          "both_pass": 39,
+          "both_fail": 0
+        },
+        {
+          "seed": 912,
+          "rlvr_wins": 3,
+          "sft_wins": 0,
+          "both_pass": 39,
+          "both_fail": 0
+        }
+      ],
+      "counts": {
+        "rlvr_wins": 10,
+        "sft_wins": 1,
+        "both_pass": 115,
+        "both_fail": 0
+      },
+      "two_sided_sign_test_p": 0.01171875,
+      "mean_delta_tasks": 3.0,
+      "mean_delta_percentage_points": 7.142857142857142
+    },
+    "sft_vs_clean_prompted_baseline": {
+      "per_seed": [
+        {
+          "seed": 910,
+          "sft_wins": 22,
+          "baseline_wins": 2,
+          "both_pass": 16,
+          "both_fail": 2
+        },
+        {
+          "seed": 911,
+          "sft_wins": 19,
+          "baseline_wins": 1,
+          "both_pass": 20,
+          "both_fail": 2
+        },
+        {
+          "seed": 912,
+          "sft_wins": 17,
+          "baseline_wins": 1,
+          "both_pass": 22,
+          "both_fail": 2
+        }
+      ],
+      "counts": {
+        "sft_wins": 58,
+        "baseline_wins": 4,
+        "both_pass": 58,
+        "both_fail": 6
+      },
+      "two_sided_sign_test_p": 2.5917592724744587e-13,
+      "mean_delta_tasks": 17.999999999999996,
+      "mean_delta_percentage_points": 42.85714285714285
+    }
+  },
+  "audit": {
+    "all_included_summaries_sampler_error_count": 0,
+    "final_table_status": "all final rows are retry-fixed direct SGLang chat runs; LoRA adapters are selected with sglang_lora_path",
+    "superseded_results": [
+      "papergrade_threeway_aggregate_completed.json used contaminated prompted baselines and is superseded",
+      "papergrade_clean_baseline_vs_rlvr_aggregate.json used clean prompted baselines but older Worldlines-sampling RLVR summaries; direct-SGLang RLVR reruns supersede it"
+    ],
+    "primary_claim_supported": "RLVR adapter strongly improves over clean prompted base-model rollouts on this heldout suite.",
+    "sft_claim_supported": "On matched direct SGLang adapter runs, RLVR also improves over the reference SFT adapter on this heldout suite."
+  }
+}

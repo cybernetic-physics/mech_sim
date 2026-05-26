@@ -54,6 +54,8 @@ class TurnTrace:
     failure_codes: list[str]
     completion_tokens: int
     stop_reason: str
+    feedback: list[dict[str, str]] = field(default_factory=list)
+    evaluation_valid: bool = False
 
 
 @dataclass
@@ -89,6 +91,17 @@ def _format_verifier_feedback(turn: TurnTrace) -> str:
         bits.append("codes=" + ",".join(turn.failure_codes))
     if turn.stop_reason and turn.stop_reason != "stop":
         bits.append(f"stop_reason={turn.stop_reason}")
+    if turn.feedback:
+        details = []
+        for item in turn.feedback[:4]:
+            where = item.get("where")
+            msg = item.get("message") or ""
+            code = item.get("code") or ""
+            prefix = f"{code}: " if code else ""
+            suffix = f" [{where}]" if where else ""
+            details.append(f"- {prefix}{msg}{suffix}")
+        if details:
+            bits.append("details:\n" + "\n".join(details))
     hint = ""
     if not turn.parsed_ok:
         hint = (
@@ -108,16 +121,34 @@ def _format_verifier_feedback(turn: TurnTrace) -> str:
             "task's `requirements.required_ports` and ensure every "
             "one appears in `ports`."
         )
+    elif "wrong_mobility" in turn.failure_codes:
+        hint = (
+            "wrong_mobility: rebuild the part and joint count to match "
+            "the task's explicit `requirements.expected_mobility` and "
+            "prompt mobility statement. If expected_mobility is 0, use "
+            "one fixed carrier part or fixed joints only; do not add "
+            "revolute/prismatic joints unless the prompt explicitly "
+            "requires them."
+        )
     elif "wrong_ratio" in turn.failure_codes:
         hint = (
-            "wrong_ratio: a declared scalar in `params` did not "
-            "match the closed-form target. Re-derive it."
+            "wrong_ratio: a scalar in top-level `params` did not "
+            "match the target. Use the exact key shown in the task "
+            "prompt, without a `declared_` prefix."
+        )
+    elif "schema_error" in turn.failure_codes:
+        hint = (
+            "schema_error: fix the exact schema field named above. "
+            "Port kind must be only `frame`, `revolute_joint`, or "
+            "`prismatic_joint`; joint fields must be `axis_world` "
+            "and `anchor_world_mm`."
         )
     elif "invalid_artifact" in turn.failure_codes:
         hint = (
             "invalid_artifact: the IR shape was malformed — most "
-            "often a non-finite value, missing schema_version, or a "
-            "port pointing at a non-existent joint."
+            "often an unsafe geometry path, non-finite value, missing "
+            "schema_version, invalid mass/inertia, or a callable/object "
+            "inside the returned dict."
         )
     payload = "  ".join(bits)
     if hint:
@@ -144,6 +175,8 @@ def _chat_completion(
     temperature: float,
     top_p: float,
     timeout_s: float,
+    seed: int | None = None,
+    lora_path: str | None = None,
 ) -> dict[str, Any]:
     """Send one /v1/chat/completions request. Returns the JSON body."""
     if requests is None:
@@ -157,6 +190,10 @@ def _chat_completion(
         "top_p": float(top_p),
         "stream": False,
     }
+    if seed is not None:
+        body["seed"] = int(seed)
+    if lora_path:
+        body["lora_path"] = lora_path
     r = requests.post(url, json=body, timeout=timeout_s,
                       headers={"Authorization": "Bearer dummy"})
     r.raise_for_status()
@@ -181,6 +218,8 @@ def run_rollout(
     top_p: float = 0.95,
     timeout_s: float = 240.0,
     parse_bonus: float = 5.0,
+    seed: int | None = None,
+    lora_path: str | None = None,
 ) -> Rollout:
     """One multi-turn rollout on *task* with feedback in the loop.
 
@@ -210,13 +249,18 @@ def run_rollout(
                 max_tokens=max_tokens_per_turn,
                 temperature=temperature, top_p=top_p,
                 timeout_s=timeout_s,
+                seed=None if seed is None else seed + turn_idx,
+                lora_path=lora_path,
             )
         except Exception as e:  # noqa: BLE001 — sampler firewall
             rollout.turns.append(TurnTrace(
                 turn_idx=turn_idx,
                 assistant_text=f"[sampler_error: {type(e).__name__}: {e}]",
                 score=0.0, passed=False, parsed_ok=False,
+                dense_pct=0.0,
                 failure_codes=["sampler_error"],
+                feedback=[],
+                evaluation_valid=False,
                 completion_tokens=0,
                 stop_reason="error",
             ))
@@ -242,6 +286,8 @@ def run_rollout(
             passed=ep.passed,
             parsed_ok=ep.parsed_ok,
             failure_codes=ep.failure_codes,
+            feedback=ep.feedback,
+            evaluation_valid=ep.evaluation_valid,
             completion_tokens=ep.completion_tokens,
             stop_reason=stop_reason,
         )
@@ -253,6 +299,152 @@ def run_rollout(
             rollout.best_dense_pct = ep.dense_pct
 
         # Append assistant message and decide whether to continue.
+        messages.append({"role": "assistant", "content": assistant_text})
+        if ep.passed:
+            break
+        if turn_idx == max_turns - 1:
+            break
+        messages.append({
+            "role": "user",
+            "content": _format_verifier_feedback(turn),
+        })
+
+    if rollout.turns:
+        last = rollout.turns[-1]
+        rollout.final_score = last.score
+        rollout.final_dense_pct = last.dense_pct
+        rollout.final_passed = last.passed
+    rollout.wall_clock_s = time.perf_counter() - started
+    rollout.messages = messages
+    return rollout
+
+
+def _sampling_client_completion(
+    *,
+    sampling_client,
+    tokenizer,
+    messages: list[dict[str, str]],
+    max_tokens: int,
+    temperature: float,
+    top_p: float,
+    timeout_s: float,
+    seed: int | None = None,
+) -> tuple[str, dict[str, int | str]]:
+    """Sample one assistant turn through a Worldlines SamplingClient."""
+    from worldlines import types as wld_types  # type: ignore[import-not-found]
+
+    prompt_text = tokenizer.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=True,
+    )
+    prompt_ids = tokenizer.encode(prompt_text, add_special_tokens=False)
+    params = wld_types.SamplingParams(
+        max_tokens=int(max_tokens),
+        temperature=float(temperature),
+        top_p=float(top_p),
+        seed=seed,
+    )
+    rsp = sampling_client.sample(
+        prompt=wld_types.ModelInput.from_ints(prompt_ids),
+        num_samples=1,
+        sampling_params=params,
+    ).result(timeout=timeout_s)
+    seq = rsp.sequences[0]
+    completion_ids = list(seq.tokens)
+    text = tokenizer.decode(completion_ids, skip_special_tokens=True)
+    usage: dict[str, int | str] = {
+        "prompt_tokens": len(prompt_ids),
+        "completion_tokens": len(completion_ids),
+        "stop_reason": str(getattr(seq, "stop_reason", "") or "stop"),
+    }
+    return str(text), usage
+
+
+def run_rollout_with_sampling_client(
+    *,
+    sampling_client,
+    tokenizer,
+    task,  # rl.mech_env.TaskInfo, late import to avoid cycle
+    system_prompt: str,
+    user_prompt: str,
+    max_turns: int = 4,
+    max_tokens_per_turn: int = 4096,
+    temperature: float = 0.8,
+    top_p: float = 0.95,
+    timeout_s: float = 240.0,
+    parse_bonus: float = 5.0,
+    seed: int | None = None,
+) -> Rollout:
+    """One multi-turn rollout using a Worldlines SamplingClient.
+
+    This is the adapter-aware path: when ``sampling_client`` was created from a
+    saved ``worldlines://...`` checkpoint, the assistant turns are sampled from
+    that trained adapter through the backend's sampler.
+    """
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import mech_env as env  # noqa: E402  pyright: ignore
+
+    started = time.perf_counter()
+    messages: list[dict[str, str]] = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+    ]
+
+    rollout = Rollout(task_id=task.task_id, messages=messages)
+
+    for turn_idx in range(max_turns):
+        try:
+            assistant_text, usage = _sampling_client_completion(
+                sampling_client=sampling_client,
+                tokenizer=tokenizer,
+                messages=messages,
+                max_tokens=max_tokens_per_turn,
+                temperature=temperature,
+                top_p=top_p,
+                timeout_s=timeout_s,
+                seed=None if seed is None else seed + turn_idx,
+            )
+        except Exception as e:  # noqa: BLE001
+            rollout.turns.append(TurnTrace(
+                turn_idx=turn_idx,
+                assistant_text=f"[sampler_error: {type(e).__name__}: {e}]",
+                score=0.0, dense_pct=0.0, passed=False, parsed_ok=False,
+                failure_codes=["sampler_error"],
+                feedback=[],
+                evaluation_valid=False,
+                completion_tokens=0,
+                stop_reason="error",
+            ))
+            break
+
+        completion_tokens = int(usage.get("completion_tokens", 0) or 0)
+        rollout.total_tokens_in += int(usage.get("prompt_tokens", 0) or 0)
+        rollout.total_tokens_out += completion_tokens
+
+        ep = env.score(task, assistant_text, parse_bonus=parse_bonus)
+        ep.completion_tokens = completion_tokens
+
+        turn = TurnTrace(
+            turn_idx=turn_idx,
+            assistant_text=assistant_text,
+            score=ep.score,
+            dense_pct=ep.dense_pct,
+            passed=ep.passed,
+            parsed_ok=ep.parsed_ok,
+            failure_codes=ep.failure_codes,
+            feedback=ep.feedback,
+            evaluation_valid=ep.evaluation_valid,
+            completion_tokens=completion_tokens,
+            stop_reason=str(usage.get("stop_reason") or "stop"),
+        )
+        rollout.turns.append(turn)
+        if ep.score > rollout.best_score:
+            rollout.best_score = ep.score
+            rollout.best_turn = turn_idx
+        if ep.dense_pct > rollout.best_dense_pct:
+            rollout.best_dense_pct = ep.dense_pct
+
         messages.append({"role": "assistant", "content": assistant_text})
         if ep.passed:
             break
@@ -338,6 +530,8 @@ def _main() -> int:
         "per_turn": [
             {"turn": t.turn_idx, "score": t.score, "passed": t.passed,
              "parsed_ok": t.parsed_ok, "codes": t.failure_codes,
+             "feedback": t.feedback,
+             "evaluation_valid": t.evaluation_valid,
              "completion_tokens": t.completion_tokens,
              "stop_reason": t.stop_reason}
             for t in rollout.turns

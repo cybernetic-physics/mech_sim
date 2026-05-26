@@ -1,0 +1,9 @@
+{
+  "family": "idler_gear_direction_analytic",
+  "tier": "transmission_analytic",
+  "seed": 36,
+  "difficulty": 2,
+  "idler_count": 2,
+  "output_direction": 1,
+  "task_id": "idler_gear_direction_analytic_s0036"
+}

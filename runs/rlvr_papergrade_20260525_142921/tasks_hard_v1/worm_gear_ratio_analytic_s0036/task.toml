@@ -1,0 +1,15 @@
+[task]
+id = "worm_gear_ratio_analytic_s0036"
+family = "worm_gear_ratio_analytic"
+difficulty = 2
+units = "mm"
+tier = "transmission_analytic"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 2
+max_envelope_mm = [200, 200, 80]
+
+[objective]
+description = "Worm gear ratio = 20.0."
+ground_required = true

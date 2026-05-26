@@ -1,0 +1,38 @@
+[feedback]
+public_metrics = ["mobility.observed", "linear_per_rev.observed", "linear_per_rev.expected"]
+hidden_metrics = ["linear_per_rev.error_pct"]
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 2
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port"]
+require_grounded = ["input_port"]
+hard_gate = true
+severity = "critical"
+
+[probes.require_kinds]
+input_port = "revolute_joint"
+output_port = "prismatic_joint"
+
+[[probes]]
+id = "linear_per_rev"
+type = "analytic_param_check"
+path = "params.declared_linear_per_rev_mm"
+expected = 66.5955
+comparator = "eq"
+tolerance_pct = 0.8
+failure_code = "wrong_ratio"
+weight = 1.0
+severity = "major"

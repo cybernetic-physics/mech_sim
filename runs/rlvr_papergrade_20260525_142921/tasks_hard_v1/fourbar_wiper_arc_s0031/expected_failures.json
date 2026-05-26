@@ -1,0 +1,23 @@
+{
+  "description": "Tier 1 fourbar_wiper_arc negatives.",
+  "controls": [
+    {
+      "id": "shifted_coupler_point",
+      "expected_failure_codes": [
+        "path_error"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.6,
+      "submission": "negative_solutions/shifted_coupler_point"
+    },
+    {
+      "id": "missing_coupler_point",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001,
+      "submission": "negative_solutions/missing_coupler_point"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "family": "bevel_gear_ratio_analytic",
+  "tier": "transmission_analytic",
+  "seed": 33,
+  "difficulty": 2,
+  "ratio": 2.0,
+  "axis_angle_deg": 90.0,
+  "task_id": "bevel_gear_ratio_analytic_s0033"
+}

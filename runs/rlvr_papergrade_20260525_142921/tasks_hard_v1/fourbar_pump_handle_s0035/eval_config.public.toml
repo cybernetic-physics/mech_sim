@@ -1,0 +1,51 @@
+[feedback]
+public_metrics = ["min_range.observed", "max_range.observed"]
+hidden_metrics = []
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 1
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["input_port", "output_port"]
+
+[probes.require_kinds]
+input_port = "revolute_joint"
+output_port = "revolute_joint"
+
+[[probes]]
+id = "min_range"
+type = "analytic_param_check"
+path = "params.output_rocker_min_rad"
+expected = -0.785
+comparator = "le"
+failure_code = "wrong_ratio"
+weight = 0.5
+severity = "major"
+hard_gate = false
+tolerance_abs = 0.1
+
+[[probes]]
+id = "max_range"
+type = "analytic_param_check"
+path = "params.output_rocker_max_rad"
+expected = 0.785
+comparator = "ge"
+failure_code = "wrong_ratio"
+weight = 0.5
+severity = "major"
+hard_gate = false
+tolerance_abs = 0.1

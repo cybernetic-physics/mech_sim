@@ -1,0 +1,9 @@
+{
+  "family": "rack_pinion_conversion",
+  "tier": "transmission_analytic",
+  "seed": 31,
+  "difficulty": 2,
+  "pitch_radius_mm": 18.96,
+  "target_linear_per_rev_mm": 119.1292,
+  "task_id": "rack_pinion_conversion_s0031"
+}

@@ -1,0 +1,10 @@
+{
+  "family": "belt_pulley_ratio",
+  "tier": "transmission_analytic",
+  "seed": 34,
+  "difficulty": 2,
+  "drive_d_mm": 34.41,
+  "driven_d_mm": 103.23,
+  "ratio": 3.0,
+  "task_id": "belt_pulley_ratio_s0034"
+}

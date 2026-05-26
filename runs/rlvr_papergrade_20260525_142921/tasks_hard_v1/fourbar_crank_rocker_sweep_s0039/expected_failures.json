@@ -1,0 +1,23 @@
+{
+  "description": "Tier 1 fourbar_crank_rocker_sweep negatives.",
+  "controls": [
+    {
+      "id": "wrong_mobility",
+      "expected_failure_codes": [
+        "wrong_mobility"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001,
+      "submission": "negative_solutions/wrong_mobility"
+    },
+    {
+      "id": "wrong_anchor",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001,
+      "submission": "negative_solutions/wrong_anchor"
+    }
+  ]
+}

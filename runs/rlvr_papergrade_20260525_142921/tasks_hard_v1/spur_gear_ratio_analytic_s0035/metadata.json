@@ -1,0 +1,10 @@
+{
+  "family": "spur_gear_ratio_analytic",
+  "tier": "transmission_analytic",
+  "seed": 35,
+  "difficulty": 2,
+  "teeth_in": 20,
+  "teeth_out": 100,
+  "ratio": 5.0,
+  "task_id": "spur_gear_ratio_analytic_s0035"
+}

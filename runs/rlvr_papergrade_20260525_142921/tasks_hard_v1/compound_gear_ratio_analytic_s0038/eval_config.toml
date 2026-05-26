@@ -1,0 +1,35 @@
+[feedback]
+public_metrics = ["ratio.observed", "ratio.expected"]
+hidden_metrics = ["ratio.error_pct"]
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 2
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["input_port", "output_port"]
+
+[[probes]]
+id = "ratio"
+type = "analytic_param_check"
+path = "params.declared_ratio"
+expected = 9.0
+comparator = "eq"
+failure_code = "wrong_ratio"
+weight = 1.0
+severity = "major"
+hard_gate = false
+tolerance_pct = 2.0

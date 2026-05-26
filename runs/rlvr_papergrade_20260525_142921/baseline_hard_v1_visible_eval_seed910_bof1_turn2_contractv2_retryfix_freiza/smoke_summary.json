@@ -1,0 +1,2315 @@
+{
+  "version": "mech_bench.local_rl_smoke.v1",
+  "agent": "worldlines",
+  "model": "NousResearch/DeepHermes-3-Llama-3-3B-Preview",
+  "model_path": null,
+  "rollout_backend": "sglang_chat",
+  "seed": 910,
+  "temperature": 0.2,
+  "top_p": 0.95,
+  "max_tokens": 3000,
+  "timeout": 300.0,
+  "sampler_retries": 2,
+  "tasks_root": "runs/rlvr_papergrade_20260525_142921/tasks_hard_v1",
+  "split_file": "runs/rlvr_papergrade_20260525_142921/hard_v1_eval_visible_s0038_s0039.txt",
+  "n_tasks": 42,
+  "samples_per_task": 1,
+  "max_turns": 2,
+  "pass_threshold": 0.999,
+  "n_passed_best_of_k": 18,
+  "pass_rate_best_of_k": 0.42857142857142855,
+  "n_samples": 42,
+  "n_passed_raw": 18,
+  "pass_rate_raw": 0.42857142857142855,
+  "wall_clock_s": 1218.9307739649958,
+  "tasks": [
+    {
+      "task_id": "belt_pulley_ratio_s0038",
+      "family": "belt_pulley_ratio",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 32.9469531950017,
+      "sample_tokens_in": 9008,
+      "sample_tokens_out": 1013,
+      "completion_chars": 1721,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": false,
+      "failure_codes": [
+        "missing_port"
+      ],
+      "feedback": [
+        {
+          "code": "missing_port",
+          "severity": "critical",
+          "message": "Port 'output_port' (revolute_joint) references joint 'driven_axis' that does not exist.",
+          "where": "ports.output_port.part"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/belt_pulley_ratio_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "belt_pulley_ratio_s0039",
+      "family": "belt_pulley_ratio",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 24.265231020981446,
+      "sample_tokens_in": 8798,
+      "sample_tokens_out": 748,
+      "completion_chars": 1285,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": false,
+      "failure_codes": [
+        "missing_port"
+      ],
+      "feedback": [
+        {
+          "code": "missing_port",
+          "severity": "critical",
+          "message": "Port 'input_port' (revolute_joint) references joint 'drive_pulley' that does not exist.",
+          "where": "ports.input_port.part"
+        },
+        {
+          "code": "missing_port",
+          "severity": "critical",
+          "message": "Port 'output_port' (revolute_joint) references joint 'driven_pulley' that does not exist.",
+          "where": "ports.output_port.part"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/belt_pulley_ratio_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "bevel_gear_ratio_analytic_s0038",
+      "family": "bevel_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 16.4536841980007,
+      "sample_tokens_in": 4112,
+      "sample_tokens_out": 500,
+      "completion_chars": 1551,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/bevel_gear_ratio_analytic_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "bevel_gear_ratio_analytic_s0039",
+      "family": "bevel_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 16.70824112999253,
+      "sample_tokens_in": 4112,
+      "sample_tokens_out": 508,
+      "completion_chars": 1615,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/bevel_gear_ratio_analytic_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "chain_sprocket_ratio_s0038",
+      "family": "chain_sprocket_ratio",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 17.641051339014666,
+      "sample_tokens_in": 4061,
+      "sample_tokens_out": 532,
+      "completion_chars": 1653,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/chain_sprocket_ratio_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "chain_sprocket_ratio_s0039",
+      "family": "chain_sprocket_ratio",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 43.41903181601083,
+      "sample_tokens_in": 8892,
+      "sample_tokens_out": 1351,
+      "completion_chars": 2059,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 3, task expects 2.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/chain_sprocket_ratio_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "compound_gear_ratio_analytic_s0038",
+      "family": "compound_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 17.17046145000495,
+      "sample_tokens_in": 4089,
+      "sample_tokens_out": 536,
+      "completion_chars": 1639,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/compound_gear_ratio_analytic_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "compound_gear_ratio_analytic_s0039",
+      "family": "compound_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 33.521928390982794,
+      "sample_tokens_in": 8835,
+      "sample_tokens_out": 1041,
+      "completion_chars": 1560,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_ratio"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_ratio",
+          "severity": "major",
+          "message": "Param 'params.declared_ratio': observed 0.666667 vs expected 6 (eq, tol pct=2.0, abs=0.0).",
+          "where": "ratio"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/compound_gear_ratio_analytic_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "fourbar_crank_rocker_sweep_s0038",
+      "family": "fourbar_crank_rocker_sweep",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 24.75112534701475,
+      "sample_tokens_in": 4138,
+      "sample_tokens_out": 774,
+      "completion_chars": 2356,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/fourbar_crank_rocker_sweep_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "fourbar_crank_rocker_sweep_s0039",
+      "family": "fourbar_crank_rocker_sweep",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 24.48227878700709,
+      "sample_tokens_in": 4138,
+      "sample_tokens_out": 774,
+      "completion_chars": 2356,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/fourbar_crank_rocker_sweep_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "fourbar_pump_handle_s0038",
+      "family": "fourbar_pump_handle",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 25.19403211498866,
+      "sample_tokens_in": 4153,
+      "sample_tokens_out": 797,
+      "completion_chars": 2430,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/fourbar_pump_handle_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "fourbar_pump_handle_s0039",
+      "family": "fourbar_pump_handle",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 25.29219056601869,
+      "sample_tokens_in": 4153,
+      "sample_tokens_out": 797,
+      "completion_chars": 2430,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/fourbar_pump_handle_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "idler_gear_direction_analytic_s0038",
+      "family": "idler_gear_direction_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 28.673347115982324,
+      "sample_tokens_in": 8753,
+      "sample_tokens_out": 890,
+      "completion_chars": 1428,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is -1, task expects 2.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/idler_gear_direction_analytic_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "idler_gear_direction_analytic_s0039",
+      "family": "idler_gear_direction_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 28.41019008299918,
+      "sample_tokens_in": 8749,
+      "sample_tokens_out": 882,
+      "completion_chars": 1422,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is -1, task expects 2.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/idler_gear_direction_analytic_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "lead_screw_linear_travel_s0038",
+      "family": "lead_screw_linear_travel",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 15.109702746995026,
+      "sample_tokens_in": 4082,
+      "sample_tokens_out": 472,
+      "completion_chars": 1464,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/lead_screw_linear_travel_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "lead_screw_linear_travel_s0039",
+      "family": "lead_screw_linear_travel",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 15.176846410002327,
+      "sample_tokens_in": 4082,
+      "sample_tokens_out": 472,
+      "completion_chars": 1464,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/lead_screw_linear_travel_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "planetary_fixed_ring_ratio_analytic_s0038",
+      "family": "planetary_fixed_ring_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 28.469511724979384,
+      "sample_tokens_in": 8812,
+      "sample_tokens_out": 892,
+      "completion_chars": 1232,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility",
+        "wrong_ratio"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 4, task expects 2.",
+          "where": "mobility"
+        },
+        {
+          "code": "wrong_ratio",
+          "severity": "major",
+          "message": "Param 'params.declared_ratio': observed 1.47368 vs expected 3.11111 (eq, tol pct=2.0, abs=0.0).",
+          "where": "ratio"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/planetary_fixed_ring_ratio_analytic_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "planetary_fixed_ring_ratio_analytic_s0039",
+      "family": "planetary_fixed_ring_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 25.53058038200834,
+      "sample_tokens_in": 8716,
+      "sample_tokens_out": 804,
+      "completion_chars": 1379,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 4, task expects 2.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/planetary_fixed_ring_ratio_analytic_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "planetary_fixed_sun_ratio_analytic_s0038",
+      "family": "planetary_fixed_sun_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 28.314489843993215,
+      "sample_tokens_in": 8811,
+      "sample_tokens_out": 890,
+      "completion_chars": 1533,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 1, task expects 2.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/planetary_fixed_sun_ratio_analytic_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "planetary_fixed_sun_ratio_analytic_s0039",
+      "family": "planetary_fixed_sun_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 44.07775398698868,
+      "sample_tokens_in": 9149,
+      "sample_tokens_out": 1398,
+      "completion_chars": 2268,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": false,
+      "failure_codes": [
+        "invalid_artifact"
+      ],
+      "feedback": [
+        {
+          "code": "invalid_artifact",
+          "severity": "critical",
+          "message": "Submission subprocess exited with code 4: Traceback (most recent call last):\n  File \"/home/freiza/corl_rlvr_clean/mech_bench/submission_worker.py\", line 79, in main\n    mod = _load_module(design_py)\n          ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/freiza/corl_rlvr_clean/mech_bench/submission_worker.py\", line 58, in _load_module\n    spec.loader.exec_module(mod)\n  File \"<frozen importlib._bootstrap_external>\", line 995, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 488, in _call_with_frames_removed\n  File \"/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/planetary_fixed_sun_ratio_analytic_s0039/submission/design.py\", line 3, in <module>\n    def build_design(out_dir: Path) -> dict:\n                              ^^^^\nNameError: name 'Path' is not defined\nfailed to import design.py",
+          "where": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/planetary_fixed_sun_ratio_analytic_s0039/submission"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/planetary_fixed_sun_ratio_analytic_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "rack_pinion_conversion_s0038",
+      "family": "rack_pinion_conversion",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 17.52487215597648,
+      "sample_tokens_in": 4167,
+      "sample_tokens_out": 534,
+      "completion_chars": 1730,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 0.9999805383130743,
+      "verified_score": 0.9999805383130743,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/rack_pinion_conversion_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "rack_pinion_conversion_s0039",
+      "family": "rack_pinion_conversion",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 17.044450720015448,
+      "sample_tokens_in": 4164,
+      "sample_tokens_out": 516,
+      "completion_chars": 1667,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 0.9999999487375919,
+      "verified_score": 0.9999999487375919,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/rack_pinion_conversion_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "rack_pinion_force_direction_s0038",
+      "family": "rack_pinion_force_direction",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 15.551758765010163,
+      "sample_tokens_in": 4044,
+      "sample_tokens_out": 484,
+      "completion_chars": 1558,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/rack_pinion_force_direction_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "rack_pinion_force_direction_s0039",
+      "family": "rack_pinion_force_direction",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 15.829926164005883,
+      "sample_tokens_in": 4044,
+      "sample_tokens_out": 484,
+      "completion_chars": 1559,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/rack_pinion_force_direction_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "reciprocating_pump_plunger_s0038",
+      "family": "reciprocating_pump_plunger",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 32.50758305497584,
+      "sample_tokens_in": 8849,
+      "sample_tokens_out": 1022,
+      "completion_chars": 1746,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 2, task expects 1.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/reciprocating_pump_plunger_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "reciprocating_pump_plunger_s0039",
+      "family": "reciprocating_pump_plunger",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 32.34275212700595,
+      "sample_tokens_in": 8848,
+      "sample_tokens_out": 1020,
+      "completion_chars": 1859,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 2, task expects 1.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/reciprocating_pump_plunger_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "rocker_limit_stop_topology_s0038",
+      "family": "rocker_limit_stop_topology",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 43.20504843100207,
+      "sample_tokens_in": 9100,
+      "sample_tokens_out": 1352,
+      "completion_chars": 2245,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility",
+        "invalid_artifact"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is -1, task expects 1.",
+          "where": "mobility"
+        },
+        {
+          "code": "invalid_artifact",
+          "severity": "critical",
+          "message": "analytic_param_check: path 'params.output_min_angle_rad' did not resolve to a finite number (None).",
+          "where": "out_min"
+        },
+        {
+          "code": "invalid_artifact",
+          "severity": "critical",
+          "message": "analytic_param_check: path 'params.output_max_angle_rad' did not resolve to a finite number (None).",
+          "where": "out_max"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/rocker_limit_stop_topology_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "rocker_limit_stop_topology_s0039",
+      "family": "rocker_limit_stop_topology",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 41.75653043098282,
+      "sample_tokens_in": 8997,
+      "sample_tokens_out": 1290,
+      "completion_chars": 2046,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": false,
+      "failure_codes": [
+        "invalid_artifact"
+      ],
+      "feedback": [
+        {
+          "code": "invalid_artifact",
+          "severity": "critical",
+          "message": "Submission JSON does not fit DesignIR schema: 'ports' must be a dict[str, dict], got list.",
+          "where": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/rocker_limit_stop_topology_s0039/submission"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/rocker_limit_stop_topology_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "slider_crank_quick_return_proxy_s0038",
+      "family": "slider_crank_quick_return_proxy",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 31.490058106021024,
+      "sample_tokens_in": 8819,
+      "sample_tokens_out": 954,
+      "completion_chars": 1519,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 2, task expects 1.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/slider_crank_quick_return_proxy_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "slider_crank_quick_return_proxy_s0039",
+      "family": "slider_crank_quick_return_proxy",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 33.41423100698739,
+      "sample_tokens_in": 8849,
+      "sample_tokens_out": 1014,
+      "completion_chars": 1882,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 2, task expects 1.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/slider_crank_quick_return_proxy_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "slider_crank_stroke_precision_s0038",
+      "family": "slider_crank_stroke_precision",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 35.27316049899673,
+      "sample_tokens_in": 8917,
+      "sample_tokens_out": 1086,
+      "completion_chars": 1797,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 2, task expects 1.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/slider_crank_stroke_precision_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "slider_crank_stroke_precision_s0039",
+      "family": "slider_crank_stroke_precision",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 35.95082816298236,
+      "sample_tokens_in": 8923,
+      "sample_tokens_out": 1098,
+      "completion_chars": 1840,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 2, task expects 1.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/slider_crank_stroke_precision_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "slider_crank_stroke_s0038",
+      "family": "slider_crank_stroke",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 31.061515058012446,
+      "sample_tokens_in": 9046,
+      "sample_tokens_out": 946,
+      "completion_chars": 1275,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": false,
+      "failure_codes": [
+        "missing_port"
+      ],
+      "feedback": [
+        {
+          "code": "missing_port",
+          "severity": "critical",
+          "message": "Required port 'output_port' (task 'slider_crank_stroke_s0038') is missing from the submission.",
+          "where": "ports.output_port"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/slider_crank_stroke_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "slider_crank_stroke_s0039",
+      "family": "slider_crank_stroke",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 26.86504941000021,
+      "sample_tokens_in": 9065,
+      "sample_tokens_out": 828,
+      "completion_chars": 846,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": false,
+      "failure_codes": [
+        "missing_port"
+      ],
+      "feedback": [
+        {
+          "code": "missing_port",
+          "severity": "critical",
+          "message": "Port 'input_port' (revolute_joint) references joint 'crank' that does not exist.",
+          "where": "ports.input_port.part"
+        },
+        {
+          "code": "missing_port",
+          "severity": "critical",
+          "message": "Required port 'output_port' (task 'slider_crank_stroke_s0039') is missing from the submission.",
+          "where": "ports.output_port"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/slider_crank_stroke_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "spur_gear_ratio_analytic_s0038",
+      "family": "spur_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 16.782566340989433,
+      "sample_tokens_in": 4169,
+      "sample_tokens_out": 523,
+      "completion_chars": 1653,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/spur_gear_ratio_analytic_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "spur_gear_ratio_analytic_s0039",
+      "family": "spur_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 16.952242383995326,
+      "sample_tokens_in": 4169,
+      "sample_tokens_out": 523,
+      "completion_chars": 1652,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/spur_gear_ratio_analytic_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "timing_belt_center_distance_s0038",
+      "family": "timing_belt_center_distance",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 25.93179640098242,
+      "sample_tokens_in": 8717,
+      "sample_tokens_out": 788,
+      "completion_chars": 1335,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 1, task expects 2.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/timing_belt_center_distance_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "timing_belt_center_distance_s0039",
+      "family": "timing_belt_center_distance",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 26.30763497101725,
+      "sample_tokens_in": 8833,
+      "sample_tokens_out": 794,
+      "completion_chars": 1485,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility",
+        "invalid_artifact"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 1, task expects 2.",
+          "where": "mobility"
+        },
+        {
+          "code": "invalid_artifact",
+          "severity": "critical",
+          "message": "analytic_param_check: path 'params.declared_belt_length_mm' did not resolve to a finite number (None).",
+          "where": "belt_length"
+        },
+        {
+          "code": "invalid_artifact",
+          "severity": "critical",
+          "message": "analytic_param_check: path 'params.declared_center_distance_mm' did not resolve to a finite number (None).",
+          "where": "center"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/timing_belt_center_distance_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "toggle_overcenter_margin_s0038",
+      "family": "toggle_overcenter_margin",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 23.28584979797597,
+      "sample_tokens_in": 4068,
+      "sample_tokens_out": 715,
+      "completion_chars": 2593,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/toggle_overcenter_margin_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "toggle_overcenter_margin_s0039",
+      "family": "toggle_overcenter_margin",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 23.09717483498389,
+      "sample_tokens_in": 4068,
+      "sample_tokens_out": 715,
+      "completion_chars": 2598,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/toggle_overcenter_margin_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "worm_gear_ratio_analytic_s0038",
+      "family": "worm_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 29.377960070007248,
+      "sample_tokens_in": 8715,
+      "sample_tokens_out": 906,
+      "completion_chars": 1288,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": false,
+      "failure_codes": [
+        "missing_port"
+      ],
+      "feedback": [
+        {
+          "code": "missing_port",
+          "severity": "critical",
+          "message": "Port 'output_port' (revolute_joint) references joint 'wheel' that does not exist.",
+          "where": "ports.output_port.part"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/worm_gear_ratio_analytic_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "worm_gear_ratio_analytic_s0039",
+      "family": "worm_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 28.313187221996486,
+      "sample_tokens_in": 8768,
+      "sample_tokens_out": 876,
+      "completion_chars": 1685,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 1, task expects 2.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/worm_gear_ratio_analytic_s0039/submission",
+      "design_py_extracted": true
+    }
+  ],
+  "all_samples": [
+    {
+      "task_id": "belt_pulley_ratio_s0038",
+      "family": "belt_pulley_ratio",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 32.9469531950017,
+      "sample_tokens_in": 9008,
+      "sample_tokens_out": 1013,
+      "completion_chars": 1721,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": false,
+      "failure_codes": [
+        "missing_port"
+      ],
+      "feedback": [
+        {
+          "code": "missing_port",
+          "severity": "critical",
+          "message": "Port 'output_port' (revolute_joint) references joint 'driven_axis' that does not exist.",
+          "where": "ports.output_port.part"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/belt_pulley_ratio_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "belt_pulley_ratio_s0039",
+      "family": "belt_pulley_ratio",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 24.265231020981446,
+      "sample_tokens_in": 8798,
+      "sample_tokens_out": 748,
+      "completion_chars": 1285,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": false,
+      "failure_codes": [
+        "missing_port"
+      ],
+      "feedback": [
+        {
+          "code": "missing_port",
+          "severity": "critical",
+          "message": "Port 'input_port' (revolute_joint) references joint 'drive_pulley' that does not exist.",
+          "where": "ports.input_port.part"
+        },
+        {
+          "code": "missing_port",
+          "severity": "critical",
+          "message": "Port 'output_port' (revolute_joint) references joint 'driven_pulley' that does not exist.",
+          "where": "ports.output_port.part"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/belt_pulley_ratio_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "bevel_gear_ratio_analytic_s0038",
+      "family": "bevel_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 16.4536841980007,
+      "sample_tokens_in": 4112,
+      "sample_tokens_out": 500,
+      "completion_chars": 1551,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/bevel_gear_ratio_analytic_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "bevel_gear_ratio_analytic_s0039",
+      "family": "bevel_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 16.70824112999253,
+      "sample_tokens_in": 4112,
+      "sample_tokens_out": 508,
+      "completion_chars": 1615,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/bevel_gear_ratio_analytic_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "chain_sprocket_ratio_s0038",
+      "family": "chain_sprocket_ratio",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 17.641051339014666,
+      "sample_tokens_in": 4061,
+      "sample_tokens_out": 532,
+      "completion_chars": 1653,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/chain_sprocket_ratio_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "chain_sprocket_ratio_s0039",
+      "family": "chain_sprocket_ratio",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 43.41903181601083,
+      "sample_tokens_in": 8892,
+      "sample_tokens_out": 1351,
+      "completion_chars": 2059,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 3, task expects 2.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/chain_sprocket_ratio_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "compound_gear_ratio_analytic_s0038",
+      "family": "compound_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 17.17046145000495,
+      "sample_tokens_in": 4089,
+      "sample_tokens_out": 536,
+      "completion_chars": 1639,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/compound_gear_ratio_analytic_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "compound_gear_ratio_analytic_s0039",
+      "family": "compound_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 33.521928390982794,
+      "sample_tokens_in": 8835,
+      "sample_tokens_out": 1041,
+      "completion_chars": 1560,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_ratio"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_ratio",
+          "severity": "major",
+          "message": "Param 'params.declared_ratio': observed 0.666667 vs expected 6 (eq, tol pct=2.0, abs=0.0).",
+          "where": "ratio"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/compound_gear_ratio_analytic_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "fourbar_crank_rocker_sweep_s0038",
+      "family": "fourbar_crank_rocker_sweep",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 24.75112534701475,
+      "sample_tokens_in": 4138,
+      "sample_tokens_out": 774,
+      "completion_chars": 2356,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/fourbar_crank_rocker_sweep_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "fourbar_crank_rocker_sweep_s0039",
+      "family": "fourbar_crank_rocker_sweep",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 24.48227878700709,
+      "sample_tokens_in": 4138,
+      "sample_tokens_out": 774,
+      "completion_chars": 2356,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/fourbar_crank_rocker_sweep_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "fourbar_pump_handle_s0038",
+      "family": "fourbar_pump_handle",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 25.19403211498866,
+      "sample_tokens_in": 4153,
+      "sample_tokens_out": 797,
+      "completion_chars": 2430,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/fourbar_pump_handle_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "fourbar_pump_handle_s0039",
+      "family": "fourbar_pump_handle",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 25.29219056601869,
+      "sample_tokens_in": 4153,
+      "sample_tokens_out": 797,
+      "completion_chars": 2430,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/fourbar_pump_handle_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "idler_gear_direction_analytic_s0038",
+      "family": "idler_gear_direction_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 28.673347115982324,
+      "sample_tokens_in": 8753,
+      "sample_tokens_out": 890,
+      "completion_chars": 1428,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is -1, task expects 2.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/idler_gear_direction_analytic_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "idler_gear_direction_analytic_s0039",
+      "family": "idler_gear_direction_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 28.41019008299918,
+      "sample_tokens_in": 8749,
+      "sample_tokens_out": 882,
+      "completion_chars": 1422,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is -1, task expects 2.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/idler_gear_direction_analytic_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "lead_screw_linear_travel_s0038",
+      "family": "lead_screw_linear_travel",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 15.109702746995026,
+      "sample_tokens_in": 4082,
+      "sample_tokens_out": 472,
+      "completion_chars": 1464,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/lead_screw_linear_travel_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "lead_screw_linear_travel_s0039",
+      "family": "lead_screw_linear_travel",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 15.176846410002327,
+      "sample_tokens_in": 4082,
+      "sample_tokens_out": 472,
+      "completion_chars": 1464,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/lead_screw_linear_travel_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "planetary_fixed_ring_ratio_analytic_s0038",
+      "family": "planetary_fixed_ring_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 28.469511724979384,
+      "sample_tokens_in": 8812,
+      "sample_tokens_out": 892,
+      "completion_chars": 1232,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility",
+        "wrong_ratio"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 4, task expects 2.",
+          "where": "mobility"
+        },
+        {
+          "code": "wrong_ratio",
+          "severity": "major",
+          "message": "Param 'params.declared_ratio': observed 1.47368 vs expected 3.11111 (eq, tol pct=2.0, abs=0.0).",
+          "where": "ratio"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/planetary_fixed_ring_ratio_analytic_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "planetary_fixed_ring_ratio_analytic_s0039",
+      "family": "planetary_fixed_ring_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 25.53058038200834,
+      "sample_tokens_in": 8716,
+      "sample_tokens_out": 804,
+      "completion_chars": 1379,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 4, task expects 2.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/planetary_fixed_ring_ratio_analytic_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "planetary_fixed_sun_ratio_analytic_s0038",
+      "family": "planetary_fixed_sun_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 28.314489843993215,
+      "sample_tokens_in": 8811,
+      "sample_tokens_out": 890,
+      "completion_chars": 1533,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 1, task expects 2.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/planetary_fixed_sun_ratio_analytic_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "planetary_fixed_sun_ratio_analytic_s0039",
+      "family": "planetary_fixed_sun_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 44.07775398698868,
+      "sample_tokens_in": 9149,
+      "sample_tokens_out": 1398,
+      "completion_chars": 2268,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": false,
+      "failure_codes": [
+        "invalid_artifact"
+      ],
+      "feedback": [
+        {
+          "code": "invalid_artifact",
+          "severity": "critical",
+          "message": "Submission subprocess exited with code 4: Traceback (most recent call last):\n  File \"/home/freiza/corl_rlvr_clean/mech_bench/submission_worker.py\", line 79, in main\n    mod = _load_module(design_py)\n          ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/freiza/corl_rlvr_clean/mech_bench/submission_worker.py\", line 58, in _load_module\n    spec.loader.exec_module(mod)\n  File \"<frozen importlib._bootstrap_external>\", line 995, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 488, in _call_with_frames_removed\n  File \"/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/planetary_fixed_sun_ratio_analytic_s0039/submission/design.py\", line 3, in <module>\n    def build_design(out_dir: Path) -> dict:\n                              ^^^^\nNameError: name 'Path' is not defined\nfailed to import design.py",
+          "where": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/planetary_fixed_sun_ratio_analytic_s0039/submission"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/planetary_fixed_sun_ratio_analytic_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "rack_pinion_conversion_s0038",
+      "family": "rack_pinion_conversion",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 17.52487215597648,
+      "sample_tokens_in": 4167,
+      "sample_tokens_out": 534,
+      "completion_chars": 1730,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 0.9999805383130743,
+      "verified_score": 0.9999805383130743,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/rack_pinion_conversion_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "rack_pinion_conversion_s0039",
+      "family": "rack_pinion_conversion",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 17.044450720015448,
+      "sample_tokens_in": 4164,
+      "sample_tokens_out": 516,
+      "completion_chars": 1667,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 0.9999999487375919,
+      "verified_score": 0.9999999487375919,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/rack_pinion_conversion_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "rack_pinion_force_direction_s0038",
+      "family": "rack_pinion_force_direction",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 15.551758765010163,
+      "sample_tokens_in": 4044,
+      "sample_tokens_out": 484,
+      "completion_chars": 1558,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/rack_pinion_force_direction_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "rack_pinion_force_direction_s0039",
+      "family": "rack_pinion_force_direction",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 15.829926164005883,
+      "sample_tokens_in": 4044,
+      "sample_tokens_out": 484,
+      "completion_chars": 1559,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/rack_pinion_force_direction_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "reciprocating_pump_plunger_s0038",
+      "family": "reciprocating_pump_plunger",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 32.50758305497584,
+      "sample_tokens_in": 8849,
+      "sample_tokens_out": 1022,
+      "completion_chars": 1746,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 2, task expects 1.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/reciprocating_pump_plunger_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "reciprocating_pump_plunger_s0039",
+      "family": "reciprocating_pump_plunger",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 32.34275212700595,
+      "sample_tokens_in": 8848,
+      "sample_tokens_out": 1020,
+      "completion_chars": 1859,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 2, task expects 1.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/reciprocating_pump_plunger_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "rocker_limit_stop_topology_s0038",
+      "family": "rocker_limit_stop_topology",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 43.20504843100207,
+      "sample_tokens_in": 9100,
+      "sample_tokens_out": 1352,
+      "completion_chars": 2245,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility",
+        "invalid_artifact"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is -1, task expects 1.",
+          "where": "mobility"
+        },
+        {
+          "code": "invalid_artifact",
+          "severity": "critical",
+          "message": "analytic_param_check: path 'params.output_min_angle_rad' did not resolve to a finite number (None).",
+          "where": "out_min"
+        },
+        {
+          "code": "invalid_artifact",
+          "severity": "critical",
+          "message": "analytic_param_check: path 'params.output_max_angle_rad' did not resolve to a finite number (None).",
+          "where": "out_max"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/rocker_limit_stop_topology_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "rocker_limit_stop_topology_s0039",
+      "family": "rocker_limit_stop_topology",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 41.75653043098282,
+      "sample_tokens_in": 8997,
+      "sample_tokens_out": 1290,
+      "completion_chars": 2046,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": false,
+      "failure_codes": [
+        "invalid_artifact"
+      ],
+      "feedback": [
+        {
+          "code": "invalid_artifact",
+          "severity": "critical",
+          "message": "Submission JSON does not fit DesignIR schema: 'ports' must be a dict[str, dict], got list.",
+          "where": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/rocker_limit_stop_topology_s0039/submission"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/rocker_limit_stop_topology_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "slider_crank_quick_return_proxy_s0038",
+      "family": "slider_crank_quick_return_proxy",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 31.490058106021024,
+      "sample_tokens_in": 8819,
+      "sample_tokens_out": 954,
+      "completion_chars": 1519,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 2, task expects 1.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/slider_crank_quick_return_proxy_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "slider_crank_quick_return_proxy_s0039",
+      "family": "slider_crank_quick_return_proxy",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 33.41423100698739,
+      "sample_tokens_in": 8849,
+      "sample_tokens_out": 1014,
+      "completion_chars": 1882,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 2, task expects 1.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/slider_crank_quick_return_proxy_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "slider_crank_stroke_precision_s0038",
+      "family": "slider_crank_stroke_precision",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 35.27316049899673,
+      "sample_tokens_in": 8917,
+      "sample_tokens_out": 1086,
+      "completion_chars": 1797,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 2, task expects 1.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/slider_crank_stroke_precision_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "slider_crank_stroke_precision_s0039",
+      "family": "slider_crank_stroke_precision",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 35.95082816298236,
+      "sample_tokens_in": 8923,
+      "sample_tokens_out": 1098,
+      "completion_chars": 1840,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 2, task expects 1.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/slider_crank_stroke_precision_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "slider_crank_stroke_s0038",
+      "family": "slider_crank_stroke",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 31.061515058012446,
+      "sample_tokens_in": 9046,
+      "sample_tokens_out": 946,
+      "completion_chars": 1275,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": false,
+      "failure_codes": [
+        "missing_port"
+      ],
+      "feedback": [
+        {
+          "code": "missing_port",
+          "severity": "critical",
+          "message": "Required port 'output_port' (task 'slider_crank_stroke_s0038') is missing from the submission.",
+          "where": "ports.output_port"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/slider_crank_stroke_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "slider_crank_stroke_s0039",
+      "family": "slider_crank_stroke",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 26.86504941000021,
+      "sample_tokens_in": 9065,
+      "sample_tokens_out": 828,
+      "completion_chars": 846,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": false,
+      "failure_codes": [
+        "missing_port"
+      ],
+      "feedback": [
+        {
+          "code": "missing_port",
+          "severity": "critical",
+          "message": "Port 'input_port' (revolute_joint) references joint 'crank' that does not exist.",
+          "where": "ports.input_port.part"
+        },
+        {
+          "code": "missing_port",
+          "severity": "critical",
+          "message": "Required port 'output_port' (task 'slider_crank_stroke_s0039') is missing from the submission.",
+          "where": "ports.output_port"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/slider_crank_stroke_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "spur_gear_ratio_analytic_s0038",
+      "family": "spur_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 16.782566340989433,
+      "sample_tokens_in": 4169,
+      "sample_tokens_out": 523,
+      "completion_chars": 1653,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/spur_gear_ratio_analytic_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "spur_gear_ratio_analytic_s0039",
+      "family": "spur_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 16.952242383995326,
+      "sample_tokens_in": 4169,
+      "sample_tokens_out": 523,
+      "completion_chars": 1652,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/spur_gear_ratio_analytic_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "timing_belt_center_distance_s0038",
+      "family": "timing_belt_center_distance",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 25.93179640098242,
+      "sample_tokens_in": 8717,
+      "sample_tokens_out": 788,
+      "completion_chars": 1335,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 1, task expects 2.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/timing_belt_center_distance_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "timing_belt_center_distance_s0039",
+      "family": "timing_belt_center_distance",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 26.30763497101725,
+      "sample_tokens_in": 8833,
+      "sample_tokens_out": 794,
+      "completion_chars": 1485,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility",
+        "invalid_artifact"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 1, task expects 2.",
+          "where": "mobility"
+        },
+        {
+          "code": "invalid_artifact",
+          "severity": "critical",
+          "message": "analytic_param_check: path 'params.declared_belt_length_mm' did not resolve to a finite number (None).",
+          "where": "belt_length"
+        },
+        {
+          "code": "invalid_artifact",
+          "severity": "critical",
+          "message": "analytic_param_check: path 'params.declared_center_distance_mm' did not resolve to a finite number (None).",
+          "where": "center"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/timing_belt_center_distance_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "toggle_overcenter_margin_s0038",
+      "family": "toggle_overcenter_margin",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 23.28584979797597,
+      "sample_tokens_in": 4068,
+      "sample_tokens_out": 715,
+      "completion_chars": 2593,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/toggle_overcenter_margin_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "toggle_overcenter_margin_s0039",
+      "family": "toggle_overcenter_margin",
+      "tier": "planar_kinematics",
+      "sample_idx": 0,
+      "sample_duration_s": 23.09717483498389,
+      "sample_tokens_in": 4068,
+      "sample_tokens_out": 715,
+      "completion_chars": 2598,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": true,
+      "error": "",
+      "score": 1.0,
+      "verified_score": 1.0,
+      "hard_gate_passed": true,
+      "evaluation_valid": true,
+      "failure_codes": [],
+      "feedback": [],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/toggle_overcenter_margin_s0039/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "worm_gear_ratio_analytic_s0038",
+      "family": "worm_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 29.377960070007248,
+      "sample_tokens_in": 8715,
+      "sample_tokens_out": 906,
+      "completion_chars": 1288,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": false,
+      "failure_codes": [
+        "missing_port"
+      ],
+      "feedback": [
+        {
+          "code": "missing_port",
+          "severity": "critical",
+          "message": "Port 'output_port' (revolute_joint) references joint 'wheel' that does not exist.",
+          "where": "ports.output_port.part"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/worm_gear_ratio_analytic_s0038/submission",
+      "design_py_extracted": true
+    },
+    {
+      "task_id": "worm_gear_ratio_analytic_s0039",
+      "family": "worm_gear_ratio_analytic",
+      "tier": "transmission_analytic",
+      "sample_idx": 0,
+      "sample_duration_s": 28.313187221996486,
+      "sample_tokens_in": 8768,
+      "sample_tokens_out": 876,
+      "completion_chars": 1685,
+      "strict_pass_threshold": 0.999,
+      "strict_passed": false,
+      "error": "",
+      "score": 0.0,
+      "verified_score": 0.0,
+      "hard_gate_passed": false,
+      "evaluation_valid": true,
+      "failure_codes": [
+        "wrong_mobility"
+      ],
+      "feedback": [
+        {
+          "code": "wrong_mobility",
+          "severity": "critical",
+          "message": "Mobility (Gr\u00fcbler, planar) is 1, task expects 2.",
+          "where": "mobility"
+        }
+      ],
+      "submission_path": "/home/freiza/corl_rlvr_clean/runs/rlvr_papergrade_20260525_142921/baseline_hard_v1_visible_eval_seed910_bof1_turn2_contractv2_retryfix_freiza/sample_0/worm_gear_ratio_analytic_s0039/submission",
+      "design_py_extracted": true
+    }
+  ]
+}

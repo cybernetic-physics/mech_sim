@@ -1,0 +1,15 @@
+[task]
+id = "chain_sprocket_ratio_s0037"
+family = "chain_sprocket_ratio"
+difficulty = 2
+units = "mm"
+tier = "transmission_analytic"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 2
+max_envelope_mm = [200, 200, 80]
+
+[objective]
+description = "Chain ratio = 2.0."
+ground_required = true

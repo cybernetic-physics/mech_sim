@@ -1,0 +1,15 @@
+[task]
+id = "rocker_limit_stop_topology_s0033"
+family = "rocker_limit_stop_topology"
+difficulty = 2
+units = "mm"
+tier = "planar_kinematics"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 1
+max_envelope_mm = [220, 220, 50]
+
+[objective]
+description = "Rocker stop topology."
+ground_required = true

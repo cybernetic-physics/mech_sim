@@ -1,0 +1,15 @@
+[task]
+id = "reciprocating_pump_plunger_s0036"
+family = "reciprocating_pump_plunger"
+difficulty = 2
+units = "mm"
+tier = "planar_kinematics"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 1
+max_envelope_mm = [220, 80, 50]
+
+[objective]
+description = "Pump plunger; stroke target."
+ground_required = true

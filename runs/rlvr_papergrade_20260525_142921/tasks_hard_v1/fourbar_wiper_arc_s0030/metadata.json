@@ -1,0 +1,11 @@
+{
+  "family": "fourbar_wiper_arc",
+  "tier": "planar_kinematics",
+  "seed": 30,
+  "difficulty": 2,
+  "coupler_offset_mm": [
+    30.96,
+    25.85
+  ],
+  "task_id": "fourbar_wiper_arc_s0030"
+}

@@ -1,0 +1,22 @@
+[task]
+id = "fourbar_path_s0035"
+family = "fourbar_path"
+difficulty = 2
+units = "mm"
+tier = "planar_kinematics"
+
+[requirements]
+required_ports = ["input_port", "output_port", "coupler_point"]
+expected_mobility = 1
+max_envelope_mm = [220, 220, 50]
+
+[objective]
+description = "Trace the target coupler path within Chamfer 0.05 (normalized)."
+target_path_csv = "target_path.csv"
+max_chamfer_normalized = 0.05
+allow_massless_links = false
+ground_required = true
+
+[visibility]
+public_split = ["mobility", "coupler_path"]
+hidden_split = ["coupler_path"]

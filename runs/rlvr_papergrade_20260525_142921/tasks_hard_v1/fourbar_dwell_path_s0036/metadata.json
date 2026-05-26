@@ -1,0 +1,7 @@
+{
+  "family": "fourbar_dwell_path",
+  "tier": "planar_kinematics",
+  "seed": 36,
+  "difficulty": 2,
+  "task_id": "fourbar_dwell_path_s0036"
+}

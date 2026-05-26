@@ -1,0 +1,28 @@
+[feedback]
+public_metrics = ["mobility.observed", "mobility.expected", "ports.ports_required"]
+hidden_metrics = []
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 1
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port", "coupler_point"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["input_port", "output_port"]
+
+[probes.require_kinds]
+input_port = "revolute_joint"
+output_port = "revolute_joint"
+coupler_point = "frame"

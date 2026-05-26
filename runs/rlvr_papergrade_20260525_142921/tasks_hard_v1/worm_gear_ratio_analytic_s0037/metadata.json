@@ -1,0 +1,10 @@
+{
+  "family": "worm_gear_ratio_analytic",
+  "tier": "transmission_analytic",
+  "seed": 37,
+  "difficulty": 2,
+  "worm_starts": 3,
+  "wheel_teeth": 50,
+  "ratio": 16.666667,
+  "task_id": "worm_gear_ratio_analytic_s0037"
+}

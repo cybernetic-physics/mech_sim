@@ -1,0 +1,8 @@
+{
+  "family": "reciprocating_pump_plunger",
+  "tier": "planar_kinematics",
+  "seed": 34,
+  "difficulty": 2,
+  "declared_stroke_mm": 31.06,
+  "task_id": "reciprocating_pump_plunger_s0034"
+}

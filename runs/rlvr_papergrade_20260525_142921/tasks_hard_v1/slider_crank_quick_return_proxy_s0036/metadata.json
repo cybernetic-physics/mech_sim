@@ -1,0 +1,8 @@
+{
+  "family": "slider_crank_quick_return_proxy",
+  "tier": "planar_kinematics",
+  "seed": 36,
+  "difficulty": 2,
+  "ratio": 1.5815,
+  "task_id": "slider_crank_quick_return_proxy_s0036"
+}

@@ -1,0 +1,15 @@
+[task]
+id = "planetary_fixed_sun_ratio_analytic_s0030"
+family = "planetary_fixed_sun_ratio_analytic"
+difficulty = 2
+units = "mm"
+tier = "transmission_analytic"
+
+[requirements]
+required_ports = ["input_port", "output_port", "carrier_port"]
+expected_mobility = 2
+max_envelope_mm = [200, 200, 80]
+
+[objective]
+description = "Planetary fixed-sun ratio = 0.75."
+ground_required = true

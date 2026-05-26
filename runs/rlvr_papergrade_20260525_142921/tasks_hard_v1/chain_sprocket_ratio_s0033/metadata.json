@@ -1,0 +1,10 @@
+{
+  "family": "chain_sprocket_ratio",
+  "tier": "transmission_analytic",
+  "seed": 33,
+  "difficulty": 2,
+  "driver": 14,
+  "driven": 28,
+  "ratio": 2.0,
+  "task_id": "chain_sprocket_ratio_s0033"
+}

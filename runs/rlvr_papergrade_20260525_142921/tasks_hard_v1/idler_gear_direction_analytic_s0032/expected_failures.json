@@ -1,0 +1,23 @@
+{
+  "description": "Tier 2 idler_gear_direction_analytic negatives.",
+  "controls": [
+    {
+      "id": "wrong_sign",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.6,
+      "submission": "negative_solutions/wrong_sign"
+    },
+    {
+      "id": "wrong_idler_count",
+      "expected_failure_codes": [
+        "invalid_artifact"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.9,
+      "submission": "negative_solutions/wrong_idler_count"
+    }
+  ]
+}

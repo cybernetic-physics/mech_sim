@@ -1,0 +1,45 @@
+[feedback]
+public_metrics = ["direction.observed", "direction.expected", "idler_count.observed"]
+hidden_metrics = []
+
+[hard_gate]
+require = ["mobility", "ports"]
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 2
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["input_port", "output_port"]
+
+[[probes]]
+id = "direction"
+type = "analytic_param_check"
+path = "params.output_direction"
+expected = 1.0
+comparator = "eq"
+failure_code = "wrong_ratio"
+weight = 0.7
+severity = "major"
+hard_gate = false
+
+[[probes]]
+id = "idler_count"
+type = "analytic_param_check"
+path = "params.idler_count"
+expected = 2.0
+comparator = "eq"
+failure_code = "invalid_artifact"
+weight = 0.3
+severity = "major"
+hard_gate = false

@@ -1,0 +1,15 @@
+[task]
+id = "fourbar_pump_handle_s0032"
+family = "fourbar_pump_handle"
+difficulty = 2
+units = "mm"
+tier = "planar_kinematics"
+
+[requirements]
+required_ports = ["input_port", "output_port", "coupler_point"]
+expected_mobility = 1
+max_envelope_mm = [220, 220, 50]
+
+[objective]
+description = "Pump-handle four-bar; bounded output."
+ground_required = true

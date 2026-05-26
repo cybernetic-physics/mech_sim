@@ -1,0 +1,23 @@
+{
+  "description": "Tier 2 timing_belt_center_distance negatives.",
+  "controls": [
+    {
+      "id": "wrong_center_distance",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.7,
+      "submission": "negative_solutions/wrong_center_distance"
+    },
+    {
+      "id": "wrong_tooth_count",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.7,
+      "submission": "negative_solutions/wrong_tooth_count"
+    }
+  ]
+}

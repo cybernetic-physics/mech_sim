@@ -1,0 +1,14 @@
+{
+  "family": "compound_gear_ratio_analytic",
+  "tier": "transmission_analytic",
+  "seed": 31,
+  "difficulty": 2,
+  "teeth": [
+    16,
+    64,
+    12,
+    36
+  ],
+  "ratio": 12.0,
+  "task_id": "compound_gear_ratio_analytic_s0031"
+}

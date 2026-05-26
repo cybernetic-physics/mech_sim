@@ -1,0 +1,15 @@
+{
+  "family": "fourbar_path",
+  "tier": "planar_kinematics",
+  "seed": 32,
+  "difficulty": 2,
+  "ground_mm": 111.26,
+  "crank_mm": 27.02,
+  "coupler_mm": 98.32,
+  "rocker_mm": 94.16,
+  "coupler_offset_mm": [
+    55.23,
+    -20.86
+  ],
+  "task_id": "fourbar_path_s0032"
+}

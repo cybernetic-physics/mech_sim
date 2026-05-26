@@ -1,0 +1,7 @@
+{
+  "family": "rocker_limit_stop_topology",
+  "tier": "planar_kinematics",
+  "seed": 37,
+  "difficulty": 2,
+  "task_id": "rocker_limit_stop_topology_s0037"
+}

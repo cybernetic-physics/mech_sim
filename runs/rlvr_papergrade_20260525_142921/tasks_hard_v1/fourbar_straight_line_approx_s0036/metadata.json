@@ -1,0 +1,11 @@
+{
+  "family": "fourbar_straight_line_approx",
+  "tier": "planar_kinematics",
+  "seed": 36,
+  "difficulty": 2,
+  "coupler_offset_mm": [
+    45.16,
+    5.44
+  ],
+  "task_id": "fourbar_straight_line_approx_s0036"
+}

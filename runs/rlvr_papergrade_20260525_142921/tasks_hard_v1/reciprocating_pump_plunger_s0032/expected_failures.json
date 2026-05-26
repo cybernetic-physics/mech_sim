@@ -1,0 +1,21 @@
+{
+  "description": "Tier 1 reciprocating_pump_plunger negatives.",
+  "controls": [
+    {
+      "id": "off_axis_slider",
+      "expected_failure_codes": [],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 1.01,
+      "submission": "negative_solutions/off_axis_slider"
+    },
+    {
+      "id": "short_stroke",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.5,
+      "submission": "negative_solutions/short_stroke"
+    }
+  ]
+}

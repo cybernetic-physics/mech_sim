@@ -1,0 +1,20 @@
+[task]
+id = "slider_crank_stroke_s0036"
+family = "slider_crank_stroke"
+difficulty = 2
+units = "mm"
+tier = "planar_kinematics"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 1
+max_envelope_mm = [200, 100, 50]
+
+[objective]
+description = "Centric slider-crank; declare stroke = 49.52 mm; mobility=1."
+allow_massless_links = false
+ground_required = true
+
+[visibility]
+public_split = ["mobility", "stroke"]
+hidden_split = ["stroke"]

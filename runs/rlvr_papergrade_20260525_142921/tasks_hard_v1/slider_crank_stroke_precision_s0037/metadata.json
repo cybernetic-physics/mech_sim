@@ -1,0 +1,10 @@
+{
+  "family": "slider_crank_stroke_precision",
+  "tier": "planar_kinematics",
+  "seed": 37,
+  "difficulty": 2,
+  "crank_mm": 29.03,
+  "coupler_mm": 70.05,
+  "declared_stroke_mm": 58.06,
+  "task_id": "slider_crank_stroke_precision_s0037"
+}

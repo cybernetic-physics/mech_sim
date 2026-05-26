@@ -1,0 +1,23 @@
+{
+  "description": "Tier 2 rack_pinion_conversion negatives.",
+  "controls": [
+    {
+      "id": "wrong_ratio",
+      "submission": "negative_solutions/wrong_ratio",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.5
+    },
+    {
+      "id": "missing_port",
+      "submission": "negative_solutions/missing_port",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001
+    }
+  ]
+}

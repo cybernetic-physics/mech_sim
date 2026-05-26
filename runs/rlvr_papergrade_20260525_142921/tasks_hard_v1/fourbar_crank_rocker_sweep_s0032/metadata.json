@@ -1,0 +1,11 @@
+{
+  "family": "fourbar_crank_rocker_sweep",
+  "tier": "planar_kinematics",
+  "seed": 32,
+  "difficulty": 2,
+  "ground_mm": 106.88,
+  "crank_mm": 32.75,
+  "coupler_mm": 80.06,
+  "rocker_mm": 86.95,
+  "task_id": "fourbar_crank_rocker_sweep_s0032"
+}
