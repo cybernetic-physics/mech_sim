@@ -14,6 +14,10 @@ dev = [
 traces = ["h5py>=3.10"]
 dashboard = ["plotly>=5.20"]
 media = ["matplotlib>=3.8"]
+training-mlx = [
+    "huggingface_hub>=0.31",
+    "mlx-lm>=0.31",
+]
 
 [project.scripts]
 mech-bench = "mech_bench.__main__:main"

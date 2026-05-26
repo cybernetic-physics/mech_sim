@@ -16,6 +16,22 @@ def _load_module():
     return module
 
 
+def _load_trainer_module():
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "scripts"
+        / "train_mechanical_evolve_lora.py"
+    )
+    spec = importlib.util.spec_from_file_location(
+        "train_mechanical_evolve_lora", path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
 def test_map_elites_keeps_best_candidate_per_cell():
     mod = _load_module()
     archive = mod.MapElitesArchive()
@@ -107,6 +123,8 @@ def test_dry_run_modes_write_archive_and_grpo_dataset(tmp_path):
         proposal_jsonl=None,
         model_command=None,
         trainer_command=None,
+        trainer_backend="none",
+        mlx_lora=mod.MlxLoraTrainerConfig(),
     )
 
     evolve = runner.evolve_only(generations=1, population=8, audit_k=4)
@@ -126,3 +144,46 @@ def test_dry_run_modes_write_archive_and_grpo_dataset(tmp_path):
         policy_lr=1.0,
     )
     assert adapt["policy"]["updates"] >= 1
+
+
+def test_lora_trainer_prepares_reward_weighted_mlx_dataset(tmp_path):
+    trainer = _load_trainer_module()
+    dataset = tmp_path / "grpo_dataset.jsonl"
+    dataset.write_text(
+        '{"parent_id":"root","prompt":{"paper_gate":{"ratio_error_pct":25}},'
+        '"responses":['
+        '{"candidate_id":"bad","params":{"pins":10},"reward":0,'
+        '"defects":["lockup"]},'
+        '{"candidate_id":"good","params":{"pins":11,"eccentricity":1.982,'
+        '"clearance":0.336,"driver_circle_diameter":49.5,'
+        '"driver_pin_collision_shrink_mm":0.129},"reward":63.9,'
+        '"defects":[]}'
+        ']}\n'
+    )
+    out_dir = tmp_path / "lora"
+
+    import subprocess
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(Path(trainer.__file__)),
+            "--dataset",
+            str(dataset),
+            "--out-dir",
+            str(out_dir),
+            "--prepare-only",
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    train_jsonl = out_dir / "mlx_lora_data" / "train.jsonl"
+    config = out_dir / "mlx_lora_config.yaml"
+    assert train_jsonl.is_file()
+    assert config.is_file()
+    text = train_jsonl.read_text()
+    assert "MechanicalEvolve actuator proposal policy" in text
+    assert "49.5" in text

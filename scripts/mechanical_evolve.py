@@ -6,19 +6,21 @@ generate actuator parameter programs, score them cheaply, audit elites through
 FreeCAD + Chrono SMC with procedural fallback disabled, and keep a MAP-Elites
 archive with lineage and structured verifier defects.
 
-Large model serving and LoRA/RL training are external systems. This script
-provides stable hooks for them through JSONL and command backends while keeping
-the verifier loop reproducible without GPU infrastructure.
+Large model serving is external, but local MLX LoRA training is supported as a
+first-class backend on Apple Silicon. The runner still keeps command hooks for
+veRL/TRL clusters and model-serving processes.
 """
 
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import math
 import os
 import random
 import shlex
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -50,6 +52,25 @@ MUTATION_OPERATORS = (
     "boundary_refine",
     "random_restart",
 )
+DEFAULT_LORA_MODEL = "mlx-community/Qwen3-32B-4bit"
+
+
+@dataclass(frozen=True)
+class MlxLoraTrainerConfig:
+    model: str = DEFAULT_LORA_MODEL
+    adapter_path: str | None = None
+    iters: int = 10
+    batch_size: int = 1
+    grad_accumulation_steps: int = 1
+    learning_rate: float = 1.0e-5
+    num_layers: int = 8
+    lora_rank: int = 8
+    lora_scale: float = 20.0
+    lora_dropout: float = 0.0
+    max_seq_length: int = 768
+    min_reward: float = 1.0
+    max_examples: int = 256
+    prepare_only: bool = False
 
 
 @dataclass(frozen=True)
@@ -202,6 +223,27 @@ def main() -> int:
             "and MECHANICAL_EVOLVE_ARCHIVE env vars in rlvr-train/adapt modes."
         ),
     )
+    parser.add_argument(
+        "--trainer-backend",
+        choices=("none", "command", "mlx-lora"),
+        default="none",
+        help="Use command hook or local MLX LoRA training for policy updates.",
+    )
+    parser.add_argument("--lora-model", default=os.environ.get(
+        "MECHANICAL_EVOLVE_LORA_MODEL", DEFAULT_LORA_MODEL))
+    parser.add_argument("--lora-adapter-path", default=None)
+    parser.add_argument("--lora-iters", type=int, default=10)
+    parser.add_argument("--lora-batch-size", type=int, default=1)
+    parser.add_argument("--lora-grad-accumulation-steps", type=int, default=1)
+    parser.add_argument("--lora-learning-rate", type=float, default=1.0e-5)
+    parser.add_argument("--lora-num-layers", type=int, default=8)
+    parser.add_argument("--lora-rank", type=int, default=8)
+    parser.add_argument("--lora-scale", type=float, default=20.0)
+    parser.add_argument("--lora-dropout", type=float, default=0.0)
+    parser.add_argument("--lora-max-seq-length", type=int, default=768)
+    parser.add_argument("--lora-min-reward", type=float, default=1.0)
+    parser.add_argument("--lora-max-examples", type=int, default=256)
+    parser.add_argument("--lora-prepare-only", action="store_true")
     parser.add_argument("--policy-lr", type=float, default=1.0)
     parser.add_argument("--target-id", default="cycloidal_qdd_default")
     parser.add_argument("--contact-force-limit-N", type=float, default=3000.0)
@@ -225,6 +267,24 @@ def main() -> int:
         if args.proposal_jsonl else None,
         model_command=args.model_command,
         trainer_command=args.trainer_command,
+        trainer_backend=args.trainer_backend,
+        mlx_lora=MlxLoraTrainerConfig(
+            model=str(args.lora_model),
+            adapter_path=args.lora_adapter_path,
+            iters=max(1, int(args.lora_iters)),
+            batch_size=max(1, int(args.lora_batch_size)),
+            grad_accumulation_steps=max(
+                1, int(args.lora_grad_accumulation_steps)),
+            learning_rate=float(args.lora_learning_rate),
+            num_layers=int(args.lora_num_layers),
+            lora_rank=max(1, int(args.lora_rank)),
+            lora_scale=float(args.lora_scale),
+            lora_dropout=max(0.0, float(args.lora_dropout)),
+            max_seq_length=max(64, int(args.lora_max_seq_length)),
+            min_reward=float(args.lora_min_reward),
+            max_examples=max(1, int(args.lora_max_examples)),
+            prepare_only=bool(args.lora_prepare_only),
+        ),
     )
     if args.resume:
         runner.load_state()
@@ -272,6 +332,8 @@ class MechanicalEvolveRunner:
         proposal_jsonl: Path | None,
         model_command: str | None,
         trainer_command: str | None,
+        trainer_backend: str,
+        mlx_lora: MlxLoraTrainerConfig,
     ) -> None:
         self.out_dir = out_dir
         self.assets_dir = out_dir / "assets"
@@ -288,6 +350,8 @@ class MechanicalEvolveRunner:
         self.proposal_jsonl = proposal_jsonl
         self.model_command = model_command
         self.trainer_command = trainer_command
+        self.trainer_backend = trainer_backend
+        self.mlx_lora = mlx_lora
         self.archive = MapElitesArchive()
         self.policy = PolicyState()
         self.seen_ids: set[str] = set()
@@ -653,6 +717,19 @@ class MechanicalEvolveRunner:
         return count
 
     def _run_trainer(self) -> dict[str, Any]:
+        backend = self.trainer_backend
+        if backend == "none" and self.trainer_command:
+            backend = "command"
+        if backend == "mlx-lora":
+            return self._run_mlx_lora_trainer()
+        if backend == "command":
+            return self._run_command_trainer()
+        return {
+            "status": "skipped",
+            "reason": "trainer_backend_none",
+        }
+
+    def _run_command_trainer(self) -> dict[str, Any]:
         if not self.trainer_command:
             return {
                 "status": "skipped",
@@ -677,6 +754,114 @@ class MechanicalEvolveRunner:
             "returncode": completed.returncode,
             "stdout_tail": completed.stdout[-2000:],
             "stderr_tail": completed.stderr[-2000:],
+        }
+
+    def _run_mlx_lora_trainer(self) -> dict[str, Any]:
+        script = SCRIPT_DIR / "train_mechanical_evolve_lora.py"
+        trainer_out = self.out_dir / "mlx_lora"
+        adapter_path = (
+            Path(self.mlx_lora.adapter_path).expanduser().resolve()
+            if self.mlx_lora.adapter_path else trainer_out / "adapters"
+        )
+        base_args = [
+            str(script),
+            "--dataset",
+            str(self.dataset_path),
+            "--archive",
+            str(self.archive_path),
+            "--out-dir",
+            str(trainer_out),
+            "--model",
+            self.mlx_lora.model,
+            "--adapter-path",
+            str(adapter_path),
+            "--iters",
+            str(self.mlx_lora.iters),
+            "--batch-size",
+            str(self.mlx_lora.batch_size),
+            "--grad-accumulation-steps",
+            str(self.mlx_lora.grad_accumulation_steps),
+            "--learning-rate",
+            str(self.mlx_lora.learning_rate),
+            "--num-layers",
+            str(self.mlx_lora.num_layers),
+            "--lora-rank",
+            str(self.mlx_lora.lora_rank),
+            "--lora-scale",
+            str(self.mlx_lora.lora_scale),
+            "--lora-dropout",
+            str(self.mlx_lora.lora_dropout),
+            "--max-seq-length",
+            str(self.mlx_lora.max_seq_length),
+            "--min-reward",
+            str(self.mlx_lora.min_reward),
+            "--max-examples",
+            str(self.mlx_lora.max_examples),
+            "--seed",
+            str(self.seed),
+        ]
+        if self.mlx_lora.prepare_only:
+            base_args.append("--prepare-only")
+        if importlib.util.find_spec("mlx_lm") is not None:
+            command = [sys.executable, *base_args]
+        elif shutil.which("uv"):
+            command = [
+                "uv",
+                "run",
+                "--with",
+                "mlx-lm",
+                "--with",
+                "huggingface_hub",
+                "python",
+                *base_args,
+            ]
+        else:
+            return {
+                "status": "failed",
+                "reason": "mlx_lm_not_installed_and_uv_not_found",
+                "model": self.mlx_lora.model,
+            }
+
+        env = os.environ.copy()
+        env.setdefault("HF_HUB_DISABLE_XET", "1")
+        env.update({
+            "MECHANICAL_EVOLVE_DATASET": str(self.dataset_path),
+            "MECHANICAL_EVOLVE_ARCHIVE": str(self.archive_path),
+            "MECHANICAL_EVOLVE_POLICY": str(self.policy_path),
+        })
+        completed = subprocess.run(
+            command,
+            cwd=SCRIPT_DIR.parent,
+            env=env,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        child_summary = {}
+        child_summary_path = trainer_out / "training_summary.json"
+        if child_summary_path.exists():
+            try:
+                child_summary = json.loads(child_summary_path.read_text())
+            except json.JSONDecodeError:
+                child_summary = {}
+        child_trainer = child_summary.get("trainer", {})
+        if not isinstance(child_trainer, dict):
+            child_trainer = {}
+        return {
+            "status": "completed" if completed.returncode == 0 else "failed",
+            "backend": "mlx-lora",
+            "returncode": completed.returncode,
+            "model": self.mlx_lora.model,
+            "out_dir": str(trainer_out),
+            "adapter_path": str(adapter_path),
+            "adapter_file_exists": (adapter_path / "adapters.safetensors").is_file(),
+            "ok": child_trainer.get("ok"),
+            "train_loss": child_trainer.get("train_loss"),
+            "val_loss": child_trainer.get("val_loss"),
+            "trained_tokens": child_trainer.get("trained_tokens"),
+            "peak_mem_gb": child_trainer.get("peak_mem_gb"),
+            "stdout_tail": completed.stdout[-4000:],
+            "stderr_tail": completed.stderr[-4000:],
         }
 
     def _summary(
@@ -868,6 +1053,7 @@ def compact_row(row: dict[str, Any] | None) -> dict[str, Any] | None:
 
 
 def compact_summary(summary: dict[str, Any]) -> dict[str, Any]:
+    trainer = summary.get("trainer") or {}
     return {
         "mode": summary.get("mode"),
         "archive_cell_count": summary.get("archive_cell_count"),
@@ -876,6 +1062,22 @@ def compact_summary(summary: dict[str, Any]) -> dict[str, Any]:
         "lineage_path": summary.get("lineage_path"),
         "dataset_path": summary.get("dataset_path"),
         "dry_run": summary.get("dry_run"),
+        "trainer": {
+            key: trainer.get(key)
+            for key in (
+                "status",
+                "backend",
+                "model",
+                "out_dir",
+                "adapter_file_exists",
+                "ok",
+                "train_loss",
+                "val_loss",
+                "trained_tokens",
+                "peak_mem_gb",
+            )
+            if key in trainer
+        },
     }
 
 
