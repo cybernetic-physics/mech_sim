@@ -1324,6 +1324,31 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
             fn(part, params, *extra)
         doc.recompute()
 
+    def _apply_cycloidal_disk_phase_alignment(doc, params):
+        if not bool(params.get("align_output_pin_holes", True)):
+            return
+        base_height = float(params["base_height"])
+        disk_height = float(params["disk_height"])
+        phases = {
+            "cycloidalDisk1": float(params.get(
+                "cycloidal_disk1_phase_deg", 180.0)),
+            "cycloidalDisk2": float(params.get(
+                "cycloidal_disk2_phase_deg", 0.0)),
+        }
+        z_offsets = {
+            "cycloidalDisk1": base_height,
+            "cycloidalDisk2": base_height + disk_height,
+        }
+        for name, phase_deg in phases.items():
+            obj = doc.getObject(name)
+            if obj is None:
+                continue
+            obj.Placement = App.Placement(
+                App.Vector(0, 0, z_offsets[name]),
+                App.Rotation(App.Vector(0, 0, 1), phase_deg),
+            )
+        doc.recompute()
+
     try:
         overrides = json.loads(params_path.read_text())
         doc = App.newDocument("CycloidalReducer")
@@ -1337,6 +1362,7 @@ _FREECAD_SCRIPT = textwrap.dedent(r'''
             params[key] = value
         density_kg_m3 = float(params.get("density_kg_m3", 7850.0))
         _generate_parts(doc, params)
+        _apply_cycloidal_disk_phase_alignment(doc, params)
 
         root = manifest_path.parent
         exports_dir = root / "cycloidal_freecad_assets"

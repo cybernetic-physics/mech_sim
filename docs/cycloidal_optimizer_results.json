@@ -1,0 +1,3322 @@
+{
+  "audit_config": {
+    "contact_model": "smc",
+    "damping": 250.0,
+    "duration_s": 0.15,
+    "friction": 0.0,
+    "input_speed_rad_s": 10.0,
+    "output_load_Nm": 0.75,
+    "output_load_model": "passive_brake",
+    "procedural_cycloidal_fallback": false,
+    "samples": 41,
+    "timestep": 2.5e-05,
+    "verified_limits": {
+      "max_contact_force_rms_N": 3000.0,
+      "max_contacts": 128.0,
+      "max_penetration_mm": 1.0,
+      "max_power_balance_error_pct": 1000000000000.0,
+      "max_ratio_error_pct": 25.0,
+      "max_torque_ripple_pct": 1000000000000.0,
+      "min_output_speed_rad_s": 0.5
+    },
+    "young_modulus": 100000000.0
+  },
+  "best_by_method": {
+    "cma_es_fast_only": {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_000",
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 86.435106,
+      "id": "cma_fast_000",
+      "method": "cma_es_fast_only",
+      "metrics": {
+        "contact_force_rms_N": 108.65178791105501,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 0.8106059510384694,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 4.0162553078132174e-05,
+        "max_penetration_mm": 0.2978068441734649,
+        "n_contacts_max": 22.0,
+        "out_omega_med": 0.019072884560580265,
+        "output_power_W_mean": 0.008110316984085882,
+        "output_torque_Nm_mean": 0.4252276030049614,
+        "output_torque_Nm_signed_mean": 0.019800565720600766,
+        "passed": 0.0,
+        "power_balance_error_pct": 98.99947477887427,
+        "ratio_error_pct": 5725.606019802319,
+        "ratio_observed": 524.3045417822087,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 29.0,
+            "max_force_N": 538.9945827629874,
+            "max_penetration_mm": 0.2978068441734649,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 217.30357582211002,
+            "rms_penetration_mm": 0.15780372695687367
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 678.1739327514131
+      },
+      "params": {
+        "clearance": 0.582,
+        "driver_circle_diameter": 42.679,
+        "driver_pin_collision_shrink_mm": 0.331,
+        "eccentricity": 2.221,
+        "line_segment_count": 42,
+        "pins": 10
+      },
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    "random": {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/random/random_000",
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 65.729854,
+      "id": "random_000",
+      "method": "random",
+      "metrics": {
+        "contact_force_rms_N": 839.4914877251634,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 4.770955397210266,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 0.00037614159429671755,
+        "max_penetration_mm": 0.4824808056582697,
+        "n_contacts_max": 44.0,
+        "out_omega_med": 0.3531304830482253,
+        "output_power_W_mean": 0.21176979537952315,
+        "output_torque_Nm_mean": 0.5996927638518331,
+        "output_torque_Nm_signed_mean": -0.3718263678730268,
+        "passed": 0.0,
+        "power_balance_error_pct": 95.56127069426488,
+        "ratio_error_pct": 304.5449195549441,
+        "ratio_observed": 28.318144368846088,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 33.0,
+            "max_force_N": 3802.227367697706,
+            "max_penetration_mm": 0.4824808056582697,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 1678.9829754503269,
+            "rms_penetration_mm": 0.3642128599953004
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 273.2499095116634
+      },
+      "params": {
+        "clearance": 0.578,
+        "driver_circle_diameter": 36.201,
+        "driver_pin_collision_shrink_mm": 0.041,
+        "eccentricity": 2.576,
+        "line_segment_count": 42,
+        "pins": 8
+      },
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    "seed": {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/seed/current_seed",
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 78.379423,
+      "id": "current_seed",
+      "method": "seed",
+      "metrics": {
+        "contact_force_rms_N": 32.45848540235899,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 0.34749695324327534,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 2.2818469305626954e-05,
+        "max_penetration_mm": 0.22824426559964195,
+        "n_contacts_max": 16.0,
+        "out_omega_med": 0.004559064760550891,
+        "output_power_W_mean": 0.001965029173105596,
+        "output_torque_Nm_mean": 0.4310158500288891,
+        "output_torque_Nm_signed_mean": 0.08789004143501404,
+        "passed": 0.0,
+        "power_balance_error_pct": 99.4345190210258,
+        "ratio_error_pct": 24271.470234979748,
+        "ratio_observed": 2193.4323211481774,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 21.0,
+            "max_force_N": 210.51759291728393,
+            "max_penetration_mm": 0.22824426559964195,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 64.91696942430224,
+            "rms_penetration_mm": 0.10264915086242278
+          },
+          {
+            "active_sample_count": 2.0,
+            "max_force_N": 0.08572174414189716,
+            "max_penetration_mm": 0.002732820576056838,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.01338748725829266,
+            "rms_penetration_mm": 0.0005580621860754553
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 811.1841109534936
+      },
+      "params": {
+        "clearance": 0.6,
+        "driver_circle_diameter": 50.0,
+        "driver_hole_diameter": 10.0,
+        "driver_pin_collision_shrink_mm": 0.68,
+        "eccentricity": 2.0,
+        "line_segment_count": 42,
+        "pins": 10,
+        "roller_circle_diameter": 80.0,
+        "roller_diameter": 9.4
+      },
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    "verifier_gated": {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_refine_driver_circle_0495",
+      "defects": [],
+      "fast_reward": 75.072272,
+      "id": "vg_refine_driver_circle_0495",
+      "method": "verifier_gated",
+      "metrics": {
+        "contact_force_rms_N": 483.87033682254645,
+        "failure_mode": "none",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 2.0662025675775575,
+        "lockup_detected": 0.0,
+        "max_constraint_error_mm": 0.00011087657349639676,
+        "max_penetration_mm": 0.4012164499727078,
+        "n_contacts_max": 36.0,
+        "out_omega_med": 1.2614425828515652,
+        "output_power_W_mean": 0.6528134541880793,
+        "output_torque_Nm_mean": 0.5175134112821498,
+        "output_torque_Nm_signed_mean": -0.2604438920112647,
+        "passed": 1.0,
+        "power_balance_error_pct": 68.40515715003461,
+        "ratio_error_pct": 20.72568235809504,
+        "ratio_observed": 7.927431764190496,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 32.0,
+            "max_force_N": 1956.1680615172581,
+            "max_penetration_mm": 0.4012164499727078,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 967.5100544665318,
+            "rms_penetration_mm": 0.2718052030819057
+          },
+          {
+            "active_sample_count": 26.0,
+            "max_force_N": 87.31312900863927,
+            "max_penetration_mm": 0.07723559247097,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 21.125954019332717,
+            "rms_penetration_mm": 0.03148084365953155
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 844.1038835190229
+      },
+      "params": {
+        "clearance": 0.336,
+        "driver_circle_diameter": 49.5,
+        "driver_pin_collision_shrink_mm": 0.129,
+        "eccentricity": 1.982,
+        "line_segment_count": 44,
+        "pins": 11
+      },
+      "verified_gate_passed": true,
+      "verified_reward": 63.988047
+    }
+  },
+  "candidate_count": 25,
+  "candidates": [
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/seed/current_seed",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.6799999999999908,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.6799999999999997,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 10
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.5250988258746289,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.525098825874625
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 78.379423,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.75,
+          "eccentricity": 0.818182,
+          "engagement": 0.170732,
+          "manufacturability": 0.839161,
+          "segment_resolution": 1.0,
+          "target_ratio": 1.0,
+          "torque_density_proxy": 0.858586
+        },
+        "score": 78.379423,
+        "scoring_params": {
+          "clearance": 0.6,
+          "driver_circle_diameter": 50.0,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.68,
+          "eccentricity": 2.0,
+          "line_segment_count": 42.0,
+          "pins": 10.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "current_seed",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/seed/current_seed/cycloidal_assets_manifest.json",
+      "method": "seed",
+      "metrics": {
+        "contact_force_rms_N": 32.45848540235899,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 0.34749695324327534,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 2.2818469305626954e-05,
+        "max_penetration_mm": 0.22824426559964195,
+        "n_contacts_max": 16.0,
+        "out_omega_med": 0.004559064760550891,
+        "output_power_W_mean": 0.001965029173105596,
+        "output_torque_Nm_mean": 0.4310158500288891,
+        "output_torque_Nm_signed_mean": 0.08789004143501404,
+        "passed": 0.0,
+        "power_balance_error_pct": 99.4345190210258,
+        "ratio_error_pct": 24271.470234979748,
+        "ratio_observed": 2193.4323211481774,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 21.0,
+            "max_force_N": 210.51759291728393,
+            "max_penetration_mm": 0.22824426559964195,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 64.91696942430224,
+            "rms_penetration_mm": 0.10264915086242278
+          },
+          {
+            "active_sample_count": 2.0,
+            "max_force_N": 0.08572174414189716,
+            "max_penetration_mm": 0.002732820576056838,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.01338748725829266,
+            "rms_penetration_mm": 0.0005580621860754553
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 811.1841109534936
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.6,
+        "driver_circle_diameter": 50.0,
+        "driver_hole_diameter": 10.0,
+        "driver_pin_collision_shrink_mm": 0.68,
+        "eccentricity": 2.0,
+        "line_segment_count": 42,
+        "pins": 10,
+        "roller_circle_diameter": 80.0,
+        "roller_diameter": 9.4
+      },
+      "proposer": "hand_seed_current_branch",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/random/random_000",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.040999999999993264,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.04100000000000037,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 8
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.501023577933916,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.5010235779339145
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 65.729854,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 1.0,
+          "eccentricity": 0.658182,
+          "engagement": 0.95,
+          "manufacturability": 0.774916,
+          "segment_resolution": 1.0,
+          "target_ratio": 0.5,
+          "torque_density_proxy": 0.657109
+        },
+        "score": 65.729854,
+        "scoring_params": {
+          "clearance": 0.578,
+          "driver_circle_diameter": 36.201,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.041,
+          "eccentricity": 2.576,
+          "line_segment_count": 42.0,
+          "pins": 8.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "random_000",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/random/random_000/cycloidal_assets_manifest.json",
+      "method": "random",
+      "metrics": {
+        "contact_force_rms_N": 839.4914877251634,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 4.770955397210266,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 0.00037614159429671755,
+        "max_penetration_mm": 0.4824808056582697,
+        "n_contacts_max": 44.0,
+        "out_omega_med": 0.3531304830482253,
+        "output_power_W_mean": 0.21176979537952315,
+        "output_torque_Nm_mean": 0.5996927638518331,
+        "output_torque_Nm_signed_mean": -0.3718263678730268,
+        "passed": 0.0,
+        "power_balance_error_pct": 95.56127069426488,
+        "ratio_error_pct": 304.5449195549441,
+        "ratio_observed": 28.318144368846088,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 33.0,
+            "max_force_N": 3802.227367697706,
+            "max_penetration_mm": 0.4824808056582697,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 1678.9829754503269,
+            "rms_penetration_mm": 0.3642128599953004
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 273.2499095116634
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.578,
+        "driver_circle_diameter": 36.201,
+        "driver_pin_collision_shrink_mm": 0.041,
+        "eccentricity": 2.576,
+        "line_segment_count": 42,
+        "pins": 8
+      },
+      "proposer": "uniform_parameter_search",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/random/random_001",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.1289999999999898,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.12900000000000045,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 11
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.0,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.2830779269037452
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 1,
+      "defects": [
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 74.802793,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.714667,
+          "eccentricity": 0.801818,
+          "engagement": 0.842683,
+          "manufacturability": 0.650308,
+          "segment_resolution": 1.0,
+          "target_ratio": 0.75,
+          "torque_density_proxy": 0.768173
+        },
+        "score": 74.802793,
+        "scoring_params": {
+          "clearance": 0.336,
+          "driver_circle_diameter": 50.848,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.129,
+          "eccentricity": 1.982,
+          "line_segment_count": 44.0,
+          "pins": 11.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "random_001",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/random/random_001/cycloidal_assets_manifest.json",
+      "method": "random",
+      "metrics": {
+        "contact_force_rms_N": 587.8739015635899,
+        "failure_mode": "none",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 4.511538818982292,
+        "lockup_detected": 0.0,
+        "max_constraint_error_mm": 0.0003356579482239214,
+        "max_penetration_mm": 0.4025495800306089,
+        "n_contacts_max": 43.0,
+        "out_omega_med": 1.3433478057765538,
+        "output_power_W_mean": 0.8225665008961281,
+        "output_torque_Nm_mean": 0.6123257858902924,
+        "output_torque_Nm_signed_mean": -0.28015753796999826,
+        "passed": 1.0,
+        "power_balance_error_pct": 81.76749588332962,
+        "ratio_error_pct": 25.55911464626791,
+        "ratio_observed": 7.444088535373209,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 31.0,
+            "max_force_N": 2552.384373440745,
+            "max_penetration_mm": 0.4025495800306089,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 1175.5377889498957,
+            "rms_penetration_mm": 0.2864813120478369
+          },
+          {
+            "active_sample_count": 31.0,
+            "max_force_N": 61.66330347054059,
+            "max_penetration_mm": 0.10032855061581358,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 22.221685561165714,
+            "rms_penetration_mm": 0.028832744601595867
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 1162.5974366358244
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.336,
+        "driver_circle_diameter": 50.848,
+        "driver_pin_collision_shrink_mm": 0.129,
+        "eccentricity": 1.982,
+        "line_segment_count": 44,
+        "pins": 11
+      },
+      "proposer": "uniform_parameter_search",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/random/random_002",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.20499999999998764,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.20500000000000007,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 11
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.0,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.0
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 68.418494,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.538792,
+          "eccentricity": 0.727273,
+          "engagement": 0.75,
+          "manufacturability": 0.556748,
+          "segment_resolution": 1.0,
+          "target_ratio": 0.75,
+          "torque_density_proxy": 0.725075
+        },
+        "score": 68.418494,
+        "scoring_params": {
+          "clearance": 0.976,
+          "driver_circle_diameter": 55.069,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.205,
+          "eccentricity": 2.5,
+          "line_segment_count": 44.0,
+          "pins": 11.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "random_002",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/random/random_002/cycloidal_assets_manifest.json",
+      "method": "random",
+      "metrics": {
+        "contact_force_rms_N": 1006.6706196168257,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 2.661268154201502,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 0.00024678183319017946,
+        "max_penetration_mm": 0.48229529784293845,
+        "n_contacts_max": 31.0,
+        "out_omega_med": 0.15572664268317393,
+        "output_power_W_mean": 0.0938463594690831,
+        "output_torque_Nm_mean": 0.6026352193311818,
+        "output_torque_Nm_signed_mean": -0.3560742883878768,
+        "passed": 0.0,
+        "power_balance_error_pct": 96.47362257272263,
+        "ratio_error_pct": 542.1508759002154,
+        "ratio_observed": 64.21508759002154,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 40.0,
+            "max_force_N": 2768.292159968565,
+            "max_penetration_mm": 0.48229529784293845,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 2013.2705890838995,
+            "rms_penetration_mm": 0.4736036531621068
+          },
+          {
+            "active_sample_count": 39.0,
+            "max_force_N": 48.75646891577469,
+            "max_penetration_mm": 0.12081972818123177,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 16.866556514684817,
+            "rms_penetration_mm": 0.038080041642538184
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 326.0258179569307
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.976,
+        "driver_circle_diameter": 55.069,
+        "driver_pin_collision_shrink_mm": 0.205,
+        "eccentricity": 2.5,
+        "line_segment_count": 44,
+        "pins": 11
+      },
+      "proposer": "uniform_parameter_search",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/random/random_003",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.6609999999999916,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.6610000000000005,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 10
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.7570285773992365,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.7570285773992387
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 66.162278,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.8285,
+          "eccentricity": 0.368182,
+          "engagement": 0.193902,
+          "manufacturability": 0.614913,
+          "segment_resolution": 1.0,
+          "target_ratio": 1.0,
+          "torque_density_proxy": 0.464477
+        },
+        "score": 66.162278,
+        "scoring_params": {
+          "clearance": 0.815,
+          "driver_circle_diameter": 48.116,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.661,
+          "eccentricity": 1.505,
+          "line_segment_count": 42.0,
+          "pins": 10.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "random_003",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/random/random_003/cycloidal_assets_manifest.json",
+      "method": "random",
+      "metrics": {
+        "contact_force_rms_N": 8.102047608041211,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 0.09103392946289585,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 1.2007961535758523e-05,
+        "max_penetration_mm": 0.1374217026750557,
+        "n_contacts_max": 12.0,
+        "out_omega_med": 0.0010834344082895886,
+        "output_power_W_mean": 0.00037581233624921917,
+        "output_torque_Nm_mean": 0.34687133191801783,
+        "output_torque_Nm_signed_mean": 0.18664225391721787,
+        "passed": 0.0,
+        "power_balance_error_pct": 99.58717333364984,
+        "ratio_error_pct": 102454.5342302,
+        "ratio_observed": 9229.908080718002,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 11.0,
+            "max_force_N": 79.04986170791884,
+            "max_penetration_mm": 0.1374217026750557,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 16.204095216082422,
+            "rms_penetration_mm": 0.025897389129100445
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 592882931.1272029
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.815,
+        "driver_circle_diameter": 48.116,
+        "driver_pin_collision_shrink_mm": 0.661,
+        "eccentricity": 1.505,
+        "line_segment_count": 42,
+        "pins": 10
+      },
+      "proposer": "uniform_parameter_search",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/random/random_004",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.3339999999999872,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.33399999999999963,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 9
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.0,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.0
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 1,
+      "defects": [
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 60.921956,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.493208,
+          "eccentricity": 0.41,
+          "engagement": 0.592683,
+          "manufacturability": 0.713948,
+          "segment_resolution": 1.0,
+          "target_ratio": 0.75,
+          "torque_density_proxy": 0.52582
+        },
+        "score": 60.921956,
+        "scoring_params": {
+          "clearance": 0.786,
+          "driver_circle_diameter": 56.163,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.334,
+          "eccentricity": 1.551,
+          "line_segment_count": 42.0,
+          "pins": 9.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "random_004",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/random/random_004/cycloidal_assets_manifest.json",
+      "method": "random",
+      "metrics": {
+        "contact_force_rms_N": 6.667829156964933,
+        "failure_mode": "solver_diverged",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 22.95029632054483,
+        "lockup_detected": 0.0,
+        "max_constraint_error_mm": 498.32509408037777,
+        "max_penetration_mm": 0.29314449784578755,
+        "n_contacts_max": 5.0,
+        "out_omega_med": -35.9443659009033,
+        "output_power_W_mean": 22.95029632054483,
+        "output_torque_Nm_mean": 0.6384949558942721,
+        "output_torque_Nm_signed_mean": 0.1223983221594267,
+        "passed": 0.0,
+        "power_balance_error_pct": 0.0,
+        "ratio_error_pct": 96.52240352925912,
+        "ratio_observed": 0.27820771765927005,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 1.0,
+            "max_force_N": 85.3898769720472,
+            "max_penetration_mm": 0.29314449784578755,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 13.335658313929866,
+            "rms_penetration_mm": 0.04578147900552302
+          },
+          {
+            "active_sample_count": 1.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.03737193037522957,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.005836514955738667
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 0.0
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.786,
+        "driver_circle_diameter": 56.163,
+        "driver_pin_collision_shrink_mm": 0.334,
+        "eccentricity": 1.551,
+        "line_segment_count": 42,
+        "pins": 9
+      },
+      "proposer": "uniform_parameter_search",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/random/random_005",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.18599999999999195,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.18599999999999994,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 12
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.6702569919284395,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.670256991928429
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 64.799418,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 1.0,
+          "eccentricity": 0.658182,
+          "engagement": 0.773171,
+          "manufacturability": 0.496979,
+          "segment_resolution": 1.0,
+          "target_ratio": 0.5,
+          "torque_density_proxy": 0.551529
+        },
+        "score": 64.799418,
+        "scoring_params": {
+          "clearance": 1.029,
+          "driver_circle_diameter": 41.956,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.186,
+          "eccentricity": 2.576,
+          "line_segment_count": 48.0,
+          "pins": 12.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "random_005",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/random/random_005/cycloidal_assets_manifest.json",
+      "method": "random",
+      "metrics": {
+        "contact_force_rms_N": 298.25426866119375,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 2.298216571905654,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 0.00011761744247208601,
+        "max_penetration_mm": 0.4838725508307107,
+        "n_contacts_max": 39.0,
+        "out_omega_med": 0.26206235828829816,
+        "output_power_W_mean": 0.1579864281175358,
+        "output_torque_Nm_mean": 0.6028581485317052,
+        "output_torque_Nm_signed_mean": -0.10708833299371799,
+        "passed": 0.0,
+        "power_balance_error_pct": 93.1256945037806,
+        "ratio_error_pct": 246.8986980918513,
+        "ratio_observed": 38.15885679010364,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 31.0,
+            "max_force_N": 1343.0818157456958,
+            "max_penetration_mm": 0.4838725508307107,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 596.5085373223875,
+            "rms_penetration_mm": 0.3080642552850254
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 504.2323557940048
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 1.029,
+        "driver_circle_diameter": 41.956,
+        "driver_pin_collision_shrink_mm": 0.186,
+        "eccentricity": 2.576,
+        "line_segment_count": 48,
+        "pins": 12
+      },
+      "proposer": "uniform_parameter_search",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/random/random_006",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.6589999999999927,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.6589999999999998,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 12
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.37882278554819293,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.3788227855481853
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 71.539845,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 1.0,
+          "eccentricity": 0.436364,
+          "engagement": 0.196341,
+          "manufacturability": 0.72451,
+          "segment_resolution": 1.0,
+          "target_ratio": 0.5,
+          "torque_density_proxy": 0.945635
+        },
+        "score": 71.539845,
+        "scoring_params": {
+          "clearance": 0.687,
+          "driver_circle_diameter": 36.258,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.659,
+          "eccentricity": 2.82,
+          "line_segment_count": 48.0,
+          "pins": 12.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "random_006",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/random/random_006/cycloidal_assets_manifest.json",
+      "method": "random",
+      "metrics": {
+        "contact_force_rms_N": 72.2549447195331,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 0.9446650145454455,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 9.526547821411001e-05,
+        "max_penetration_mm": 0.43263281258987263,
+        "n_contacts_max": 12.0,
+        "out_omega_med": 0.023969096984401264,
+        "output_power_W_mean": 0.011464968068881457,
+        "output_torque_Nm_mean": 0.47832290370983477,
+        "output_torque_Nm_signed_mean": -0.09009089979873602,
+        "passed": 0.0,
+        "power_balance_error_pct": 98.78634564715006,
+        "ratio_error_pct": 3692.762446088528,
+        "ratio_observed": 417.2038690697381,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 24.0,
+            "max_force_N": 492.2322584835933,
+            "max_penetration_mm": 0.43263281258987263,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 144.50988943906617,
+            "rms_penetration_mm": 0.1524503601474635
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 681.0590583968119
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.687,
+        "driver_circle_diameter": 36.258,
+        "driver_pin_collision_shrink_mm": 0.659,
+        "eccentricity": 2.82,
+        "line_segment_count": 48,
+        "pins": 12
+      },
+      "proposer": "uniform_parameter_search",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/random/random_007",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.5859999999999896,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.5860000000000003,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 9
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.0,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.0
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 1,
+      "defects": [
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 64.039029,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.709292,
+          "eccentricity": 0.357273,
+          "engagement": 0.285366,
+          "manufacturability": 0.596598,
+          "segment_resolution": 1.0,
+          "target_ratio": 0.75,
+          "torque_density_proxy": 0.766547
+        },
+        "score": 64.039029,
+        "scoring_params": {
+          "clearance": 0.881,
+          "driver_circle_diameter": 50.977,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.586,
+          "eccentricity": 2.907,
+          "line_segment_count": 42.0,
+          "pins": 9.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "random_007",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/random/random_007/cycloidal_assets_manifest.json",
+      "method": "random",
+      "metrics": {
+        "contact_force_rms_N": 786.8985585859899,
+        "failure_mode": "none",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 2.6517523837475228,
+        "lockup_detected": 0.0,
+        "max_constraint_error_mm": 0.0010647638700462595,
+        "max_penetration_mm": 0.5453266276163049,
+        "n_contacts_max": 27.0,
+        "out_omega_med": -0.7575540923260241,
+        "output_power_W_mean": 0.48477363682141855,
+        "output_torque_Nm_mean": 0.6399195011051295,
+        "output_torque_Nm_signed_mean": 0.2658858408961926,
+        "passed": 1.0,
+        "power_balance_error_pct": 81.71874418620023,
+        "ratio_error_pct": 65.00471882634156,
+        "ratio_observed": 13.200377506107325,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 40.0,
+            "max_force_N": 2286.342224873001,
+            "max_penetration_mm": 0.5453266276163049,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 1573.498568941144,
+            "rms_penetration_mm": 0.5316376920333664
+          },
+          {
+            "active_sample_count": 25.0,
+            "max_force_N": 114.11823571854619,
+            "max_penetration_mm": 0.16506907559232786,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 30.65321449712429,
+            "rms_penetration_mm": 0.04275328727666515
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 1184.8409605075717
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.881,
+        "driver_circle_diameter": 50.977,
+        "driver_pin_collision_shrink_mm": 0.586,
+        "eccentricity": 2.907,
+        "line_segment_count": 42,
+        "pins": 9
+      },
+      "proposer": "uniform_parameter_search",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_000",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.3309999999999933,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.3310000000000004,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 10
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.49356033878911765,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.4935603387891127
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 86.435106,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 1.0,
+          "eccentricity": 0.980909,
+          "engagement": 0.596341,
+          "manufacturability": 0.955143,
+          "segment_resolution": 1.0,
+          "target_ratio": 1.0,
+          "torque_density_proxy": 0.831089
+        },
+        "score": 86.435106,
+        "scoring_params": {
+          "clearance": 0.582,
+          "driver_circle_diameter": 42.679,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.331,
+          "eccentricity": 2.221,
+          "line_segment_count": 42.0,
+          "pins": 10.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "cma_fast_000",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_000/cycloidal_assets_manifest.json",
+      "method": "cma_es_fast_only",
+      "metrics": {
+        "contact_force_rms_N": 108.65178791105501,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 0.8106059510384694,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 4.0162553078132174e-05,
+        "max_penetration_mm": 0.2978068441734649,
+        "n_contacts_max": 22.0,
+        "out_omega_med": 0.019072884560580265,
+        "output_power_W_mean": 0.008110316984085882,
+        "output_torque_Nm_mean": 0.4252276030049614,
+        "output_torque_Nm_signed_mean": 0.019800565720600766,
+        "passed": 0.0,
+        "power_balance_error_pct": 98.99947477887427,
+        "ratio_error_pct": 5725.606019802319,
+        "ratio_observed": 524.3045417822087,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 29.0,
+            "max_force_N": 538.9945827629874,
+            "max_penetration_mm": 0.2978068441734649,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 217.30357582211002,
+            "rms_penetration_mm": 0.15780372695687367
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 678.1739327514131
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.582,
+        "driver_circle_diameter": 42.679,
+        "driver_pin_collision_shrink_mm": 0.331,
+        "eccentricity": 2.221,
+        "line_segment_count": 42,
+        "pins": 10
+      },
+      "proposer": "dependency_free_cma_style_elite_search_fast_reward_only",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_001",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.4929999999999932,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.49299999999999855,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 10
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.34189659404269807,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.3418965940426941
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 81.980583,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 1.0,
+          "eccentricity": 0.580909,
+          "engagement": 0.39878,
+          "manufacturability": 0.803955,
+          "segment_resolution": 1.0,
+          "target_ratio": 1.0,
+          "torque_density_proxy": 0.868787
+        },
+        "score": 81.980583,
+        "scoring_params": {
+          "clearance": 0.45,
+          "driver_circle_diameter": 40.403,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.493,
+          "eccentricity": 2.661,
+          "line_segment_count": 42.0,
+          "pins": 10.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "cma_fast_001",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_001/cycloidal_assets_manifest.json",
+      "method": "cma_es_fast_only",
+      "metrics": {
+        "contact_force_rms_N": 115.06081646404661,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 1.000609955403156,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 3.84047055174843e-05,
+        "max_penetration_mm": 0.493756502692122,
+        "n_contacts_max": 27.0,
+        "out_omega_med": 0.0665382982135209,
+        "output_power_W_mean": 0.035208369206204376,
+        "output_torque_Nm_mean": 0.5291444198530744,
+        "output_torque_Nm_signed_mean": -0.12319323120619924,
+        "passed": 0.0,
+        "power_balance_error_pct": 96.48130932376957,
+        "ratio_error_pct": 1569.8820693393207,
+        "ratio_observed": 150.28938624053885,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 27.0,
+            "max_force_N": 797.4483088374842,
+            "max_penetration_mm": 0.493756502692122,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 230.12163292809322,
+            "rms_penetration_mm": 0.2096532744542331
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 1495.7424338268445
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.45,
+        "driver_circle_diameter": 40.403,
+        "driver_pin_collision_shrink_mm": 0.493,
+        "eccentricity": 2.661,
+        "line_segment_count": 42,
+        "pins": 10
+      },
+      "proposer": "dependency_free_cma_style_elite_search_fast_reward_only",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_002",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.38799999999998835,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.3880000000000008,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 10
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.0,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.0
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 78.898607,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.494375,
+          "eccentricity": 0.661818,
+          "engagement": 0.526829,
+          "manufacturability": 0.865497,
+          "segment_resolution": 1.0,
+          "target_ratio": 1.0,
+          "torque_density_proxy": 0.870671
+        },
+        "score": 78.898607,
+        "scoring_params": {
+          "clearance": 0.49,
+          "driver_circle_diameter": 56.135,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.388,
+          "eccentricity": 1.828,
+          "line_segment_count": 42.0,
+          "pins": 10.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "cma_fast_002",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_002/cycloidal_assets_manifest.json",
+      "method": "cma_es_fast_only",
+      "metrics": {
+        "contact_force_rms_N": 485.8989602406179,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 2.8649673678895566,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 0.0010921402040987346,
+        "max_penetration_mm": 0.3760017643799074,
+        "n_contacts_max": 28.0,
+        "out_omega_med": 0.04572743939861675,
+        "output_power_W_mean": 0.024380572021272452,
+        "output_torque_Nm_mean": 0.5331715998514879,
+        "output_torque_Nm_signed_mean": -0.3946208641544978,
+        "passed": 0.0,
+        "power_balance_error_pct": 99.14901048107811,
+        "ratio_error_pct": 2329.8563963428974,
+        "ratio_observed": 218.68707567086074,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 40.0,
+            "max_force_N": 1274.7842404586052,
+            "max_penetration_mm": 0.3760017643799074,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 971.7966157042873,
+            "rms_penetration_mm": 0.37035285361623516
+          },
+          {
+            "active_sample_count": 1.0,
+            "max_force_N": 9.841415498137465,
+            "max_penetration_mm": 0.02922866406152025,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 1.5369708806529578,
+            "rms_penetration_mm": 0.0045647504214659206
+          },
+          {
+            "active_sample_count": 2.0,
+            "max_force_N": 2.6552351446550553,
+            "max_penetration_mm": 0.04880800406681374,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.4167467577786018,
+            "rms_penetration_mm": 0.010752129375376517
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 247.54359129382038
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.49,
+        "driver_circle_diameter": 56.135,
+        "driver_pin_collision_shrink_mm": 0.388,
+        "eccentricity": 1.828,
+        "line_segment_count": 42,
+        "pins": 10
+      },
+      "proposer": "dependency_free_cma_style_elite_search_fast_reward_only",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_003",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.4629999999999921,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.4629999999999992,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 11
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.0,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.5757461781406538
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 77.857089,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.918833,
+          "eccentricity": 0.883636,
+          "engagement": 0.435366,
+          "manufacturability": 0.873,
+          "segment_resolution": 1.0,
+          "target_ratio": 0.75,
+          "torque_density_proxy": 0.796542
+        },
+        "score": 77.857089,
+        "scoring_params": {
+          "clearance": 0.697,
+          "driver_circle_diameter": 45.948,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.463,
+          "eccentricity": 2.072,
+          "line_segment_count": 44.0,
+          "pins": 11.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "cma_fast_003",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_003/cycloidal_assets_manifest.json",
+      "method": "cma_es_fast_only",
+      "metrics": {
+        "contact_force_rms_N": 95.89711315372702,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 0.41054846180319676,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 4.485041907415338e-05,
+        "max_penetration_mm": 0.3921667885151692,
+        "n_contacts_max": 22.0,
+        "out_omega_med": -0.004828807440889087,
+        "output_power_W_mean": 0.002467799570378224,
+        "output_torque_Nm_mean": 0.5110577716314672,
+        "output_torque_Nm_signed_mean": 0.04228733236105006,
+        "passed": 0.0,
+        "power_balance_error_pct": 99.39890176191642,
+        "ratio_error_pct": 20609.046948782012,
+        "ratio_observed": 2070.904694878201,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 29.0,
+            "max_force_N": 523.0287792839869,
+            "max_penetration_mm": 0.3921667885151692,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 191.71082640639685,
+            "rms_penetration_mm": 0.16744572202468028
+          },
+          {
+            "active_sample_count": 19.0,
+            "max_force_N": 23.269252671346067,
+            "max_penetration_mm": 0.0836793115013279,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 5.65546491910848,
+            "rms_penetration_mm": 0.022732030437170918
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 2192.9380498244104
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.697,
+        "driver_circle_diameter": 45.948,
+        "driver_pin_collision_shrink_mm": 0.463,
+        "eccentricity": 2.072,
+        "line_segment_count": 44,
+        "pins": 11
+      },
+      "proposer": "dependency_free_cma_style_elite_search_fast_reward_only",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_004",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.3199999999999914,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.3200000000000003,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 10
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.48061896856326164,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.4806189685632607
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 88.278388,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.826417,
+          "eccentricity": 0.826364,
+          "engagement": 0.609756,
+          "manufacturability": 0.924654,
+          "segment_resolution": 1.0,
+          "target_ratio": 1.0,
+          "torque_density_proxy": 1.0
+        },
+        "score": 88.278388,
+        "scoring_params": {
+          "clearance": 0.585,
+          "driver_circle_diameter": 48.166,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.32,
+          "eccentricity": 2.391,
+          "line_segment_count": 42.0,
+          "pins": 10.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "cma_fast_004",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_004/cycloidal_assets_manifest.json",
+      "method": "cma_es_fast_only",
+      "metrics": {
+        "contact_force_rms_N": 217.76441337151525,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 0.911757047244288,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 0.00011223278869618314,
+        "max_penetration_mm": 0.45947271428303793,
+        "n_contacts_max": 35.0,
+        "out_omega_med": 0.015513006229416256,
+        "output_power_W_mean": 0.008254239939128952,
+        "output_torque_Nm_mean": 0.5320851301843095,
+        "output_torque_Nm_signed_mean": 0.032956851108693584,
+        "passed": 0.0,
+        "power_balance_error_pct": 99.0946886603096,
+        "ratio_error_pct": 7062.448687761028,
+        "ratio_observed": 644.6203818984925,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 27.0,
+            "max_force_N": 1591.0280611503777,
+            "max_penetration_mm": 0.45947271428303793,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 435.5288267430305,
+            "rms_penetration_mm": 0.24209475445546005
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 993.1659266884969
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.585,
+        "driver_circle_diameter": 48.166,
+        "driver_pin_collision_shrink_mm": 0.32,
+        "eccentricity": 2.391,
+        "line_segment_count": 42,
+        "pins": 10
+      },
+      "proposer": "dependency_free_cma_style_elite_search_fast_reward_only",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_005",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.35299999999999265,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.35299999999999976,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 10
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.4584379800343722,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.458437980034367
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 86.208134,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.885125,
+          "eccentricity": 0.951818,
+          "engagement": 0.569512,
+          "manufacturability": 0.927703,
+          "segment_resolution": 1.0,
+          "target_ratio": 1.0,
+          "torque_density_proxy": 0.897401
+        },
+        "score": 86.208134,
+        "scoring_params": {
+          "clearance": 0.535,
+          "driver_circle_diameter": 46.757,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.353,
+          "eccentricity": 2.147,
+          "line_segment_count": 42.0,
+          "pins": 10.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "cma_fast_005",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_005/cycloidal_assets_manifest.json",
+      "method": "cma_es_fast_only",
+      "metrics": {
+        "contact_force_rms_N": 90.34573867362984,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 0.6522955475953477,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 2.4246992948154612e-05,
+        "max_penetration_mm": 0.4235216256347485,
+        "n_contacts_max": 26.0,
+        "out_omega_med": -0.07110393530128763,
+        "output_power_W_mean": 0.0354857796151294,
+        "output_torque_Nm_mean": 0.4990691368173371,
+        "output_torque_Nm_signed_mean": 0.278287258635666,
+        "passed": 0.0,
+        "power_balance_error_pct": 94.55986174580742,
+        "ratio_error_pct": 1462.6576875147866,
+        "ratio_observed": 140.63919187633078,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 27.0,
+            "max_force_N": 554.4730474978159,
+            "max_penetration_mm": 0.4235216256347485,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 180.40775560751229,
+            "rms_penetration_mm": 0.1748892638832944
+          },
+          {
+            "active_sample_count": 1.0,
+            "max_force_N": 64.81141725352627,
+            "max_penetration_mm": 0.11161654401803389,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 10.121842845815307,
+            "rms_penetration_mm": 0.017431575568301542
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 773.5487565323434
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.535,
+        "driver_circle_diameter": 46.757,
+        "driver_pin_collision_shrink_mm": 0.353,
+        "eccentricity": 2.147,
+        "line_segment_count": 42,
+        "pins": 10
+      },
+      "proposer": "dependency_free_cma_style_elite_search_fast_reward_only",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_006",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.263999999999994,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.26399999999999935,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 10
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.5393305103346874,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.5393305103346848
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 85.553848,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.971417,
+          "eccentricity": 0.900909,
+          "engagement": 0.678049,
+          "manufacturability": 0.864997,
+          "segment_resolution": 1.0,
+          "target_ratio": 1.0,
+          "torque_density_proxy": 0.840031
+        },
+        "score": 85.553848,
+        "scoring_params": {
+          "clearance": 0.644,
+          "driver_circle_diameter": 44.686,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.264,
+          "eccentricity": 2.309,
+          "line_segment_count": 42.0,
+          "pins": 10.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "cma_fast_006",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_006/cycloidal_assets_manifest.json",
+      "method": "cma_es_fast_only",
+      "metrics": {
+        "contact_force_rms_N": 185.07132130686938,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 0.8766392599701672,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 9.658330124876454e-06,
+        "max_penetration_mm": 0.44274831452639773,
+        "n_contacts_max": 32.0,
+        "out_omega_med": 0.023581579085546797,
+        "output_power_W_mean": 0.012800349397282083,
+        "output_torque_Nm_mean": 0.5428113762376263,
+        "output_torque_Nm_signed_mean": -0.08011452032641604,
+        "passed": 0.0,
+        "power_balance_error_pct": 98.53983845102744,
+        "ratio_error_pct": 4611.775691866681,
+        "ratio_observed": 424.0598122680013,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 29.0,
+            "max_force_N": 1552.2274502455887,
+            "max_penetration_mm": 0.44274831452639773,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 370.1426426137387,
+            "rms_penetration_mm": 0.22135211754098502
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 895.5728863709636
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.644,
+        "driver_circle_diameter": 44.686,
+        "driver_pin_collision_shrink_mm": 0.264,
+        "eccentricity": 2.309,
+        "line_segment_count": 42,
+        "pins": 10
+      },
+      "proposer": "dependency_free_cma_style_elite_search_fast_reward_only",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_007",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.45899999999999075,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.45899999999999785,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 10
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.39098748173671344,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.3909874817367119
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 84.397113,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.76625,
+          "eccentricity": 0.860909,
+          "engagement": 0.440244,
+          "manufacturability": 0.877563,
+          "segment_resolution": 1.0,
+          "target_ratio": 1.0,
+          "torque_density_proxy": 0.968053
+        },
+        "score": 84.397113,
+        "scoring_params": {
+          "clearance": 0.471,
+          "driver_circle_diameter": 49.61,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.459,
+          "eccentricity": 2.353,
+          "line_segment_count": 42.0,
+          "pins": 10.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "cma_fast_007",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/cma_es_fast_only/cma_fast_007/cycloidal_assets_manifest.json",
+      "method": "cma_es_fast_only",
+      "metrics": {
+        "contact_force_rms_N": 120.21798378734314,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 0.6263493851600218,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 6.779484781450633e-05,
+        "max_penetration_mm": 0.4534631807473488,
+        "n_contacts_max": 24.0,
+        "out_omega_med": 0.03491490371416626,
+        "output_power_W_mean": 0.017745727223662737,
+        "output_torque_Nm_mean": 0.5082565132912752,
+        "output_torque_Nm_signed_mean": -0.08022631850115435,
+        "passed": 0.0,
+        "power_balance_error_pct": 97.16680056784458,
+        "ratio_error_pct": 3082.3404704401137,
+        "ratio_observed": 286.4106423396102,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 26.0,
+            "max_force_N": 940.8674465639019,
+            "max_penetration_mm": 0.4534631807473488,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 240.37501827505017,
+            "rms_penetration_mm": 0.1987180304276583
+          },
+          {
+            "active_sample_count": 3.0,
+            "max_force_N": 25.061287507193146,
+            "max_penetration_mm": 0.07093723252182826,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 5.413417852420435,
+            "rms_penetration_mm": 0.0125149649201149
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 1001.2493212916568
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.471,
+        "driver_circle_diameter": 49.61,
+        "driver_pin_collision_shrink_mm": 0.459,
+        "eccentricity": 2.353,
+        "line_segment_count": 42,
+        "pins": 10
+      },
+      "proposer": "dependency_free_cma_style_elite_search_fast_reward_only",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_pool_018",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.6269999999999927,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.6269999999999998,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 10
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.47875209794785495,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.47875209794785295
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 83.231427,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.899917,
+          "eccentricity": 0.912727,
+          "engagement": 0.235366,
+          "manufacturability": 0.885895,
+          "segment_resolution": 1.0,
+          "target_ratio": 1.0,
+          "torque_density_proxy": 0.945937
+        },
+        "score": 83.231427,
+        "scoring_params": {
+          "clearance": 0.571,
+          "driver_circle_diameter": 46.402,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.627,
+          "eccentricity": 2.296,
+          "line_segment_count": 42.0,
+          "pins": 10.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "vg_pool_018",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_pool_018/cycloidal_assets_manifest.json",
+      "method": "verifier_gated",
+      "metrics": {
+        "contact_force_rms_N": 115.33872035384366,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 0.36668895272733176,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 3.169080270334826e-05,
+        "max_penetration_mm": 0.44134929339634255,
+        "n_contacts_max": 23.0,
+        "out_omega_med": 0.009974597754038342,
+        "output_power_W_mean": 0.004050059416819877,
+        "output_torque_Nm_mean": 0.40603736779061184,
+        "output_torque_Nm_signed_mean": 0.06625611715630875,
+        "passed": 0.0,
+        "power_balance_error_pct": 98.89550547222746,
+        "ratio_error_pct": 11039.407708559113,
+        "ratio_observed": 1002.5466937703201,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 22.0,
+            "max_force_N": 600.8158338230525,
+            "max_penetration_mm": 0.44134929339634255,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 230.6774407076873,
+            "rms_penetration_mm": 0.18903443106257764
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 1677.0933642555835
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.571,
+        "driver_circle_diameter": 46.402,
+        "driver_pin_collision_shrink_mm": 0.627,
+        "eccentricity": 2.296,
+        "line_segment_count": 42,
+        "pins": 10
+      },
+      "proposer": "fast_reward_pool",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_pool_022",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.09299999999998665,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.09299999999999908,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 10
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.0,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.0
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 82.771929,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.549667,
+          "eccentricity": 0.988182,
+          "engagement": 0.886585,
+          "manufacturability": 0.767283,
+          "segment_resolution": 1.0,
+          "target_ratio": 1.0,
+          "torque_density_proxy": 0.934791
+        },
+        "score": 82.771929,
+        "scoring_params": {
+          "clearance": 0.687,
+          "driver_circle_diameter": 54.808,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.093,
+          "eccentricity": 2.213,
+          "line_segment_count": 42.0,
+          "pins": 10.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "vg_pool_022",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_pool_022/cycloidal_assets_manifest.json",
+      "method": "verifier_gated",
+      "metrics": {
+        "contact_force_rms_N": 825.5443628050322,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 1.387895665658657,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 0.0006448628730902392,
+        "max_penetration_mm": 0.4417375384946354,
+        "n_contacts_max": 27.0,
+        "out_omega_med": 0.036871023057310964,
+        "output_power_W_mean": 0.019397769156713412,
+        "output_torque_Nm_mean": 0.5260979367608605,
+        "output_torque_Nm_signed_mean": -0.19684006086587041,
+        "passed": 0.0,
+        "power_balance_error_pct": 98.60236114020086,
+        "ratio_error_pct": 2913.5076788730294,
+        "ratio_observed": 271.2156910985726,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 40.0,
+            "max_force_N": 3010.8944472276144,
+            "max_penetration_mm": 0.4417375384946354,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 1651.0769101153699,
+            "rms_penetration_mm": 0.42816872971658393
+          },
+          {
+            "active_sample_count": 2.0,
+            "max_force_N": 39.94538734478687,
+            "max_penetration_mm": 0.09748347656568512,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 6.2463365702393565,
+            "rms_penetration_mm": 0.017981733338740456
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 4985.137431215109
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.687,
+        "driver_circle_diameter": 54.808,
+        "driver_pin_collision_shrink_mm": 0.093,
+        "eccentricity": 2.213,
+        "line_segment_count": 42,
+        "pins": 10
+      },
+      "proposer": "fast_reward_pool",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_pool_023",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.34499999999999176,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.34499999999999886,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 11
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.0,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.26207004617251567
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 79.882271,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 1.0,
+          "eccentricity": 0.577273,
+          "engagement": 0.579268,
+          "manufacturability": 0.747885,
+          "segment_resolution": 1.0,
+          "target_ratio": 0.75,
+          "torque_density_proxy": 0.913325
+        },
+        "score": 79.882271,
+        "scoring_params": {
+          "clearance": 0.379,
+          "driver_circle_diameter": 42.31,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.345,
+          "eccentricity": 2.665,
+          "line_segment_count": 44.0,
+          "pins": 11.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "vg_pool_023",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_pool_023/cycloidal_assets_manifest.json",
+      "method": "verifier_gated",
+      "metrics": {
+        "contact_force_rms_N": 152.0277118270602,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 1.0192272111732519,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 5.25744732685385e-05,
+        "max_penetration_mm": 0.49194735038327053,
+        "n_contacts_max": 30.0,
+        "out_omega_med": 0.008875642579206105,
+        "output_power_W_mean": 0.004715589436345058,
+        "output_torque_Nm_mean": 0.5312955534501539,
+        "output_torque_Nm_signed_mean": -0.05915919482592439,
+        "passed": 0.0,
+        "power_balance_error_pct": 99.53733677980233,
+        "ratio_error_pct": 11166.789881138347,
+        "ratio_observed": 1126.6789881138347,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 29.0,
+            "max_force_N": 798.5677956998202,
+            "max_penetration_mm": 0.49194735038327053,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 304.042379683214,
+            "rms_penetration_mm": 0.20422980866832602
+          },
+          {
+            "active_sample_count": 12.0,
+            "max_force_N": 13.883433636849643,
+            "max_penetration_mm": 0.030464572773780674,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 2.81638244117284,
+            "rms_penetration_mm": 0.009487199965777857
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 4431.459056703691
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.379,
+        "driver_circle_diameter": 42.31,
+        "driver_pin_collision_shrink_mm": 0.345,
+        "eccentricity": 2.665,
+        "line_segment_count": 44,
+        "pins": 11
+      },
+      "proposer": "fast_reward_pool",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_pool_031",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.17099999999999316,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.17100000000000026,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 10
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.6572029366898773,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.6572029366898737
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 79.596778,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.934917,
+          "eccentricity": 0.735455,
+          "engagement": 0.791463,
+          "manufacturability": 0.660213,
+          "segment_resolution": 1.0,
+          "target_ratio": 1.0,
+          "torque_density_proxy": 0.718801
+        },
+        "score": 79.596778,
+        "scoring_params": {
+          "clearance": 0.823,
+          "driver_circle_diameter": 45.562,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.171,
+          "eccentricity": 2.491,
+          "line_segment_count": 42.0,
+          "pins": 10.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "vg_pool_031",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_pool_031/cycloidal_assets_manifest.json",
+      "method": "verifier_gated",
+      "metrics": {
+        "contact_force_rms_N": 376.4402725291948,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 1.469600834899233,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 8.217501491173186e-05,
+        "max_penetration_mm": 0.47483924572588876,
+        "n_contacts_max": 35.0,
+        "out_omega_med": 0.008028497553055116,
+        "output_power_W_mean": 0.004410570326281636,
+        "output_torque_Nm_mean": 0.5493643483273236,
+        "output_torque_Nm_signed_mean": -0.14931345940489812,
+        "passed": 0.0,
+        "power_balance_error_pct": 99.69987970736393,
+        "ratio_error_pct": 13739.589584084702,
+        "ratio_observed": 1245.5630625676233,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 31.0,
+            "max_force_N": 2301.1658480418664,
+            "max_penetration_mm": 0.47483924572588876,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 752.8805450583894,
+            "rms_penetration_mm": 0.28473129069006764
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 1817.9938800392765
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.823,
+        "driver_circle_diameter": 45.562,
+        "driver_pin_collision_shrink_mm": 0.171,
+        "eccentricity": 2.491,
+        "line_segment_count": 42,
+        "pins": 10
+      },
+      "proposer": "fast_reward_pool",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_pool_005",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.5679999999999925,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.5679999999999996,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 11
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.0,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.5095516130092632
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 78.540558,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 1.0,
+          "eccentricity": 0.901818,
+          "engagement": 0.307317,
+          "manufacturability": 0.887231,
+          "segment_resolution": 1.0,
+          "target_ratio": 0.75,
+          "torque_density_proxy": 0.841768
+        },
+        "score": 78.540558,
+        "scoring_params": {
+          "clearance": 0.62,
+          "driver_circle_diameter": 43.631,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.568,
+          "eccentricity": 2.092,
+          "line_segment_count": 44.0,
+          "pins": 11.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "vg_pool_005",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_pool_005/cycloidal_assets_manifest.json",
+      "method": "verifier_gated",
+      "metrics": {
+        "contact_force_rms_N": 125.4757694504213,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 0.7164652349898168,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 3.360503553792319e-05,
+        "max_penetration_mm": 0.390987734135706,
+        "n_contacts_max": 44.0,
+        "out_omega_med": -0.10544453829140886,
+        "output_power_W_mean": 0.05594466832332461,
+        "output_torque_Nm_mean": 0.5305601336004212,
+        "output_torque_Nm_signed_mean": -0.12469338774627674,
+        "passed": 0.0,
+        "power_balance_error_pct": 92.19157251585003,
+        "ratio_error_pct": 848.3658577330747,
+        "ratio_observed": 94.83658577330746,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 24.0,
+            "max_force_N": 887.7826280756879,
+            "max_penetration_mm": 0.390987734135706,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 250.0989644793987,
+            "rms_penetration_mm": 0.15206842633057163
+          },
+          {
+            "active_sample_count": 26.0,
+            "max_force_N": 73.05759647625415,
+            "max_penetration_mm": 0.12339429667918012,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 20.66840204354435,
+            "rms_penetration_mm": 0.03678416731896347
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 1326.1281892052903
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.62,
+        "driver_circle_diameter": 43.631,
+        "driver_pin_collision_shrink_mm": 0.568,
+        "eccentricity": 2.092,
+        "line_segment_count": 44,
+        "pins": 11
+      },
+      "proposer": "fast_reward_pool",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_pool_028",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.17399999999998705,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.1739999999999995,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 10
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.0,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.0
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "nonfinite_ratio",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 78.327349,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.436583,
+          "eccentricity": 0.795455,
+          "engagement": 0.787805,
+          "manufacturability": 0.661346,
+          "segment_resolution": 1.0,
+          "target_ratio": 1.0,
+          "torque_density_proxy": 0.951074
+        },
+        "score": 78.327349,
+        "scoring_params": {
+          "clearance": 0.325,
+          "driver_circle_diameter": 57.522,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.174,
+          "eccentricity": 2.425,
+          "line_segment_count": 42.0,
+          "pins": 10.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "vg_pool_028",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_pool_028/cycloidal_assets_manifest.json",
+      "method": "verifier_gated",
+      "metrics": {
+        "contact_force_rms_N": 0.005188499608153238,
+        "failure_mode": "solver_diverged",
+        "in_omega_med": 10.0,
+        "lockup_detected": 0.0,
+        "max_constraint_error_mm": 3465864.797941991,
+        "max_penetration_mm": 0.008984781743492931,
+        "n_contacts_max": 1.0,
+        "out_omega_med": null,
+        "output_power_W_mean": null,
+        "output_torque_Nm_mean": null,
+        "output_torque_Nm_signed_mean": null,
+        "passed": 0.0,
+        "power_balance_error_pct": 0.0,
+        "ratio_error_pct": null,
+        "ratio_observed": null,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 2.0,
+            "max_force_N": 0.06644521519375367,
+            "max_penetration_mm": 0.008984781743492931,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.010376999216306476,
+            "rms_penetration_mm": 0.001466695854665516
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 0.0
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.325,
+        "driver_circle_diameter": 57.522,
+        "driver_pin_collision_shrink_mm": 0.174,
+        "eccentricity": 2.425,
+        "line_segment_count": 42,
+        "pins": 10
+      },
+      "proposer": "fast_reward_pool",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_pool_006",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.3379999999999921,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.3379999999999992,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 10
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.7091583617500858,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.7091583617500831
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 3,
+      "defects": [
+        "lockup",
+        "output_speed_below_gate",
+        "ratio_error_over_gate"
+      ],
+      "fast_reward": 76.898462,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.843792,
+          "eccentricity": 0.883636,
+          "engagement": 0.587805,
+          "manufacturability": 0.762965,
+          "segment_resolution": 1.0,
+          "target_ratio": 1.0,
+          "torque_density_proxy": 0.63259
+        },
+        "score": 76.898462,
+        "scoring_params": {
+          "clearance": 0.817,
+          "driver_circle_diameter": 47.749,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.338,
+          "eccentricity": 2.072,
+          "line_segment_count": 42.0,
+          "pins": 10.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "vg_pool_006",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_pool_006/cycloidal_assets_manifest.json",
+      "method": "verifier_gated",
+      "metrics": {
+        "contact_force_rms_N": 195.05824667001116,
+        "failure_mode": "lockup_mechanism_jammed",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 0.7555338188862045,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 2.650970504149159e-05,
+        "max_penetration_mm": 0.41557045915396884,
+        "n_contacts_max": 30.0,
+        "out_omega_med": 0.00028011069385652397,
+        "output_power_W_mean": 0.00013918540316681992,
+        "output_torque_Nm_mean": 0.49689428579300277,
+        "output_torque_Nm_signed_mean": 0.17845517132796554,
+        "passed": 0.0,
+        "power_balance_error_pct": 99.98157787253362,
+        "ratio_error_pct": 396568.57977233647,
+        "ratio_observed": 35700.172179510286,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 26.0,
+            "max_force_N": 1598.9780326316288,
+            "max_penetration_mm": 0.41557045915396884,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 390.1164933400223,
+            "rms_penetration_mm": 0.19356252004801383
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 899.242517838362
+      },
+      "paper_grade_passed": false,
+      "params": {
+        "clearance": 0.817,
+        "driver_circle_diameter": 47.749,
+        "driver_pin_collision_shrink_mm": 0.338,
+        "eccentricity": 2.072,
+        "line_segment_count": 42,
+        "pins": 10
+      },
+      "proposer": "fast_reward_pool",
+      "verified_gate_passed": false,
+      "verified_reward": 0.0
+    },
+    {
+      "asset_dir": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_refine_driver_circle_0495",
+      "cad_generated": true,
+      "cad_static_audit": {
+        "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.12899999999999157,
+        "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.12900000000000045,
+        "feature_frame_counts": {
+          "cycloidalDisk1_output_holes": 6,
+          "cycloidalDisk2_output_holes": 6,
+          "driver_pins": 6,
+          "ring_pins": 11
+        },
+        "ring_pins_to_cycloidalDisk1_distance_mm": 0.0,
+        "ring_pins_to_cycloidalDisk2_distance_mm": 0.2830779269037452
+      },
+      "cad_static_ok": true,
+      "chrono_execution_mode": null,
+      "chrono_preflight_issues": [],
+      "chrono_real_geometry": true,
+      "defect_count": 0,
+      "defects": [],
+      "fast_reward": 75.072272,
+      "fast_reward_detail": {
+        "components": {
+          "compactness": 0.770833,
+          "eccentricity": 0.801818,
+          "engagement": 0.842683,
+          "manufacturability": 0.650308,
+          "segment_resolution": 1.0,
+          "target_ratio": 0.75,
+          "torque_density_proxy": 0.747809
+        },
+        "score": 75.072272,
+        "scoring_params": {
+          "clearance": 0.336,
+          "driver_circle_diameter": 49.5,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.129,
+          "eccentricity": 1.982,
+          "line_segment_count": 44.0,
+          "pins": 11.0,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        }
+      },
+      "id": "vg_refine_driver_circle_0495",
+      "manifest_path": "/private/tmp/mech_bench_corl_opt/verifier_gated/vg_refine_driver_circle_0495/cycloidal_assets_manifest.json",
+      "method": "verifier_gated",
+      "metrics": {
+        "contact_force_rms_N": 483.87033682254645,
+        "failure_mode": "none",
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 2.0662025675775575,
+        "lockup_detected": 0.0,
+        "max_constraint_error_mm": 0.00011087657349639676,
+        "max_penetration_mm": 0.4012164499727078,
+        "n_contacts_max": 36.0,
+        "out_omega_med": 1.2614425828515652,
+        "output_power_W_mean": 0.6528134541880793,
+        "output_torque_Nm_mean": 0.5175134112821498,
+        "output_torque_Nm_signed_mean": -0.2604438920112647,
+        "passed": 1.0,
+        "power_balance_error_pct": 68.40515715003461,
+        "ratio_error_pct": 20.72568235809504,
+        "ratio_observed": 7.927431764190496,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 32.0,
+            "max_force_N": 1956.1680615172581,
+            "max_penetration_mm": 0.4012164499727078,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 967.5100544665318,
+            "rms_penetration_mm": 0.2718052030819057
+          },
+          {
+            "active_sample_count": 26.0,
+            "max_force_N": 87.31312900863927,
+            "max_penetration_mm": 0.07723559247097,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 21.125954019332717,
+            "rms_penetration_mm": 0.03148084365953155
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:pinDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          },
+          {
+            "active_sample_count": 0.0,
+            "max_force_N": 0.0,
+            "max_penetration_mm": 0.0,
+            "pair": "cycloidalDisk2:driverDisk",
+            "rms_force_N": 0.0,
+            "rms_penetration_mm": 0.0
+          }
+        ],
+        "torque_ripple_pct": 844.1038835190229
+      },
+      "paper_grade_passed": true,
+      "params": {
+        "clearance": 0.336,
+        "driver_circle_diameter": 49.5,
+        "driver_pin_collision_shrink_mm": 0.129,
+        "eccentricity": 1.982,
+        "line_segment_count": 44,
+        "pins": 11
+      },
+      "proposer": "deterministic_boundary_refinement",
+      "verified_gate_passed": true,
+      "verified_reward": 63.988047
+    }
+  ],
+  "claim": "Cycloidal/QDD actuator candidates are scored by a cheap CPS reward, then audited through FreeCAD/OCCT CAD export, trusted DesignIR asset checks, and Chrono SMC with procedural fallback disabled. Verified reward is zero unless all hard gates pass.",
+  "generated_at_utc": "2026-05-26T03:39:56.407106+00:00",
+  "limits": {
+    "max_contact_force_rms_N": 3000.0,
+    "max_contacts": 128.0,
+    "max_penetration_mm": 1.0,
+    "max_power_balance_error_pct": 1000000000000.0,
+    "max_ratio_error_pct": 25.0,
+    "max_torque_ripple_pct": 1000000000000.0,
+    "min_output_speed_rad_s": 0.5
+  },
+  "method_table": [
+    {
+      "CAD pass rate": 1.0,
+      "Chrono pass rate": 0.0,
+      "best_fast_reward": 78.379423,
+      "best_verified_reward": 0.0,
+      "candidate_count": 1,
+      "lockup rate": 1.0,
+      "mean defect count": 3.0,
+      "method": "seed"
+    },
+    {
+      "CAD pass rate": 1.0,
+      "Chrono pass rate": 0.0,
+      "best_fast_reward": 74.802793,
+      "best_verified_reward": 0.0,
+      "candidate_count": 8,
+      "lockup rate": 0.625,
+      "mean defect count": 2.25,
+      "method": "random"
+    },
+    {
+      "CAD pass rate": 1.0,
+      "Chrono pass rate": 0.0,
+      "best_fast_reward": 88.278388,
+      "best_verified_reward": 0.0,
+      "candidate_count": 8,
+      "lockup rate": 1.0,
+      "mean defect count": 3.0,
+      "method": "cma_es_fast_only"
+    },
+    {
+      "CAD pass rate": 1.0,
+      "Chrono pass rate": 0.125,
+      "best_fast_reward": 83.231427,
+      "best_verified_reward": 63.988047,
+      "candidate_count": 8,
+      "lockup rate": 0.75,
+      "mean defect count": 2.625,
+      "method": "verifier_gated"
+    }
+  ],
+  "out_dir": "/private/tmp/mech_bench_corl_opt",
+  "schema": "mech_bench.cycloidal_verifier_gated_experiment.v1",
+  "win_condition_met": true
+}

@@ -4,6 +4,7 @@ import importlib.util
 import math
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 
 def _load_module():
@@ -195,3 +196,18 @@ def test_method_table_reports_requested_baseline_columns():
     assert by_method["verifier_gated"]["CAD pass rate"] == 0.5
     assert by_method["verifier_gated"]["Chrono pass rate"] == 0.5
     assert by_method["verifier_gated"]["mean defect count"] == 2.0
+
+
+def test_verifier_gated_plan_includes_boundary_refinement_candidate():
+    mod = _load_module()
+
+    plans = mod._experiment_plans(SimpleNamespace(
+        seed=20260525,
+        random_candidates=8,
+        cma_candidates=8,
+        verifier_pool=32,
+        verifier_audit_k=8,
+    ))
+    verifier_ids = {candidate.id for candidate in plans["verifier_gated"]}
+
+    assert "vg_refine_driver_circle_0495" in verifier_ids

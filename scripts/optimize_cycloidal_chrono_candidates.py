@@ -261,6 +261,7 @@ def _experiment_plans(args: argparse.Namespace) -> dict[str, list[Candidate]]:
         prefix="vg_pool",
         proposer="fast_reward_pool",
     )
+    verifier_pool.extend(_verifier_refinement_candidates())
     verifier_candidates = sorted(
         verifier_pool,
         key=lambda c: fast_cps_actuator_reward(c.params)["score"],
@@ -360,6 +361,37 @@ def _cma_style_fast_only_candidates(
             sigma, [0.25, 0.04, 0.65, 0.035, 0.08])]
         generation += 1
     return list(collected.values())[:count]
+
+
+def _verifier_refinement_candidates() -> list[Candidate]:
+    """Deterministic local search around the CAD-valid transmission boundary."""
+
+    base = {
+        "pins": 11,
+        "line_segment_count": 44,
+        "eccentricity": 1.982,
+        "clearance": 0.336,
+        "driver_circle_diameter": 50.848,
+        "driver_pin_collision_shrink_mm": 0.129,
+    }
+    variants = [
+        ("shrink_014", {"driver_pin_collision_shrink_mm": 0.140}),
+        ("shrink_016", {"driver_pin_collision_shrink_mm": 0.160}),
+        ("shrink_018", {"driver_pin_collision_shrink_mm": 0.180}),
+        ("driver_circle_0495", {"driver_circle_diameter": 49.500}),
+        ("driver_circle_0520", {"driver_circle_diameter": 52.000}),
+        ("ecc_190", {"eccentricity": 1.900}),
+        ("clearance_034", {"clearance": 0.340}),
+    ]
+    return [
+        Candidate(
+            id=f"vg_refine_{suffix}",
+            method="verifier_gated",
+            params={**base, **delta},
+            proposer="deterministic_boundary_refinement",
+        )
+        for suffix, delta in variants
+    ]
 
 
 def _params_from_vector(

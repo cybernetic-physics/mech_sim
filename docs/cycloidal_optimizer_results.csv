@@ -1,0 +1,5 @@
+method,best_fast_reward,best_verified_reward,CAD pass rate,Chrono pass rate,lockup rate,mean defect count
+seed,78.379423,0.0,1.0,0.0,1.0,3.0
+random,74.802793,0.0,1.0,0.0,0.625,2.25
+cma_es_fast_only,88.278388,0.0,1.0,0.0,1.0,3.0
+verifier_gated,83.231427,63.988047,1.0,0.125,0.75,2.625
