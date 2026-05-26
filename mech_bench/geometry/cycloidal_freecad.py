@@ -39,6 +39,10 @@ DEFAULT_SOURCE_CANDIDATES = (
     "/tmp/CycloidGearBox",
 )
 
+MASS_KG_DECIMALS = 12
+COM_MM_DECIMALS = 9
+INERTIA_KG_M2_DECIMALS = 15
+
 
 class CycloidalCadExportError(RuntimeError):
     """Raised when the FreeCAD asset bridge cannot produce usable assets."""
@@ -704,7 +708,11 @@ def _mass_properties_for_body(
                 for row in list(inertia_raw)[:3]
             )
             if len(com_vals) == 3 and len(inertia) == 3:
-                return mass, tuple(com_vals), inertia  # type: ignore[return-value]
+                return _canonical_chrono_mass_properties(
+                    mass,
+                    tuple(com_vals),
+                    inertia,  # type: ignore[arg-type]
+                )
         except (KeyError, TypeError, ValueError):
             pass
 
@@ -724,7 +732,35 @@ def _mass_properties_for_body(
     ixx = mass * (sy * sy + sz * sz) / 12.0
     iyy = mass * (sx * sx + sz * sz) / 12.0
     izz = mass * (sx * sx + sy * sy) / 12.0
-    return mass, com, ((ixx, 0.0, 0.0), (0.0, iyy, 0.0), (0.0, 0.0, izz))
+    return _canonical_chrono_mass_properties(
+        mass,
+        com,
+        ((ixx, 0.0, 0.0), (0.0, iyy, 0.0), (0.0, 0.0, izz)),
+    )
+
+
+def _canonical_chrono_mass_properties(
+    mass_kg: float,
+    com_mm: tuple[float, float, float],
+    inertia_kg_m2: tuple[
+        tuple[float, float, float],
+        tuple[float, float, float],
+        tuple[float, float, float],
+    ],
+) -> tuple[
+    float,
+    tuple[float, float, float],
+    tuple[tuple[float, float, float], tuple[float, float, float], tuple[float, float, float]],
+]:
+    """Suppress FreeCAD/OCCT export jitter before Chrono consumes the body."""
+
+    mass = round(float(mass_kg), MASS_KG_DECIMALS)
+    com = tuple(round(float(v), COM_MM_DECIMALS) for v in com_mm[:3])
+    inertia = tuple(
+        tuple(round(float(v), INERTIA_KG_M2_DECIMALS) for v in row[:3])
+        for row in inertia_kg_m2[:3]
+    )
+    return mass, com, inertia  # type: ignore[return-value]
 
 
 def _collision_primitives_by_body(

@@ -211,3 +211,34 @@ def test_verifier_gated_plan_includes_boundary_refinement_candidate():
     verifier_ids = {candidate.id for candidate in plans["verifier_gated"]}
 
     assert "vg_refine_driver_circle_0495" in verifier_ids
+    assert "vg_refine_strict_anchor" in verifier_ids
+    assert len(plans["verifier_gated"]) == 8
+
+
+def test_verifier_selection_keeps_strict_physics_portfolio():
+    mod = _load_module()
+    pool = [
+        mod.Candidate(
+            id=f"fast_{idx}",
+            method="verifier_gated",
+            params={
+                "pins": 10,
+                "eccentricity": 2.95,
+                "clearance": 0.60 + idx * 0.01,
+                "driver_circle_diameter": 56.0,
+                "driver_pin_collision_shrink_mm": 0.45,
+                "line_segment_count": 42,
+            },
+            proposer="fast_reward_pool",
+        )
+        for idx in range(12)
+    ]
+    pool.extend(mod._verifier_refinement_candidates())
+
+    selected = mod._select_verifier_candidates(pool, audit_k=4)
+
+    assert selected[0].id == "vg_refine_strict_anchor"
+    assert any(
+        candidate.proposer == "strict_power_ripple_refinement"
+        for candidate in selected
+    )

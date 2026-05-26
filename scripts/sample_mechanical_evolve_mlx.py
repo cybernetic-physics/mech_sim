@@ -214,8 +214,8 @@ def build_prompt(
             "Verifier gate: fallback=false, Chrono SMC, out_omega_med>=0.5, "
             "finite ratio, ratio_error_pct<=25, max_penetration_mm<1.0, "
             "contact_force_rms_N<=3000, n_contacts_max<=128, lockup=false; "
-            "report power_balance_error_pct and torque_ripple_pct as "
-            "physical quality metrics."
+            "strict paper runs also require power_balance_error_pct<=90 and "
+            "torque_ripple_pct<=1000."
         ),
         "Prefer variants near verified elites, but do not copy any elite exactly.",
         "Each candidate must differ from every elite and already-tried tuple in at least one numeric variable.",
@@ -319,6 +319,8 @@ def compact_elites(archive: dict[str, Any]) -> list[dict[str, Any]]:
             "defects": row.get("defects", []),
             "ratio_error_pct": metrics.get("ratio_error_pct"),
             "out_omega_med": metrics.get("out_omega_med"),
+            "power_balance_error_pct": metrics.get("power_balance_error_pct"),
+            "torque_ripple_pct": metrics.get("torque_ripple_pct"),
         })
     return out
 

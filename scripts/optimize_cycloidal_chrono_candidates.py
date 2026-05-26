@@ -277,11 +277,10 @@ def _experiment_plans(args: argparse.Namespace) -> dict[str, list[Candidate]]:
         proposer="fast_reward_pool",
     )
     verifier_pool.extend(_verifier_refinement_candidates())
-    verifier_candidates = sorted(
+    verifier_candidates = _select_verifier_candidates(
         verifier_pool,
-        key=lambda c: fast_cps_actuator_reward(c.params)["score"],
-        reverse=True,
-    )[:max(0, int(args.verifier_audit_k))]
+        audit_k=max(0, int(args.verifier_audit_k)),
+    )
     return {
         "seed": seed,
         "random": random_candidates,
@@ -381,7 +380,7 @@ def _cma_style_fast_only_candidates(
 def _verifier_refinement_candidates() -> list[Candidate]:
     """Deterministic local search around the CAD-valid transmission boundary."""
 
-    base = {
+    boundary_base = {
         "pins": 11,
         "line_segment_count": 44,
         "eccentricity": 1.982,
@@ -389,24 +388,95 @@ def _verifier_refinement_candidates() -> list[Candidate]:
         "driver_circle_diameter": 50.848,
         "driver_pin_collision_shrink_mm": 0.129,
     }
-    variants = [
+    boundary_variants = [
+        ("driver_circle_0495", {"driver_circle_diameter": 49.500}),
         ("shrink_014", {"driver_pin_collision_shrink_mm": 0.140}),
         ("shrink_016", {"driver_pin_collision_shrink_mm": 0.160}),
         ("shrink_018", {"driver_pin_collision_shrink_mm": 0.180}),
-        ("driver_circle_0495", {"driver_circle_diameter": 49.500}),
         ("driver_circle_0520", {"driver_circle_diameter": 52.000}),
         ("ecc_190", {"eccentricity": 1.900}),
         ("clearance_034", {"clearance": 0.340}),
     ]
-    return [
+    candidates = [
         Candidate(
             id=f"vg_refine_{suffix}",
             method="verifier_gated",
-            params={**base, **delta},
+            params={**boundary_base, **delta},
             proposer="deterministic_boundary_refinement",
         )
-        for suffix, delta in variants
+        for suffix, delta in boundary_variants
     ]
+    strict_base = {
+        "pins": 11,
+        "line_segment_count": 44,
+        "eccentricity": 2.0,
+        "clearance": 0.34,
+        "driver_circle_diameter": 49.5,
+        "driver_pin_collision_shrink_mm": 0.13,
+    }
+    strict_variants = [
+        ("strict_anchor", {}),
+        ("strict_ecc_198", {"eccentricity": 1.98}),
+        ("strict_ecc_202", {"eccentricity": 2.02}),
+        ("strict_clearance_036", {"clearance": 0.36}),
+        ("strict_clearance_032", {"clearance": 0.32}),
+        ("strict_circle_0500", {"driver_circle_diameter": 50.0}),
+        ("strict_shrink_014", {"driver_pin_collision_shrink_mm": 0.14}),
+        ("strict_shrink_012", {"driver_pin_collision_shrink_mm": 0.12}),
+    ]
+    candidates.extend(
+        Candidate(
+            id=f"vg_refine_{suffix}",
+            method="verifier_gated",
+            params={**strict_base, **delta},
+            proposer="strict_power_ripple_refinement",
+        )
+        for suffix, delta in strict_variants
+    )
+    return candidates
+
+
+def _select_verifier_candidates(
+    pool: Iterable[Candidate],
+    *,
+    audit_k: int,
+) -> list[Candidate]:
+    """Pick a verifier portfolio instead of blindly auditing fast-score elites."""
+
+    if audit_k <= 0:
+        return []
+    unique = _unique_candidates(pool)
+    strict = [
+        c for c in unique if c.proposer == "strict_power_ripple_refinement"
+    ]
+    boundary = [
+        c for c in unique if c.proposer == "deterministic_boundary_refinement"
+    ]
+    selected: list[Candidate] = []
+    selected.extend(strict[:min(len(strict), max(1, audit_k // 2))])
+    if boundary:
+        selected.extend(boundary[:min(len(boundary), max(1, audit_k // 4))])
+    for candidate in sorted(
+        unique,
+        key=lambda c: fast_cps_actuator_reward(c.params)["score"],
+        reverse=True,
+    ):
+        selected.append(candidate)
+        if len(_unique_candidates(selected)) >= audit_k:
+            break
+    return _unique_candidates(selected)[:audit_k]
+
+
+def _unique_candidates(candidates: Iterable[Candidate]) -> list[Candidate]:
+    seen: set[tuple[Any, ...]] = set()
+    unique: list[Candidate] = []
+    for candidate in candidates:
+        key = _candidate_key(candidate.params)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(candidate)
+    return unique
 
 
 def _params_from_vector(
