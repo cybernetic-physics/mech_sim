@@ -1,0 +1,7 @@
+method,best_fast_reward,best_verified_reward,verified_pass_rate,cad_pass_rate,lockup_rate,source
+seed,78.379423,0.0,0.0,1.0,1.0,optimizer_baseline_exact_first_experiment
+random,74.802793,0.0,0.0,1.0,0.625,optimizer_baseline_exact_first_experiment
+cma_es_fast_only,88.278388,0.0,0.0,1.0,1.0,optimizer_baseline_exact_first_experiment
+verifier_gated,83.231427,63.988047,0.125,1.0,0.75,optimizer_baseline_exact_first_experiment
+qwen3_32b_zero_shot,81.229228,0.0,0.0,1.0,0.75,qwen3_32b_closed_loop_equal_budget
+mechanical_evolve_lora_ttrl,76.829439,67.286017,0.5,1.0,0.5,qwen3_32b_closed_loop_equal_budget

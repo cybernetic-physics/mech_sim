@@ -203,6 +203,11 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--resume", action="store_true")
     parser.add_argument(
+        "--no-seed-bootstrap",
+        action="store_true",
+        help="Do not prepend current seed/refinement proposals in generation 0.",
+    )
+    parser.add_argument(
         "--proposal-jsonl",
         default=None,
         help="Optional JSONL proposals from a Kimi/Qwen/vLLM/SGLang process.",
@@ -285,6 +290,7 @@ def main() -> int:
             max_examples=max(1, int(args.lora_max_examples)),
             prepare_only=bool(args.lora_prepare_only),
         ),
+        seed_bootstrap=not bool(args.no_seed_bootstrap),
     )
     if args.resume:
         runner.load_state()
@@ -334,6 +340,7 @@ class MechanicalEvolveRunner:
         trainer_command: str | None,
         trainer_backend: str,
         mlx_lora: MlxLoraTrainerConfig,
+        seed_bootstrap: bool = True,
     ) -> None:
         self.out_dir = out_dir
         self.assets_dir = out_dir / "assets"
@@ -352,6 +359,7 @@ class MechanicalEvolveRunner:
         self.trainer_command = trainer_command
         self.trainer_backend = trainer_backend
         self.mlx_lora = mlx_lora
+        self.seed_bootstrap = bool(seed_bootstrap)
         self.archive = MapElitesArchive()
         self.policy = PolicyState()
         self.seen_ids: set[str] = set()
@@ -472,7 +480,7 @@ class MechanicalEvolveRunner:
         update_policy: bool,
     ) -> list[Proposal]:
         proposals: list[Proposal] = []
-        if generation == 0 and not self.archive.cells:
+        if self.seed_bootstrap and generation == 0 and not self.archive.cells:
             proposals.extend(seed_proposals())
         proposals.extend(self._external_proposals(generation))
         parents = self.archive.elites(limit=max(1, min(8, population)))
@@ -1156,9 +1164,10 @@ def parse_model_payload(
         if not isinstance(params, dict):
             continue
         clean = normalize_params(params)
+        proposal_method = str(item.get("method") or method)
         proposals.append(Proposal(
             id=str(item.get("id") or f"{id_prefix}_{idx:03d}"),
-            method=method,
+            method=proposal_method,
             params=clean,
             proposer=proposer,
             parent_id=item.get("parent_id"),

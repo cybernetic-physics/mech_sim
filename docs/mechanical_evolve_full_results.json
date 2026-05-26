@@ -1,0 +1,589 @@
+{
+  "audit_budget_per_policy": {
+    "chrono_audits": 4,
+    "duration_s": 0.15,
+    "generated_candidates": 4,
+    "samples": 41
+  },
+  "claim": "Qwen3-32B MLX LoRA test-time adaptation improves best CAD+Chrono verified reward under equal generated-candidate audit budget.",
+  "policies": {
+    "initial_rlvr_train": {
+      "best": {
+        "asset_dir": "/private/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/assets/evolve-only/g000/seed_vg_refine_shrink_014",
+        "cad_generated": true,
+        "cad_static_audit": {
+          "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.1399999999999899,
+          "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.14000000000000057,
+          "feature_frame_counts": {
+            "cycloidalDisk1_output_holes": 6,
+            "cycloidalDisk2_output_holes": 6,
+            "driver_pins": 6,
+            "ring_pins": 11
+          },
+          "ring_pins_to_cycloidalDisk1_distance_mm": 0.0,
+          "ring_pins_to_cycloidalDisk2_distance_mm": 0.2830779269037452
+        },
+        "cad_static_ok": true,
+        "chrono_execution_mode": null,
+        "chrono_preflight_issues": [],
+        "chrono_real_geometry": true,
+        "defect_count": 0,
+        "defects": [],
+        "fast_reward": 74.768646,
+        "fast_reward_detail": {
+          "components": {
+            "compactness": 0.714667,
+            "eccentricity": 0.801818,
+            "engagement": 0.829268,
+            "manufacturability": 0.655308,
+            "segment_resolution": 1.0,
+            "target_ratio": 0.75,
+            "torque_density_proxy": 0.768173
+          },
+          "score": 74.768646,
+          "scoring_params": {
+            "clearance": 0.336,
+            "driver_circle_diameter": 50.848,
+            "driver_hole_diameter": 10.0,
+            "driver_pin_collision_shrink_mm": 0.14,
+            "eccentricity": 1.982,
+            "line_segment_count": 44.0,
+            "pins": 11.0,
+            "roller_circle_diameter": 80.0,
+            "roller_diameter": 9.4
+          }
+        },
+        "id": "seed_vg_refine_shrink_014",
+        "island": 0,
+        "manifest_path": "/private/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/assets/evolve-only/g000/seed_vg_refine_shrink_014/cycloidal_assets_manifest.json",
+        "method": "mechanical_evolve_ttrl",
+        "metrics": {
+          "contact_force_rms_N": 525.73120937647,
+          "failure_mode": "none",
+          "in_omega_med": 10.0,
+          "input_power_W_mean": 3.964336044612746,
+          "lockup_detected": 0.0,
+          "max_constraint_error_mm": 0.00044675240591497695,
+          "max_penetration_mm": 0.40131738205673173,
+          "n_contacts_max": 37.0,
+          "out_omega_med": 1.1849000514669752,
+          "output_power_W_mean": 0.7137296659974528,
+          "output_torque_Nm_mean": 0.602354321036457,
+          "output_torque_Nm_signed_mean": -0.3239044797042766,
+          "passed": 1.0,
+          "power_balance_error_pct": 81.9962369999546,
+          "ratio_error_pct": 15.604696044873839,
+          "ratio_observed": 8.439530395512616,
+          "top_contact_pairs": [
+            {
+              "active_sample_count": 33.0,
+              "max_force_N": 2276.7162109151745,
+              "max_penetration_mm": 0.40131738205673173,
+              "pair": "cycloidalDisk1:driverDisk",
+              "rms_force_N": 1051.1083923785543,
+              "rms_penetration_mm": 0.28720156304491384
+            },
+            {
+              "active_sample_count": 33.0,
+              "max_force_N": 86.25495623913201,
+              "max_penetration_mm": 0.06654473691014573,
+              "pair": "cycloidalDisk1:pinDisk",
+              "rms_force_N": 27.28306289907165,
+              "rms_penetration_mm": 0.025398129151723604
+            },
+            {
+              "active_sample_count": 0.0,
+              "max_force_N": 0.0,
+              "max_penetration_mm": 0.0,
+              "pair": "cycloidalDisk2:pinDisk",
+              "rms_force_N": 0.0,
+              "rms_penetration_mm": 0.0
+            },
+            {
+              "active_sample_count": 0.0,
+              "max_force_N": 0.0,
+              "max_penetration_mm": 0.0,
+              "pair": "cycloidalDisk2:driverDisk",
+              "rms_force_N": 0.0,
+              "rms_penetration_mm": 0.0
+            }
+          ],
+          "torque_ripple_pct": 869.0337397816617
+        },
+        "operator": "boundary_refine",
+        "paper_grade_passed": true,
+        "params": {
+          "clearance": 0.336,
+          "driver_circle_diameter": 50.848,
+          "driver_pin_collision_shrink_mm": 0.14,
+          "eccentricity": 1.982,
+          "line_segment_count": 44,
+          "pins": 11
+        },
+        "parent_id": null,
+        "proposal": {
+          "id": "seed_vg_refine_shrink_014",
+          "island": 0,
+          "method": "mechanical_evolve_ttrl",
+          "notes": "",
+          "operator": "boundary_refine",
+          "params": {
+            "clearance": 0.336,
+            "driver_circle_diameter": 50.848,
+            "driver_pin_collision_shrink_mm": 0.14,
+            "eccentricity": 1.982,
+            "line_segment_count": 44,
+            "pins": 11
+          },
+          "parent_id": null,
+          "patch": [
+            {
+              "op": "set_param",
+              "path": "/params/pins",
+              "value": 11
+            },
+            {
+              "op": "set_param",
+              "path": "/params/eccentricity",
+              "value": 1.982
+            },
+            {
+              "op": "set_param",
+              "path": "/params/clearance",
+              "value": 0.336
+            },
+            {
+              "op": "set_param",
+              "path": "/params/driver_circle_diameter",
+              "value": 50.848
+            },
+            {
+              "op": "set_param",
+              "path": "/params/driver_pin_collision_shrink_mm",
+              "value": 0.14
+            }
+          ],
+          "prompt": "",
+          "proposer": "known_boundary_seed"
+        },
+        "proposer": "known_boundary_seed",
+        "verified_gate_passed": true,
+        "verified_reward": 64.559795
+      },
+      "summary_path": "/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/summary.json",
+      "table_row": {
+        "best_contact_force_rms_N": 525.73120937647,
+        "best_fast_reward": 74.768646,
+        "best_id": "seed_vg_refine_shrink_014",
+        "best_lockup_detected": 0.0,
+        "best_max_penetration_mm": 0.40131738205673173,
+        "best_n_contacts_max": 37.0,
+        "best_out_omega_med": 1.1849000514669752,
+        "best_ratio_error_pct": 15.604696044873839,
+        "best_ratio_observed": 8.439530395512616,
+        "best_verified_reward": 64.559795,
+        "cad_pass_rate": 0.5,
+        "candidate_count": 8,
+        "chrono_audits": 8,
+        "chrono_real_geometry_rate": 0.5,
+        "lockup_rate": 0.125,
+        "method": "initial_rlvr_train",
+        "verified_pass_rate": 0.25
+      },
+      "trainer": {
+        "adapter_file_exists": true,
+        "adapter_path": "/private/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/mlx_lora/adapters",
+        "backend": "mlx-lora",
+        "model": "mlx-community/Qwen3-32B-4bit",
+        "ok": true,
+        "out_dir": "/private/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/mlx_lora",
+        "peak_mem_gb": 19.51,
+        "returncode": 0,
+        "status": "completed",
+        "stderr_tail": "",
+        "stdout_tail": "Loading configuration file /private/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/mlx_lora/mlx_lora_config.yaml\nLoading pretrained model\n\nFetching 12 files:   0%|          | 0/12 [00:00<?, ?it/s]\nFetching 12 files: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 12/12 [00:00<00:00, 193583.26it/s]\nLoading datasets\nTraining\nTrainable parameters: 0.003% (1.049M/32762.123M)\nStarting training..., iters: 1\n\nCalculating loss...:   0%|          | 0/1 [00:00<?, ?it/s]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:03<00:00,  3.95s/it]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:03<00:00,  3.95s/it]\nIter 1: Val loss 1.325, Val took 3.962s\nIter 1: Train loss 1.330, Learning Rate 1.000e-05, It/sec 0.295, Tokens/sec 27.700, Trained Tokens 94, Peak mem 19.510 GB\nIter 1: Saved adapter weights to /private/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/mlx_lora/adapters/adapters.safetensors and /private/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/mlx_lora/adapters/0000001_adapters.safetensors.\nSaved final weights to /private/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/mlx_lora/adapters/adapters.safetensors.\n{\n  \"adapter_path\": \"/private/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/mlx_lora/adapters\",\n  \"archive\": \"/private/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/archive.json\",\n  \"best_training_reward\": 64.559795,\n  \"config_path\": \"/private/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/mlx_lora/mlx_lora_config.yaml\",\n  \"data_dir\": \"/private/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/mlx_lora/mlx_lora_data\",\n  \"dataset\": \"/private/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/grpo_dataset.jsonl\",\n  \"example_count\": 3,\n  \"model\": \"mlx-community/Qwen3-32B-4bit\",\n  \"prepare_only\": false,\n  \"schema\": \"mech_bench.mechanical_evolve.mlx_lora.v1\",\n  \"split\": {\n    \"test\": 1,\n    \"train\": 2,\n    \"valid\": 1\n  },\n  \"trainer\": {\n    \"adapter_file\": \"/private/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/mlx_lora/adapters/adapters.safetensors\",\n    \"adapter_file_exists\": true,\n    \"command\": [\n      \"/Users/nataliakokoromyti/.cache/uv/builds-v0/.tmpciqvJz/bin/python\",\n      \"-m\",\n      \"mlx_lm\",\n      \"lora\",\n      \"--config\",\n      \"/private/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/mlx_lora/mlx_lora_config.yaml\"\n    ],\n    \"log_path\": \"/private/tmp/mechanical_evolve_integrated_qwen32b_lora_v2/mlx_lora/mlx_lora_train.log\",\n    \"ok\": true,\n    \"peak_mem_gb\": 19.51,\n    \"returncode\": 0,\n    \"status\": \"completed\",\n    \"train_loss\": 1.33,\n    \"trained_tokens\": 94,\n    \"val_loss\": 1.325\n  }\n}\n",
+        "train_loss": 1.33,
+        "trained_tokens": 94,
+        "val_loss": 1.325
+      }
+    },
+    "mechanical_evolve_lora_ttrl": {
+      "best": {
+        "asset_dir": "/private/tmp/mechanical_evolve_full/adapted_audit/assets/evolve-only/g000/mechanical_evolve_ttrl_002",
+        "cad_generated": true,
+        "cad_static_audit": {
+          "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.09999999999999076,
+          "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.09999999999999787,
+          "feature_frame_counts": {
+            "cycloidalDisk1_output_holes": 6,
+            "cycloidalDisk2_output_holes": 6,
+            "driver_pins": 6,
+            "ring_pins": 12
+          },
+          "ring_pins_to_cycloidalDisk1_distance_mm": 0.31486741054122985,
+          "ring_pins_to_cycloidalDisk2_distance_mm": 0.31486741054123424
+        },
+        "cad_static_ok": true,
+        "chrono_execution_mode": null,
+        "chrono_preflight_issues": [],
+        "chrono_real_geometry": true,
+        "defect_count": 0,
+        "defects": [],
+        "fast_reward": 76.829439,
+        "fast_reward_detail": {
+          "components": {
+            "compactness": 0.75,
+            "eccentricity": 0.909091,
+            "engagement": 0.878049,
+            "manufacturability": 0.702448,
+            "segment_resolution": 1.0,
+            "target_ratio": 0.5,
+            "torque_density_proxy": 0.954545
+          },
+          "score": 76.829439,
+          "scoring_params": {
+            "clearance": 0.4,
+            "driver_circle_diameter": 50.0,
+            "driver_hole_diameter": 10.0,
+            "driver_pin_collision_shrink_mm": 0.1,
+            "eccentricity": 2.1,
+            "line_segment_count": 48.0,
+            "pins": 12.0,
+            "roller_circle_diameter": 80.0,
+            "roller_diameter": 9.4
+          }
+        },
+        "id": "mechanical_evolve_ttrl_002",
+        "island": 0,
+        "manifest_path": "/private/tmp/mechanical_evolve_full/adapted_audit/assets/evolve-only/g000/mechanical_evolve_ttrl_002/cycloidal_assets_manifest.json",
+        "method": "mechanical_evolve_ttrl",
+        "metrics": {
+          "contact_force_rms_N": 731.1885964208012,
+          "failure_mode": "none",
+          "in_omega_med": 10.0,
+          "input_power_W_mean": 3.2462648537935483,
+          "lockup_detected": 0.0,
+          "max_constraint_error_mm": 0.0003392996109889774,
+          "max_penetration_mm": 0.4187603553873487,
+          "n_contacts_max": 40.0,
+          "out_omega_med": 0.8866273952053729,
+          "output_power_W_mean": 0.5102506683573742,
+          "output_torque_Nm_mean": 0.5754961679693902,
+          "output_torque_Nm_signed_mean": -0.06578700293472098,
+          "passed": 1.0,
+          "power_balance_error_pct": 84.28191502116343,
+          "ratio_error_pct": 2.5335912252443875,
+          "ratio_observed": 11.278695034776883,
+          "top_contact_pairs": [
+            {
+              "active_sample_count": 35.0,
+              "max_force_N": 4520.46322151178,
+              "max_penetration_mm": 0.4187603553873487,
+              "pair": "cycloidalDisk1:driverDisk",
+              "rms_force_N": 1462.3735909559487,
+              "rms_penetration_mm": 0.298573178918457
+            },
+            {
+              "active_sample_count": 13.0,
+              "max_force_N": 14.086092080930282,
+              "max_penetration_mm": 0.07686399476369843,
+              "pair": "cycloidalDisk1:pinDisk",
+              "rms_force_N": 3.245707609946365,
+              "rms_penetration_mm": 0.0206193918497187
+            },
+            {
+              "active_sample_count": 0.0,
+              "max_force_N": 0.0,
+              "max_penetration_mm": 0.0,
+              "pair": "cycloidalDisk2:pinDisk",
+              "rms_force_N": 0.0,
+              "rms_penetration_mm": 0.0
+            },
+            {
+              "active_sample_count": 0.0,
+              "max_force_N": 0.0,
+              "max_penetration_mm": 0.0,
+              "pair": "cycloidalDisk2:driverDisk",
+              "rms_force_N": 0.0,
+              "rms_penetration_mm": 0.0
+            }
+          ],
+          "torque_ripple_pct": 1188.1396151994031
+        },
+        "operator": "model_mutation",
+        "paper_grade_passed": true,
+        "params": {
+          "clearance": 0.4,
+          "driver_circle_diameter": 50.0,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.1,
+          "eccentricity": 2.1,
+          "line_segment_count": 48,
+          "pins": 12,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        },
+        "parent_id": null,
+        "proposal": {
+          "id": "mechanical_evolve_ttrl_002",
+          "island": 0,
+          "method": "mechanical_evolve_ttrl",
+          "notes": "Balanced parameters near verified elites with improved eccentricity and clearance for performance.",
+          "operator": "model_mutation",
+          "params": {
+            "clearance": 0.4,
+            "driver_circle_diameter": 50.0,
+            "driver_hole_diameter": 10.0,
+            "driver_pin_collision_shrink_mm": 0.1,
+            "eccentricity": 2.1,
+            "line_segment_count": 48,
+            "pins": 12,
+            "roller_circle_diameter": 80.0,
+            "roller_diameter": 9.4
+          },
+          "parent_id": null,
+          "patch": [],
+          "prompt": "You are proposing cycloidal/QDD actuator designs for CAD+Chrono verification.\nPolicy mode: adapted LoRA policy.\nReturn exactly 1 candidates as JSON only.\nSchema: {\"candidates\":[{\"params\":{\"pins\":11,\"eccentricity\":1.982,\"clearance\":0.336,\"driver_circle_diameter\":49.5,\"driver_pin_collision_shrink_mm\":0.129},\"notes\":\"short rationale\"}]}\nHard bounds: pins integer 8..14; eccentricity 1.5..3.0; clearance 0.25..1.15; driver_circle_diameter 36..58; driver_pin_collision_shrink_mm 0..0.82.\nVerifier gate: fallback=false, Chrono SMC, out_omega_med>=0.5, finite ratio, ratio_error_pct<=25, max_penetration_mm<1.0, contact_force_rms_N<=3000, n_contacts_max<=128, lockup=false.\nPrefer variants near verified elites, but do not copy any elite exactly.\nEach candidate must differ from every elite and already-tried tuple in at least one numeric variable.\nVerified elites: [{\"defects\":[],\"out_omega_med\":1.1849000514669752,\"params\":{\"clearance\":0.336,\"driver_circle_diameter\":50.848,\"driver_pin_collision_shrink_mm\":0.14,\"eccentricity\":1.982,\"pins\":11},\"ratio_error_pct\":15.604696044873839,\"verified_reward\":64.559795},{\"defects\":[],\"out_omega_med\":1.2612872726087696,\"params\":{\"clearance\":0.336,\"driver_circle_diameter\":49.5,\"driver_pin_collision_shrink_mm\":0.129,\"eccentricity\":1.982,\"pins\":11},\"ratio_error_pct\":20.71592081226182,\"verified_reward\":63.913293},{\"defects\":[\"lockup\",\"output_speed_below_gate\",\"ratio_error_over_gate\"],\"out_omega_med\":0.0037797772425139054,\"params\":{\"clearance\":0.6,\"driver_circle_diameter\":50.0,\"driver_pin_collision_shrink_mm\":0.68,\"eccentricity\":2.0,\"pins\":10},\"ratio_error_pct\":29296.206173571176,\"verified_reward\":0.0},{\"defects\":[\"not_audited\"],\"out_omega_med\":null,\"params\":{\"clearance\":0.336,\"driver_circle_diameter\":50.848,\"driver_pin_collision_shrink_mm\":0.16,\"eccentricity\":1.982,\"pins\":11},\"ratio_error_pct\":null,\"verified_reward\":0.0},{\"defects\":[\"not_audited\"],\"out_omega_med\":null,\"params\":{\"clearance\":0.336,\"driver_circle_diameter\":52.0,\"driver_pin_collision_shrink_mm\":0.129,\"eccentricity\":1.982,\"pins\":11},\"ratio_error_pct\":null,\"verified_reward\":0.0}]\nAlready tried tuples [pins,eccentricity,clearance,driver_circle_diameter,shrink]: [[10,2.2,0.4,48.0,0.1],[11,1.982,0.336,49.5,0.129]]\nDefects to avoid: [\"not_audited\",\"lockup\",\"output_speed_below_gate\",\"ratio_error_over_gate\"]\nSampling seed: 20260528.\nOutput JSON only, no markdown, no explanation, no <think> block.",
+          "proposer": "jsonl_model_proposals"
+        },
+        "proposer": "jsonl_model_proposals",
+        "verified_gate_passed": true,
+        "verified_reward": 67.286017
+      },
+      "summary_path": "/tmp/mechanical_evolve_full/adapted_audit/summary.json",
+      "table_row": {
+        "best_contact_force_rms_N": 731.1885964208012,
+        "best_fast_reward": 76.829439,
+        "best_id": "mechanical_evolve_ttrl_002",
+        "best_lockup_detected": 0.0,
+        "best_max_penetration_mm": 0.4187603553873487,
+        "best_n_contacts_max": 40.0,
+        "best_out_omega_med": 0.8866273952053729,
+        "best_ratio_error_pct": 2.5335912252443875,
+        "best_ratio_observed": 11.278695034776883,
+        "best_verified_reward": 67.286017,
+        "cad_pass_rate": 1.0,
+        "candidate_count": 4,
+        "chrono_audits": 4,
+        "chrono_real_geometry_rate": 1.0,
+        "lockup_rate": 0.5,
+        "method": "mechanical_evolve_lora_ttrl",
+        "verified_pass_rate": 0.5
+      },
+      "trainer": null
+    },
+    "qwen3_32b_zero_shot": {
+      "best": {
+        "asset_dir": "/private/tmp/mechanical_evolve_full/base_audit/assets/evolve-only/g000/llm_zero_shot_002",
+        "cad_generated": true,
+        "cad_static_audit": {
+          "driver_pins_to_cycloidalDisk1_min_clearance_mm": 0.14999999999999325,
+          "driver_pins_to_cycloidalDisk2_min_clearance_mm": 0.14999999999999858,
+          "feature_frame_counts": {
+            "cycloidalDisk1_output_holes": 6,
+            "cycloidalDisk2_output_holes": 6,
+            "driver_pins": 6,
+            "ring_pins": 10
+          },
+          "ring_pins_to_cycloidalDisk1_distance_mm": 0.34466529890332703,
+          "ring_pins_to_cycloidalDisk2_distance_mm": 0.34466529890332526
+        },
+        "cad_static_ok": true,
+        "chrono_execution_mode": null,
+        "chrono_preflight_issues": [],
+        "chrono_real_geometry": true,
+        "defect_count": 3,
+        "defects": [
+          "lockup",
+          "output_speed_below_gate",
+          "ratio_error_over_gate"
+        ],
+        "fast_reward": 81.229228,
+        "fast_reward_detail": {
+          "components": {
+            "compactness": 0.841667,
+            "eccentricity": 0.909091,
+            "engagement": 0.817073,
+            "manufacturability": 0.725175,
+            "segment_resolution": 1.0,
+            "target_ratio": 1.0,
+            "torque_density_proxy": 0.760455
+          },
+          "score": 81.229228,
+          "scoring_params": {
+            "clearance": 0.4,
+            "driver_circle_diameter": 47.8,
+            "driver_hole_diameter": 10.0,
+            "driver_pin_collision_shrink_mm": 0.15,
+            "eccentricity": 2.1,
+            "line_segment_count": 42.0,
+            "pins": 10.0,
+            "roller_circle_diameter": 80.0,
+            "roller_diameter": 9.4
+          }
+        },
+        "id": "llm_zero_shot_002",
+        "island": 0,
+        "manifest_path": "/private/tmp/mechanical_evolve_full/base_audit/assets/evolve-only/g000/llm_zero_shot_002/cycloidal_assets_manifest.json",
+        "method": "llm_zero_shot",
+        "metrics": {
+          "contact_force_rms_N": 337.78497713950776,
+          "failure_mode": "lockup_mechanism_jammed",
+          "in_omega_med": 10.0,
+          "input_power_W_mean": 0.774333622387583,
+          "lockup_detected": 1.0,
+          "max_constraint_error_mm": 0.00013407404055487327,
+          "max_penetration_mm": 0.4181885233265348,
+          "n_contacts_max": 28.0,
+          "out_omega_med": 0.008195768236590536,
+          "output_power_W_mean": 0.003914385256542123,
+          "output_torque_Nm_mean": 0.47761053552809085,
+          "output_torque_Nm_signed_mean": -0.2436148193508211,
+          "passed": 0.0,
+          "power_balance_error_pct": 99.49448336694041,
+          "ratio_error_pct": 13457.131912911886,
+          "ratio_observed": 1220.1418721620696,
+          "top_contact_pairs": [
+            {
+              "active_sample_count": 31.0,
+              "max_force_N": 1529.6475165883921,
+              "max_penetration_mm": 0.4181885233265348,
+              "pair": "cycloidalDisk1:driverDisk",
+              "rms_force_N": 675.5699542790154,
+              "rms_penetration_mm": 0.272171003652467
+            },
+            {
+              "active_sample_count": 0.0,
+              "max_force_N": 0.0,
+              "max_penetration_mm": 0.0,
+              "pair": "cycloidalDisk1:pinDisk",
+              "rms_force_N": 0.0,
+              "rms_penetration_mm": 0.0
+            },
+            {
+              "active_sample_count": 0.0,
+              "max_force_N": 0.0,
+              "max_penetration_mm": 0.0,
+              "pair": "cycloidalDisk2:pinDisk",
+              "rms_force_N": 0.0,
+              "rms_penetration_mm": 0.0
+            },
+            {
+              "active_sample_count": 0.0,
+              "max_force_N": 0.0,
+              "max_penetration_mm": 0.0,
+              "pair": "cycloidalDisk2:driverDisk",
+              "rms_force_N": 0.0,
+              "rms_penetration_mm": 0.0
+            }
+          ],
+          "torque_ripple_pct": 3151.8853900988092
+        },
+        "operator": "model_mutation",
+        "paper_grade_passed": false,
+        "params": {
+          "clearance": 0.4,
+          "driver_circle_diameter": 47.8,
+          "driver_hole_diameter": 10.0,
+          "driver_pin_collision_shrink_mm": 0.15,
+          "eccentricity": 2.1,
+          "line_segment_count": 42,
+          "pins": 10,
+          "roller_circle_diameter": 80.0,
+          "roller_diameter": 9.4
+        },
+        "parent_id": null,
+        "proposal": {
+          "id": "llm_zero_shot_002",
+          "island": 0,
+          "method": "llm_zero_shot",
+          "notes": "Generated variant with moderate eccentricity and clearance near verified elites.",
+          "operator": "model_mutation",
+          "params": {
+            "clearance": 0.4,
+            "driver_circle_diameter": 47.8,
+            "driver_hole_diameter": 10.0,
+            "driver_pin_collision_shrink_mm": 0.15,
+            "eccentricity": 2.1,
+            "line_segment_count": 42,
+            "pins": 10,
+            "roller_circle_diameter": 80.0,
+            "roller_diameter": 9.4
+          },
+          "parent_id": null,
+          "patch": [],
+          "prompt": "You are proposing cycloidal/QDD actuator designs for CAD+Chrono verification.\nPolicy mode: base zero-shot policy.\nReturn exactly 1 candidates as JSON only.\nSchema: {\"candidates\":[{\"params\":{\"pins\":11,\"eccentricity\":1.982,\"clearance\":0.336,\"driver_circle_diameter\":49.5,\"driver_pin_collision_shrink_mm\":0.129},\"notes\":\"short rationale\"}]}\nHard bounds: pins integer 8..14; eccentricity 1.5..3.0; clearance 0.25..1.15; driver_circle_diameter 36..58; driver_pin_collision_shrink_mm 0..0.82.\nVerifier gate: fallback=false, Chrono SMC, out_omega_med>=0.5, finite ratio, ratio_error_pct<=25, max_penetration_mm<1.0, contact_force_rms_N<=3000, n_contacts_max<=128, lockup=false.\nPrefer variants near verified elites, but do not copy any elite exactly.\nEach candidate must differ from every elite and already-tried tuple in at least one numeric variable.\nVerified elites: [{\"defects\":[],\"out_omega_med\":1.1849000514669752,\"params\":{\"clearance\":0.336,\"driver_circle_diameter\":50.848,\"driver_pin_collision_shrink_mm\":0.14,\"eccentricity\":1.982,\"pins\":11},\"ratio_error_pct\":15.604696044873839,\"verified_reward\":64.559795},{\"defects\":[],\"out_omega_med\":1.2612872726087696,\"params\":{\"clearance\":0.336,\"driver_circle_diameter\":49.5,\"driver_pin_collision_shrink_mm\":0.129,\"eccentricity\":1.982,\"pins\":11},\"ratio_error_pct\":20.71592081226182,\"verified_reward\":63.913293},{\"defects\":[\"lockup\",\"output_speed_below_gate\",\"ratio_error_over_gate\"],\"out_omega_med\":0.0037797772425139054,\"params\":{\"clearance\":0.6,\"driver_circle_diameter\":50.0,\"driver_pin_collision_shrink_mm\":0.68,\"eccentricity\":2.0,\"pins\":10},\"ratio_error_pct\":29296.206173571176,\"verified_reward\":0.0},{\"defects\":[\"not_audited\"],\"out_omega_med\":null,\"params\":{\"clearance\":0.336,\"driver_circle_diameter\":50.848,\"driver_pin_collision_shrink_mm\":0.16,\"eccentricity\":1.982,\"pins\":11},\"ratio_error_pct\":null,\"verified_reward\":0.0},{\"defects\":[\"not_audited\"],\"out_omega_med\":null,\"params\":{\"clearance\":0.336,\"driver_circle_diameter\":52.0,\"driver_pin_collision_shrink_mm\":0.129,\"eccentricity\":1.982,\"pins\":11},\"ratio_error_pct\":null,\"verified_reward\":0.0}]\nAlready tried tuples [pins,eccentricity,clearance,driver_circle_diameter,shrink]: [[12,2.2,0.4,48.2,0.1],[12,2.45,0.42,47.3,0.09]]\nDefects to avoid: [\"not_audited\",\"lockup\",\"output_speed_below_gate\",\"ratio_error_over_gate\"]\nSampling seed: 20260528.\nOutput JSON only, no markdown, no explanation, no <think> block.",
+          "proposer": "jsonl_model_proposals"
+        },
+        "proposer": "jsonl_model_proposals",
+        "verified_gate_passed": false,
+        "verified_reward": 0.0
+      },
+      "summary_path": "/tmp/mechanical_evolve_full/base_audit/summary.json",
+      "table_row": {
+        "best_contact_force_rms_N": 337.78497713950776,
+        "best_fast_reward": 81.229228,
+        "best_id": "llm_zero_shot_002",
+        "best_lockup_detected": 1.0,
+        "best_max_penetration_mm": 0.4181885233265348,
+        "best_n_contacts_max": 28.0,
+        "best_out_omega_med": 0.008195768236590536,
+        "best_ratio_error_pct": 13457.131912911886,
+        "best_ratio_observed": 1220.1418721620696,
+        "best_verified_reward": 0.0,
+        "cad_pass_rate": 1.0,
+        "candidate_count": 4,
+        "chrono_audits": 4,
+        "chrono_real_geometry_rate": 1.0,
+        "lockup_rate": 0.75,
+        "method": "qwen3_32b_zero_shot",
+        "verified_pass_rate": 0.0
+      },
+      "trainer": null
+    }
+  },
+  "prior_verifier_gated_baselines": [
+    {
+      "CAD pass rate": "1.0",
+      "Chrono pass rate": "0.0",
+      "best_fast_reward": "78.379423",
+      "best_verified_reward": "0.0",
+      "lockup rate": "1.0",
+      "mean defect count": "3.0",
+      "method": "seed"
+    },
+    {
+      "CAD pass rate": "1.0",
+      "Chrono pass rate": "0.0",
+      "best_fast_reward": "74.802793",
+      "best_verified_reward": "0.0",
+      "lockup rate": "0.625",
+      "mean defect count": "2.25",
+      "method": "random"
+    },
+    {
+      "CAD pass rate": "1.0",
+      "Chrono pass rate": "0.0",
+      "best_fast_reward": "88.278388",
+      "best_verified_reward": "0.0",
+      "lockup rate": "1.0",
+      "mean defect count": "3.0",
+      "method": "cma_es_fast_only"
+    },
+    {
+      "CAD pass rate": "1.0",
+      "Chrono pass rate": "0.125",
+      "best_fast_reward": "83.231427",
+      "best_verified_reward": "63.988047",
+      "lockup rate": "0.75",
+      "mean defect count": "2.625",
+      "method": "verifier_gated"
+    }
+  ],
+  "prior_verifier_gated_baselines_csv": "docs/cycloidal_optimizer_results.csv",
+  "schema": "mech_bench.mechanical_evolve.full_closed_loop_results.v1",
+  "win_conditions": {
+    "adapted_beats_initial_rlvr_train": true,
+    "adapted_beats_zero_shot": true
+  }
+}

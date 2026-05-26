@@ -1,0 +1,4 @@
+method,candidate_count,chrono_audits,best_fast_reward,best_verified_reward,verified_pass_rate,cad_pass_rate,chrono_real_geometry_rate,lockup_rate,best_id,best_out_omega_med,best_ratio_observed,best_ratio_error_pct,best_max_penetration_mm,best_contact_force_rms_N,best_n_contacts_max,best_lockup_detected
+qwen3_32b_zero_shot,4,4,81.229228,0.0,0.0,1.0,1.0,0.75,llm_zero_shot_002,0.008195768236590536,1220.1418721620696,13457.131912911886,0.4181885233265348,337.78497713950776,28.0,1.0
+mechanical_evolve_lora_ttrl,4,4,76.829439,67.286017,0.5,1.0,1.0,0.5,mechanical_evolve_ttrl_002,0.8866273952053729,11.278695034776883,2.5335912252443875,0.4187603553873487,731.1885964208012,40.0,0.0
+initial_rlvr_train,8,8,74.768646,64.559795,0.25,0.5,0.5,0.125,seed_vg_refine_shrink_014,1.1849000514669752,8.439530395512616,15.604696044873839,0.40131738205673173,525.73120937647,37.0,0.0

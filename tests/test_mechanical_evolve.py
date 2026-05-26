@@ -32,6 +32,22 @@ def _load_trainer_module():
     return module
 
 
+def _load_sampler_module():
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "scripts"
+        / "sample_mechanical_evolve_mlx.py"
+    )
+    spec = importlib.util.spec_from_file_location(
+        "sample_mechanical_evolve_mlx", path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
 def test_map_elites_keeps_best_candidate_per_cell():
     mod = _load_module()
     archive = mod.MapElitesArchive()
@@ -125,6 +141,7 @@ def test_dry_run_modes_write_archive_and_grpo_dataset(tmp_path):
         trainer_command=None,
         trainer_backend="none",
         mlx_lora=mod.MlxLoraTrainerConfig(),
+        seed_bootstrap=True,
     )
 
     evolve = runner.evolve_only(generations=1, population=8, audit_k=4)
@@ -187,3 +204,26 @@ def test_lora_trainer_prepares_reward_weighted_mlx_dataset(tmp_path):
     text = train_jsonl.read_text()
     assert "MechanicalEvolve actuator proposal policy" in text
     assert "49.5" in text
+
+
+def test_sampler_extracts_json_candidates_from_reasoning_text():
+    sampler = _load_sampler_module()
+    proposals = sampler.parse_generation(
+        """
+        <think>try a verified-near candidate</think>
+        ```json
+        {"candidates":[{"params":{"pins":11,"eccentricity":1.99,
+        "clearance":0.35,"driver_circle_diameter":50.2,
+        "driver_pin_collision_shrink_mm":0.15},"notes":"near elite"}]}
+        ```
+        """,
+        method="llm_zero_shot",
+        proposer="unit",
+        id_prefix="unit",
+        prompt="prompt",
+    )
+
+    assert len(proposals) == 1
+    assert proposals[0]["params"]["pins"] == 11
+    assert proposals[0]["params"]["line_segment_count"] == 44
+    assert proposals[0]["params"]["driver_pin_collision_shrink_mm"] == 0.15
