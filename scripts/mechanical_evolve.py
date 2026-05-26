@@ -253,6 +253,8 @@ def main() -> int:
     parser.add_argument("--target-id", default="cycloidal_qdd_default")
     parser.add_argument("--contact-force-limit-N", type=float, default=3000.0)
     parser.add_argument("--max-contacts", type=float, default=128.0)
+    parser.add_argument("--power-balance-limit-pct", type=float, default=1.0e12)
+    parser.add_argument("--torque-ripple-limit-pct", type=float, default=1.0e12)
     args = parser.parse_args()
 
     out_dir = Path(args.out_dir).expanduser().resolve()
@@ -260,6 +262,9 @@ def main() -> int:
     limits = cyclo.VerificationLimits(
         max_contact_force_rms_N=max(0.0, float(args.contact_force_limit_N)),
         max_contacts=max(1.0, float(args.max_contacts)),
+        max_power_balance_error_pct=max(
+            0.0, float(args.power_balance_limit_pct)),
+        max_torque_ripple_pct=max(0.0, float(args.torque_ripple_limit_pct)),
     )
     runner = MechanicalEvolveRunner(
         out_dir=out_dir,
@@ -1054,6 +1059,8 @@ def compact_row(row: dict[str, Any] | None) -> dict[str, Any] | None:
                 "contact_force_rms_N",
                 "n_contacts_max",
                 "lockup_detected",
+                "power_balance_error_pct",
+                "torque_ripple_pct",
             )
             if key in metrics
         },

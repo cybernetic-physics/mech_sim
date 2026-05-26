@@ -48,6 +48,22 @@ def _load_sampler_module():
     return module
 
 
+def _load_closed_loop_eval_module():
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "scripts"
+        / "run_mechanical_evolve_closed_loop_eval.py"
+    )
+    spec = importlib.util.spec_from_file_location(
+        "run_mechanical_evolve_closed_loop_eval", path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
 def test_map_elites_keeps_best_candidate_per_cell():
     mod = _load_module()
     archive = mod.MapElitesArchive()
@@ -227,3 +243,90 @@ def test_sampler_extracts_json_candidates_from_reasoning_text():
     assert proposals[0]["params"]["pins"] == 11
     assert proposals[0]["params"]["line_segment_count"] == 44
     assert proposals[0]["params"]["driver_pin_collision_shrink_mm"] == 0.15
+
+
+def test_optimizer_defects_include_strict_physics_limits():
+    mod = _load_module()
+    result = {
+        "cad_generated": True,
+        "cad_static_ok": True,
+        "chrono_real_geometry": True,
+        "metrics": {
+            "lockup_detected": 0.0,
+            "ratio_observed": 9.0,
+            "out_omega_med": 1.0,
+            "max_penetration_mm": 0.2,
+            "contact_force_rms_N": 100.0,
+            "n_contacts_max": 20.0,
+            "ratio_error_pct": 2.0,
+            "power_balance_error_pct": 80.0,
+            "torque_ripple_pct": 900.0,
+        },
+    }
+    limits = mod.cyclo.VerificationLimits(
+        max_power_balance_error_pct=50.0,
+        max_torque_ripple_pct=100.0,
+    )
+
+    defects = mod.cyclo.defect_list(result, limits)
+
+    assert "power_balance_error_over_gate" in defects
+    assert "torque_ripple_over_gate" in defects
+
+
+def test_closed_loop_eval_aggregates_repeated_trials():
+    mod = _load_closed_loop_eval_module()
+    good = {
+        "id": "good",
+        "fast_reward": 70.0,
+        "verified_reward": 60.0,
+        "verified_gate_passed": True,
+        "cad_generated": True,
+        "cad_static_ok": True,
+        "chrono_real_geometry": True,
+        "metrics": {
+            "lockup_detected": 0.0,
+            "out_omega_med": 1.0,
+            "ratio_observed": 9.0,
+            "ratio_error_pct": 1.0,
+            "max_penetration_mm": 0.3,
+            "contact_force_rms_N": 500.0,
+            "n_contacts_max": 30.0,
+            "power_balance_error_pct": 80.0,
+            "torque_ripple_pct": 900.0,
+        },
+    }
+    bad = {
+        "id": "bad",
+        "fast_reward": 80.0,
+        "verified_reward": 0.0,
+        "verified_gate_passed": False,
+        "cad_generated": True,
+        "cad_static_ok": True,
+        "chrono_real_geometry": True,
+        "metrics": {"lockup_detected": 1.0},
+    }
+    trials = [
+        {
+            "method": "qwen3_32b_zero_shot",
+            "seed": 1,
+            "trial_metrics": mod.trial_metrics(
+                {"evaluated": [bad], "best": bad}),
+        },
+        {
+            "method": "mechanical_evolve_lora_ttrl",
+            "seed": 1,
+            "trial_metrics": mod.trial_metrics(
+                {"evaluated": [bad, good], "best": good}),
+        },
+    ]
+
+    table = {row["method"]: row for row in mod.aggregate_trials(trials)}
+
+    assert table["qwen3_32b_zero_shot"]["best_verified_reward_max"] == 0.0
+    assert (
+        table["mechanical_evolve_lora_ttrl"]["best_verified_reward_max"]
+        == 60.0
+    )
+    assert table["mechanical_evolve_lora_ttrl"]["verified_pass_rate"] == 0.5
+    assert mod.adapted_improved(list(table.values())) is True

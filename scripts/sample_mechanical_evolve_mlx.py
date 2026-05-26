@@ -210,7 +210,13 @@ def build_prompt(
         f"Return exactly {count} candidates as JSON only.",
         "Schema: {\"candidates\":[{\"params\":{\"pins\":11,\"eccentricity\":1.982,\"clearance\":0.336,\"driver_circle_diameter\":49.5,\"driver_pin_collision_shrink_mm\":0.129},\"notes\":\"short rationale\"}]}",
         "Hard bounds: pins integer 8..14; eccentricity 1.5..3.0; clearance 0.25..1.15; driver_circle_diameter 36..58; driver_pin_collision_shrink_mm 0..0.82.",
-        "Verifier gate: fallback=false, Chrono SMC, out_omega_med>=0.5, finite ratio, ratio_error_pct<=25, max_penetration_mm<1.0, contact_force_rms_N<=3000, n_contacts_max<=128, lockup=false.",
+        (
+            "Verifier gate: fallback=false, Chrono SMC, out_omega_med>=0.5, "
+            "finite ratio, ratio_error_pct<=25, max_penetration_mm<1.0, "
+            "contact_force_rms_N<=3000, n_contacts_max<=128, lockup=false; "
+            "report power_balance_error_pct and torque_ripple_pct as "
+            "physical quality metrics."
+        ),
         "Prefer variants near verified elites, but do not copy any elite exactly.",
         "Each candidate must differ from every elite and already-tried tuple in at least one numeric variable.",
         "Verified elites: " + json.dumps(elites, sort_keys=True, separators=(",", ":")),

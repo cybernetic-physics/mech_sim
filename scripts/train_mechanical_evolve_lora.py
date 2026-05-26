@@ -222,6 +222,8 @@ def training_prompt(
             "max_penetration_mm",
             "max_contact_force_rms_N",
             "max_contacts",
+            "max_power_balance_error_pct",
+            "max_torque_ripple_pct",
         )
         if key in paper_gate
     }

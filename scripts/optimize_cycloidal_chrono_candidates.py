@@ -159,6 +159,18 @@ def main() -> int:
         help="Verified gate limit for maximum contact count.",
     )
     parser.add_argument(
+        "--power-balance-limit-pct",
+        type=float,
+        default=1.0e12,
+        help="Verified gate limit for Chrono input/output power residual.",
+    )
+    parser.add_argument(
+        "--torque-ripple-limit-pct",
+        type=float,
+        default=1.0e12,
+        help="Verified gate limit for input torque ripple.",
+    )
+    parser.add_argument(
         "--require-improvement",
         action="store_true",
         help="Exit non-zero unless verifier-gated verified reward beats all baselines.",
@@ -183,6 +195,9 @@ def main() -> int:
     limits = VerificationLimits(
         max_contact_force_rms_N=max(0.0, float(args.contact_force_limit_N)),
         max_contacts=max(1.0, float(args.max_contacts)),
+        max_power_balance_error_pct=max(
+            0.0, float(args.power_balance_limit_pct)),
+        max_torque_ripple_pct=max(0.0, float(args.torque_ripple_limit_pct)),
     )
 
     plans = _experiment_plans(args)
@@ -529,7 +544,12 @@ def _evaluate_candidate(
         )
         out = _chrono_impl.run(
             ir,
-            _chrono_config(assets, samples=samples, duration_s=duration_s),
+            _chrono_config(
+                assets,
+                samples=samples,
+                duration_s=duration_s,
+                limits=limits,
+            ),
         )
         metadata = out.get("metadata", {})
         metrics = out.get("scalar_metrics", {})
@@ -570,6 +590,7 @@ def _chrono_config(
     *,
     samples: int,
     duration_s: float,
+    limits: VerificationLimits,
 ) -> dict[str, Any]:
     return {
         "samples": samples,
@@ -609,8 +630,12 @@ def _chrono_config(
                         "output_load_start_s": 0.02,
                         "output_load_ramp_s": 0.05,
                         "min_output_speed_rad_s": 0.5,
-                        "max_power_error_pct": 1.0e12,
-                        "max_torque_ripple_pct": 1.0e12,
+                        "max_power_error_pct": (
+                            limits.max_power_balance_error_pct
+                        ),
+                        "max_torque_ripple_pct": (
+                            limits.max_torque_ripple_pct
+                        ),
                     },
                 }
             ],
@@ -825,6 +850,16 @@ def defect_list(
             defects.append("contact_count_over_gate")
         if _float_metric(metrics, "ratio_error_pct", math.inf) > limits.max_ratio_error_pct:
             defects.append("ratio_error_over_gate")
+        if (
+            _float_metric(metrics, "power_balance_error_pct", math.inf)
+            > limits.max_power_balance_error_pct
+        ):
+            defects.append("power_balance_error_over_gate")
+        if (
+            _float_metric(metrics, "torque_ripple_pct", math.inf)
+            > limits.max_torque_ripple_pct
+        ):
+            defects.append("torque_ripple_over_gate")
     if result.get("error_stage"):
         defects.append(str(result["error_stage"]).lower().replace(" ", "_"))
     return defects
