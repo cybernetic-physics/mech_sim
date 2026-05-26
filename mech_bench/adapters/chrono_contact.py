@@ -64,13 +64,15 @@ def _probe_pychrono() -> tuple[bool, str]:
         # Both pychrono AND the _chrono_impl shim must import in the
         # alt interpreter — otherwise the adapter would advertise
         # contact forces while having no runner to call.
+        child_env = os.environ.copy()
+        child_env.pop("MECH_BENCH_CHRONO_PYTHON", None)
         try:
             proc = subprocess.run(
                 [alt_python, "-c",
                  "import pychrono; "
                  "import mech_bench.adapters._chrono_impl"],
-                capture_output=True, text=True, timeout=10,
-                check=False,
+                capture_output=True, text=True, timeout=30,
+                check=False, env=child_env,
             )
         except (OSError, subprocess.TimeoutExpired) as e:
             return False, f"subprocess probe failed: {e}"
@@ -222,11 +224,14 @@ def _run_chrono_subprocess(
             "open(out_path, 'w').write(json.dumps(result, default=_enc))\n"
         )
         try:
+            child_env = os.environ.copy()
+            child_env.pop("MECH_BENCH_CHRONO_PYTHON", None)
             proc = subprocess.run(
                 [alt_python, "-c", runner,
                  str(ir_path), str(cfg_path), str(out_path)],
                 capture_output=True, text=True,
                 timeout=max_wall_s, check=False,
+                env=child_env,
             )
         except subprocess.TimeoutExpired:
             return _capability_unavailable_payload(

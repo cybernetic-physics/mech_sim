@@ -38,6 +38,14 @@ def main() -> int:
     parser.add_argument("--out-dir", required=True)
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--adapter-path", default=None)
+    parser.add_argument(
+        "--resume-adapter-file",
+        default=None,
+        help=(
+            "Optional prior adapters.safetensors file to initialize this "
+            "LoRA update. Used by iterative test-time adaptation."
+        ),
+    )
     parser.add_argument("--iters", type=int, default=10)
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--grad-accumulation-steps", type=int, default=1)
@@ -88,6 +96,8 @@ def main() -> int:
         model=str(args.model),
         data_dir=data_dir,
         adapter_path=adapter_path,
+        resume_adapter_file=Path(args.resume_adapter_file).expanduser().resolve()
+        if args.resume_adapter_file else None,
         iters=max(1, int(args.iters)),
         batch_size=max(1, int(args.batch_size)),
         grad_accumulation_steps=max(1, int(args.grad_accumulation_steps)),
@@ -109,6 +119,9 @@ def main() -> int:
         "archive": str(archive_path) if archive_path else None,
         "model": str(args.model),
         "adapter_path": str(adapter_path),
+        "resume_adapter_file": str(
+            Path(args.resume_adapter_file).expanduser().resolve()
+        ) if args.resume_adapter_file else None,
         "config_path": str(config_path),
         "data_dir": str(data_dir),
         "example_count": len(examples),
@@ -353,6 +366,7 @@ def mlx_lora_config(
     model: str,
     data_dir: Path,
     adapter_path: Path,
+    resume_adapter_file: Path | None,
     iters: int,
     batch_size: int,
     grad_accumulation_steps: int,
@@ -378,6 +392,9 @@ def mlx_lora_config(
         "iters": iters,
         "val_batches": 1,
         "learning_rate": learning_rate,
+        "resume_adapter_file": (
+            str(resume_adapter_file) if resume_adapter_file is not None else None
+        ),
         "steps_per_report": 1,
         "steps_per_eval": max(1, iters),
         "grad_accumulation_steps": grad_accumulation_steps,

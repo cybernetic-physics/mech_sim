@@ -624,9 +624,16 @@ class MechanicalEvolveRunner:
             key=lambda row: float(row.get("fast_reward", 0.0)),
             reverse=True,
         )
-        audit_ids = {
-            str(row["id"]) for row in ranked[:max(0, int(audit_k))]
-        }
+        audit_budget = max(0, int(audit_k))
+        external_ids = [
+            proposal.id for proposal in proposals
+            if proposal.proposer != "policy_mutation"
+        ]
+        audit_ids: set[str] = set(external_ids[:audit_budget])
+        for row in ranked:
+            if len(audit_ids) >= audit_budget:
+                break
+            audit_ids.add(str(row["id"]))
         evaluated: list[dict[str, Any]] = []
         by_id = {proposal.id: proposal for proposal in proposals}
         for row in ranked:

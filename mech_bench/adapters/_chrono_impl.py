@@ -22,11 +22,14 @@ collision descriptions already present in the IR.
 from __future__ import annotations
 
 import contextlib
+import json
 import math
 import os
+import subprocess
+import tempfile
 import time
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
@@ -64,6 +67,9 @@ def run(ir: DesignIR, config: dict[str, Any]) -> dict[str, Any]:
     try:
         import pychrono as chrono  # type: ignore[import-not-found]
     except ImportError as e:
+        alt_python = os.environ.get("MECH_BENCH_CHRONO_PYTHON")
+        if alt_python and Path(alt_python).exists():
+            return _run_via_chrono_python(ir, config, alt_python)
         return _capability_unavailable_payload(f"pychrono not importable: {e}")
 
     started = time.perf_counter()
@@ -3064,6 +3070,66 @@ def _call_first_value(obj: Any, names: tuple[str, ...]) -> Any:
         except TypeError:
             continue
     return None
+
+
+def _run_via_chrono_python(
+    ir: DesignIR,
+    config: dict[str, Any],
+    alt_python: str,
+) -> dict[str, Any]:
+    """Execute this runner in an interpreter where PyChrono is installed."""
+    max_wall_s = float(config.get("max_wall_s", 600.0))
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        ir_path = root / "ir.json"
+        cfg_path = root / "config.json"
+        out_path = root / "out.json"
+        ir_path.write_text(json.dumps(asdict(ir), default=str))
+        cfg_path.write_text(json.dumps(config, default=str))
+        runner = (
+            "import json, sys\n"
+            "from mech_bench.adapters import _chrono_impl\n"
+            "from mech_bench.schema import DesignIR\n"
+            "ir_path, cfg_path, out_path = sys.argv[1:4]\n"
+            "ir = DesignIR.from_dict(json.loads(open(ir_path).read()))\n"
+            "cfg = json.loads(open(cfg_path).read())\n"
+            "result = _chrono_impl.run(ir, cfg)\n"
+            "def _enc(value):\n"
+            "    if hasattr(value, 'tolist'):\n"
+            "        return value.tolist()\n"
+            "    raise TypeError(type(value))\n"
+            "open(out_path, 'w').write(json.dumps(result, default=_enc))\n"
+        )
+        env = os.environ.copy()
+        env.pop("MECH_BENCH_CHRONO_PYTHON", None)
+        try:
+            proc = subprocess.run(
+                [alt_python, "-c", runner, str(ir_path), str(cfg_path), str(out_path)],
+                capture_output=True,
+                text=True,
+                timeout=max_wall_s,
+                check=False,
+                env=env,
+            )
+        except subprocess.TimeoutExpired:
+            return _capability_unavailable_payload(
+                f"chrono subprocess exceeded max_wall_s={max_wall_s}"
+            )
+        if proc.returncode != 0:
+            return _capability_unavailable_payload(
+                f"chrono subprocess exited {proc.returncode}: "
+                f"{(proc.stderr or '').strip()[-400:]}"
+            )
+        if not out_path.exists():
+            return _capability_unavailable_payload(
+                "chrono subprocess produced no output JSON"
+            )
+        try:
+            return json.loads(out_path.read_text())
+        except (OSError, json.JSONDecodeError) as exc:
+            return _capability_unavailable_payload(
+                f"chrono subprocess JSON unparseable: {exc}"
+            )
 
 
 def _capability_unavailable_payload(reason: str) -> dict[str, Any]:

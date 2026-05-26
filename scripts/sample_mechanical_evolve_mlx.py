@@ -115,8 +115,8 @@ def sample_candidates(
 ) -> dict[str, Any]:
     try:
         import mlx.core as mx
-        from mlx_lm import generate, load
-        from mlx_lm.generate import make_sampler
+        from mlx_lm import load
+        from mlx_lm.generate import make_sampler, stream_generate
     except Exception as exc:  # noqa: BLE001 - optional runtime dependency
         raise SystemExit(f"mlx-lm is required for sampling: {exc}") from exc
 
@@ -130,9 +130,10 @@ def sample_candidates(
     proposals: list[dict[str, Any]] = []
     invalid: list[dict[str, Any]] = []
     raw_generations: list[dict[str, Any]] = []
+    archive_seen = archive_candidate_keys(archive)
     seen: set[tuple[Any, ...]] = set()
     call_idx = 0
-    max_calls = max(4, math.ceil(config.count / config.batch_size) * 4)
+    max_calls = max(4, math.ceil(config.count / config.batch_size))
     while len(proposals) < config.count and call_idx < max_calls:
         want = min(config.batch_size, config.count - len(proposals))
         prompt = build_prompt(
@@ -140,17 +141,31 @@ def sample_candidates(
             count=want,
             seed=config.seed + call_idx,
             adapter_active=config.adapter_path is not None,
-            already_tried=sorted(seen),
+            already_tried=sorted([*archive_seen[:64], *seen]),
         )
         tokens = chat_tokens(tokenizer, prompt)
-        text = generate(
+        text = ""
+        sampler = make_sampler(temp=config.temp, top_p=config.top_p)
+        for response in stream_generate(
             model,
             tokenizer,
             tokens,
-            verbose=False,
             max_tokens=config.max_tokens,
-            sampler=make_sampler(temp=config.temp, top_p=config.top_p),
-        )
+            sampler=sampler,
+        ):
+            text += response.text
+            if response.finish_reason:
+                break
+            if response.generation_tokens % 8 == 0 and "}" in text:
+                early = parse_generation(
+                    text,
+                    method=config.method,
+                    proposer=config.proposer,
+                    id_prefix=f"mlx_{call_idx:03d}",
+                    prompt=prompt,
+                )
+                if len(early) >= want:
+                    break
         parsed = parse_generation(
             text,
             method=config.method,
@@ -331,6 +346,19 @@ def compact_params(params: dict[str, Any]) -> dict[str, Any]:
         if key in params:
             out[key] = params[key]
     return out
+
+
+def archive_candidate_keys(archive: dict[str, Any]) -> list[tuple[Any, ...]]:
+    cells = archive.get("cells", {}) if isinstance(archive, dict) else {}
+    keys: list[tuple[Any, ...]] = []
+    for row in cells.values():
+        if not isinstance(row, dict):
+            continue
+        try:
+            keys.append(candidate_key(row.get("params", {})))
+        except Exception:  # noqa: BLE001 - archive hint only
+            continue
+    return keys
 
 
 def defect_tags(archive: dict[str, Any]) -> list[str]:
