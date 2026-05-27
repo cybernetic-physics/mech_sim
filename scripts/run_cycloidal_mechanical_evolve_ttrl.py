@@ -51,6 +51,8 @@ CSV_COLUMNS = (
     "best_ratio_error_pct",
     "best_power_balance_error_pct",
     "best_torque_ripple_pct",
+    "best_max_penetration_mm",
+    "best_contact_force_rms_N",
     "adapter_updates",
     "trained_tokens",
 )
@@ -94,6 +96,7 @@ def main() -> int:
     parser.add_argument("--out-dir", default="runs/cycloidal_mechanical_evolve_ttrl")
     parser.add_argument("--results-json", default="docs/cycloidal_mechanical_evolve_ttrl_results.json")
     parser.add_argument("--results-csv", default="docs/cycloidal_mechanical_evolve_ttrl_results.csv")
+    parser.add_argument("--results-md", default=None)
     parser.add_argument("--model", default=os.environ.get(
         "MECHANICAL_EVOLVE_LORA_MODEL", DEFAULT_MODEL))
     parser.add_argument("--rounds", type=int, default=4)
@@ -101,6 +104,39 @@ def main() -> int:
     parser.add_argument("--audits-per-round", type=int, default=20)
     parser.add_argument("--mutation-fill", type=int, default=8)
     parser.add_argument("--baseline-audits", type=int, default=80)
+    parser.add_argument(
+        "--baseline-methods",
+        default="seed,random,cma_es_fast_only,verifier_gated",
+        help=(
+            "Comma-separated optimizer baseline methods. Use verifier_gated "
+            "for equal-budget paper comparisons."
+        ),
+    )
+    parser.add_argument(
+        "--no-policy-baseline-bootstrap",
+        action="store_true",
+        help=(
+            "Do not seed policy archives or LoRA datasets with already-audited "
+            "optimizer baseline rows. Use for independent equal-budget tables."
+        ),
+    )
+    parser.add_argument(
+        "--policy-seed-bootstrap",
+        action="store_true",
+        help=(
+            "Allow MechanicalEvolve seed/refinement proposals in policy audit "
+            "rounds; those audits count against the policy budget."
+        ),
+    )
+    parser.add_argument(
+        "--target-chrono-audits",
+        type=int,
+        default=0,
+        help=(
+            "If positive, require this many real Chrono metric rows per "
+            "policy method and pass the same target to verifier-gated runs."
+        ),
+    )
     parser.add_argument("--verifier-pool", type=int, default=192)
     parser.add_argument("--samples", type=int, default=41)
     parser.add_argument("--duration-s", type=float, default=0.15)
@@ -134,6 +170,7 @@ def main() -> int:
     parser.add_argument("--skip-no-update", action="store_true")
     parser.add_argument("--skip-ttrl", action="store_true")
     parser.add_argument("--require-ttrl-win", action="store_true")
+    parser.add_argument("--require-equal-budget-win", action="store_true")
     args = parser.parse_args()
 
     out_dir = Path(args.out_dir).expanduser().resolve()
@@ -142,6 +179,10 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     results_json = Path(args.results_json).expanduser().resolve()
     results_csv = Path(args.results_csv).expanduser().resolve()
+    results_md = (
+        Path(args.results_md).expanduser().resolve()
+        if args.results_md else None
+    )
     limits = cyclo.VerificationLimits(
         max_contact_force_rms_N=max(0.0, float(args.contact_force_limit_N)),
         max_contacts=max(1.0, float(args.max_contacts)),
@@ -183,6 +224,8 @@ def main() -> int:
             limits=limits,
         )
         bootstrap_archive = archive_from_optimizer(baselines)
+    if args.no_policy_baseline_bootstrap:
+        bootstrap_archive = mech.MapElitesArchive()
 
     policy_results: dict[str, Any] = {}
     if args.skip_no_update:
@@ -236,6 +279,13 @@ def main() -> int:
             "audits_per_round": int(args.audits_per_round),
             "mutation_fill": int(args.mutation_fill),
             "baseline_audits_per_method": int(args.baseline_audits),
+            "target_chrono_audits": (
+                max(0, int(args.target_chrono_audits)) or None
+            ),
+            "policy_baseline_bootstrap": (
+                not bool(args.no_policy_baseline_bootstrap)
+            ),
+            "policy_seed_bootstrap": bool(args.policy_seed_bootstrap),
         },
         "verifier": {
             "contact_model": "smc",
@@ -251,6 +301,8 @@ def main() -> int:
         "method_table": method_table,
         "win_conditions": win_conditions,
     }
+    if results_md is not None:
+        write_markdown_summary(results_md, summary)
     safe = json_safe(summary)
     write_json(results_json, safe)
     write_table(results_csv, method_table)
@@ -258,7 +310,13 @@ def main() -> int:
     print("win_conditions=" + json.dumps(win_conditions, sort_keys=True))
     print(f"results_json={results_json}")
     print(f"results_csv={results_csv}")
+    if results_md is not None:
+        print(f"results_md={results_md}")
     if args.require_ttrl_win and not win_conditions.get("ttrl_beats_all_baselines"):
+        return 1
+    if args.require_equal_budget_win and not win_conditions.get(
+        "equal_budget_success"
+    ):
         return 1
     return 0
 
@@ -288,6 +346,10 @@ def run_baselines(
         str(max(int(args.verifier_pool), int(args.baseline_audits))),
         "--verifier-audit-k",
         str(max(1, int(args.baseline_audits))),
+        "--methods",
+        str(args.baseline_methods),
+        "--target-chrono-audits-per-method",
+        str(max(0, int(args.target_chrono_audits))),
         "--samples",
         str(max(3, int(args.samples))),
         "--duration-s",
@@ -344,7 +406,19 @@ def run_policy_loop(
     write_json(out_dir / "archive.json", state.archive.to_dict())
     bootstrap_rows = list(state.archive.cells.values())
 
-    for round_idx in range(max(1, int(args.rounds))):
+    min_rounds = max(1, int(args.rounds))
+    round_idx = 0
+    while (
+        round_idx < min_rounds
+        or policy_chrono_audits(state.evaluated)
+        < max(0, int(args.target_chrono_audits))
+    ):
+        if (
+            max(0, int(args.target_chrono_audits)) > 0
+            and policy_chrono_audits(state.evaluated)
+            >= max(0, int(args.target_chrono_audits))
+        ):
+            break
         round_dir = out_dir / f"round_{round_idx:03d}"
         round_dir.mkdir(parents=True, exist_ok=True)
         archive_path = round_dir / "archive_input.json"
@@ -366,6 +440,7 @@ def run_policy_loop(
             proposals_path=proposals_path,
             limits=limits,
             round_idx=round_idx,
+            audit_k=round_audit_budget(args, state),
         )
         evaluated = [
             row for row in audit_summary.get("evaluated", [])
@@ -421,6 +496,7 @@ def run_policy_loop(
         }
         state.rounds.append(round_record)
         write_json(round_dir / "round_summary.json", json_safe(round_record))
+        round_idx += 1
 
     summary = summarize_policy_state(state)
     write_json(out_dir / "summary.json", json_safe(summary))
@@ -482,6 +558,7 @@ def audit_policy_round(
     proposals_path: Path,
     limits: cyclo.VerificationLimits,
     round_idx: int,
+    audit_k: int | None = None,
 ) -> tuple[dict[str, Any], CommandResult]:
     audit_dir = round_dir / "audit"
     audit_dir.mkdir(parents=True, exist_ok=True)
@@ -494,7 +571,6 @@ def audit_policy_round(
         "--mode",
         "evolve-only",
         "--resume",
-        "--no-seed-bootstrap",
         "--out-dir",
         str(audit_dir),
         "--seed",
@@ -504,7 +580,7 @@ def audit_policy_round(
         "--population",
         str(max(1, population)),
         "--audit-k",
-        str(max(1, int(args.audits_per_round))),
+        str(max(1, int(audit_k if audit_k is not None else args.audits_per_round))),
         "--proposal-jsonl",
         str(proposals_path),
         "--samples",
@@ -520,6 +596,8 @@ def audit_policy_round(
         "--torque-ripple-limit-pct",
         str(limits.max_torque_ripple_pct),
     ]
+    if not args.policy_seed_bootstrap:
+        command.append("--no-seed-bootstrap")
     result = run_command(
         command,
         cwd=SCRIPT_DIR.parent,
@@ -528,6 +606,19 @@ def audit_policy_round(
     )
     summary = read_json(audit_dir / "summary.json")
     return summary, result
+
+
+def round_audit_budget(args: argparse.Namespace, state: PolicyState) -> int:
+    target = max(0, int(args.target_chrono_audits))
+    default_budget = max(1, int(args.audits_per_round))
+    if target <= 0:
+        return default_budget
+    remaining = target - policy_chrono_audits(state.evaluated)
+    return max(1, min(default_budget, max(1, remaining)))
+
+
+def policy_chrono_audits(rows: Iterable[dict[str, Any]]) -> int:
+    return sum(1 for row in rows if isinstance(row, dict) and row.get("metrics"))
 
 
 def train_lora_round(
@@ -788,6 +879,8 @@ def method_row(
         "best_ratio_error_pct": best_metrics.get("ratio_error_pct"),
         "best_power_balance_error_pct": best_metrics.get("power_balance_error_pct"),
         "best_torque_ripple_pct": best_metrics.get("torque_ripple_pct"),
+        "best_max_penetration_mm": best_metrics.get("max_penetration_mm"),
+        "best_contact_force_rms_N": best_metrics.get("contact_force_rms_N"),
         "adapter_updates": adapter_updates,
         "trained_tokens": trained_tokens,
     }
@@ -892,12 +985,47 @@ def win_conditions_from_table(
         "ttrl_beats_all_baselines": (
             bool(baseline_rewards) and ttrl_reward > max(baseline_rewards)
         ),
+        "equal_budget_success": equal_budget_success(rows),
         "ttrl_has_adapter_updates": int(ttrl.get("adapter_updates", 0) or 0) > 0,
         "best_survives_regenerated_cad": (
             stability.get("repeat_count", 0) > 0
             and stability.get("pass_count") == stability.get("repeat_count")
         ),
     }
+
+
+def equal_budget_success(rows: dict[str, dict[str, Any]]) -> bool:
+    ttrl = rows.get("mechanical_evolve_ttrl", {})
+    baselines = [
+        rows.get("verifier_gated", {}),
+        rows.get("llm_evolve_no_update", {}),
+    ]
+    ttrl_reward = float(ttrl.get("best_verified_reward", 0.0) or 0.0)
+    if not baselines or ttrl_reward <= max(
+        float(row.get("best_verified_reward", 0.0) or 0.0) for row in baselines
+    ):
+        return False
+    ttrl_pass = float(ttrl.get("verified_pass_rate", 0.0) or 0.0)
+    pass_win = ttrl_pass > max(
+        float(row.get("verified_pass_rate", 0.0) or 0.0) for row in baselines
+    )
+    ttrl_ratio = metric_or_inf(ttrl, "best_ratio_error_pct")
+    ratio_win = ttrl_ratio < min(
+        metric_or_inf(row, "best_ratio_error_pct") for row in baselines
+    )
+    ttrl_lockup = metric_or_inf(ttrl, "lockup_rate")
+    lockup_win = ttrl_lockup < min(
+        metric_or_inf(row, "lockup_rate") for row in baselines
+    )
+    return pass_win or ratio_win or lockup_win
+
+
+def metric_or_inf(row: dict[str, Any], key: str) -> float:
+    try:
+        value = float(row.get(key))
+    except (TypeError, ValueError):
+        return math.inf
+    return value if math.isfinite(value) else math.inf
 
 
 def run_command(
@@ -989,6 +1117,124 @@ def write_table(path: Path, table: list[dict[str, Any]]) -> None:
         writer.writeheader()
         for row in table:
             writer.writerow({key: row.get(key) for key in CSV_COLUMNS})
+
+
+def write_markdown_summary(path: Path, summary: dict[str, Any]) -> None:
+    table = summary.get("method_table", [])
+    verifier = summary.get("verifier", {})
+    budget = summary.get("budget", {})
+    wins = summary.get("win_conditions", {})
+    target = budget.get("target_chrono_audits")
+    rows_by_method = {
+        str(row.get("method")): row for row in table if isinstance(row, dict)
+    }
+    ttrl_wins = bool(wins.get("equal_budget_success"))
+    compared_methods = [
+        method for method in (
+            "verifier_gated",
+            "llm_evolve_no_update",
+            "mechanical_evolve_ttrl",
+        )
+        if method in rows_by_method
+    ]
+    equal_budget = (
+        target is not None
+        and all(
+            int(rows_by_method[method].get("chrono_audits") or -1)
+            == int(target)
+            for method in compared_methods
+        )
+    )
+    lines = [
+        "# Cycloidal MechanicalEvolve Equal-Budget Result",
+        "",
+        (
+            f"All compared methods used equal Chrono audit budget: "
+            f"{'yes' if equal_budget else 'no'}"
+            + (f" ({target} real Chrono audits per method)." if target else ".")
+        ),
+        (
+            "All compared methods used identical verifier settings: yes. "
+            f"contact_model={verifier.get('contact_model')}, "
+            f"samples={verifier.get('samples')}, "
+            f"duration_s={verifier.get('duration_s')}, "
+            f"limits={verifier.get('limits')}."
+        ),
+        (
+            "All compared methods used procedural_cycloidal_fallback=false: "
+            f"{str(verifier.get('procedural_cycloidal_fallback') is False).lower()}."
+        ),
+        (
+            "TTRL wins under equal budget: "
+            f"{'yes' if ttrl_wins else 'no'}."
+        ),
+        "",
+        "| " + " | ".join(CSV_COLUMNS) + " |",
+        "|"
+        + "|".join(
+            "---" if column in {"method", "best_id"} else "---:"
+            for column in CSV_COLUMNS
+        )
+        + "|",
+    ]
+    for row in table:
+        lines.append(
+            "| "
+            + " | ".join(
+                format_md_cell(row.get(column))
+                for column in CSV_COLUMNS
+            )
+            + " |"
+        )
+    lines.extend(["", "## Interpretation", ""])
+    if ttrl_wins:
+        lines.append(
+            "Under equal expensive physics-verification budget, iterative "
+            "RLVR/TTRL adaptation discovers a stronger verified cycloidal "
+            "actuator design than the non-updating baselines in this run."
+        )
+    else:
+        lines.append(
+            "Under equal expensive physics-verification budget, iterative "
+            "RLVR/TTRL did not beat the non-updating baselines in this run. "
+            "This result should be reported as a failed comparison, not "
+            "massaged into a positive claim."
+        )
+        lines.extend(failure_reasons(rows_by_method))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines) + "\n")
+
+
+def format_md_cell(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, float):
+        return f"{value:.6g}"
+    return str(value)
+
+
+def failure_reasons(rows_by_method: dict[str, dict[str, Any]]) -> list[str]:
+    ttrl = rows_by_method.get("mechanical_evolve_ttrl", {})
+    lines = []
+    for method in ("verifier_gated", "llm_evolve_no_update"):
+        other = rows_by_method.get(method, {})
+        if not other:
+            continue
+        if float(ttrl.get("best_verified_reward", 0.0) or 0.0) <= float(
+            other.get("best_verified_reward", 0.0) or 0.0
+        ):
+            lines.append(
+                f"- TTRL lost to {method} on best_verified_reward "
+                f"({ttrl.get('best_verified_reward')} <= "
+                f"{other.get('best_verified_reward')})."
+            )
+    if not lines:
+        lines.append(
+            "- TTRL beat the baselines on best_verified_reward but did not "
+            "also outperform on verified_pass_rate, ratio_error_pct, or "
+            "lockup_rate."
+        )
+    return lines
 
 
 def print_table(table: list[dict[str, Any]]) -> None:

@@ -198,6 +198,15 @@ def test_method_table_reports_requested_baseline_columns():
     assert by_method["verifier_gated"]["mean defect count"] == 2.0
 
 
+def test_method_table_can_report_verifier_only_subset():
+    mod = _load_module()
+
+    assert mod._selected_methods("verifier_gated") == ["verifier_gated"]
+    table = mod._method_table([], methods=["verifier_gated"])
+
+    assert [row["method"] for row in table] == ["verifier_gated"]
+
+
 def test_verifier_gated_plan_includes_boundary_refinement_candidate():
     mod = _load_module()
 

@@ -1,0 +1,4 @@
+method,candidate_count,chrono_audits,best_verified_reward,verified_pass_rate,cad_pass_rate,chrono_real_geometry_rate,lockup_rate,best_id,best_fast_reward,best_out_omega_med,best_ratio_error_pct,best_power_balance_error_pct,best_torque_ripple_pct,best_max_penetration_mm,best_contact_force_rms_N,adapter_updates,trained_tokens
+verifier_gated,160,160,66.82487,0.0375,1.0,1.0,0.83125,vg_refine_shrink_018,74.644478,1.045508016517541,4.352718085235026,79.9006305924158,709.0957606529785,0.4022309512947686,462.0098408464731,0,0
+llm_evolve_no_update,374,160,67.369716,0.050802,0.427807,0.427807,0.63125,llm_evolution_no_update_005,75.136462,1.0405784191297847,3.899602219669287,66.09079923917533,869.5354192091227,0.4044015149702318,468.0626463914914,0,0
+mechanical_evolve_ttrl,415,160,67.93207,0.053012,0.385542,0.385542,0.61875,mechanical_evolve_ttrl_016,76.434017,1.0696978083271353,6.515654027199832,77.42905381623451,845.2592600915162,0.40248619188787416,531.5521829604754,5,1780

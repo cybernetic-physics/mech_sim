@@ -135,6 +135,24 @@ def main() -> int:
         help="Top fast-reward verifier-gated proposals to CAD/Chrono audit.",
     )
     parser.add_argument(
+        "--methods",
+        default=",".join(METHOD_ORDER),
+        help=(
+            "Comma-separated methods to run. Defaults to all baseline methods; "
+            "use verifier_gated for matched-budget verifier-only comparisons."
+        ),
+    )
+    parser.add_argument(
+        "--target-chrono-audits-per-method",
+        type=int,
+        default=0,
+        help=(
+            "If positive, continue evaluating each selected method until this "
+            "many candidates have real Chrono metric output, or its candidate "
+            "plan is exhausted."
+        ),
+    )
+    parser.add_argument(
         "--samples",
         type=int,
         default=41,
@@ -200,20 +218,28 @@ def main() -> int:
         max_torque_ripple_pct=max(0.0, float(args.torque_ripple_limit_pct)),
     )
 
+    selected_methods = _selected_methods(args.methods)
     plans = _experiment_plans(args)
     evaluated: list[dict[str, Any]] = []
-    for method in METHOD_ORDER:
+    for method in selected_methods:
         method_candidates = plans[method]
+        chrono_audits = 0
         for candidate in method_candidates:
-            evaluated.append(_evaluate_candidate(
+            row = _evaluate_candidate(
                 candidate,
                 out_dir / method / candidate.id,
                 samples=max(3, int(args.samples)),
                 duration_s=max(1.0e-6, float(args.duration_s)),
                 limits=limits,
-            ))
+            )
+            evaluated.append(row)
+            if row.get("metrics"):
+                chrono_audits += 1
+            target = max(0, int(args.target_chrono_audits_per_method))
+            if target and chrono_audits >= target:
+                break
 
-    method_table = _method_table(evaluated, limits=limits)
+    method_table = _method_table(evaluated, limits=limits, methods=selected_methods)
     best_by_method = {
         row["method"]: _best_verified_candidate(evaluated, row["method"])
         for row in method_table
@@ -231,6 +257,10 @@ def main() -> int:
         "out_dir": str(out_dir),
         "audit_config": _chrono_config_summary(args, limits),
         "limits": limits.__dict__,
+        "methods": selected_methods,
+        "target_chrono_audits_per_method": (
+            max(0, int(args.target_chrono_audits_per_method)) or None
+        ),
         "method_table": method_table,
         "best_by_method": best_by_method,
         "win_condition_met": win_condition_met,
@@ -248,6 +278,16 @@ def main() -> int:
     if args.require_improvement and not win_condition_met:
         return 1
     return 0
+
+
+def _selected_methods(methods: str) -> list[str]:
+    selected = [item.strip() for item in str(methods).split(",") if item.strip()]
+    if not selected:
+        selected = list(METHOD_ORDER)
+    unknown = [method for method in selected if method not in METHOD_ORDER]
+    if unknown:
+        raise SystemExit(f"unknown method(s): {', '.join(unknown)}")
+    return selected
 
 
 def _experiment_plans(args: argparse.Namespace) -> dict[str, list[Candidate]]:
@@ -952,6 +992,7 @@ def _method_table(
     results: Iterable[dict[str, Any]],
     *,
     limits: VerificationLimits | None = None,
+    methods: Iterable[str] = METHOD_ORDER,
 ) -> list[dict[str, Any]]:
     if limits is None:
         limits = VerificationLimits()
@@ -959,7 +1000,7 @@ def _method_table(
     for row in results:
         by_method.setdefault(str(row.get("method", "")), []).append(row)
     table: list[dict[str, Any]] = []
-    for method in METHOD_ORDER:
+    for method in methods:
         rows = by_method.get(method, [])
         if not rows:
             table.append(_empty_method_row(method))

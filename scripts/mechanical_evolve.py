@@ -625,9 +625,11 @@ class MechanicalEvolveRunner:
             reverse=True,
         )
         audit_budget = max(0, int(audit_k))
+        by_id = {proposal.id: proposal for proposal in proposals}
         external_ids = [
-            proposal.id for proposal in proposals
-            if proposal.proposer != "policy_mutation"
+            str(row["id"]) for row in ranked
+            if by_id.get(str(row["id"]))
+            and by_id[str(row["id"])].proposer != "policy_mutation"
         ]
         audit_ids: set[str] = set(external_ids[:audit_budget])
         for row in ranked:
@@ -635,7 +637,6 @@ class MechanicalEvolveRunner:
                 break
             audit_ids.add(str(row["id"]))
         evaluated: list[dict[str, Any]] = []
-        by_id = {proposal.id: proposal for proposal in proposals}
         for row in ranked:
             proposal = by_id[str(row["id"])]
             if proposal.id in audit_ids:
