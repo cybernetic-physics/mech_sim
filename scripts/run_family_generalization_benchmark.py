@@ -19,9 +19,13 @@ import os
 import subprocess
 import sys
 import shutil
+import time
+import urllib.error
+import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -47,6 +51,17 @@ def main() -> int:
     p.add_argument("--runner-python", default=DEFAULT_RUNNER_PYTHON)
     p.add_argument("--worldlines-base-url", default="http://127.0.0.1:18100")
     p.add_argument("--api-key", default="wld-local")
+    p.add_argument("--manage-worldlines", action="store_true",
+                   help="start a fresh local Worldlines backend for each "
+                        "training/eval phase. This works around the "
+                        "single-session PEFT backend used on local MPS.")
+    p.add_argument("--worldlines-root",
+                   default="/Users/nataliakokoromyti/Projects/worldlines")
+    p.add_argument("--worldlines-venv",
+                   default="/Users/nataliakokoromyti/Projects/worldlines/.venv")
+    p.add_argument("--worldlines-artifact-root",
+                   default="/tmp/wld-family-artifacts")
+    p.add_argument("--worldlines-launch-timeout-s", type=float, default=600.0)
     p.add_argument("--tasks-root", default="tasks")
     p.add_argument("--out-dir", default="runs/family_generalization_benchmark")
     p.add_argument("--docs-dir", default="docs")
@@ -103,91 +118,101 @@ def main() -> int:
     train_split = split_dir / "train.txt"
     test_split = split_dir / "test.txt"
 
-    sft_run = out_dir / "train_sft"
-    rlvr_run = out_dir / "train_rlvr"
-    sft_model = train_model(
-        run_dir=sft_run,
-        run_name="family_sft",
-        base_model=args.base_model,
-        runner_python=args.runner_python,
-        backend_url=args.worldlines_base_url,
-        api_key=args.api_key,
-        tasks_root=args.tasks_root,
-        split_file=train_split,
-        train_rounds=args.train_rounds,
-        tasks_per_round=args.tasks_per_round,
-        samples_per_task=args.samples_per_task,
-        max_turns=args.max_turns,
-        max_tokens=args.max_tokens,
-        max_context_tokens=args.max_context_tokens,
-        temperature=args.temperature,
-        top_p=args.top_p,
-        timeout=args.timeout,
-        train_timeout_s=args.train_timeout_s,
-        eval_timeout_s=args.eval_timeout_s,
-        concurrency=args.concurrency,
-        lora_rank=args.lora_rank,
-        lr=args.lr,
-        supervised_only=True,
-        allow_zero_update_models=args.allow_zero_update_models,
-    )
-    rlvr_model = train_model(
-        run_dir=rlvr_run,
-        run_name="family_rlvr",
-        base_model=args.base_model,
-        runner_python=args.runner_python,
-        backend_url=args.worldlines_base_url,
-        api_key=args.api_key,
-        tasks_root=args.tasks_root,
-        split_file=train_split,
-        train_rounds=args.train_rounds,
-        tasks_per_round=args.tasks_per_round,
-        samples_per_task=args.samples_per_task,
-        max_turns=args.max_turns,
-        max_tokens=args.max_tokens,
-        max_context_tokens=args.max_context_tokens,
-        temperature=args.temperature,
-        top_p=args.top_p,
-        timeout=args.timeout,
-        train_timeout_s=args.train_timeout_s,
-        eval_timeout_s=args.eval_timeout_s,
-        concurrency=args.concurrency,
-        lora_rank=args.lora_rank,
-        lr=args.lr,
-        supervised_only=False,
-        allow_zero_update_models=args.allow_zero_update_models,
-    )
-
-    methods = [
-        MethodSpec("frozen_model", None, args.samples_per_task),
-        MethodSpec(
-            "sft_model",
-            sft_model["path"],
-            args.samples_per_task,
-            adapter_updates=int(sft_model["adapter_updates"]),
-            trained_tokens=int(sft_model["trained_tokens"]),
-        ),
-        MethodSpec("no_update_search", None, args.samples_per_task),
-        MethodSpec(
-            "mechanical_evolve_ttrl",
-            rlvr_model["path"],
-            args.samples_per_task,
-            adapter_updates=int(rlvr_model["adapter_updates"]),
-            trained_tokens=int(rlvr_model["trained_tokens"]),
-        ),
-    ]
     eval_rows: list[dict[str, Any]] = []
-    for method in methods:
+
+    frozen_run = out_dir / "init_frozen"
+    run_with_managed_worldlines(
+        args,
+        lambda: init_live_session(
+            run_dir=frozen_run,
+            run_name="family_frozen",
+            base_model=args.base_model,
+            runner_python=args.runner_python,
+            backend_url=args.worldlines_base_url,
+            api_key=args.api_key,
+            tasks_root=args.tasks_root,
+            max_context_tokens=args.max_context_tokens,
+            lora_rank=args.lora_rank,
+            timeout_s=args.train_timeout_s,
+        ),
+    )
+    for method in [
+        MethodSpec("frozen_model", None, args.samples_per_task),
+        MethodSpec("no_update_search", None, args.samples_per_task),
+    ]:
         report_dir = out_dir / f"eval_{method.name}"
         report_dir.mkdir(parents=True, exist_ok=True)
-        summary = run_sample_and_score(
+        summary = run_with_managed_worldlines(
+            args,
+            lambda method=method, report_dir=report_dir: run_sample_and_score(
+                report_dir=report_dir,
+                base_model=args.base_model,
+                runner_python=args.runner_python,
+                model_path=method.model_path,
+                tasks_root=args.tasks_root,
+                split_file=test_split,
+                samples_per_task=method.samples_per_task,
+                max_turns=args.max_turns,
+                max_tokens=args.max_tokens,
+                temperature=args.temperature,
+                top_p=args.top_p,
+                timeout=args.timeout,
+                concurrency=args.concurrency,
+                base_url=args.worldlines_base_url,
+                api_key=args.api_key,
+            ),
+        )
+        eval_rows.append(flatten_eval(method, summary))
+
+    sft_run = out_dir / "train_sft"
+    sft_model = run_with_managed_worldlines(
+        args,
+        lambda: train_model(
+            run_dir=sft_run,
+            run_name="family_sft",
+            base_model=args.base_model,
+            runner_python=args.runner_python,
+            backend_url=args.worldlines_base_url,
+            api_key=args.api_key,
+            tasks_root=args.tasks_root,
+            split_file=train_split,
+            train_rounds=args.train_rounds,
+            tasks_per_round=args.tasks_per_round,
+            samples_per_task=args.samples_per_task,
+            max_turns=args.max_turns,
+            max_tokens=args.max_tokens,
+            max_context_tokens=args.max_context_tokens,
+            temperature=args.temperature,
+            top_p=args.top_p,
+            timeout=args.timeout,
+            train_timeout_s=args.train_timeout_s,
+            eval_timeout_s=args.eval_timeout_s,
+            concurrency=args.concurrency,
+            lora_rank=args.lora_rank,
+            lr=args.lr,
+            supervised_only=True,
+            allow_zero_update_models=args.allow_zero_update_models,
+        ),
+    )
+    sft_method = MethodSpec(
+        "sft_model",
+        sft_model["path"],
+        args.samples_per_task,
+        adapter_updates=int(sft_model["adapter_updates"]),
+        trained_tokens=int(sft_model["trained_tokens"]),
+    )
+    report_dir = out_dir / "eval_sft_model"
+    report_dir.mkdir(parents=True, exist_ok=True)
+    summary = run_with_managed_worldlines(
+        args,
+        lambda: run_sample_and_score(
             report_dir=report_dir,
             base_model=args.base_model,
             runner_python=args.runner_python,
-            model_path=method.model_path,
+            model_path=sft_method.model_path,
             tasks_root=args.tasks_root,
             split_file=test_split,
-            samples_per_task=method.samples_per_task,
+            samples_per_task=sft_method.samples_per_task,
             max_turns=args.max_turns,
             max_tokens=args.max_tokens,
             temperature=args.temperature,
@@ -196,8 +221,70 @@ def main() -> int:
             concurrency=args.concurrency,
             base_url=args.worldlines_base_url,
             api_key=args.api_key,
-        )
-        eval_rows.append(flatten_eval(method, summary))
+        ),
+    )
+    eval_rows.append(flatten_eval(sft_method, summary))
+
+    rlvr_run = out_dir / "train_rlvr"
+    rlvr_model = run_with_managed_worldlines(
+        args,
+        lambda: train_model(
+            run_dir=rlvr_run,
+            run_name="family_rlvr",
+            base_model=args.base_model,
+            runner_python=args.runner_python,
+            backend_url=args.worldlines_base_url,
+            api_key=args.api_key,
+            tasks_root=args.tasks_root,
+            split_file=train_split,
+            train_rounds=args.train_rounds,
+            tasks_per_round=args.tasks_per_round,
+            samples_per_task=args.samples_per_task,
+            max_turns=args.max_turns,
+            max_tokens=args.max_tokens,
+            max_context_tokens=args.max_context_tokens,
+            temperature=args.temperature,
+            top_p=args.top_p,
+            timeout=args.timeout,
+            train_timeout_s=args.train_timeout_s,
+            eval_timeout_s=args.eval_timeout_s,
+            concurrency=args.concurrency,
+            lora_rank=args.lora_rank,
+            lr=args.lr,
+            supervised_only=False,
+            allow_zero_update_models=args.allow_zero_update_models,
+        ),
+    )
+    rlvr_method = MethodSpec(
+        "mechanical_evolve_ttrl",
+        rlvr_model["path"],
+        args.samples_per_task,
+        adapter_updates=int(rlvr_model["adapter_updates"]),
+        trained_tokens=int(rlvr_model["trained_tokens"]),
+    )
+    report_dir = out_dir / "eval_mechanical_evolve_ttrl"
+    report_dir.mkdir(parents=True, exist_ok=True)
+    summary = run_with_managed_worldlines(
+        args,
+        lambda: run_sample_and_score(
+            report_dir=report_dir,
+            base_model=args.base_model,
+            runner_python=args.runner_python,
+            model_path=rlvr_method.model_path,
+            tasks_root=args.tasks_root,
+            split_file=test_split,
+            samples_per_task=rlvr_method.samples_per_task,
+            max_turns=args.max_turns,
+            max_tokens=args.max_tokens,
+            temperature=args.temperature,
+            top_p=args.top_p,
+            timeout=args.timeout,
+            concurrency=args.concurrency,
+            base_url=args.worldlines_base_url,
+            api_key=args.api_key,
+        ),
+    )
+    eval_rows.append(flatten_eval(rlvr_method, summary))
 
     write_results(docs_dir, split, eval_rows)
     print(json.dumps({
@@ -312,7 +399,11 @@ def train_model(
                 f"training produced no exported sampler for {run_name}: "
                 f"{sampler_manifest}{detail}"
             )
-        return ""
+        return {
+            "path": None,
+            "adapter_updates": 0,
+            "trained_tokens": 0,
+        }
     manifest = json.loads(sampler_manifest.read_text())
     path = manifest.get("path")
     if not path:
@@ -329,6 +420,63 @@ def train_model(
         "adapter_updates": sum(1 for row in history if row.get("kind") == "optim"),
         "trained_tokens": sum(int(row.get("trained_tokens", 0) or 0) for row in history),
     }
+
+
+def init_live_session(
+    *,
+    run_dir: Path,
+    run_name: str,
+    base_model: str,
+    runner_python: str,
+    backend_url: str,
+    api_key: str,
+    tasks_root: str,
+    max_context_tokens: int,
+    lora_rank: int,
+    timeout_s: float,
+) -> None:
+    run_dir.mkdir(parents=True, exist_ok=True)
+    cmd = [
+        runner_python,
+        str(REPO_ROOT / "rl" / "train_grpo.py"),
+        "--base-model",
+        base_model,
+        "--backend-url",
+        backend_url,
+        "--api-key",
+        api_key,
+        "--rollout-backend",
+        "worldlines_sampling",
+        "--run-name",
+        run_name,
+        "--runs-root",
+        str(run_dir.parent.relative_to(REPO_ROOT)),
+        "--tasks-root",
+        tasks_root,
+        "--rounds",
+        "0",
+        "--tasks-per-round",
+        "1",
+        "--samples-per-task",
+        "1",
+        "--max-turns",
+        "1",
+        "--max-tokens-per-turn",
+        "64",
+        "--max-context-tokens",
+        str(max_context_tokens),
+        "--lora-rank",
+        str(lora_rank),
+    ]
+    env = dict(os.environ)
+    env["WORLDLINES_BASE_URL"] = backend_url
+    env["WORLDLINES_API_KEY"] = api_key
+    env["PYTHONPATH"] = (
+        f"{REPO_ROOT}:{env['PYTHONPATH']}"
+        if env.get("PYTHONPATH")
+        else str(REPO_ROOT)
+    )
+    run(cmd, cwd=REPO_ROOT, env=env, timeout=timeout_s)
 
 
 def run_sample_and_score(
@@ -515,6 +663,111 @@ def run(cmd: list[str], *, cwd: Path, env: dict[str, str] | None = None,
         timeout=timeout,
         check=True,
     )
+
+
+def run_with_managed_worldlines(args: argparse.Namespace, fn):
+    if not args.manage_worldlines:
+        return fn()
+    proc = start_worldlines_backend(args)
+    try:
+        return fn()
+    finally:
+        stop_worldlines_backend(proc)
+
+
+def start_worldlines_backend(args: argparse.Namespace) -> subprocess.Popen:
+    parsed = urlparse(args.worldlines_base_url)
+    host = parsed.hostname or "127.0.0.1"
+    port = int(parsed.port or 18100)
+    if port_is_listening(host, port):
+        raise SystemExit(
+            f"--manage-worldlines requested but {host}:{port} is already "
+            "listening; stop the existing backend or use another port"
+        )
+    log_dir = Path(args.out_dir).expanduser().resolve() / "worldlines_logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / f"worldlines_{int(time.time() * 1000)}.log"
+    log_f = log_path.open("w")
+    env = dict(os.environ)
+    env.update({
+        "REPO_ROOT": str(Path(args.worldlines_root).expanduser().resolve()),
+        "WLD_VENV": str(Path(args.worldlines_venv).expanduser().resolve()),
+        "WLD_ARTIFACTS": str(
+            Path(args.worldlines_artifact_root).expanduser().resolve()
+        ),
+        "BASE_MODEL": str(args.base_model),
+        "PORT": str(port),
+        "HOST": host,
+        "PATCHED_ENTRY": str(REPO_ROOT / "rl" / "launch_trainer_patched.py"),
+    })
+    cmd = ["bash", str(REPO_ROOT / "rl" / "launch_worldlines.sh")]
+    proc = subprocess.Popen(
+        cmd,
+        cwd=REPO_ROOT,
+        env=env,
+        stdout=log_f,
+        stderr=subprocess.STDOUT,
+    )
+    # Keep the file descriptor alive on the process object so logs are not
+    # closed while the backend is running.
+    proc._mechbench_log_file = log_f  # type: ignore[attr-defined]
+    deadline = time.time() + float(args.worldlines_launch_timeout_s)
+    while time.time() < deadline:
+        if proc.poll() is not None:
+            raise SystemExit(
+                f"Worldlines backend exited early with code {proc.returncode}; "
+                f"see {log_path}"
+            )
+        if port_is_listening(host, port) and worldlines_health_ok(
+            args.worldlines_base_url
+        ):
+            print(f"managed Worldlines ready at {args.worldlines_base_url}")
+            return proc
+        time.sleep(1.0)
+    stop_worldlines_backend(proc)
+    raise SystemExit(
+        f"Worldlines backend did not become ready within "
+        f"{args.worldlines_launch_timeout_s}s; see {log_path}"
+    )
+
+
+def stop_worldlines_backend(proc: subprocess.Popen) -> None:
+    if proc.poll() is None:
+        proc.terminate()
+        try:
+            proc.wait(timeout=30)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait(timeout=30)
+    log_f = getattr(proc, "_mechbench_log_file", None)
+    if log_f is not None:
+        log_f.close()
+
+
+def port_is_listening(host: str, port: int) -> bool:
+    try:
+        with urllib.request.urlopen(
+            f"http://{host}:{port}/api/v1/get_server_capabilities",
+            timeout=1.0,
+        ) as response:
+            return 200 <= response.status < 500
+    except urllib.error.HTTPError as exc:
+        return 200 <= exc.code < 500
+    except (OSError, urllib.error.URLError):
+        return False
+
+
+def worldlines_health_ok(base_url: str) -> bool:
+    try:
+        with urllib.request.urlopen(
+            base_url.rstrip("/") + "/api/v1/get_server_capabilities",
+            timeout=3.0,
+        ) as response:
+            return 200 <= response.status < 300
+    except urllib.error.HTTPError as exc:
+        return exc.code in {401, 403}
+    except (OSError, urllib.error.URLError):
+        return False
 
 
 if __name__ == "__main__":
