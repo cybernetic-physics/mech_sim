@@ -1,4 +1,4 @@
-# MechanicalEvolve / TTRL Paper Goal
+# MechanicalEvolve / TTRL Paper Goal And Proof Contract
 
 This branch is aiming at a CoRL-grade paper result for MechanicalEvolve:
 test-time RLVR/TTRL-driven mechanical actuator discovery under executable CAD
@@ -17,6 +17,12 @@ The paper claim must become:
 > Under equal expensive CAD + Chrono physics-verification budget, iterative
 > RLVR/TTRL adaptation discovers stronger verified cycloidal actuator designs
 > than non-updating baselines.
+
+The broader paper result is not a single good reducer, a better optimizer
+trace, or an infrastructure demo. It is a controlled empirical claim that
+test-time learning from executable mechanical verifiers improves internal
+actuator invention under the same expensive verification budget available to
+non-learning methods.
 
 In plain terms: MechanicalEvolve should not win because it ran more samples,
 because it used a toy procedural simulator, or because it optimized a fast
@@ -41,8 +47,12 @@ The result is:
 
 - under matched Chrono audit budgets, iterative TTRL produces better verified
   actuator designs than non-updating search/evolution baselines;
+- the advantage holds across multiple target regimes and seeds, not just one
+  lucky nominal trial;
 - fast-only optimization finds candidates that often look good before CAD and
   contact verification but fail more often under the real verifier;
+- LLM evolution without weight/adaptation updates can explore, but does not
+  receive the same verifier-derived policy improvement signal;
 - CAD + Chrono verification is therefore not an implementation detail, but the
   task-defining reward source that makes mechanical invention credible.
 
@@ -50,6 +60,49 @@ The final paper should report both the best design and the learning/search
 behavior that produced it: pass rates, lockup rates, defect regimes, verified
 reward, ratio error, contact forces, penetration, torque ripple, power balance,
 and verifier calls to first valid design.
+
+## Primary Paper Result
+
+The result we need to publish is:
+
+> MechanicalEvolve with iterative TTRL/LoRA updates, using the same CAD +
+> Chrono SMC verification budget as non-updating baselines, achieves higher
+> verified cycloidal/QDD actuator reward and at least one stronger physical
+> validity metric across the target suite.
+
+That statement has three required parts:
+
+1. **Equal-budget design search.** Every compared method receives the same
+   number of real Chrono audits per target/seed trial. Extra fast proxy samples
+   are allowed only if they are declared and do not change the expensive
+   verifier budget.
+2. **Executable mechanical validity.** Reward only counts after FreeCAD/OCCT
+   asset generation, trusted DesignIR checks, and Chrono SMC simulation with
+   `procedural_cycloidal_fallback=false`.
+3. **Actual test-time adaptation.** `mechanical_evolve_ttrl` must perform
+   iterative adapter updates from verifier-labeled candidate groups. A
+   best-of-N sampler, prompt-only mutation loop, or MAP-Elites archive without
+   updates is a baseline, not the target method.
+
+The paper should use the matched-budget suite as the main result table and
+treat single-trial examples as qualitative case studies only.
+
+## Experimental Hierarchy
+
+The work should be interpreted in this order:
+
+1. **Verifier acceptance.** Prove CAD-generated cycloidal assets run in Chrono
+   SMC with fallback disabled and emit the required physical metrics.
+2. **Single-trial equal-budget proof.** Show the required methods can run to
+   the same Chrono audit budget on one target/seed and produce the required
+   artifacts.
+3. **Multi-target, multi-seed proof suite.** Run the full matched-budget suite
+   over nominal, high-load, and high-speed regimes with fixed seeds.
+4. **Statistical paper claim.** Claim success only if aggregate and paired
+   results support TTRL over the required non-updating baselines.
+
+Earlier stages are prerequisites. They are not substitutes for the final
+matched-budget result.
 
 ## Current Completed Foundation
 
@@ -87,7 +140,7 @@ This is necessary infrastructure, not the final paper result.
 The paper-grade result requires a matched-budget experiment across methods.
 Every method must use the same task family, same verifier thresholds, same CAD
 pipeline, same Chrono SMC configuration, same random seeds, and the same total
-Chrono audit budget.
+Chrono audit budget within each target/seed trial.
 
 Required methods:
 
@@ -129,6 +182,8 @@ paper experiment should use:
 - `duration_s=0.15`
 - `input_speed_rad_s=10.0`
 - `output_load_Nm=0.75`
+- the configured target variants for high-load and high-speed trials, if the
+  proof suite sets them explicitly
 - same power, torque, contact, penetration, and ratio limits for every method
 - target budget: `160` Chrono audits per method
 
@@ -181,9 +236,9 @@ For every method:
 
 ## Success Condition
 
-The broader paper goal is achieved only if `mechanical_evolve_ttrl`
-outperforms both required non-updating baselines under equal Chrono audit budget
-on:
+The single-trial success condition is achieved only if
+`mechanical_evolve_ttrl` outperforms both required non-updating baselines under
+equal Chrono audit budget on:
 
 - `best_verified_reward`
 
@@ -195,6 +250,22 @@ and at least one of:
 
 The claim must not be made if TTRL only wins because it used more Chrono audits.
 
+The broader paper success condition is stricter. Across the full proof suite,
+the final artifacts must show:
+
+- equal real Chrono audit budget within every target/seed trial;
+- no procedural fallback for any counted verified result;
+- nonzero `adapter_updates` and `trained_tokens` for `mechanical_evolve_ttrl`;
+- TTRL has the best aggregate `best_verified_reward_mean`;
+- paired TTRL-minus-baseline deltas are positive against both required
+  non-updating baselines;
+- the suite-level win is not driven solely by one target while failing the
+  other regimes without explanation.
+
+If a target regime remains a counterexample, the markdown must say that
+directly and the branch must treat it as the next scientific/engineering
+failure to solve, not as a result to hide.
+
 ## Current Honest Status
 
 The CAD/Chrono verifier foundation is complete and pushed.
@@ -205,6 +276,13 @@ a counterexample where TTRL lost to stronger non-updating/search baselines.
 Therefore the paper claim is still open until the matched-budget run completes
 and the final artifacts above show a clean equal-budget win or honestly document
 the failure regime.
+
+Current branch work should therefore focus on completing and stabilizing:
+
+- the equal-budget proof suite runner;
+- the real TTRL/LoRA update loop;
+- full target/seed completion without silent child-process loss;
+- final CSV/JSON/markdown artifacts that expose every required metric.
 
 ## Do Not Drift
 
@@ -218,4 +296,6 @@ Do not redefine success as:
 - a win caused by larger audit budget
 
 The end state is a fair, matched-budget MechanicalEvolve/TTRL comparison using
-CAD-generated real-geometry Chrono verification.
+CAD-generated real-geometry Chrono verification. The publishable result is a
+statistical matched-budget actuator-discovery result, not merely a working
+simulator or a one-off optimized cycloidal reducer.
