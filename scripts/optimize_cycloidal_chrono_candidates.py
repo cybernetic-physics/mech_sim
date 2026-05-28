@@ -92,6 +92,22 @@ class VerificationLimits:
     max_torque_ripple_pct: float = 1.0e12
 
 
+@dataclass(frozen=True)
+class ChronoTrialConfig:
+    input_speed_rad_s: float = 10.0
+    output_load_Nm: float = 0.75
+    output_load_start_s: float = 0.02
+    output_load_ramp_s: float = 0.05
+    friction: float = 0.0
+    restitution: float = 0.0
+    young_modulus: float = 1.0e8
+    normal_stiffness: float = 5.0e7
+    damping: float = 250.0
+    contact_margin: float = 2.0e-5
+    contact_envelope: float = 5.0e-5
+    solver_iterations: int = 800
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -164,6 +180,21 @@ def main() -> int:
         default=0.15,
         help="Chrono duration per audited candidate.",
     )
+    parser.add_argument("--input-speed-rad-s", type=float, default=10.0)
+    parser.add_argument("--output-load-Nm", type=float, default=0.75)
+    parser.add_argument("--output-load-start-s", type=float, default=0.02)
+    parser.add_argument("--output-load-ramp-s", type=float, default=0.05)
+    parser.add_argument("--friction", type=float, default=0.0)
+    parser.add_argument("--restitution", type=float, default=0.0)
+    parser.add_argument("--young-modulus", type=float, default=1.0e8)
+    parser.add_argument("--normal-stiffness", type=float, default=5.0e7)
+    parser.add_argument("--damping", type=float, default=250.0)
+    parser.add_argument("--contact-margin", type=float, default=2.0e-5)
+    parser.add_argument("--contact-envelope", type=float, default=5.0e-5)
+    parser.add_argument("--solver-iterations", type=int, default=800)
+    parser.add_argument("--min-output-speed-rad-s", type=float, default=0.5)
+    parser.add_argument("--max-penetration-mm", type=float, default=1.0)
+    parser.add_argument("--max-ratio-error-pct", type=float, default=25.0)
     parser.add_argument(
         "--contact-force-limit-N",
         type=float,
@@ -211,11 +242,28 @@ def main() -> int:
         else results_json.with_suffix(".csv")
     )
     limits = VerificationLimits(
+        min_output_speed_rad_s=max(0.0, float(args.min_output_speed_rad_s)),
+        max_penetration_mm=max(0.0, float(args.max_penetration_mm)),
         max_contact_force_rms_N=max(0.0, float(args.contact_force_limit_N)),
         max_contacts=max(1.0, float(args.max_contacts)),
+        max_ratio_error_pct=max(0.0, float(args.max_ratio_error_pct)),
         max_power_balance_error_pct=max(
             0.0, float(args.power_balance_limit_pct)),
         max_torque_ripple_pct=max(0.0, float(args.torque_ripple_limit_pct)),
+    )
+    trial = ChronoTrialConfig(
+        input_speed_rad_s=float(args.input_speed_rad_s),
+        output_load_Nm=float(args.output_load_Nm),
+        output_load_start_s=max(0.0, float(args.output_load_start_s)),
+        output_load_ramp_s=max(0.0, float(args.output_load_ramp_s)),
+        friction=max(0.0, float(args.friction)),
+        restitution=max(0.0, float(args.restitution)),
+        young_modulus=max(1.0, float(args.young_modulus)),
+        normal_stiffness=max(1.0, float(args.normal_stiffness)),
+        damping=max(0.0, float(args.damping)),
+        contact_margin=max(0.0, float(args.contact_margin)),
+        contact_envelope=max(0.0, float(args.contact_envelope)),
+        solver_iterations=max(1, int(args.solver_iterations)),
     )
 
     selected_methods = _selected_methods(args.methods)
@@ -231,6 +279,7 @@ def main() -> int:
                 samples=max(3, int(args.samples)),
                 duration_s=max(1.0e-6, float(args.duration_s)),
                 limits=limits,
+                trial=trial,
             )
             evaluated.append(row)
             if row.get("metrics"):
@@ -255,7 +304,7 @@ def main() -> int:
             "disabled. Verified reward is zero unless all hard gates pass."
         ),
         "out_dir": str(out_dir),
-        "audit_config": _chrono_config_summary(args, limits),
+        "audit_config": _chrono_config_summary(args, limits, trial),
         "limits": limits.__dict__,
         "methods": selected_methods,
         "target_chrono_audits_per_method": (
@@ -381,7 +430,8 @@ def _cma_style_fast_only_candidates(
     ]
     collected: dict[tuple[Any, ...], Candidate] = {}
     generation = 0
-    while len(collected) < count and generation < 12:
+    max_generations = max(12, math.ceil(max(1, count) / 4) + 4)
+    while len(collected) < count and generation < max_generations:
         population: list[tuple[float, list[float], dict[str, Any]]] = []
         for _ in range(max(6, count * 2)):
             vector = [
@@ -612,7 +662,9 @@ def _evaluate_candidate(
     samples: int,
     duration_s: float,
     limits: VerificationLimits,
+    trial: ChronoTrialConfig | None = None,
 ) -> dict[str, Any]:
+    trial = trial or ChronoTrialConfig()
     fast_reward = fast_cps_actuator_reward(candidate.params)
     result: dict[str, Any] = {
         "id": candidate.id,
@@ -659,6 +711,7 @@ def _evaluate_candidate(
                 samples=samples,
                 duration_s=duration_s,
                 limits=limits,
+                trial=trial,
             ),
         )
         metadata = out.get("metadata", {})
@@ -701,6 +754,7 @@ def _chrono_config(
     samples: int,
     duration_s: float,
     limits: VerificationLimits,
+    trial: ChronoTrialConfig,
 ) -> dict[str, Any]:
     return {
         "samples": samples,
@@ -709,15 +763,15 @@ def _chrono_config(
         "contact_model": "smc",
         "contact_method": "SMC",
         "procedural_cycloidal_fallback": False,
-        "contact_margin": 2.0e-5,
-        "contact_envelope": 5.0e-5,
-        "friction": 0.0,
-        "restitution": 0.0,
-        "young_modulus": 1.0e8,
-        "normal_stiffness": 5.0e7,
-        "damping": 250.0,
-        "solver_iterations": 800,
-        "solver_max_iterations": 800,
+        "contact_margin": trial.contact_margin,
+        "contact_envelope": trial.contact_envelope,
+        "friction": trial.friction,
+        "restitution": trial.restitution,
+        "young_modulus": trial.young_modulus,
+        "normal_stiffness": trial.normal_stiffness,
+        "damping": trial.damping,
+        "solver_iterations": trial.solver_iterations,
+        "solver_max_iterations": trial.solver_iterations,
         "collision_filter_named_pairs": True,
         "_mech_bench": {
             "build_root": str(assets.root),
@@ -734,12 +788,14 @@ def _chrono_config(
                     "config": {
                         "input_port": "input_port",
                         "output_port": "output_port",
-                        "input_speed_rad_s": 10.0,
-                        "output_load_Nm": 0.75,
+                        "input_speed_rad_s": trial.input_speed_rad_s,
+                        "output_load_Nm": trial.output_load_Nm,
                         "output_load_model": "passive_brake",
-                        "output_load_start_s": 0.02,
-                        "output_load_ramp_s": 0.05,
-                        "min_output_speed_rad_s": 0.5,
+                        "output_load_start_s": trial.output_load_start_s,
+                        "output_load_ramp_s": trial.output_load_ramp_s,
+                        "min_output_speed_rad_s": (
+                            limits.min_output_speed_rad_s
+                        ),
                         "max_power_error_pct": (
                             limits.max_power_balance_error_pct
                         ),
@@ -756,19 +812,27 @@ def _chrono_config(
 def _chrono_config_summary(
     args: argparse.Namespace,
     limits: VerificationLimits,
+    trial: ChronoTrialConfig,
 ) -> dict[str, Any]:
     return {
         "contact_model": "smc",
         "procedural_cycloidal_fallback": False,
         "output_load_model": "passive_brake",
-        "output_load_Nm": 0.75,
-        "input_speed_rad_s": 10.0,
+        "output_load_Nm": trial.output_load_Nm,
+        "input_speed_rad_s": trial.input_speed_rad_s,
+        "output_load_start_s": trial.output_load_start_s,
+        "output_load_ramp_s": trial.output_load_ramp_s,
         "duration_s": float(args.duration_s),
         "samples": int(args.samples),
         "timestep": 2.5e-5,
-        "young_modulus": 1.0e8,
-        "damping": 250.0,
-        "friction": 0.0,
+        "young_modulus": trial.young_modulus,
+        "normal_stiffness": trial.normal_stiffness,
+        "damping": trial.damping,
+        "friction": trial.friction,
+        "restitution": trial.restitution,
+        "contact_margin": trial.contact_margin,
+        "contact_envelope": trial.contact_envelope,
+        "solver_iterations": trial.solver_iterations,
         "verified_limits": limits.__dict__,
     }
 

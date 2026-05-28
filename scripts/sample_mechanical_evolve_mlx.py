@@ -218,6 +218,7 @@ def build_prompt(
 ) -> str:
     elites = compact_elites(archive)
     defects = defect_tags(archive)
+    target = archive.get("verifier_target", {}) if isinstance(archive, dict) else {}
     mode = "adapted LoRA policy" if adapter_active else "base zero-shot policy"
     return "\n".join([
         "You are proposing cycloidal/QDD actuator designs for CAD+Chrono verification.",
@@ -232,6 +233,8 @@ def build_prompt(
             "strict paper runs also require power_balance_error_pct<=90 and "
             "torque_ripple_pct<=1000."
         ),
+        "Current target/verifier settings: "
+        + json.dumps(target, sort_keys=True, separators=(",", ":")),
         "Prefer variants near verified elites, but do not copy any elite exactly.",
         "Each candidate must differ from every elite and already-tried tuple in at least one numeric variable.",
         "Verified elites: " + json.dumps(elites, sort_keys=True, separators=(",", ":")),

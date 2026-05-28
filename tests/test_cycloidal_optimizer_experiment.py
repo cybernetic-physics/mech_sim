@@ -112,6 +112,33 @@ def test_verified_reward_is_zero_until_all_hard_gates_pass():
     ) == 0.0
 
 
+def test_chrono_config_uses_target_and_contact_settings():
+    mod = _load_module()
+    cfg = mod._chrono_config(
+        assets=SimpleNamespace(root=Path("/tmp/build")),
+        samples=41,
+        duration_s=0.15,
+        limits=mod.VerificationLimits(min_output_speed_rad_s=0.75),
+        trial=mod.ChronoTrialConfig(
+            input_speed_rad_s=14.0,
+            output_load_Nm=1.1,
+            young_modulus=2.0e8,
+            normal_stiffness=1.0e8,
+            damping=350.0,
+            friction=0.1,
+        ),
+    )
+
+    probe_cfg = cfg["_mech_bench"]["probe_specs"][0]["config"]
+    assert probe_cfg["input_speed_rad_s"] == 14.0
+    assert probe_cfg["output_load_Nm"] == 1.1
+    assert probe_cfg["min_output_speed_rad_s"] == 0.75
+    assert cfg["young_modulus"] == 2.0e8
+    assert cfg["normal_stiffness"] == 1.0e8
+    assert cfg["damping"] == 350.0
+    assert cfg["friction"] == 0.1
+
+
 def test_method_table_reports_requested_baseline_columns():
     mod = _load_module()
     limits = mod.VerificationLimits()

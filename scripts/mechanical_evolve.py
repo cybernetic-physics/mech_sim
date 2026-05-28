@@ -200,6 +200,18 @@ def main() -> int:
     parser.add_argument("--audit-k", type=int, default=4)
     parser.add_argument("--samples", type=int, default=41)
     parser.add_argument("--duration-s", type=float, default=0.15)
+    parser.add_argument("--input-speed-rad-s", type=float, default=10.0)
+    parser.add_argument("--output-load-Nm", type=float, default=0.75)
+    parser.add_argument("--output-load-start-s", type=float, default=0.02)
+    parser.add_argument("--output-load-ramp-s", type=float, default=0.05)
+    parser.add_argument("--friction", type=float, default=0.0)
+    parser.add_argument("--restitution", type=float, default=0.0)
+    parser.add_argument("--young-modulus", type=float, default=1.0e8)
+    parser.add_argument("--normal-stiffness", type=float, default=5.0e7)
+    parser.add_argument("--damping", type=float, default=250.0)
+    parser.add_argument("--contact-margin", type=float, default=2.0e-5)
+    parser.add_argument("--contact-envelope", type=float, default=5.0e-5)
+    parser.add_argument("--solver-iterations", type=int, default=800)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--resume", action="store_true")
     parser.add_argument(
@@ -251,6 +263,9 @@ def main() -> int:
     parser.add_argument("--lora-prepare-only", action="store_true")
     parser.add_argument("--policy-lr", type=float, default=1.0)
     parser.add_argument("--target-id", default="cycloidal_qdd_default")
+    parser.add_argument("--min-output-speed-rad-s", type=float, default=0.5)
+    parser.add_argument("--max-penetration-mm", type=float, default=1.0)
+    parser.add_argument("--max-ratio-error-pct", type=float, default=25.0)
     parser.add_argument("--contact-force-limit-N", type=float, default=3000.0)
     parser.add_argument("--max-contacts", type=float, default=128.0)
     parser.add_argument("--power-balance-limit-pct", type=float, default=1.0e12)
@@ -260,16 +275,34 @@ def main() -> int:
     out_dir = Path(args.out_dir).expanduser().resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
     limits = cyclo.VerificationLimits(
+        min_output_speed_rad_s=max(0.0, float(args.min_output_speed_rad_s)),
+        max_penetration_mm=max(0.0, float(args.max_penetration_mm)),
         max_contact_force_rms_N=max(0.0, float(args.contact_force_limit_N)),
         max_contacts=max(1.0, float(args.max_contacts)),
+        max_ratio_error_pct=max(0.0, float(args.max_ratio_error_pct)),
         max_power_balance_error_pct=max(
             0.0, float(args.power_balance_limit_pct)),
         max_torque_ripple_pct=max(0.0, float(args.torque_ripple_limit_pct)),
+    )
+    trial = cyclo.ChronoTrialConfig(
+        input_speed_rad_s=float(args.input_speed_rad_s),
+        output_load_Nm=float(args.output_load_Nm),
+        output_load_start_s=max(0.0, float(args.output_load_start_s)),
+        output_load_ramp_s=max(0.0, float(args.output_load_ramp_s)),
+        friction=max(0.0, float(args.friction)),
+        restitution=max(0.0, float(args.restitution)),
+        young_modulus=max(1.0, float(args.young_modulus)),
+        normal_stiffness=max(1.0, float(args.normal_stiffness)),
+        damping=max(0.0, float(args.damping)),
+        contact_margin=max(0.0, float(args.contact_margin)),
+        contact_envelope=max(0.0, float(args.contact_envelope)),
+        solver_iterations=max(1, int(args.solver_iterations)),
     )
     runner = MechanicalEvolveRunner(
         out_dir=out_dir,
         seed=int(args.seed),
         limits=limits,
+        trial=trial,
         samples=max(3, int(args.samples)),
         duration_s=max(1.0e-6, float(args.duration_s)),
         dry_run=bool(args.dry_run),
@@ -337,6 +370,7 @@ class MechanicalEvolveRunner:
         out_dir: Path,
         seed: int,
         limits: cyclo.VerificationLimits,
+        trial: cyclo.ChronoTrialConfig | None = None,
         samples: int,
         duration_s: float,
         dry_run: bool,
@@ -356,6 +390,7 @@ class MechanicalEvolveRunner:
         self.rng = random.Random(seed)
         self.seed = int(seed)
         self.limits = limits
+        self.trial = trial or cyclo.ChronoTrialConfig()
         self.samples = int(samples)
         self.duration_s = float(duration_s)
         self.dry_run = bool(dry_run)
@@ -525,6 +560,7 @@ class MechanicalEvolveRunner:
             "generation": generation,
             "design_variables": list(DESIGN_VARIABLES),
             "paper_gate": self.limits.__dict__,
+            "chrono_trial": self.trial.__dict__,
             "elites": [
                 compact_row(row) for row in self.archive.elites(limit=8)
             ],
@@ -676,6 +712,7 @@ class MechanicalEvolveRunner:
                 samples=self.samples,
                 duration_s=self.duration_s,
                 limits=self.limits,
+                trial=self.trial,
             )
         row["proposal"] = proposal.to_dict()
         row["parent_id"] = proposal.parent_id
@@ -902,10 +939,11 @@ class MechanicalEvolveRunner:
             "verifier": {
                 "contact_model": "smc",
                 "procedural_cycloidal_fallback": False,
-                "input_speed_rad_s": 10.0,
-                "output_load_Nm": 0.75,
+                "input_speed_rad_s": self.trial.input_speed_rad_s,
+                "output_load_Nm": self.trial.output_load_Nm,
                 "samples": self.samples,
                 "duration_s": self.duration_s,
+                "trial": self.trial.__dict__,
                 "limits": self.limits.__dict__,
             },
             "archive_path": str(self.archive_path),

@@ -59,6 +59,7 @@ def test_ttrl_dataset_groups_verifier_rewards(tmp_path):
             max_power_balance_error_pct=90,
             max_torque_ripple_pct=1000,
         ),
+        trial=mod.cyclo.ChronoTrialConfig(output_load_Nm=1.0),
     )
 
     assert count == 1
@@ -67,6 +68,7 @@ def test_ttrl_dataset_groups_verifier_rewards(tmp_path):
     assert len(record["responses"]) == 2
     assert record["responses"][0]["reward"] == 65.0
     assert record["prompt"]["paper_gate"]["max_torque_ripple_pct"] == 1000
+    assert record["prompt"]["chrono_trial"]["output_load_Nm"] == 1.0
 
 
 def test_win_conditions_require_ttrl_to_beat_baselines_and_stability():
@@ -145,3 +147,71 @@ def test_equal_budget_markdown_states_verifier_invariants(tmp_path):
     assert "identical verifier settings: yes" in text
     assert "procedural_cycloidal_fallback=false: true" in text
     assert "TTRL wins under equal budget: yes" in text
+
+
+def test_lora_training_reuses_previous_adapter_after_transient_oom(tmp_path, monkeypatch):
+    mod = _load_runner()
+    previous = tmp_path / "prev_adapter"
+    previous.mkdir()
+    (previous / "adapters.safetensors").write_bytes(b"weights")
+    round_dir = tmp_path / "round"
+    train_dir = round_dir / "mlx_lora"
+    train_dir.mkdir(parents=True)
+    (train_dir / "training_summary.json").write_text(
+        json.dumps({
+            "example_count": 3,
+            "best_training_reward": 67.0,
+            "trainer": {
+                "train_loss": 0.1,
+                "trained_tokens": 89,
+                "peak_mem_gb": 25.9,
+            },
+        })
+    )
+    calls = []
+
+    def fake_run_command(command, *, cwd, log_path, timeout_s):
+        calls.append(log_path.name)
+        return mod.CommandResult(
+            status="failed",
+            returncode=-6,
+            command=command,
+            log_path=str(log_path),
+            stdout_tail="[METAL] Command buffer execution failed: Insufficient Memory",
+            stderr_tail="",
+        )
+
+    monkeypatch.setattr(mod, "run_command", fake_run_command)
+    monkeypatch.setattr(mod.time, "sleep", lambda _: None)
+    args = type("Args", (), {
+        "model": "local-model",
+        "lora_iters": 4,
+        "lora_batch_size": 1,
+        "lora_grad_accumulation_steps": 1,
+        "lora_learning_rate": 1e-5,
+        "lora_num_layers": 4,
+        "lora_rank": 4,
+        "lora_scale": 16.0,
+        "lora_dropout": 0.0,
+        "lora_max_examples": 256,
+        "lora_min_reward": 1.0,
+        "seed": 123,
+        "allow_zero_reward_lora": False,
+        "train_timeout_s": 1.0,
+        "lora_train_retries": 1,
+        "lora_retry_sleep_s": 0.0,
+    })()
+
+    trainer = mod.train_lora_round(
+        args=args,
+        round_dir=round_dir,
+        dataset_path=tmp_path / "dataset.jsonl",
+        archive_path=tmp_path / "archive.json",
+        previous_adapter=previous,
+        round_idx=2,
+    )
+
+    assert trainer["status"] == "reused_previous_adapter_after_failure"
+    assert trainer["fallback_adapter_reused"] is True
+    assert len(trainer["attempts"]) == 2
+    assert calls == ["train.log", "train_retry_01.log"]

@@ -21,6 +21,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -140,6 +141,18 @@ def main() -> int:
     parser.add_argument("--verifier-pool", type=int, default=192)
     parser.add_argument("--samples", type=int, default=41)
     parser.add_argument("--duration-s", type=float, default=0.15)
+    parser.add_argument("--input-speed-rad-s", type=float, default=10.0)
+    parser.add_argument("--output-load-Nm", type=float, default=0.75)
+    parser.add_argument("--output-load-start-s", type=float, default=0.02)
+    parser.add_argument("--output-load-ramp-s", type=float, default=0.05)
+    parser.add_argument("--friction", type=float, default=0.0)
+    parser.add_argument("--restitution", type=float, default=0.0)
+    parser.add_argument("--young-modulus", type=float, default=1.0e8)
+    parser.add_argument("--normal-stiffness", type=float, default=5.0e7)
+    parser.add_argument("--damping", type=float, default=250.0)
+    parser.add_argument("--contact-margin", type=float, default=2.0e-5)
+    parser.add_argument("--contact-envelope", type=float, default=5.0e-5)
+    parser.add_argument("--solver-iterations", type=int, default=800)
     parser.add_argument("--sample-batch-size", type=int, default=4)
     parser.add_argument("--max-tokens", type=int, default=320)
     parser.add_argument("--temp", type=float, default=0.7)
@@ -155,6 +168,27 @@ def main() -> int:
     parser.add_argument("--lora-dropout", type=float, default=0.0)
     parser.add_argument("--lora-max-examples", type=int, default=256)
     parser.add_argument("--lora-min-reward", type=float, default=1.0)
+    parser.add_argument(
+        "--lora-train-retries",
+        type=int,
+        default=2,
+        help=(
+            "Retry transient MLX/Metal training failures before falling back. "
+            "This protects long equal-budget runs from GPU-memory hiccups."
+        ),
+    )
+    parser.add_argument("--lora-retry-sleep-s", type=float, default=15.0)
+    parser.add_argument(
+        "--allow-zero-reward-lora",
+        action="store_true",
+        help=(
+            "Allow zero-reward examples to produce a LoRA adapter. This is "
+            "intended for plumbing smoke tests; paper runs should leave it off."
+        ),
+    )
+    parser.add_argument("--min-output-speed-rad-s", type=float, default=0.5)
+    parser.add_argument("--max-penetration-mm", type=float, default=1.0)
+    parser.add_argument("--max-ratio-error-pct", type=float, default=25.0)
     parser.add_argument("--contact-force-limit-N", type=float, default=3000.0)
     parser.add_argument("--max-contacts", type=float, default=128.0)
     parser.add_argument("--power-balance-limit-pct", type=float, default=90.0)
@@ -184,12 +218,16 @@ def main() -> int:
         if args.results_md else None
     )
     limits = cyclo.VerificationLimits(
+        min_output_speed_rad_s=max(0.0, float(args.min_output_speed_rad_s)),
+        max_penetration_mm=max(0.0, float(args.max_penetration_mm)),
         max_contact_force_rms_N=max(0.0, float(args.contact_force_limit_N)),
         max_contacts=max(1.0, float(args.max_contacts)),
+        max_ratio_error_pct=max(0.0, float(args.max_ratio_error_pct)),
         max_power_balance_error_pct=max(
             0.0, float(args.power_balance_limit_pct)),
         max_torque_ripple_pct=max(0.0, float(args.torque_ripple_limit_pct)),
     )
+    trial = trial_config_from_args(args)
 
     baselines = {}
     bootstrap_archive = mech.MapElitesArchive()
@@ -222,6 +260,7 @@ def main() -> int:
             args=args,
             out_dir=out_dir / "baselines",
             limits=limits,
+            trial=trial,
         )
         bootstrap_archive = archive_from_optimizer(baselines)
     if args.no_policy_baseline_bootstrap:
@@ -237,6 +276,7 @@ def main() -> int:
             args=args,
             out_dir=out_dir / "llm_evolve_no_update",
             limits=limits,
+            trial=trial,
             bootstrap_archive=bootstrap_archive,
             train_lora=False,
         )
@@ -245,6 +285,7 @@ def main() -> int:
             args=args,
             out_dir=out_dir / "mechanical_evolve_ttrl",
             limits=limits,
+            trial=trial,
             bootstrap_archive=bootstrap_archive,
             train_lora=True,
         )
@@ -258,6 +299,7 @@ def main() -> int:
             out_dir=out_dir / "stability",
             best=ttrl_best,
             limits=limits,
+            trial=trial,
         )
 
     method_table = aggregate_method_table(
@@ -292,6 +334,7 @@ def main() -> int:
             "procedural_cycloidal_fallback": False,
             "samples": int(args.samples),
             "duration_s": float(args.duration_s),
+            "trial": trial.__dict__,
             "limits": limits.__dict__,
         },
         "baseline_command": baseline_command,
@@ -326,6 +369,7 @@ def run_baselines(
     args: argparse.Namespace,
     out_dir: Path,
     limits: cyclo.VerificationLimits,
+    trial: cyclo.ChronoTrialConfig,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     out_dir.mkdir(parents=True, exist_ok=True)
     results_json = out_dir / "cycloidal_optimizer_strict_matched.json"
@@ -354,6 +398,36 @@ def run_baselines(
         str(max(3, int(args.samples))),
         "--duration-s",
         str(max(1.0e-6, float(args.duration_s))),
+        "--input-speed-rad-s",
+        str(trial.input_speed_rad_s),
+        "--output-load-Nm",
+        str(trial.output_load_Nm),
+        "--output-load-start-s",
+        str(trial.output_load_start_s),
+        "--output-load-ramp-s",
+        str(trial.output_load_ramp_s),
+        "--friction",
+        str(trial.friction),
+        "--restitution",
+        str(trial.restitution),
+        "--young-modulus",
+        str(trial.young_modulus),
+        "--normal-stiffness",
+        str(trial.normal_stiffness),
+        "--damping",
+        str(trial.damping),
+        "--contact-margin",
+        str(trial.contact_margin),
+        "--contact-envelope",
+        str(trial.contact_envelope),
+        "--solver-iterations",
+        str(trial.solver_iterations),
+        "--min-output-speed-rad-s",
+        str(limits.min_output_speed_rad_s),
+        "--max-penetration-mm",
+        str(limits.max_penetration_mm),
+        "--max-ratio-error-pct",
+        str(limits.max_ratio_error_pct),
         "--contact-force-limit-N",
         str(limits.max_contact_force_rms_N),
         "--max-contacts",
@@ -383,31 +457,132 @@ def archive_from_optimizer(data: dict[str, Any]) -> mech.MapElitesArchive:
     return archive
 
 
+def trial_config_from_args(args: argparse.Namespace) -> cyclo.ChronoTrialConfig:
+    return cyclo.ChronoTrialConfig(
+        input_speed_rad_s=float(args.input_speed_rad_s),
+        output_load_Nm=float(args.output_load_Nm),
+        output_load_start_s=max(0.0, float(args.output_load_start_s)),
+        output_load_ramp_s=max(0.0, float(args.output_load_ramp_s)),
+        friction=max(0.0, float(args.friction)),
+        restitution=max(0.0, float(args.restitution)),
+        young_modulus=max(1.0, float(args.young_modulus)),
+        normal_stiffness=max(1.0, float(args.normal_stiffness)),
+        damping=max(0.0, float(args.damping)),
+        contact_margin=max(0.0, float(args.contact_margin)),
+        contact_envelope=max(0.0, float(args.contact_envelope)),
+        solver_iterations=max(1, int(args.solver_iterations)),
+    )
+
+
+def archive_prompt_payload(
+    archive: mech.MapElitesArchive,
+    limits: cyclo.VerificationLimits,
+    trial: cyclo.ChronoTrialConfig,
+) -> dict[str, Any]:
+    payload = archive.to_dict()
+    payload["verifier_target"] = {
+        "chrono_trial": trial.__dict__,
+        "paper_gate": limits.__dict__,
+    }
+    return payload
+
+
+def load_partial_policy_state(
+    *,
+    out_dir: Path,
+    bootstrap_archive: mech.MapElitesArchive,
+    train_lora: bool,
+) -> PolicyState | None:
+    method = "mechanical_evolve_ttrl" if train_lora else "llm_evolve_no_update"
+    round_dirs = sorted(out_dir.glob("round_[0-9][0-9][0-9]"))
+    completed_rounds: list[dict[str, Any]] = []
+    evaluated: list[dict[str, Any]] = []
+    trainers: list[dict[str, Any]] = []
+    adapter_path: Path | None = None
+    adapter_updates = 0
+
+    for round_dir in round_dirs:
+        round_summary_path = round_dir / "round_summary.json"
+        audit_summary_path = round_dir / "audit" / "summary.json"
+        if not round_summary_path.is_file() or not audit_summary_path.is_file():
+            break
+        round_summary = read_json(round_summary_path)
+        audit_summary = read_json(audit_summary_path)
+        completed_rounds.append(round_summary)
+        evaluated.extend(
+            row for row in audit_summary.get("evaluated", [])
+            if isinstance(row, dict)
+        )
+        trainer = round_summary.get("trainer")
+        if isinstance(trainer, dict) and train_lora:
+            trainers.append(trainer)
+            if trainer.get("status") == "completed":
+                adapter_updates += 1
+            adapter_output = round_summary.get("adapter_output")
+            if adapter_output:
+                candidate_adapter = Path(str(adapter_output))
+                if (candidate_adapter / "adapters.safetensors").is_file():
+                    adapter_path = candidate_adapter
+
+    if not completed_rounds:
+        return None
+
+    archive_path = out_dir / "archive.json"
+    if archive_path.is_file():
+        archive = mech.MapElitesArchive.from_dict(read_json(archive_path))
+    else:
+        archive = mech.MapElitesArchive.from_dict(bootstrap_archive.to_dict())
+        for row in evaluated:
+            archive.insert(row)
+
+    return PolicyState(
+        method=method,
+        sample_method="mechanical_evolve_ttrl" if train_lora else "llm_evolution_no_update",
+        proposer="mlx_lora_ttrl_policy" if train_lora else "mlx_base_archive_policy",
+        archive=archive,
+        evaluated=evaluated,
+        rounds=completed_rounds,
+        trainers=trainers,
+        adapter_path=adapter_path,
+        adapter_updates=adapter_updates,
+    )
+
+
 def run_policy_loop(
     *,
     args: argparse.Namespace,
     out_dir: Path,
     limits: cyclo.VerificationLimits,
+    trial: cyclo.ChronoTrialConfig,
     bootstrap_archive: mech.MapElitesArchive,
     train_lora: bool,
 ) -> dict[str, Any]:
     method = "mechanical_evolve_ttrl" if train_lora else "llm_evolve_no_update"
-    state = PolicyState(
-        method=method,
-        sample_method="mechanical_evolve_ttrl" if train_lora else "llm_evolution_no_update",
-        proposer="mlx_lora_ttrl_policy" if train_lora else "mlx_base_archive_policy",
-        archive=mech.MapElitesArchive.from_dict(bootstrap_archive.to_dict()),
-        evaluated=[],
-        rounds=[],
-        trainers=[],
-        adapter_path=None,
-    )
     out_dir.mkdir(parents=True, exist_ok=True)
-    write_json(out_dir / "archive.json", state.archive.to_dict())
+    final_summary = out_dir / "summary.json"
+    if final_summary.is_file():
+        return read_json(final_summary)
+    state = load_partial_policy_state(
+        out_dir=out_dir,
+        bootstrap_archive=bootstrap_archive,
+        train_lora=train_lora,
+    )
+    if state is None:
+        state = PolicyState(
+            method=method,
+            sample_method="mechanical_evolve_ttrl" if train_lora else "llm_evolution_no_update",
+            proposer="mlx_lora_ttrl_policy" if train_lora else "mlx_base_archive_policy",
+            archive=mech.MapElitesArchive.from_dict(bootstrap_archive.to_dict()),
+            evaluated=[],
+            rounds=[],
+            trainers=[],
+            adapter_path=None,
+        )
+        write_json(out_dir / "archive.json", state.archive.to_dict())
     bootstrap_rows = list(state.archive.cells.values())
 
     min_rounds = max(1, int(args.rounds))
-    round_idx = 0
+    round_idx = len(state.rounds)
     while (
         round_idx < min_rounds
         or policy_chrono_audits(state.evaluated)
@@ -422,7 +597,7 @@ def run_policy_loop(
         round_dir = out_dir / f"round_{round_idx:03d}"
         round_dir.mkdir(parents=True, exist_ok=True)
         archive_path = round_dir / "archive_input.json"
-        write_json(archive_path, state.archive.to_dict())
+        write_json(archive_path, archive_prompt_payload(state.archive, limits, trial))
         proposals_path = round_dir / "candidates.jsonl"
         adapter_input = str(state.adapter_path) if state.adapter_path else None
         sample_result = sample_policy_round(
@@ -439,6 +614,7 @@ def run_policy_loop(
             archive=state.archive,
             proposals_path=proposals_path,
             limits=limits,
+            trial=trial,
             round_idx=round_idx,
             audit_k=round_audit_budget(args, state),
         )
@@ -459,6 +635,7 @@ def run_policy_loop(
                 rows=[*bootstrap_rows, *state.evaluated],
                 archive=state.archive,
                 limits=limits,
+                trial=trial,
             )
             trainer = train_lora_round(
                 args=args,
@@ -475,6 +652,8 @@ def run_policy_loop(
             ).is_file():
                 state.adapter_path = next_adapter
                 state.adapter_updates += 1
+            elif trainer.get("fallback_adapter_reused") and state.adapter_path:
+                trainer["adapter_path"] = str(state.adapter_path)
             else:
                 raise SystemExit(
                     "TTRL LoRA training failed before producing an adapter; "
@@ -557,6 +736,7 @@ def audit_policy_round(
     archive: mech.MapElitesArchive,
     proposals_path: Path,
     limits: cyclo.VerificationLimits,
+    trial: cyclo.ChronoTrialConfig,
     round_idx: int,
     audit_k: int | None = None,
 ) -> tuple[dict[str, Any], CommandResult]:
@@ -587,6 +767,36 @@ def audit_policy_round(
         str(max(3, int(args.samples))),
         "--duration-s",
         str(max(1.0e-6, float(args.duration_s))),
+        "--input-speed-rad-s",
+        str(trial.input_speed_rad_s),
+        "--output-load-Nm",
+        str(trial.output_load_Nm),
+        "--output-load-start-s",
+        str(trial.output_load_start_s),
+        "--output-load-ramp-s",
+        str(trial.output_load_ramp_s),
+        "--friction",
+        str(trial.friction),
+        "--restitution",
+        str(trial.restitution),
+        "--young-modulus",
+        str(trial.young_modulus),
+        "--normal-stiffness",
+        str(trial.normal_stiffness),
+        "--damping",
+        str(trial.damping),
+        "--contact-margin",
+        str(trial.contact_margin),
+        "--contact-envelope",
+        str(trial.contact_envelope),
+        "--solver-iterations",
+        str(trial.solver_iterations),
+        "--min-output-speed-rad-s",
+        str(limits.min_output_speed_rad_s),
+        "--max-penetration-mm",
+        str(limits.max_penetration_mm),
+        "--max-ratio-error-pct",
+        str(limits.max_ratio_error_pct),
         "--contact-force-limit-N",
         str(limits.max_contact_force_rms_N),
         "--max-contacts",
@@ -668,23 +878,55 @@ def train_lora_round(
         "--seed",
         str(int(args.seed) + round_idx),
     ]
+    if args.allow_zero_reward_lora:
+        command.append("--allow-zero-reward")
     if previous_adapter is not None:
         prior_file = previous_adapter / "adapters.safetensors"
         if prior_file.is_file():
             command.extend(["--resume-adapter-file", str(prior_file)])
-    result = run_command(
-        command,
-        cwd=SCRIPT_DIR.parent,
-        log_path=round_dir / "train.log",
-        timeout_s=max(1.0, float(args.train_timeout_s)),
-    )
-    summary = read_json(train_dir / "training_summary.json")
+    attempts: list[dict[str, Any]] = []
+    result = None
+    max_attempts = max(1, int(getattr(args, "lora_train_retries", 2)) + 1)
+    for attempt_idx in range(max_attempts):
+        log_path = round_dir / (
+            "train.log" if attempt_idx == 0 else f"train_retry_{attempt_idx:02d}.log"
+        )
+        result = run_command(
+            command,
+            cwd=SCRIPT_DIR.parent,
+            log_path=log_path,
+            timeout_s=max(1.0, float(args.train_timeout_s)),
+        )
+        attempts.append(result.to_dict())
+        if result.returncode == 0 and (adapter_path / "adapters.safetensors").is_file():
+            break
+        if not is_transient_mlx_training_failure(result):
+            break
+        if attempt_idx + 1 < max_attempts:
+            time.sleep(max(0.0, float(getattr(args, "lora_retry_sleep_s", 15.0))))
+    assert result is not None
+    summary_path = train_dir / "training_summary.json"
+    summary = read_json(summary_path) if summary_path.is_file() else {}
     trainer = summary.get("trainer", {}) if isinstance(summary, dict) else {}
+    adapter_file_exists = (adapter_path / "adapters.safetensors").is_file()
+    previous_adapter_file = (
+        previous_adapter / "adapters.safetensors" if previous_adapter else None
+    )
+    fallback_reused = (
+        not adapter_file_exists
+        and previous_adapter_file is not None
+        and previous_adapter_file.is_file()
+    )
     return {
-        "status": "completed" if result.returncode == 0 else "failed",
+        "status": (
+            "completed" if result.returncode == 0 and adapter_file_exists
+            else "reused_previous_adapter_after_failure" if fallback_reused
+            else "failed"
+        ),
         "returncode": result.returncode,
         "adapter_path": str(adapter_path),
-        "adapter_file_exists": (adapter_path / "adapters.safetensors").is_file(),
+        "adapter_file_exists": adapter_file_exists,
+        "fallback_adapter_reused": fallback_reused,
         "resume_adapter_file": str(previous_adapter / "adapters.safetensors")
         if previous_adapter else None,
         "example_count": summary.get("example_count") if summary else None,
@@ -694,7 +936,18 @@ def train_lora_round(
         "trained_tokens": trainer.get("trained_tokens"),
         "peak_mem_gb": trainer.get("peak_mem_gb"),
         "command": result.to_dict(),
+        "attempts": attempts,
     }
+
+
+def is_transient_mlx_training_failure(result: CommandResult) -> bool:
+    text = "\n".join([result.stdout_tail or "", result.stderr_tail or ""]).lower()
+    return (
+        "insufficient memory" in text
+        or "outofmemory" in text
+        or "out of memory" in text
+        or "[metal]" in text and "memory" in text
+    )
 
 
 def write_grpo_dataset(
@@ -703,6 +956,7 @@ def write_grpo_dataset(
     rows: Iterable[dict[str, Any]],
     archive: mech.MapElitesArchive,
     limits: cyclo.VerificationLimits,
+    trial: cyclo.ChronoTrialConfig,
 ) -> int:
     groups: dict[str, list[dict[str, Any]]] = {}
     for row in rows:
@@ -715,6 +969,7 @@ def write_grpo_dataset(
         "task": "propose cycloidal/QDD actuator parameter programs",
         "design_variables": list(mech.DESIGN_VARIABLES),
         "paper_gate": limits.__dict__,
+        "chrono_trial": trial.__dict__,
         "elites": [mech.compact_row(row) for row in archive.elites(limit=8)],
     }
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -746,6 +1001,7 @@ def stability_audit(
     out_dir: Path,
     best: dict[str, Any],
     limits: cyclo.VerificationLimits,
+    trial: cyclo.ChronoTrialConfig,
 ) -> dict[str, Any]:
     out_dir.mkdir(parents=True, exist_ok=True)
     rows: list[dict[str, Any]] = []
@@ -764,6 +1020,7 @@ def stability_audit(
             samples=max(3, int(args.samples)),
             duration_s=max(1.0e-6, float(args.duration_s)),
             limits=limits,
+            trial=trial,
         ))
     passed = [row for row in rows if row.get("verified_gate_passed")]
     return {
