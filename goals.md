@@ -29,6 +29,66 @@ because it used a toy procedural simulator, or because it optimized a fast
 proxy reward. It must win because iterative verifier-derived adaptation makes
 better design proposals under the same expensive verification budget.
 
+## Broader MechanicalEvolve/TTRL Paper Result
+
+The paper result we are pursuing is:
+
+> MechanicalEvolve performs test-time mechanical invention: an open reasoning
+> model proposes cycloidal/QDD actuator designs, receives executable CAD +
+> Chrono verifier feedback, updates a lightweight adapter during the experiment,
+> and under the same expensive physics-audit budget discovers stronger verified
+> actuator designs than non-updating proposal/search baselines.
+
+This is broader than "optimize cycloidal parameters." The intended paper is
+about a verifier-grounded learning loop for mechanical design:
+
+- the design object is an internal actuator mechanism, not external robot
+  morphology;
+- the reward source is executable mechanical validity, not a language-model
+  preference or a fast proxy alone;
+- candidates must survive FreeCAD/OCCT geometry generation, trusted DesignIR
+  checks, Chrono SMC contact simulation, and physical defect gates;
+- the learning signal is produced at test time from verifier-labeled candidate
+  groups;
+- the comparison is budget matched on expensive Chrono audits, so search volume
+  alone cannot explain the result.
+
+The final paper should prove four things, in this order:
+
+1. **Verifier credibility.** CAD-generated real geometry, with procedural
+   fallback disabled, can be simulated in Chrono SMC and produces the required
+   actuator metrics: output speed, ratio error, lockup, contact force,
+   penetration, torque ripple, and power balance.
+2. **Search pressure matters.** Fast reward and unrestricted candidate
+   generation produce many attractive but invalid designs, so CAD/contact
+   verification is not an optional postprocess.
+3. **Adaptation matters under equal budget.** With the same number of Chrono
+   audits, iterative TTRL/LoRA updates improve best verified reward versus
+   `verifier_gated` and `llm_evolve_no_update`.
+4. **The result is not a one-off.** The improvement is visible across target
+   regimes and seeds, or any failure regime is reported explicitly and becomes
+   the next engineering/scientific target.
+
+The main empirical table must therefore be a matched-budget comparison over
+`verifier_gated`, `llm_evolve_no_update`, and `mechanical_evolve_ttrl`.
+Qualitative design renders, single best reducers, and optimizer traces are
+supporting evidence only; they do not replace the matched-budget table.
+
+The claim we may make after success is:
+
+> Under equal expensive CAD + Chrono verification budgets, test-time
+> verifier-derived adapter updates improve mechanical actuator discovery.
+
+The claims we must not make from this branch unless separately proven are:
+
+- that the learned actuator is ready for hardware fabrication;
+- that Chrono SMC is a perfect physical oracle;
+- that the method solves arbitrary mechanical CAD design;
+- that TTRL is better because it ran more audits, more candidates, or looser
+  physical gates;
+- that a procedural fallback or fast reward result is paper-grade mechanical
+  verification.
+
 ## Broader Research Thesis
 
 MechanicalEvolve is the mechanical-design analogue of AlphaEvolve/DeepEvolve
