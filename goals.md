@@ -1,93 +1,141 @@
 # MechanicalEvolve / TTRL Paper Goal And Proof Contract
 
 This branch is aiming at a CoRL-grade paper result for MechanicalEvolve:
-test-time RLVR/TTRL-driven mechanical actuator discovery under executable CAD
+test-time RLVR/TTRL-driven mechanical design reasoning under executable CAD
 and contact-physics verification.
 
-The target domain is cycloidal/QDD actuator design. The paper is not about
-generic robot morphology optimization, generic code generation, or merely
-"RL improves designs." Recent co-design work already shows that automated
-morphology/control search can improve simulated robot reward. The stronger
-claim here is that an open reasoning model can improve an internal mechanical
-actuator mechanism while being constrained by CAD generation, real collision
-assets, Chrono contact dynamics, and physical defect checks.
+The broader paper claim is not limited to cycloidal/QDD actuator tuning. The
+unit of generalization is the mechanism family. The model should learn repair
+and redesign strategies that transfer across families such as cycloidal
+reducers, planetary reducers, rack-pinion systems, lead screws, fourbars,
+slider-cranks, cam followers, belt drives, and chain drives.
 
 The paper claim must become:
 
 > Under equal expensive CAD + Chrono physics-verification budget, iterative
-> RLVR/TTRL adaptation discovers stronger verified cycloidal actuator designs
-> than non-updating baselines.
+> RLVR/TTRL adaptation learns reusable mechanical reasoning that improves
+> verified designs on unseen mechanism families better than non-updating
+> baselines.
 
-The broader paper result is not a single good reducer, a better optimizer
-trace, or an infrastructure demo. It is a controlled empirical claim that
-test-time learning from executable mechanical verifiers improves internal
-actuator invention under the same expensive verification budget available to
-non-learning methods.
+The cycloidal/QDD result is still important, but it is now a foundation and
+anchor benchmark, not the whole paper. The broader paper result is a
+controlled empirical claim that test-time learning from executable mechanical
+verifiers improves design reasoning across mechanism families under the same
+expensive verification budget available to non-learning methods.
 
-In plain terms: MechanicalEvolve should not win because it ran more samples,
-because it used a toy procedural simulator, or because it optimized a fast
-proxy reward. It must win because iterative verifier-derived adaptation makes
-better design proposals under the same expensive verification budget.
+In plain terms: MechanicalEvolve should not win because it memorized one
+cycloidal quirk, ran more samples, used a toy procedural simulator, or
+optimized a fast proxy reward. It must win because iterative verifier-derived
+adaptation makes better design and repair proposals that transfer to held-out
+mechanism families under the same expensive verification budget.
 
 ## Broader MechanicalEvolve/TTRL Paper Result
 
 The paper result we are pursuing is:
 
-> MechanicalEvolve performs test-time mechanical invention: an open reasoning
-> model proposes cycloidal/QDD actuator designs, receives executable CAD +
-> Chrono verifier feedback, updates a lightweight adapter during the experiment,
-> and under the same expensive physics-audit budget discovers stronger verified
-> actuator designs than non-updating proposal/search baselines.
+> MechanicalEvolve performs test-time mechanical reasoning: an open reasoning
+> model proposes design or repair actions, receives executable CAD +
+> Chrono verifier feedback, updates a lightweight adapter during the
+> experiment, and under the same expensive physics-audit budget learns repair
+> strategies that transfer to unseen mechanism families better than
+> non-updating proposal/search baselines.
 
 This is broader than "optimize cycloidal parameters." The intended paper is
-about a verifier-grounded learning loop for mechanical design:
+about a verifier-grounded learning loop for mechanical design families:
 
-- the design object is an internal actuator mechanism, not external robot
-  morphology;
+- the design object is a mechanism family instance, not a single tuned
+  parameter vector;
 - the reward source is executable mechanical validity, not a language-model
   preference or a fast proxy alone;
 - candidates must survive FreeCAD/OCCT geometry generation, trusted DesignIR
   checks, Chrono SMC contact simulation, and physical defect gates;
 - the learning signal is produced at test time from verifier-labeled candidate
-  groups;
+  groups and repair traces;
 - the comparison is budget matched on expensive Chrono audits, so search volume
-  alone cannot explain the result.
+  alone cannot explain the result;
+- the generalization split is by mechanism family, so the model cannot win by
+  memorizing cycloidal-specific quirks.
 
-The final paper should prove four things, in this order:
+The final paper should prove five things, in this order:
 
 1. **Verifier credibility.** CAD-generated real geometry, with procedural
    fallback disabled, can be simulated in Chrono SMC and produces the required
-   actuator metrics: output speed, ratio error, lockup, contact force,
-   penetration, torque ripple, and power balance.
-2. **Search pressure matters.** Fast reward and unrestricted candidate
+   actuator metrics.
+2. **Family-level benchmark structure exists.** The benchmark is grouped by
+   mechanism family with seen-family and unseen-family splits.
+3. **Search pressure matters.** Fast reward and unrestricted candidate
    generation produce many attractive but invalid designs, so CAD/contact
    verification is not an optional postprocess.
-3. **Adaptation matters under equal budget.** With the same number of Chrono
-   audits, iterative TTRL/LoRA updates improve best verified reward versus
-   `verifier_gated` and `llm_evolve_no_update`.
-4. **The result is not a one-off.** The improvement is visible across target
-   regimes and seeds, or any failure regime is reported explicitly and becomes
-   the next engineering/scientific target.
+4. **Adaptation matters under equal budget.** With the same number of Chrono
+   audits, iterative TTRL/LoRA updates improve held-out-family performance versus
+   `verifier_gated`, `llm_evolve_no_update`, frozen-model SFT, and no-update
+   search.
+5. **The result is not a one-off.** The improvement is visible across multiple
+   held-out mechanism families, or any failure regime is reported explicitly and
+   becomes the next engineering/scientific target.
 
-The main empirical table must therefore be a matched-budget comparison over
-`verifier_gated`, `llm_evolve_no_update`, and `mechanical_evolve_ttrl`.
-Qualitative design renders, single best reducers, and optimizer traces are
-supporting evidence only; they do not replace the matched-budget table.
+The main empirical table must therefore be a family-held-out matched-budget
+comparison. Cycloidal should remain the strongest validated anchor family, but
+the headline metric is generalization to unseen families.
+
+## Family Generalization Benchmark
+
+The benchmark should be grouped by mechanism family, not by a single
+parameter setting. The family list should at minimum include:
+
+- cycloidal reducers
+- planetary reducers
+- rack-pinion systems
+- lead screws
+- fourbars
+- slider-cranks
+- cam followers
+- belt drives
+- chain drives
+
+The evaluation split should explicitly separate:
+
+- seen families used for training and adapter updates
+- unseen families held out for final evaluation
+
+A valid paper run should train on one family subset and test on disjoint
+families, for example:
+
+- train: cycloidal, belt, chain, rack-pinion, fourbar
+- test: planetary, lead screw, cam follower, slider crank
+
+or the reverse, as long as the split is family-held-out and frozen before the
+evaluation run.
+
+The benchmark output should report at minimum:
+
+- best verified reward on seen families
+- best verified reward on unseen families
+- family-level pass rate
+- family-level lockup rate
+- family-level repair success rate
+- comparison against frozen model, SFT model, and no-update search baselines
+
+The headline claim is only valid if RLVR/TTRL beats the frozen model, SFT
+baseline, and no-update search on unseen families under equal verifier budget.
 
 The claim we may make after success is:
 
 > Under equal expensive CAD + Chrono verification budgets, test-time
-> verifier-derived adapter updates improve mechanical actuator discovery.
+> verifier-derived adapter updates improve mechanical reasoning on unseen
+> mechanism families.
 
 The claims we must not make from this branch unless separately proven are:
 
-- that the learned actuator is ready for hardware fabrication;
+- that the learned design policy is ready for hardware fabrication;
 - that Chrono SMC is a perfect physical oracle;
 - that the method solves arbitrary mechanical CAD design;
 - that TTRL is better because it ran more audits, more candidates, or looser
   physical gates;
 - that a procedural fallback or fast reward result is paper-grade mechanical
-  verification.
+  verification;
+- that a single family result is sufficient to claim transferable reasoning.
+- that the cycloidal anchor benchmark alone proves family-level transfer.
 
 ## Broader Research Thesis
 
@@ -106,15 +154,16 @@ The intended scientific result is not just "we found one cycloidal design."
 The result is:
 
 - under matched Chrono audit budgets, iterative TTRL produces better verified
-  actuator designs than non-updating search/evolution baselines;
-- the advantage holds across multiple target regimes and seeds, not just one
-  lucky nominal trial;
+  design repairs and redesigns than non-updating search/evolution baselines;
+- the advantage holds on held-out mechanism families, not just the training
+  families;
 - fast-only optimization finds candidates that often look good before CAD and
   contact verification but fail more often under the real verifier;
 - LLM evolution without weight/adaptation updates can explore, but does not
   receive the same verifier-derived policy improvement signal;
 - CAD + Chrono verification is therefore not an implementation detail, but the
-  task-defining reward source that makes mechanical invention credible.
+  task-defining reward source that makes transferable mechanical reasoning
+  credible.
 
 The final paper should report both the best design and the learning/search
 behavior that produced it: pass rates, lockup rates, defect regimes, verified
@@ -197,10 +246,10 @@ This is necessary infrastructure, not the final paper result.
 
 ## Broader Paper Result Still Required
 
-The paper-grade result requires a matched-budget experiment across methods.
-Every method must use the same task family, same verifier thresholds, same CAD
-pipeline, same Chrono SMC configuration, same random seeds, and the same total
-Chrono audit budget within each target/seed trial.
+The paper-grade result requires a matched-budget experiment across mechanism
+families. Every method must use the same family split, same verifier
+thresholds, same CAD pipeline, same Chrono SMC configuration, same random
+seeds, and the same total Chrono audit budget within each family/seed trial.
 
 Required methods:
 
@@ -223,6 +272,18 @@ Required methods:
    - Uses the same proposal format, CAD generator, DesignIR bridge, and Chrono
      verifier.
    - Same Chrono audit budget.
+
+4. `frozen_model`
+   - The base reasoning model without test-time updates.
+   - Same family split and verifier budget.
+
+5. `sft_model`
+   - A supervised fine-tuned model without verifier-driven test-time updates.
+   - Same family split and verifier budget.
+
+6. `no_update_search`
+   - Search or evolution without weight updates.
+   - Same family split and verifier budget.
 
 Optional reported baseline:
 
@@ -310,19 +371,19 @@ and at least one of:
 
 The claim must not be made if TTRL only wins because it used more Chrono audits.
 
-The broader paper success condition is stricter. Across the full proof suite,
-the final artifacts must show:
+The broader paper success condition is stricter. Across the full family-held-out
+proof suite, the final artifacts must show:
 
 - equal real Chrono audit budget within every target/seed trial;
 - no procedural fallback for any counted verified result;
 - nonzero `adapter_updates` and `trained_tokens` for `mechanical_evolve_ttrl`;
-- TTRL has the best aggregate `best_verified_reward_mean`;
-- paired TTRL-minus-baseline deltas are positive against both required
-  non-updating baselines;
-- the suite-level win is not driven solely by one target while failing the
-  other regimes without explanation.
+- TTRL has the best aggregate `best_verified_reward_mean` on unseen families;
+- paired TTRL-minus-baseline deltas are positive against frozen, SFT, and
+  no-update search baselines;
+- the suite-level win is not driven solely by the seen families while failing
+  the unseen families without explanation.
 
-If a target regime remains a counterexample, the markdown must say that
+If an unseen family remains a counterexample, the markdown must say that
 directly and the branch must treat it as the next scientific/engineering
 failure to solve, not as a result to hide.
 
@@ -330,30 +391,22 @@ failure to solve, not as a result to hide.
 
 The CAD/Chrono verifier foundation is complete and pushed.
 
-The broader MechanicalEvolve/TTRL paper result is now proven at the matched
-budget used by the proof suite. The final equal-budget artifacts are present in
-`docs/cycloidal_mechanical_evolve_equal_budget_results.json`,
-`docs/cycloidal_mechanical_evolve_equal_budget_results.csv`, and
-`docs/cycloidal_mechanical_evolve_equal_budget.md`.
+The cycloidal anchor benchmark is complete and pushed. That result establishes
+the verifier stack and demonstrates verifier-driven updates on one mechanism
+family, but it is not yet the headline paper result.
 
-What the suite showed:
+The broader family-held-out MechanicalEvolve/TTRL paper result is still
+required. The current cycloidal artifacts are useful anchor evidence, but they
+do not by themselves prove transfer across mechanism families.
 
-- equal Chrono audit budgets were used for all methods;
-- identical verifier settings and `procedural_cycloidal_fallback=false` were
-  enforced;
-- `mechanical_evolve_ttrl` performed real adapter updates and trained tokens;
-- the suite-level aggregate result favored TTRL on `best_verified_reward` and
-  the paper-gate metrics;
-- the nominal seed remained a useful local counterexample, but it did not
-  overturn the suite-level claim because the full matched-budget suite still
-  favored TTRL overall.
+Current branch work should therefore focus on:
 
-Current branch work should therefore focus on completing and stabilizing:
-
-- the equal-budget proof suite runner;
-- the real TTRL/LoRA update loop;
-- full target/seed completion without silent child-process loss;
-- final CSV/JSON/markdown artifacts that expose every required metric.
+- building the family-grouped mechanical design benchmark;
+- freezing family-held-out train/test splits;
+- running verifier-matched seen-family and unseen-family evaluations;
+- comparing against frozen model, SFT, and no-update search baselines;
+- producing final CSV/JSON/markdown artifacts that expose every required metric
+  and do not overclaim the result.
 
 ## Do Not Drift
 
@@ -373,11 +426,13 @@ simulator or a one-off optimized cycloidal reducer.
 
 ## Result State
 
-The requested end state has been achieved for the current proof suite.
+The requested end state has not yet been achieved for the family-held-out
+generalization claim.
 
-The artifact set now supports the paper claim:
+The current artifact set supports a narrower statement only:
 
-- `mechanical_evolve_ttrl` outperformed the non-updating baselines on the
-  aggregate matched-budget suite.
-- the final markdown summary states that TTRL wins under equal budget.
-- the suite preserved the required CAD and Chrono verifier constraints.
+- the cycloidal anchor benchmark is complete;
+- `mechanical_evolve_ttrl` demonstrated real verifier-driven updates in that
+  anchor benchmark;
+- the family-transfer claim still needs a family-held-out benchmark and
+  results table before it can be published.
