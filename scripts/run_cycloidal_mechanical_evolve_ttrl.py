@@ -394,6 +394,7 @@ def run_baselines(
         str(args.baseline_methods),
         "--target-chrono-audits-per-method",
         str(max(0, int(args.target_chrono_audits))),
+        "--keep-assets",
         "--samples",
         str(max(3, int(args.samples))),
         "--duration-s",
@@ -1298,32 +1299,34 @@ def run_command(
     stderr = ""
     returncode = 0
     status = "completed"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    header = "$ " + " ".join(command) + "\n\nSTDOUT/STDERR\n"
     try:
-        completed = subprocess.run(
-            command,
-            cwd=cwd,
-            env=env,
-            text=True,
-            capture_output=True,
-            check=False,
-            timeout=timeout_s,
-        )
-        stdout = completed.stdout
-        stderr = completed.stderr
-        returncode = int(completed.returncode)
-        status = "completed" if completed.returncode == 0 else "failed"
+        with log_path.open("w", encoding="utf-8") as log_file:
+            log_file.write(header)
+            log_file.flush()
+            completed = subprocess.run(
+                command,
+                cwd=cwd,
+                env=env,
+                text=True,
+                stdout=log_file,
+                stderr=subprocess.STDOUT,
+                check=False,
+                timeout=timeout_s,
+            )
+            returncode = int(completed.returncode)
+            status = "completed" if completed.returncode == 0 else "failed"
     except subprocess.TimeoutExpired as exc:
         stdout = ensure_text(exc.stdout)
         stderr = ensure_text(exc.stderr)
         returncode = 124
         status = "timeout"
-    log_path.parent.mkdir(parents=True, exist_ok=True)
-    log_path.write_text(
-        "$ " + " ".join(command) + "\n\nSTDOUT\n"
-        + stdout
-        + "\nSTDERR\n"
-        + stderr
-    )
+        with log_path.open("a", encoding="utf-8") as log_file:
+            if stdout:
+                log_file.write("\n[TIMEOUT STDOUT]\n" + stdout)
+            if stderr:
+                log_file.write("\n[TIMEOUT STDERR]\n" + stderr)
     return CommandResult(
         status=status,
         returncode=returncode,

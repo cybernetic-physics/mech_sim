@@ -273,7 +273,7 @@ def main() -> int:
         method_candidates = plans[method]
         chrono_audits = 0
         for candidate in method_candidates:
-            row = _evaluate_candidate(
+            row = _evaluate_candidate_cached(
                 candidate,
                 out_dir / method / candidate.id,
                 samples=max(3, int(args.samples)),
@@ -284,6 +284,13 @@ def main() -> int:
             evaluated.append(row)
             if row.get("metrics"):
                 chrono_audits += 1
+            print(
+                "audited "
+                f"method={method} id={candidate.id} "
+                f"chrono_audits={chrono_audits} "
+                f"verified_reward={row.get('verified_reward', 0.0)}",
+                flush=True,
+            )
             target = max(0, int(args.target_chrono_audits_per_method))
             if target and chrono_audits >= target:
                 break
@@ -652,6 +659,73 @@ def fast_cps_actuator_reward(params: dict[str, Any]) -> dict[str, Any]:
             "segment_resolution": round(float(segment_score), 6),
         },
         "scoring_params": p,
+    }
+
+
+def _evaluate_candidate_cached(
+    candidate: Candidate,
+    candidate_dir: Path,
+    *,
+    samples: int,
+    duration_s: float,
+    limits: VerificationLimits,
+    trial: ChronoTrialConfig | None = None,
+) -> dict[str, Any]:
+    trial = trial or ChronoTrialConfig()
+    cache_path = candidate_dir / "evaluation_result.json"
+    signature = _evaluation_signature(
+        candidate=candidate,
+        samples=samples,
+        duration_s=duration_s,
+        limits=limits,
+        trial=trial,
+    )
+    if cache_path.is_file():
+        try:
+            cached = json.loads(cache_path.read_text())
+            if cached.get("cache_signature") == signature:
+                cached["cache_reused"] = True
+                return cached
+        except Exception:
+            pass
+    row = _evaluate_candidate(
+        candidate,
+        candidate_dir,
+        samples=samples,
+        duration_s=duration_s,
+        limits=limits,
+        trial=trial,
+    )
+    row["cache_signature"] = signature
+    row["cache_reused"] = False
+    candidate_dir.mkdir(parents=True, exist_ok=True)
+    tmp = cache_path.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(_json_safe(row), indent=2, sort_keys=True, allow_nan=False))
+    tmp.replace(cache_path)
+    return row
+
+
+def _evaluation_signature(
+    *,
+    candidate: Candidate,
+    samples: int,
+    duration_s: float,
+    limits: VerificationLimits,
+    trial: ChronoTrialConfig,
+) -> dict[str, Any]:
+    return {
+        "candidate": {
+            "id": candidate.id,
+            "method": candidate.method,
+            "params": candidate.params,
+            "proposer": candidate.proposer,
+        },
+        "samples": int(samples),
+        "duration_s": float(duration_s),
+        "limits": limits.__dict__,
+        "trial": trial.__dict__,
+        "contact_model": "smc",
+        "procedural_cycloidal_fallback": False,
     }
 
 

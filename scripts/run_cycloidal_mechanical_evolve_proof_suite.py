@@ -26,7 +26,6 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 SCHEMA = "mech_bench.cycloidal_mechanical_evolve_proof_suite.v1"
 DEFAULT_MODEL = "mlx-community/Qwen3.6-35B-A3B-4bit"
 METHOD_ORDER = (
-    "cma_es_fast_only",
     "verifier_gated",
     "llm_evolve_no_update",
     "mechanical_evolve_ttrl",
@@ -249,7 +248,7 @@ def run_or_load_trial(
         "--seed",
         str(int(seed)),
         "--baseline-methods",
-        "verifier_gated,cma_es_fast_only",
+        "verifier_gated",
         "--baseline-audits",
         str(max(int(args.baseline_audits), int(args.budget))),
         "--verifier-pool",
