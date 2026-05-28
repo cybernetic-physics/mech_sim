@@ -726,6 +726,7 @@ def _evaluation_signature(
         "trial": trial.__dict__,
         "contact_model": "smc",
         "procedural_cycloidal_fallback": False,
+        "prefer_body_yaw_output_fit": True,
     }
 
 
@@ -846,6 +847,7 @@ def _chrono_config(
         "damping": trial.damping,
         "solver_iterations": trial.solver_iterations,
         "solver_max_iterations": trial.solver_iterations,
+        "prefer_body_yaw_output_fit": True,
         "collision_filter_named_pairs": True,
         "_mech_bench": {
             "build_root": str(assets.root),
@@ -891,6 +893,7 @@ def _chrono_config_summary(
     return {
         "contact_model": "smc",
         "procedural_cycloidal_fallback": False,
+        "prefer_body_yaw_output_fit": True,
         "output_load_model": "passive_brake",
         "output_load_Nm": trial.output_load_Nm,
         "input_speed_rad_s": trial.input_speed_rad_s,
