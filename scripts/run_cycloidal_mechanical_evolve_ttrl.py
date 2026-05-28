@@ -801,8 +801,7 @@ def sample_ttrl_mixture_round(
         ))
 
     command_results: list[dict[str, Any]] = []
-    status = "completed"
-    returncode = 0
+    failures: list[dict[str, Any]] = []
     for _label, command, log_path in commands:
         result = run_command(
             command,
@@ -810,23 +809,22 @@ def sample_ttrl_mixture_round(
             log_path=log_path,
             timeout_s=max(1.0, float(args.sample_timeout_s)),
         )
-        command_results.append(result.to_dict())
+        result_dict = result.to_dict()
+        result_dict["branch"] = _label
+        command_results.append(result_dict)
         if result.returncode != 0:
-            status = result.status
-            returncode = result.returncode
-            break
+            failures.append(result_dict)
 
     proposals_path.parent.mkdir(parents=True, exist_ok=True)
-    if returncode == 0:
-        merged = merge_unique_jsonl([adapted_path, base_path], proposals_path)
-        if merged <= 0:
-            status = "failed"
-            returncode = 2
+    merged = merge_unique_jsonl([adapted_path, base_path], proposals_path)
+    status = "completed" if merged > 0 else "failed"
+    returncode = 0 if merged > 0 else 2
 
     log_path = round_dir / "sample.log"
     log_path.write_text(json.dumps({
         "status": status,
         "returncode": returncode,
+        "partial_branch_failures": failures,
         "adapter_active": True,
         "requested_total": total,
         "adapted_count": adapted_count,
