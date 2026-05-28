@@ -139,6 +139,16 @@ def main() -> int:
     parser.add_argument("--lora-rank", type=int, default=4)
     parser.add_argument("--lora-scale", type=float, default=16.0)
     parser.add_argument(
+        "--ttrl-base-exploration-frac",
+        type=float,
+        default=0.5,
+        help=(
+            "Fraction of proposal samples in adapter-active TTRL rounds drawn "
+            "from the base model for exploration. This does not change the "
+            "Chrono audit budget."
+        ),
+    )
+    parser.add_argument(
         "--stability-repeats",
         type=int,
         default=0,
@@ -299,6 +309,8 @@ def run_or_load_trial(
         str(max(1, int(args.lora_rank))),
         "--lora-scale",
         str(float(args.lora_scale)),
+        "--ttrl-base-exploration-frac",
+        str(float(getattr(args, "ttrl_base_exploration_frac", 0.5))),
         "--stability-repeats",
         str(max(0, int(args.stability_repeats))),
         "--keep-out-dir",
