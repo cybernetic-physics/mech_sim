@@ -157,6 +157,16 @@ def main() -> int:
     parser.add_argument("--max-tokens", type=int, default=320)
     parser.add_argument("--temp", type=float, default=0.7)
     parser.add_argument("--top-p", type=float, default=0.9)
+    parser.add_argument(
+        "--ttrl-base-exploration-frac",
+        type=float,
+        default=0.5,
+        help=(
+            "Fraction of proposal samples in adapter-active TTRL rounds drawn "
+            "from the base model for exploration. Chrono audits remain fixed; "
+            "this only changes the candidate mix presented to the verifier."
+        ),
+    )
     parser.add_argument("--seed", type=int, default=20260525)
     parser.add_argument("--lora-iters", type=int, default=4)
     parser.add_argument("--lora-batch-size", type=int, default=1)
@@ -692,6 +702,15 @@ def sample_policy_round(
     state: PolicyState,
     round_idx: int,
 ) -> CommandResult:
+    if state.adapter_path is not None and state.method == "mechanical_evolve_ttrl":
+        return sample_ttrl_mixture_round(
+            args=args,
+            round_dir=round_dir,
+            archive_path=archive_path,
+            proposals_path=proposals_path,
+            state=state,
+            round_idx=round_idx,
+        )
     command = [
         sys.executable,
         str(SCRIPT_DIR / "sample_mechanical_evolve_mlx.py"),
@@ -728,6 +747,174 @@ def sample_policy_round(
         log_path=round_dir / "sample.log",
         timeout_s=max(1.0, float(args.sample_timeout_s)),
     )
+
+
+def sample_ttrl_mixture_round(
+    *,
+    args: argparse.Namespace,
+    round_dir: Path,
+    archive_path: Path,
+    proposals_path: Path,
+    state: PolicyState,
+    round_idx: int,
+) -> CommandResult:
+    total = max(1, int(args.proposals_per_round))
+    base_frac = max(0.0, min(1.0, float(args.ttrl_base_exploration_frac)))
+    base_count = min(total - 1, int(round(total * base_frac))) if total > 1 else 0
+    adapted_count = total - base_count
+    adapted_path = round_dir / "candidates_adapted.jsonl"
+    base_path = round_dir / "candidates_base_explore.jsonl"
+    adapted_raw = round_dir / "raw_generations_adapted.json"
+    base_raw = round_dir / "raw_generations_base_explore.json"
+    commands: list[tuple[str, list[str], Path]] = [
+        (
+            "adapted",
+            sample_command(
+                args=args,
+                archive_path=archive_path,
+                out_jsonl=adapted_path,
+                raw_json=adapted_raw,
+                count=adapted_count,
+                seed=int(args.seed) + round_idx * 1009 + 17,
+                method=state.sample_method,
+                proposer=state.proposer,
+                adapter_path=state.adapter_path,
+            ),
+            round_dir / "sample_adapted.log",
+        )
+    ]
+    if base_count > 0:
+        commands.append((
+            "base_explore",
+            sample_command(
+                args=args,
+                archive_path=archive_path,
+                out_jsonl=base_path,
+                raw_json=base_raw,
+                count=base_count,
+                seed=int(args.seed) + round_idx * 1009,
+                method="mechanical_evolve_ttrl_base_explore",
+                proposer="mlx_base_policy_with_ttrl_archive",
+                adapter_path=None,
+            ),
+            round_dir / "sample_base_explore.log",
+        ))
+
+    command_results: list[dict[str, Any]] = []
+    status = "completed"
+    returncode = 0
+    for _label, command, log_path in commands:
+        result = run_command(
+            command,
+            cwd=SCRIPT_DIR.parent,
+            log_path=log_path,
+            timeout_s=max(1.0, float(args.sample_timeout_s)),
+        )
+        command_results.append(result.to_dict())
+        if result.returncode != 0:
+            status = result.status
+            returncode = result.returncode
+            break
+
+    proposals_path.parent.mkdir(parents=True, exist_ok=True)
+    if returncode == 0:
+        merged = merge_unique_jsonl([adapted_path, base_path], proposals_path)
+        if merged <= 0:
+            status = "failed"
+            returncode = 2
+
+    log_path = round_dir / "sample.log"
+    log_path.write_text(json.dumps({
+        "status": status,
+        "returncode": returncode,
+        "adapter_active": True,
+        "requested_total": total,
+        "adapted_count": adapted_count,
+        "base_exploration_count": base_count,
+        "merged_proposals": count_jsonl(proposals_path) if proposals_path.is_file() else 0,
+        "commands": command_results,
+    }, indent=2, sort_keys=True) + "\n")
+    return CommandResult(
+        status=status,
+        returncode=returncode,
+        command=[
+            "ttrl_mixture_sample",
+            f"adapted={adapted_count}",
+            f"base_explore={base_count}",
+        ],
+        log_path=str(log_path),
+        stdout_tail=log_path.read_text()[-4000:],
+        stderr_tail="",
+    )
+
+
+def sample_command(
+    *,
+    args: argparse.Namespace,
+    archive_path: Path,
+    out_jsonl: Path,
+    raw_json: Path,
+    count: int,
+    seed: int,
+    method: str,
+    proposer: str,
+    adapter_path: Path | None,
+) -> list[str]:
+    command = [
+        sys.executable,
+        str(SCRIPT_DIR / "sample_mechanical_evolve_mlx.py"),
+        "--out-jsonl",
+        str(out_jsonl),
+        "--raw-json",
+        str(raw_json),
+        "--archive",
+        str(archive_path),
+        "--model",
+        str(args.model),
+        "--count",
+        str(max(1, int(count))),
+        "--batch-size",
+        str(max(1, int(args.sample_batch_size))),
+        "--max-tokens",
+        str(max(32, int(args.max_tokens))),
+        "--temp",
+        str(max(0.0, float(args.temp))),
+        "--top-p",
+        str(max(0.0, min(1.0, float(args.top_p)))),
+        "--seed",
+        str(int(seed)),
+        "--method",
+        method,
+        "--proposer",
+        proposer,
+    ]
+    if adapter_path is not None:
+        command.extend(["--adapter-path", str(adapter_path)])
+    return command
+
+
+def merge_unique_jsonl(paths: list[Path], out_path: Path) -> int:
+    seen: set[tuple[Any, ...]] = set()
+    rows: list[dict[str, Any]] = []
+    for path in paths:
+        if not path.is_file():
+            continue
+        for line in path.read_text().splitlines():
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            key = cyclo._candidate_key(row.get("params") or {})
+            if key in seen:
+                continue
+            seen.add(key)
+            rows.append(row)
+    with out_path.open("w") as f:
+        for row in rows:
+            f.write(json.dumps(json_safe(row), sort_keys=True) + "\n")
+    return len(rows)
 
 
 def audit_policy_round(
