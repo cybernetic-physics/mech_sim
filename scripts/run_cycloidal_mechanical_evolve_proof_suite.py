@@ -310,6 +310,17 @@ def run_or_load_trial(
         baseline_json = run_dir / "baselines" / "cycloidal_optimizer_strict_matched.json"
         if baseline_json.is_file():
             command.append("--skip-baselines")
+        else:
+            shared_baseline_json = find_existing_target_baseline_json(
+                out_dir=out_dir,
+                target=target,
+                exclude_seed=seed,
+            )
+            if shared_baseline_json is not None:
+                command.extend([
+                    "--baseline-results-json",
+                    str(shared_baseline_json),
+                ])
         no_update_json = run_dir / "llm_evolve_no_update" / "summary.json"
         if no_update_json.is_file():
             command.append("--skip-no-update")
@@ -335,6 +346,52 @@ def run_or_load_trial(
     record = trial_record(target, seed, trial_dir, summary, reused=False)
     record["command"] = result
     return record
+
+
+def find_existing_target_baseline_json(
+    *,
+    out_dir: Path,
+    target: TargetConfig,
+    exclude_seed: int,
+) -> Path | None:
+    target_dir = out_dir / target.name
+    if not target_dir.is_dir():
+        return None
+    candidates = sorted(target_dir.glob("seed_*/run/baselines/cycloidal_optimizer_strict_matched.json"))
+    for path in candidates:
+        if f"seed_{exclude_seed}" in path.parts:
+            continue
+        if baseline_json_compatible(path, target):
+            return path
+    return None
+
+
+def baseline_json_compatible(path: Path, target: TargetConfig) -> bool:
+    data = read_json(path)
+    if not data:
+        return False
+    table = data.get("method_table")
+    if not isinstance(table, list) or not table:
+        return False
+    methods = {str(row.get("method")) for row in table if isinstance(row, dict)}
+    if "verifier_gated" not in methods:
+        return False
+    config = data.get("config") or data.get("trial") or {}
+    if not isinstance(config, dict):
+        return True
+    trial = config.get("trial") if isinstance(config.get("trial"), dict) else config
+    return approx_equal(trial.get("input_speed_rad_s"), target.input_speed_rad_s) and approx_equal(
+        trial.get("output_load_Nm"),
+        target.output_load_Nm,
+    )
+
+
+def approx_equal(raw: Any, expected: float) -> bool:
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return True
+    return abs(value - float(expected)) <= 1.0e-9
 
 
 def trial_record(
