@@ -1,4 +1,4 @@
-"""Multi-turn GRPO on mech_bench: SGLang rollouts → worldlines training.
+"""Legacy multi-turn verifier-weighted CE on mech_bench.
 
 Architecture (single-host, two GPUs):
 
@@ -15,11 +15,15 @@ Per round:
        rollout is up to ``max_turns`` assistant turns with verifier
        feedback in between. Reward = best score across turns + parse
        bonus.
-    3. Compute group-relative advantages over the K rollouts.
+    3. Compute group-relative normalized rewards over the K rollouts.
     4. For each kept rollout, tokenise (system, user, ...turns_until_last_assistant,
        final_assistant) and build a worldlines Datum: prompt tokens
-       weighted 0, final-assistant tokens weighted by advantage.
+       weighted 0, final-assistant tokens weighted by normalized reward.
     5. forward_backward + optim_step on worldlines. Periodic save_state.
+
+This file does not implement canonical GRPO: there is no policy-ratio clipped
+objective, no old-policy log-prob ratio term, and no TRL/veRL GRPO trainer.
+Use ``rl/train_true_grpo_trl.py`` for exact GRPO via Hugging Face TRL.
 
 Logs land under ``runs/<run_name>/`` in the same shape as
 rl-spark/worldlines-engdesign — ``history.jsonl``,
@@ -645,6 +649,7 @@ def main() -> int:
         train = svc.create_lora_training_client(
             base_model=args.base_model,
             rank=args.lora_rank,
+            train_unembed=False,
             seed=args.seed,
         )
     print(f"training client ready. model_id={train.model_id}")
@@ -660,7 +665,7 @@ def main() -> int:
     step = 0
     t0 = time.time()
     heartbeat(runs_dir, phase="starting", round=0, step=0,
-              base_model=args.base_model, algo="grpo-multi-turn",
+              base_model=args.base_model, algo="group-relative-weighted-ce",
               tokenizer=tokenizer_name,
               n_tasks=len(tasks),
               sglang_url=args.sglang_url,
@@ -982,7 +987,7 @@ def main() -> int:
                     sum(all_rewards) / max(1, len(all_rewards))
                 ) if all_rewards else 0.0,
                 "base_model": args.base_model,
-                "algo": "grpo-multi-turn",
+                "algo": "group-relative-weighted-ce",
             })
 
         rl_data_len = len(data)
@@ -1121,7 +1126,7 @@ def main() -> int:
                     "lr": args.lr, "n_kept": kept,
                     "n_reference_sft": n_reference_sft,
                     "n_sample_sft": n_sample_sft,
-                    "algo": "grpo-multi-turn",
+                    "algo": "group-relative-weighted-ce",
                     "base_model": args.base_model,
                 })
                 print(
@@ -1162,7 +1167,7 @@ def main() -> int:
                         "ts": time.time(), "kind": "sampler_export",
                         "step": step, "round": round_idx,
                         "name": name,
-                        "algo": "grpo-multi-turn",
+                        "algo": "group-relative-weighted-ce",
                         "base_model": args.base_model,
                     })
                     print("  [sampler] adapter sampling client ready")
@@ -1175,7 +1180,7 @@ def main() -> int:
                     "n_kept": kept,
                     "n_reference_sft": n_reference_sft,
                     "n_sample_sft": n_sample_sft,
-                    "algo": "grpo-multi-turn",
+                    "algo": "group-relative-weighted-ce",
                     "base_model": args.base_model,
                 })
                 print(

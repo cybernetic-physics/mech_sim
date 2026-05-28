@@ -301,6 +301,12 @@ Required methods:
      verifier.
    - Same Chrono audit budget.
 
+   If the paper claim names GRPO, this method must use the exact TRL
+   `GRPOTrainer` path in `rl/train_true_grpo_trl.py` or an equivalent
+   policy-ratio-clipped GRPO implementation. The legacy Worldlines trainer in
+   `rl/train_grpo.py` is only a group-relative verifier-weighted CE LoRA
+   baseline and must not be reported as GRPO.
+
 4. `frozen_model`
    - The base reasoning model without test-time updates.
    - Same family split and verifier budget.

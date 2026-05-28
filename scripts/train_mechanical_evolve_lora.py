@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Train an MLX LoRA adapter from MechanicalEvolve verifier rewards.
 
-The input is the MechanicalEvolve GRPO-style JSONL dataset. This script turns
-each verifier group into reward-weighted imitation examples, writes MLX-LM
-``train/valid/test.jsonl`` files, and optionally launches ``mlx_lm lora``.
+The input is the MechanicalEvolve verifier-group JSONL dataset. This script
+turns verifier-positive candidates into reward-weighted imitation examples,
+writes MLX-LM ``train/valid/test.jsonl`` files, and optionally launches
+``mlx_lm lora``. This is reward-filtered/reward-weighted SFT, not GRPO.
 """
 
 from __future__ import annotations
