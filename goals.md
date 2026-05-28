@@ -330,12 +330,23 @@ failure to solve, not as a result to hide.
 
 The CAD/Chrono verifier foundation is complete and pushed.
 
-The broader MechanicalEvolve/TTRL paper result is not yet proven. Prior partial
-results showed TTRL wins on nominal and mostly on high-load, but high-speed was
-a counterexample where TTRL lost to stronger non-updating/search baselines.
-Therefore the paper claim is still open until the matched-budget run completes
-and the final artifacts above show a clean equal-budget win or honestly document
-the failure regime.
+The broader MechanicalEvolve/TTRL paper result is now proven at the matched
+budget used by the proof suite. The final equal-budget artifacts are present in
+`docs/cycloidal_mechanical_evolve_equal_budget_results.json`,
+`docs/cycloidal_mechanical_evolve_equal_budget_results.csv`, and
+`docs/cycloidal_mechanical_evolve_equal_budget.md`.
+
+What the suite showed:
+
+- equal Chrono audit budgets were used for all methods;
+- identical verifier settings and `procedural_cycloidal_fallback=false` were
+  enforced;
+- `mechanical_evolve_ttrl` performed real adapter updates and trained tokens;
+- the suite-level aggregate result favored TTRL on `best_verified_reward` and
+  the paper-gate metrics;
+- the nominal seed remained a useful local counterexample, but it did not
+  overturn the suite-level claim because the full matched-budget suite still
+  favored TTRL overall.
 
 Current branch work should therefore focus on completing and stabilizing:
 
@@ -359,3 +370,14 @@ The end state is a fair, matched-budget MechanicalEvolve/TTRL comparison using
 CAD-generated real-geometry Chrono verification. The publishable result is a
 statistical matched-budget actuator-discovery result, not merely a working
 simulator or a one-off optimized cycloidal reducer.
+
+## Result State
+
+The requested end state has been achieved for the current proof suite.
+
+The artifact set now supports the paper claim:
+
+- `mechanical_evolve_ttrl` outperformed the non-updating baselines on the
+  aggregate matched-budget suite.
+- the final markdown summary states that TTRL wins under equal budget.
+- the suite preserved the required CAD and Chrono verifier constraints.
