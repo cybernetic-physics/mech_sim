@@ -1576,11 +1576,12 @@ def _scalar_metrics(
         output_body_id = _joint_child_body_id(ir, str(load_spec.get("joint_id", "")))
         fit_out_omega = _body_yaw_slope_tail(record, output_body_id)
         if fit_out_omega is not None:
-            out_omega_med = fit_out_omega
-            out_speed = abs(fit_out_omega)
             metrics["out_omega_med_raw"] = raw_out_omega_med
             metrics["output_speed_rad_s_mean_raw"] = raw_out_speed
             metrics["out_omega_fit_rad_s"] = fit_out_omega
+            if bool(cfg.get("prefer_body_yaw_output_fit", False)):
+                out_omega_med = fit_out_omega
+                out_speed = abs(fit_out_omega)
         out_load = abs(float(spec.loads[0].get("value", 0.0)))
         output_torque = _load_torque_series(record, load_spec, out_port)
         metrics["output_speed_rad_s_mean"] = out_speed
@@ -2351,10 +2352,14 @@ def _convex_decomposition_hulls(
             points = vector_cls()
             if not decomp.GetConvexHullResult(index, points):
                 continue
+            point_count = _safe_int(_try_call(points, ("size",)), 0)
             hull = tuple(
-                (_vec_component(p, "x"), _vec_component(p, "y"),
-                 _vec_component(p, "z"))
-                for p in points
+                (
+                    _vec_component(points[i], "x"),
+                    _vec_component(points[i], "y"),
+                    _vec_component(points[i], "z"),
+                )
+                for i in range(point_count)
             )
             if len(hull) >= 4:
                 hulls.append(hull)

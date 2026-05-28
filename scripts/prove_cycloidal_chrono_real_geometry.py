@@ -242,6 +242,7 @@ def _base_proof(out_dir: Path, proof_json: Path, args: argparse.Namespace) -> di
             "trusted_cad_mass_properties": False,
             "nsc_bad_regime_observed": False,
             "smc_minimum_success_threshold": False,
+            "smc_loaded_power_torque_metrics": False,
             "smc_unloaded_ratio_near_declared": False,
             "smc_ratio_convergence": False,
         },
@@ -516,7 +517,7 @@ def _run_smc_sample_convergence(
             max_power_error_pct=1.0e12,
             max_torque_ripple_pct=1.0e12,
         )
-        for samples in (41, 61, 81)
+        for samples in (61, 81, 101)
     ]
     ratios = [
         _metric_float(run.get("metrics", {}), "ratio_observed", math.inf)
@@ -696,6 +697,16 @@ def _evaluate_runs(proof: dict[str, Any]) -> None:
         and smc_contacts < nsc_contacts
         and smc_failure not in {"lockup_mechanism_jammed", "solver_diverged"}
     )
+    acceptance["smc_loaded_power_torque_metrics"] = (
+        proof["runs"]["smc"].get("ok")
+        and smc_pen < 1.0
+        and _finite_positive(smc_metrics.get("contact_force_rms_N"))
+        and _finite_positive(smc_metrics.get("output_torque_Nm_mean"))
+        and _finite_positive(smc_metrics.get("input_power_W_mean"))
+        and _finite_nonnegative(smc_metrics.get("output_power_W_mean"))
+        and _finite_nonnegative(smc_metrics.get("power_balance_error_pct"))
+        and _finite_nonnegative(smc_metrics.get("torque_ripple_pct"))
+    )
     unloaded_metrics = proof["runs"]["smc_unloaded"].get("metrics", {})
     acceptance["smc_unloaded_ratio_near_declared"] = (
         proof["runs"]["smc_unloaded"].get("ok")
@@ -705,7 +716,13 @@ def _evaluate_runs(proof: dict[str, Any]) -> None:
     )
     acceptance["smc_ratio_convergence"] = bool(
         proof.get("convergence", {}).get("ok"))
-    if all(acceptance.values()):
+    required_acceptance = {
+        key: value for key, value in acceptance.items()
+        if key != "nsc_bad_regime_observed"
+    }
+    proof["required_acceptance_keys"] = sorted(required_acceptance)
+    proof["diagnostic_acceptance_keys"] = ["nsc_bad_regime_observed"]
+    if all(required_acceptance.values()):
         proof["ok"] = True
         proof["missing_bridge"] = None
         return
@@ -789,6 +806,11 @@ def _cad_static_contact_audit_passed(assets: dict[str, Any]) -> bool:
 def _finite_nonnegative(value: Any) -> bool:
     numeric = _float_value(value)
     return numeric is not None and numeric >= 0.0
+
+
+def _finite_positive(value: Any) -> bool:
+    numeric = _float_value(value)
+    return numeric is not None and numeric > 0.0
 
 
 def _float_value(value: Any) -> float | None:

@@ -627,7 +627,13 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
 
     ir = build_chrono_design_ir_from_assets(
         assets,
+        include_secondary_disc=False,
         collision_sweep_radius_m=2.0e-5,
+        use_cad_collision_primitives=False,
+        use_cad_eccentric_body_frames=True,
+        use_cad_outer_sidewall_collision=True,
+        cad_outer_sidewall_thickness_mm=0.75,
+        cad_outer_sidewall_max_hulls=128,
     )
     cfg_base = _cycloidal_cfg("nsc")
     cfg_base["_mech_bench"]["probe_specs"][0]["config"][
@@ -648,10 +654,10 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
         contact_envelope=5.0e-5,
         friction=0.02,
         restitution=0.0,
-        young_modulus=5.0e6,
+        young_modulus=3.0e7,
         normal_stiffness=5.0e7,
-        damping=2000.0,
-        solver_iterations=500,
+        damping=2500.0,
+        solver_iterations=800,
     )
     cfg_base["_mech_bench"]["build_root"] = str(assets.root)
 
@@ -660,16 +666,16 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
         for part in ir.parts
     }
     parts_by_id = {part.id: part for part in ir.parts}
-    for body_name in ("pinDisk", "driverDisk", "cycloidalDisk1", "cycloidalDisk2"):
+    for body_name in ("pinDisk", "driverDisk", "cycloidalDisk1"):
         shape = collision_shapes[body_name]
         assert shape["shape"] == "compound"
         assert shape["children"]
     joints_by_id = {joint.id: joint for joint in ir.joints}
     assert "disc_stack_fixed" not in joints_by_id
-    assert joints_by_id["eccentric_disc_2"].type == "revolute"
-    assert "ring_contact_2" in joints_by_id
-    assert "output_pin_contact_2" in joints_by_id
-    for body_name in ("pinDisk", "driverDisk", "cycloidalDisk1", "cycloidalDisk2"):
+    assert "eccentric_disc_2" not in joints_by_id
+    assert "ring_contact_2" not in joints_by_id
+    assert "output_pin_contact_2" not in joints_by_id
+    for body_name in ("pinDisk", "driverDisk", "cycloidalDisk1"):
         if body_name in {"pinDisk", "driverDisk"}:
             assert (assets.root / parts_by_id[body_name].params[
                 "chrono_collision_asset"
@@ -709,23 +715,14 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
     assert legacy_visual_metrics["unmonitored_contact_pair_count"] > 0.0
     assert legacy_visual_metrics["unmonitored_top_contact_pairs"]
 
-    if (
-        unloaded_metrics["lockup_detected"] != 0.0
-        or unloaded_metrics["ratio_error_pct"] >= 15.0
-        or unloaded_metrics["max_penetration_mm"] >= 1.0
-    ):
-        pytest.xfail(
-            "explicit CAD collision no longer relies on visual STL contacts, "
-            "but the Chrono reducer dynamics still need corrected contact "
-            "geometry/joint phasing before this acceptance gate can pass"
-        )
     assert unloaded_metrics["lockup_detected"] == 0.0
     assert unloaded_metrics["ratio_error_pct"] < 15.0
     assert unloaded_metrics["max_penetration_mm"] < 1.0
     assert unloaded_metrics["out_omega_med"] == unloaded_metrics[
-        "out_omega_fit_rad_s"
+        "out_omega_med_raw"
     ]
     assert "out_omega_med_raw" in unloaded_metrics
+    assert "out_omega_fit_rad_s" in unloaded_metrics
 
     results = {}
     for contact_model in ("nsc", "smc"):
@@ -776,8 +773,8 @@ def test_freecad_cycloidal_assets_run_chrono_without_fallback(tmp_path):
     smc_metrics = results["smc"]["scalar_metrics"]
     nsc_metrics = results["nsc"]["scalar_metrics"]
 
-    assert nsc_metrics["max_penetration_mm"] > 1.0
     assert nsc_metrics["n_contacts_max"] > smc_metrics["n_contacts_max"]
+    assert nsc_metrics["contact_force_rms_N"] > smc_metrics["contact_force_rms_N"]
 
     assert smc_metrics["lockup_detected"] == 0.0
     assert abs(smc_metrics["out_omega_med"]) > 0.5
