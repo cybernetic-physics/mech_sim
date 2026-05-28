@@ -1,13 +1,55 @@
 # MechanicalEvolve / TTRL Paper Goal
 
-This branch is aiming at a CoRL-grade result for RLVR/TTRL-driven mechanical
-actuator discovery, specifically cycloidal/QDD actuator design. The claim is
-not generic robot morphology optimization and not merely "RL improves designs."
-The claim must be:
+This branch is aiming at a CoRL-grade paper result for MechanicalEvolve:
+test-time RLVR/TTRL-driven mechanical actuator discovery under executable CAD
+and contact-physics verification.
+
+The target domain is cycloidal/QDD actuator design. The paper is not about
+generic robot morphology optimization, generic code generation, or merely
+"RL improves designs." Recent co-design work already shows that automated
+morphology/control search can improve simulated robot reward. The stronger
+claim here is that an open reasoning model can improve an internal mechanical
+actuator mechanism while being constrained by CAD generation, real collision
+assets, Chrono contact dynamics, and physical defect checks.
+
+The paper claim must become:
 
 > Under equal expensive CAD + Chrono physics-verification budget, iterative
 > RLVR/TTRL adaptation discovers stronger verified cycloidal actuator designs
 > than non-updating baselines.
+
+In plain terms: MechanicalEvolve should not win because it ran more samples,
+because it used a toy procedural simulator, or because it optimized a fast
+proxy reward. It must win because iterative verifier-derived adaptation makes
+better design proposals under the same expensive verification budget.
+
+## Broader Research Thesis
+
+MechanicalEvolve is the mechanical-design analogue of AlphaEvolve/DeepEvolve
+and TTRL:
+
+- A proposal policy generates actuator design programs or parameter edits.
+- A fast actuator reward screens many candidates cheaply.
+- CAD generation converts elite candidates into named mechanical assets.
+- Chrono SMC verifies the generated real geometry with compliant contact.
+- The verifier returns scalar reward plus structured defects.
+- The proposal policy is improved at test time using verifier-derived rewards.
+- The archive keeps lineage, defects, metrics, and generated assets.
+
+The intended scientific result is not just "we found one cycloidal design."
+The result is:
+
+- under matched Chrono audit budgets, iterative TTRL produces better verified
+  actuator designs than non-updating search/evolution baselines;
+- fast-only optimization finds candidates that often look good before CAD and
+  contact verification but fail more often under the real verifier;
+- CAD + Chrono verification is therefore not an implementation detail, but the
+  task-defining reward source that makes mechanical invention credible.
+
+The final paper should report both the best design and the learning/search
+behavior that produced it: pass rates, lockup rates, defect regimes, verified
+reward, ratio error, contact forces, penetration, torque ripple, power balance,
+and verifier calls to first valid design.
 
 ## Current Completed Foundation
 
