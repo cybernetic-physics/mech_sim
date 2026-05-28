@@ -251,6 +251,34 @@ families. Every method must use the same family split, same verifier
 thresholds, same CAD pipeline, same Chrono SMC configuration, same random
 seeds, and the same total Chrono audit budget within each family/seed trial.
 
+## Current Evidence Boundary
+
+The existing multi-family RLVR run in
+`runs/rlvr_papergrade_20260525_142921` is strong but does not prove the
+headline family-transfer claim. The audit artifact
+`docs/family_transfer_claim_audit.md` checks the run's train and eval split
+files against `task.toml` metadata and finds that every eval canonical family
+also appears in training.
+
+What that run supports:
+
+- seed-heldout/task-instance generalization across many mechanical families;
+- RLVR improves over the prompted base model and over the SFT adapter on that
+  heldout task-instance split;
+- the final direct-SGLang summaries have zero sampler errors.
+
+What that run does not support:
+
+- unseen-family transfer;
+- the claim that RLVR learned reusable mechanism-family reasoning independent
+  of family-specific exposure;
+- the final MechanicalEvolve/TTRL paper claim described above.
+
+The next valid paper run must use the frozen family split machinery and must
+train/update only on seen families while evaluating on disjoint unseen
+families. A result table is not acceptable unless the audit shows zero
+train/eval family overlap.
+
 Required methods:
 
 1. `verifier_gated`
