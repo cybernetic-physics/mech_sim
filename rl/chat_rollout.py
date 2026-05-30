@@ -205,6 +205,19 @@ def _chat_completion(
         retry_body.pop("seed", None)
         r = requests.post(url, json=retry_body, timeout=timeout_s,
                           headers={"Authorization": "Bearer dummy"})
+        body = retry_body
+    if (
+        r.status_code == 400
+        and lora_path
+        and "never been loaded" in getattr(r, "text", "")
+    ):
+        _load_sglang_lora_adapter(
+            base_url=base_url,
+            lora_path=lora_path,
+            timeout_s=timeout_s,
+        )
+        r = requests.post(url, json=body, timeout=timeout_s,
+                          headers={"Authorization": "Bearer dummy"})
     try:
         r.raise_for_status()
     except Exception as exc:
@@ -215,6 +228,36 @@ def _chat_completion(
             pass
         raise RuntimeError(f"{exc}{body_preview}") from exc
     return r.json()
+
+
+def _load_sglang_lora_adapter(
+    *,
+    base_url: str,
+    lora_path: str,
+    timeout_s: float,
+) -> None:
+    if requests is None:
+        raise RuntimeError("`requests` is not installed in this venv")
+    url = base_url.rstrip("/") + "/load_lora_adapter"
+    body = {
+        "lora_name": lora_path,
+        "lora_path": lora_path,
+        "pinned": False,
+    }
+    r = requests.post(url, json=body, timeout=timeout_s,
+                      headers={"Authorization": "Bearer dummy"})
+    try:
+        r.raise_for_status()
+    except Exception as exc:
+        body_preview = ""
+        try:
+            body_preview = f" response={r.text[:500]}"
+        except Exception:
+            pass
+        raise RuntimeError(
+            f"failed to load SGLang LoRA adapter {lora_path!r}: "
+            f"{exc}{body_preview}"
+        ) from exc
 
 
 # --------------------------------------------------------------------- #
