@@ -21,6 +21,7 @@ SGLANG_PIP_SPEC="${SGLANG_PIP_SPEC:-sglang==0.5.9}"
 SGLANG_RECREATE_VENV="${SGLANG_RECREATE_VENV:-auto}"
 SGLANG_CUDA_VISIBLE_DEVICES="${SGLANG_CUDA_VISIBLE_DEVICES:-}"
 BENCH_CUDA_VISIBLE_DEVICES="${BENCH_CUDA_VISIBLE_DEVICES:-}"
+SGLANG_TP="${SGLANG_TP:-1}"
 TRAIN_DEVICE_MAP="${TRAIN_DEVICE_MAP:-}"
 SFT_MAX_SEQ_LENGTH="${SFT_MAX_SEQ_LENGTH:-512}"
 SFT_TORCH_DTYPE="${SFT_TORCH_DTYPE:-bfloat16}"
@@ -62,6 +63,7 @@ Environment overrides:
   SGLANG_RECREATE_VENV=$SGLANG_RECREATE_VENV
   SGLANG_CUDA_VISIBLE_DEVICES=$SGLANG_CUDA_VISIBLE_DEVICES
   BENCH_CUDA_VISIBLE_DEVICES=$BENCH_CUDA_VISIBLE_DEVICES
+  SGLANG_TP=$SGLANG_TP
   TRAIN_DEVICE_MAP=$TRAIN_DEVICE_MAP
   SFT_MAX_SEQ_LENGTH=$SFT_MAX_SEQ_LENGTH
   SFT_TORCH_DTYPE=$SFT_TORCH_DTYPE
@@ -246,17 +248,24 @@ PY
 sglang_log="$REMOTE_ROOT/logs/sglang-\${SLURM_JOB_ID:-manual}.log"
 if ! ss -tln 2>/dev/null | grep -q ":$SGLANG_PORT "; then
   echo "starting SGLang on :$SGLANG_PORT model=$SGLANG_MODEL"
+  sglang_json_model_override_args=()
+  if [[ -n '$SGLANG_JSON_MODEL_OVERRIDE_ARGS' ]]; then
+    sglang_json_model_override_args=(
+      --json-model-override-args
+      '$SGLANG_JSON_MODEL_OVERRIDE_ARGS'
+    )
+  fi
   nohup env CUDA_VISIBLE_DEVICES="\$sglang_cuda_visible_devices" \\
     "\$sglang_venv/bin/python" -m sglang.launch_server \\
     --model-path "$SGLANG_MODEL" \\
     --host 127.0.0.1 \\
     --port "$SGLANG_PORT" \\
     --dtype bfloat16 \\
-    --tp 1 \\
+    --tp "$SGLANG_TP" \\
     --context-length "$SGLANG_CTX" \\
     --max-running-requests "$SGLANG_MAX_REQS" \\
     --mem-fraction-static "$SGLANG_MEM_FRAC" \\
-    --json-model-override-args '$SGLANG_JSON_MODEL_OVERRIDE_ARGS' \\
+    "\${sglang_json_model_override_args[@]}" \\
     $SGLANG_EXTRA_ARGS \\
     >"\$sglang_log" 2>&1 &
   echo \$! > "$REMOTE_ROOT/logs/sglang-\${SLURM_JOB_ID:-manual}.pid"
