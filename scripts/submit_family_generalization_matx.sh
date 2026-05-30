@@ -35,6 +35,7 @@ SGLANG_CTX="${SGLANG_CTX:-8192}"
 SGLANG_MAX_REQS="${SGLANG_MAX_REQS:-4}"
 SGLANG_JSON_MODEL_OVERRIDE_ARGS="${SGLANG_JSON_MODEL_OVERRIDE_ARGS:-{\"num_hidden_layers\":40,\"hidden_size\":2048,\"num_attention_heads\":16,\"num_key_value_heads\":2,\"head_dim\":256}}"
 SGLANG_EXTRA_ARGS="${SGLANG_EXTRA_ARGS:---trust-remote-code --served-model-name $BASE_MODEL --enable-lora --max-lora-rank 16 --lora-target-modules q_proj k_proj v_proj o_proj --attention-backend triton --sampling-backend pytorch}"
+REFRESH_EVALS="${REFRESH_EVALS:-1}"
 
 usage() {
   cat <<EOF
@@ -72,6 +73,7 @@ Environment overrides:
   TTRL_GRPO_MAX_MEMORY=$TTRL_GRPO_MAX_MEMORY
   SGLANG_JSON_MODEL_OVERRIDE_ARGS=$SGLANG_JSON_MODEL_OVERRIDE_ARGS
   SGLANG_EXTRA_ARGS=$SGLANG_EXTRA_ARGS
+  REFRESH_EVALS=$REFRESH_EVALS
 
 By default the script stages files and writes the Slurm script. Pass --submit
 to call sbatch on the remote host.
@@ -277,6 +279,41 @@ PY
   sleep 10
 done
 
+for i in \$(seq 1 60); do
+  if python3 - <<'PY' >/dev/null 2>&1
+import json
+import urllib.request
+
+body = {
+    "model": "$BASE_MODEL",
+    "messages": [{"role": "user", "content": "Reply with exactly: ready"}],
+    "max_tokens": 4,
+    "temperature": 0.0,
+    "stream": False,
+}
+req = urllib.request.Request(
+    "http://127.0.0.1:$SGLANG_PORT/v1/chat/completions",
+    data=json.dumps(body).encode(),
+    headers={
+        "Content-Type": "application/json",
+        "Authorization": "Bearer dummy",
+    },
+    method="POST",
+)
+urllib.request.urlopen(req, timeout=30).read()
+PY
+  then
+    echo "SGLang chat completions are ready"
+    break
+  fi
+  if [[ "\$i" == 60 ]]; then
+    echo "SGLang chat completions did not become ready; tailing log" >&2
+    tail -200 "\$sglang_log" >&2 || true
+    exit 1
+  fi
+  sleep 10
+done
+
 uv run python scripts/run_family_generalization_benchmark.py \\
   --out-dir "$OUT_DIR" \\
   --docs-dir "$PREFLIGHT_DOCS_DIR" \\
@@ -313,6 +350,15 @@ PY
 echo "=== family generalization full command ==="
 echo "\$full_cmd"
 echo "=========================================="
+if [[ "$REFRESH_EVALS" == "1" ]]; then
+  echo "Refreshing eval summaries while preserving trained adapters"
+  rm -rf "$OUT_DIR"/eval_frozen_model \\
+    "$OUT_DIR"/eval_verifier_gated \\
+    "$OUT_DIR"/eval_no_update_search \\
+    "$OUT_DIR"/eval_llm_evolve_no_update \\
+    "$OUT_DIR"/eval_sft_model \\
+    "$OUT_DIR"/eval_mechanical_evolve_ttrl
+fi
 exec env CUDA_VISIBLE_DEVICES="\$bench_cuda_visible_devices" bash -lc "\$full_cmd"
 EOF
 
