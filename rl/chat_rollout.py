@@ -56,6 +56,10 @@ class TurnTrace:
     stop_reason: str
     feedback: list[dict[str, str]] = field(default_factory=list)
     evaluation_valid: bool = False
+    cad_audits: int = 0
+    chrono_audits: int = 0
+    physical_metrics: dict[str, float] = field(default_factory=dict)
+    no_procedural_fallback: bool | None = None
 
 
 @dataclass
@@ -196,7 +200,20 @@ def _chat_completion(
         body["lora_path"] = lora_path
     r = requests.post(url, json=body, timeout=timeout_s,
                       headers={"Authorization": "Bearer dummy"})
-    r.raise_for_status()
+    if r.status_code == 400 and seed is not None:
+        retry_body = dict(body)
+        retry_body.pop("seed", None)
+        r = requests.post(url, json=retry_body, timeout=timeout_s,
+                          headers={"Authorization": "Bearer dummy"})
+    try:
+        r.raise_for_status()
+    except Exception as exc:
+        body_preview = ""
+        try:
+            body_preview = f" response={r.text[:500]}"
+        except Exception:
+            pass
+        raise RuntimeError(f"{exc}{body_preview}") from exc
     return r.json()
 
 
@@ -288,6 +305,10 @@ def run_rollout(
             failure_codes=ep.failure_codes,
             feedback=ep.feedback,
             evaluation_valid=ep.evaluation_valid,
+            cad_audits=ep.cad_audits,
+            chrono_audits=ep.chrono_audits,
+            physical_metrics=dict(ep.physical_metrics),
+            no_procedural_fallback=ep.no_procedural_fallback,
             completion_tokens=ep.completion_tokens,
             stop_reason=stop_reason,
         )
@@ -435,6 +456,10 @@ def run_rollout_with_sampling_client(
             failure_codes=ep.failure_codes,
             feedback=ep.feedback,
             evaluation_valid=ep.evaluation_valid,
+            cad_audits=ep.cad_audits,
+            chrono_audits=ep.chrono_audits,
+            physical_metrics=dict(ep.physical_metrics),
+            no_procedural_fallback=ep.no_procedural_fallback,
             completion_tokens=completion_tokens,
             stop_reason=str(usage.get("stop_reason") or "stop"),
         )

@@ -108,6 +108,53 @@ def _filtered_config(cls: type, values: dict[str, Any]) -> Any:
     return cls(**accepted)
 
 
+def _parse_device_map(value: str | None) -> str | dict[str, int] | None:
+    if value is None:
+        return None
+    normalized = value.strip().lower()
+    if normalized in {"", "none"}:
+        return None
+    if normalized in {"single", "cuda", "cuda:0", "0"}:
+        return {"": 0}
+    return value
+
+
+def _parse_max_memory(value: str | None) -> dict[int | str, str] | None:
+    if value is None:
+        return None
+    text = value.strip()
+    if not text or text.lower() == "none":
+        return None
+    if text.startswith("{"):
+        payload = json.loads(text)
+        if not isinstance(payload, dict):
+            raise ValueError("--max-memory JSON must be an object")
+        parsed: dict[int | str, str] = {}
+        for key, memory in payload.items():
+            device: int | str = int(key) if str(key).isdigit() else str(key)
+            parsed[device] = str(memory)
+        return parsed
+
+    parsed = {}
+    for part in text.split(","):
+        item = part.strip()
+        if not item:
+            continue
+        if ":" not in item:
+            raise ValueError(
+                "--max-memory entries must be DEVICE:MEMORY, "
+                "for example 0:32GiB,1:44GiB"
+            )
+        key, memory = item.split(":", 1)
+        key = key.strip()
+        memory = memory.strip()
+        if not key or not memory:
+            raise ValueError("--max-memory entries require device and memory")
+        device = int(key) if key.isdigit() else key
+        parsed[device] = memory
+    return parsed or None
+
+
 def _make_reward_func(
     *,
     log_path: Path,
@@ -155,6 +202,88 @@ def _make_reward_func(
     return reward_func
 
 
+def _estimate_prompt_tokens(processor: Any, rows: list[dict[str, Any]]) -> int:
+    if processor is None:
+        return 0
+    total = 0
+    for row in rows:
+        try:
+            encoded = processor(str(row["prompt"]))
+            input_ids = encoded.get("input_ids") if isinstance(encoded, dict) else None
+            if input_ids is not None:
+                total += len(input_ids)
+        except Exception:
+            return 0
+    return total
+
+
+def _extract_input_ids(encoded: Any) -> list[int]:
+    getter = getattr(encoded, "get", None)
+    input_ids = getter("input_ids") if callable(getter) else None
+    if input_ids is None and isinstance(encoded, dict):
+        input_ids = encoded.get("input_ids")
+    if input_ids is None:
+        return []
+    if hasattr(input_ids, "tolist"):
+        input_ids = input_ids.tolist()
+    if input_ids and isinstance(input_ids[0], list):
+        input_ids = input_ids[0]
+    return list(input_ids)
+
+
+def _prompt_token_lengths(tokenizer: Any, rows: list[dict[str, Any]]) -> list[int]:
+    lengths: list[int] = []
+    for row in rows:
+        encoded = tokenizer(str(row["prompt"]), add_special_tokens=False)
+        lengths.append(len(_extract_input_ids(encoded)))
+    return lengths
+
+
+def _truncate_prompt_rows(
+    rows: list[dict[str, Any]],
+    tokenizer: Any,
+    *,
+    max_prompt_length: int,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    before = _prompt_token_lengths(tokenizer, rows)
+    if max_prompt_length <= 0:
+        return rows, {
+            "enabled": False,
+            "max_prompt_length": int(max_prompt_length),
+            "max_before": max(before) if before else 0,
+            "max_after": max(before) if before else 0,
+        }
+
+    truncated: list[dict[str, Any]] = []
+    for row in rows:
+        encoded = tokenizer(str(row["prompt"]), add_special_tokens=False)
+        input_ids = _extract_input_ids(encoded)
+        if input_ids is None or len(input_ids) <= max_prompt_length:
+            truncated.append(dict(row))
+            continue
+        kept = input_ids[-max_prompt_length:]
+        next_row = dict(row)
+        next_row["prompt"] = tokenizer.decode(kept, skip_special_tokens=False)
+        truncated.append(next_row)
+    after = _prompt_token_lengths(tokenizer, truncated)
+    return truncated, {
+        "enabled": any(a < b for a, b in zip(after, before, strict=False)),
+        "max_prompt_length": int(max_prompt_length),
+        "max_before": max(before) if before else 0,
+        "max_after": max(after) if after else 0,
+    }
+
+
+def _load_text_tokenizer(auto_tokenizer: Any, model: str, *, trust_remote_code: bool) -> Any:
+    tokenizer = auto_tokenizer.from_pretrained(
+        model,
+        trust_remote_code=trust_remote_code,
+    )
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    return tokenizer
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", required=True)
@@ -178,6 +307,11 @@ def main() -> int:
     parser.add_argument("--lora-rank", type=int, default=16)
     parser.add_argument("--lora-alpha", type=int, default=32)
     parser.add_argument("--lora-dropout", type=float, default=0.0)
+    parser.add_argument(
+        "--lora-target-modules",
+        default="q_proj,k_proj,v_proj,o_proj",
+        help="comma-separated PEFT LoRA target modules",
+    )
     parser.add_argument("--reward-scale", type=float, default=100.0)
     parser.add_argument("--reward-timeout-s", type=float, default=60.0)
     parser.add_argument("--save-steps", type=int, default=25)
@@ -186,6 +320,25 @@ def main() -> int:
     parser.add_argument("--bf16", action="store_true")
     parser.add_argument("--fp16", action="store_true")
     parser.add_argument("--gradient-checkpointing", action="store_true")
+    parser.add_argument("--load-in-4bit", action="store_true",
+                        help="load the base model with bitsandbytes 4-bit")
+    parser.add_argument("--load-in-8bit", action="store_true",
+                        help="load the base model with bitsandbytes 8-bit")
+    parser.add_argument("--torch-dtype", default=None,
+                        choices=("auto", "bfloat16", "float16", "float32"))
+    parser.add_argument("--attn-implementation", default=None,
+                        help="optional Transformers attention implementation")
+    parser.add_argument("--device-map", default=None,
+                        help="optional from_pretrained device_map, e.g. auto")
+    parser.add_argument(
+        "--max-memory",
+        default=None,
+        help=(
+            "optional from_pretrained max_memory map, for example "
+            "0:32GiB,1:44GiB or JSON"
+        ),
+    )
+    parser.add_argument("--trust-remote-code", action="store_true")
     parser.add_argument("--dry-run", action="store_true",
                         help="write dataset/config metadata without training")
     args = parser.parse_args()
@@ -234,6 +387,14 @@ def main() -> int:
         "uses_policy_ratio_clipping": True,
         "uses_value_head": False,
         "reward": "mech_bench verified_score * reward_scale",
+        "model_init": {
+            "load_in_4bit": bool(args.load_in_4bit),
+            "load_in_8bit": bool(args.load_in_8bit),
+            "torch_dtype": args.torch_dtype,
+            "attn_implementation": args.attn_implementation,
+            "device_map": args.device_map,
+            "trust_remote_code": bool(args.trust_remote_code),
+        },
     }
     (out_dir / "run_manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n"
@@ -246,6 +407,11 @@ def main() -> int:
         from datasets import Dataset  # type: ignore[import-not-found]
         from peft import LoraConfig  # type: ignore[import-not-found]
         from trl import GRPOConfig, GRPOTrainer  # type: ignore[import-not-found]
+        from transformers import AutoTokenizer  # type: ignore[import-not-found]
+        if args.load_in_4bit or args.load_in_8bit:
+            from transformers import BitsAndBytesConfig  # type: ignore[import-not-found]
+        else:
+            BitsAndBytesConfig = None  # type: ignore[assignment]
     except ImportError as exc:
         print(
             "error: exact GRPO requires the training-grpo extra. Run "
@@ -256,6 +422,24 @@ def main() -> int:
         )
         return 2
 
+    tokenizer = _load_text_tokenizer(
+        AutoTokenizer,
+        args.model,
+        trust_remote_code=bool(args.trust_remote_code),
+    )
+    rows, prompt_truncation = _truncate_prompt_rows(
+        rows,
+        tokenizer,
+        max_prompt_length=int(args.max_prompt_length),
+    )
+    with dataset_jsonl.open("w") as f:
+        for row in rows:
+            f.write(json.dumps(row, sort_keys=True) + "\n")
+    manifest["prompt_truncation"] = prompt_truncation
+    (out_dir / "run_manifest.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n"
+    )
+
     train_dataset = Dataset.from_list(rows)
     peft_config = LoraConfig(
         r=max(1, int(args.lora_rank)),
@@ -263,13 +447,63 @@ def main() -> int:
         lora_dropout=max(0.0, float(args.lora_dropout)),
         bias="none",
         task_type="CAUSAL_LM",
+        target_modules=[
+            item.strip()
+            for item in str(args.lora_target_modules).split(",")
+            if item.strip()
+        ],
     )
+    model_init_kwargs: dict[str, Any] = {}
+    if args.load_in_4bit or args.load_in_8bit:
+        if BitsAndBytesConfig is None:
+            print(
+                "error: bitsandbytes quantization requested but "
+                "BitsAndBytesConfig is unavailable",
+                file=sys.stderr,
+            )
+            return 2
+        compute_dtype = None
+        if args.torch_dtype in ("bfloat16", "float16", "float32"):
+            import torch
+            compute_dtype = {
+                "bfloat16": torch.bfloat16,
+                "float16": torch.float16,
+                "float32": torch.float32,
+            }[args.torch_dtype]
+        quant_kwargs: dict[str, Any] = {
+            "load_in_4bit": bool(args.load_in_4bit),
+            "load_in_8bit": bool(args.load_in_8bit),
+        }
+        if args.load_in_4bit:
+            quant_kwargs.update({
+                "bnb_4bit_quant_type": "nf4",
+                "bnb_4bit_use_double_quant": True,
+            })
+            if compute_dtype is not None:
+                quant_kwargs["bnb_4bit_compute_dtype"] = compute_dtype
+        model_init_kwargs["quantization_config"] = BitsAndBytesConfig(
+            **quant_kwargs
+        )
+    if args.torch_dtype:
+        model_init_kwargs["torch_dtype"] = args.torch_dtype
+    if args.attn_implementation:
+        model_init_kwargs["attn_implementation"] = args.attn_implementation
+    device_map = _parse_device_map(args.device_map)
+    if device_map is not None:
+        model_init_kwargs["device_map"] = device_map
+    max_memory = _parse_max_memory(args.max_memory)
+    if max_memory is not None:
+        model_init_kwargs["max_memory"] = max_memory
+    if args.trust_remote_code:
+        model_init_kwargs["trust_remote_code"] = True
+
     config = _filtered_config(GRPOConfig, {
         "output_dir": str(out_dir),
         "learning_rate": float(args.learning_rate),
         "per_device_train_batch_size": int(args.per_device_train_batch_size),
         "gradient_accumulation_steps": int(args.gradient_accumulation_steps),
         "num_generations": int(args.num_generations),
+        "generation_batch_size": int(args.num_generations),
         "max_prompt_length": int(args.max_prompt_length),
         "max_completion_length": int(args.max_completion_length),
         "temperature": float(args.temperature),
@@ -283,6 +517,7 @@ def main() -> int:
         "bf16": bool(args.bf16),
         "fp16": bool(args.fp16),
         "gradient_checkpointing": bool(args.gradient_checkpointing),
+        "model_init_kwargs": model_init_kwargs or None,
         "remove_unused_columns": False,
         "report_to": [],
     })
@@ -298,14 +533,66 @@ def main() -> int:
         reward_funcs=reward_func,
         args=config,
         train_dataset=train_dataset,
+        processing_class=tokenizer,
         peft_config=peft_config,
     )
     trainer.train()
-    trainer.save_model(str(out_dir / "final_adapter"))
+    final_adapter = out_dir / "final_adapter"
+    trainer.save_model(str(final_adapter))
+    global_step = int(getattr(trainer.state, "global_step", 0) or 0)
+    n_rl_datums = 0
+    reward_log = out_dir / "reward_log.jsonl"
+    if reward_log.is_file():
+        n_rl_datums = sum(1 for line in reward_log.read_text().splitlines()
+                          if line.strip())
+    trained_tokens = int(
+        getattr(trainer.state, "num_input_tokens_seen", 0) or 0
+    )
+    if trained_tokens <= 0:
+        processor = (
+            getattr(trainer, "processing_class", None)
+            or getattr(trainer, "tokenizer", None)
+        )
+        prompt_tokens = _estimate_prompt_tokens(processor, rows)
+        trained_tokens = (
+            prompt_tokens
+            * max(global_step, 0)
+            * max(int(args.num_generations), 1)
+        )
     manifest["completed_ts"] = time.time()
-    manifest["final_adapter"] = str(out_dir / "final_adapter")
+    manifest["final_adapter"] = str(final_adapter)
+    manifest["adapter_updates"] = global_step
+    manifest["trained_tokens"] = trained_tokens
+    manifest["rl_trained_tokens"] = trained_tokens
+    manifest["n_rl_datums"] = n_rl_datums
     (out_dir / "run_manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True, default=str) + "\n"
+    )
+    sampler_manifest = {
+        "ts": manifest["completed_ts"],
+        "kind": "final_sampler",
+        "name": final_adapter.name,
+        "path": str(final_adapter),
+        "step": global_step,
+        "adapter_updates": global_step,
+        "trained_tokens": trained_tokens,
+        "rl_trained_tokens": trained_tokens,
+        "n_rl_datums": n_rl_datums,
+        "base_model": args.model,
+        "lora_rank": int(args.lora_rank),
+        "lora_target_modules": [
+            item.strip()
+            for item in str(args.lora_target_modules).split(",")
+            if item.strip()
+        ],
+        "rollout_backend": "sglang_chat",
+        "algorithm": "trl.GRPOTrainer",
+        "uses_policy_ratio_clipping": True,
+        "ttrl_exact_grpo": True,
+    }
+    (out_dir / "sampler_manifest.json").write_text(
+        json.dumps(sampler_manifest, indent=2, sort_keys=True, default=str)
+        + "\n"
     )
     return 0
 
