@@ -39,7 +39,7 @@ SGLANG_MEM_FRAC="${SGLANG_MEM_FRAC:-0.82}"
 SGLANG_CTX="${SGLANG_CTX:-16384}"
 SGLANG_MAX_REQS="${SGLANG_MAX_REQS:-4}"
 if [[ -z "${SGLANG_JSON_MODEL_OVERRIDE_ARGS+x}" ]]; then
-  SGLANG_JSON_MODEL_OVERRIDE_ARGS='{"num_hidden_layers":40,"hidden_size":2048,"num_attention_heads":16,"num_key_value_heads":2,"head_dim":256}'
+  SGLANG_JSON_MODEL_OVERRIDE_ARGS='{"num_hidden_layers":40}'
 fi
 SGLANG_EXTRA_ARGS="${SGLANG_EXTRA_ARGS:---trust-remote-code --served-model-name $BASE_MODEL --enable-lora --max-lora-rank 16 --lora-target-modules q_proj k_proj v_proj o_proj --attention-backend triton --sampling-backend pytorch}"
 REFRESH_EVALS="${REFRESH_EVALS:-1}"
