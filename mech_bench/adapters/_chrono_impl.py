@@ -305,6 +305,35 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
                         cfg.get("brake_smoothing_rad_s", 0.05),
                     )),
                 })
+        if not motors and "input_speed_rad_s" in cfg:
+            input_port = str(cfg.get("input_port", "input_port"))
+            input_joint = _resolve_port_to_joint(ir, input_port) or input_port
+            motors.append({
+                "id": "drive_adapter_default",
+                "joint_id": input_joint,
+                "port_id": input_port,
+                "mode": "speed",
+                "value": float(cfg.get("input_speed_rad_s", 1.0)),
+                "ramp_s": float(cfg.get(
+                    "motor_ramp_s", cfg.get("speed_ramp_s", 0.0))),
+            })
+        if not loads and "output_load_Nm" in cfg:
+            output_port = str(cfg.get("output_port", "output_port"))
+            output_joint = (
+                _resolve_port_to_joint(ir, output_port) or output_port
+            )
+            loads.append({
+                "id": "load_adapter_default",
+                "joint_id": output_joint,
+                "port_id": output_port,
+                "mode": "passive_brake",
+                "torque_Nm": float(cfg.get("output_load_Nm", 0.0)),
+                "start_s": float(cfg.get("output_load_start_s", 0.0)),
+                "ramp_s": float(cfg.get(
+                    "output_load_ramp_s", cfg.get("load_ramp_s", 0.0))),
+                "brake_smoothing_rad_s": float(
+                    cfg.get("brake_smoothing_rad_s", 0.05)),
+            })
 
     for pair in cfg.get("contact_pairs", []) or []:
         pairs.append(_normalize_pair(str(pair)))

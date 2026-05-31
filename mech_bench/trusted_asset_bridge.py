@@ -100,7 +100,7 @@ def augment_with_trusted_assets(
             {
                 "shape": "box",
                 "box_size_mm": (80.0, 80.0, 20.0),
-                "center_mm": tuple(float(x) for x in part.com_local_mm),
+                "center_mm": (0.0, 0.0, 0.0),
             },
         )
         part.params = params
