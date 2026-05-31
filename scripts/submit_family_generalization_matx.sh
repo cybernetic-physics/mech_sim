@@ -34,7 +34,9 @@ TTRL_GRPO_MAX_MEMORY="${TTRL_GRPO_MAX_MEMORY:-}"
 SGLANG_MEM_FRAC="${SGLANG_MEM_FRAC:-0.82}"
 SGLANG_CTX="${SGLANG_CTX:-16384}"
 SGLANG_MAX_REQS="${SGLANG_MAX_REQS:-4}"
-SGLANG_JSON_MODEL_OVERRIDE_ARGS="${SGLANG_JSON_MODEL_OVERRIDE_ARGS:-{\"num_hidden_layers\":40,\"hidden_size\":2048,\"num_attention_heads\":16,\"num_key_value_heads\":2,\"head_dim\":256}}"
+if [[ -z "${SGLANG_JSON_MODEL_OVERRIDE_ARGS+x}" ]]; then
+  SGLANG_JSON_MODEL_OVERRIDE_ARGS='{"num_hidden_layers":40,"hidden_size":2048,"num_attention_heads":16,"num_key_value_heads":2,"head_dim":256}'
+fi
 SGLANG_EXTRA_ARGS="${SGLANG_EXTRA_ARGS:---trust-remote-code --served-model-name $BASE_MODEL --enable-lora --max-lora-rank 16 --lora-target-modules q_proj k_proj v_proj o_proj --attention-backend triton --sampling-backend pytorch}"
 REFRESH_EVALS="${REFRESH_EVALS:-1}"
 
@@ -74,6 +76,8 @@ Environment overrides:
   TTRL_GRPO_ATTN_IMPLEMENTATION=$TTRL_GRPO_ATTN_IMPLEMENTATION
   TTRL_GRPO_MAX_MEMORY=$TTRL_GRPO_MAX_MEMORY
   SGLANG_JSON_MODEL_OVERRIDE_ARGS=$SGLANG_JSON_MODEL_OVERRIDE_ARGS
+    Set this to an empty string to launch SGLang with the model's full
+    architecture, which is required for full-size LoRA adapter compatibility.
   SGLANG_EXTRA_ARGS=$SGLANG_EXTRA_ARGS
   REFRESH_EVALS=$REFRESH_EVALS
 
