@@ -100,7 +100,7 @@ def augment_with_trusted_assets(
                 "chrono_collision",
                 {
                     "shape": "box",
-                    "box_size_mm": (1000.0, 1000.0, 100.0),
+                    "box_size_mm": (1000.0, 1000.0, 0.05),
                     "center_mm": (0.0, 0.0, 0.0),
                 },
             )
