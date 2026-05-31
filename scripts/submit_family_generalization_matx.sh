@@ -23,6 +23,9 @@ SGLANG_CUDA_VISIBLE_DEVICES="${SGLANG_CUDA_VISIBLE_DEVICES:-}"
 BENCH_CUDA_VISIBLE_DEVICES="${BENCH_CUDA_VISIBLE_DEVICES:-}"
 SGLANG_TP="${SGLANG_TP:-1}"
 TRAIN_DEVICE_MAP="${TRAIN_DEVICE_MAP:-}"
+ENABLE_CHRONO_ENV="${ENABLE_CHRONO_ENV:-1}"
+CHRONO_CONDA_EXE="${CHRONO_CONDA_EXE:-/matx/u/knatalia/miniconda3/bin/conda}"
+CHRONO_ENV_PREFIX="${CHRONO_ENV_PREFIX:-$REMOTE_ROOT/chrono_env}"
 SFT_MAX_SEQ_LENGTH="${SFT_MAX_SEQ_LENGTH:-512}"
 SFT_TORCH_DTYPE="${SFT_TORCH_DTYPE:-bfloat16}"
 SFT_ATTN_IMPLEMENTATION="${SFT_ATTN_IMPLEMENTATION:-eager}"
@@ -67,6 +70,9 @@ Environment overrides:
   BENCH_CUDA_VISIBLE_DEVICES=$BENCH_CUDA_VISIBLE_DEVICES
   SGLANG_TP=$SGLANG_TP
   TRAIN_DEVICE_MAP=$TRAIN_DEVICE_MAP
+  ENABLE_CHRONO_ENV=$ENABLE_CHRONO_ENV
+  CHRONO_CONDA_EXE=$CHRONO_CONDA_EXE
+  CHRONO_ENV_PREFIX=$CHRONO_ENV_PREFIX
   SFT_MAX_SEQ_LENGTH=$SFT_MAX_SEQ_LENGTH
   SFT_TORCH_DTYPE=$SFT_TORCH_DTYPE
   SFT_ATTN_IMPLEMENTATION=$SFT_ATTN_IMPLEMENTATION
@@ -188,6 +194,29 @@ fi
 uv sync --extra training-grpo
 
 repo_python="$remote_repo/.venv/bin/python"
+if [[ "$ENABLE_CHRONO_ENV" == "1" ]]; then
+  if [[ ! -x "$CHRONO_CONDA_EXE" ]]; then
+    echo "Chrono conda executable not found: $CHRONO_CONDA_EXE" >&2
+    exit 1
+  fi
+  if [[ ! -x "$CHRONO_ENV_PREFIX/bin/python" ]]; then
+    env \\
+      CONDA_PKGS_DIRS="$REMOTE_ROOT/conda_pkgs" \\
+      XDG_CACHE_HOME="$REMOTE_ROOT/xdg_cache" \\
+      "$CHRONO_CONDA_EXE" create -y -p "$CHRONO_ENV_PREFIX" \\
+      --override-channels \\
+      -c projectchrono -c conda-forge python=3.13 pychrono numpy
+  fi
+  export MECH_BENCH_CHRONO_PYTHON="$CHRONO_ENV_PREFIX/bin/python"
+  export PYTHONPATH="$remote_repo:\${PYTHONPATH:-}"
+  "\$repo_python" - <<'PY'
+from mech_bench.adapters.chrono_contact import chrono_diagnostic
+diag = chrono_diagnostic()
+print("chrono diagnostic", diag)
+if diag["status"] != "available":
+    raise SystemExit(f"chrono_contact unavailable: {diag}")
+PY
+fi
 refresh_repo_cuda_lib_path() {
   repo_cuda_lib_path="\$("\$repo_python" - <<'PY'
 from pathlib import Path
