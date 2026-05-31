@@ -95,14 +95,15 @@ def augment_with_trusted_assets(
                 "com_local_mm": tuple(float(x) for x in part.com_local_mm),
                 "inertia_kg_m2": _positive_inertia(mass),
             }
-        params.setdefault(
-            "chrono_collision",
-            {
-                "shape": "box",
-                "box_size_mm": (80.0, 80.0, 20.0),
-                "center_mm": (0.0, 0.0, 0.0),
-            },
-        )
+        if mass > 0.0 and not part.fixed:
+            params.setdefault(
+                "chrono_collision",
+                {
+                    "shape": "box",
+                    "box_size_mm": (80.0, 80.0, 20.0),
+                    "center_mm": (0.0, 0.0, 0.0),
+                },
+            )
         part.params = params
 
     ir.params = dict(ir.params or {})
