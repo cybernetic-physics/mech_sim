@@ -29,6 +29,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import os
 import subprocess
 import sys
 import time
@@ -846,6 +847,18 @@ def evaluate_with_evidence(
             where=str(submission_dir),
         )])
     timings["load_submission"] = time.perf_counter() - t0
+
+    if os.environ.get("MECH_BENCH_AUTO_TRUSTED_ASSETS"):
+        from mech_bench.trusted_asset_bridge import (
+            augment_with_trusted_assets,
+        )
+
+        t0 = time.perf_counter()
+        ir = augment_with_trusted_assets(
+            ir,
+            build_root=Path(scratch_dir).resolve(),
+        )
+        timings["trusted_asset_bridge"] = time.perf_counter() - t0
 
     # Validate DesignIR.
     t0 = time.perf_counter()

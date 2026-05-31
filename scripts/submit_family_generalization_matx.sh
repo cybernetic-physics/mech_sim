@@ -211,6 +211,7 @@ if [[ "$ENABLE_CHRONO_ENV" == "1" ]]; then
   fi
   export MECH_BENCH_CHRONO_PYTHON="$CHRONO_ENV_PREFIX/bin/python"
   export PYTHONPATH="$remote_repo:\${PYTHONPATH:-}"
+  export MECH_BENCH_AUTO_TRUSTED_ASSETS="\${MECH_BENCH_AUTO_TRUSTED_ASSETS:-1}"
   "\$repo_python" - <<'PY'
 from mech_bench.adapters.chrono_contact import chrono_diagnostic
 diag = chrono_diagnostic()
