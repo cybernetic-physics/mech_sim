@@ -121,6 +121,7 @@ class ChronoContactAdapter(SimAdapter):
     type_name = "chrono_contact"
     capabilities_provided = frozenset({
         Capability.RIGID_BODY_DYNAMICS,
+        Capability.PLANAR_KINEMATICS,
         Capability.CONTACT_FORCES,
         Capability.JOINT_CONSTRAINTS,
         Capability.MOTOR_DRIVES,

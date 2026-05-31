@@ -43,6 +43,7 @@ def test_bridge_adds_geometry_material_and_trusted_mass(tmp_path):
     manifest = build_trusted_asset_manifest(ir, build_root=tmp_path)
 
     assert all("cad" in part.geometry for part in ir.parts)
+    assert all("chrono_collision" in part.params for part in ir.parts)
     assert ir.parts[1].material == "bridge_al6061"
     assert "cad_source" in ir.params
     assert manifest.trusted_mass_properties_recomputed is True
