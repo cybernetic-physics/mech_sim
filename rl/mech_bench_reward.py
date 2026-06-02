@@ -32,9 +32,45 @@ import sys
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
+
+from rl.verifier_audits import cad_audit_count, chrono_audit_count
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+PHYSICAL_METRIC_ALIASES = {
+    "ratio_observed": (
+        "ratio_observed",
+        "ratio.observed",
+        "chrono_contact.ratio_observed",
+        "chrono_contact.ratio.observed",
+    ),
+    "ratio_error_pct": (
+        "ratio_error_pct",
+        "ratio.error_pct",
+        "chrono_contact.ratio_error_pct",
+        "chrono_contact.ratio.error_pct",
+    ),
+    "out_omega_med": ("out_omega_med", "chrono_contact.out_omega_med"),
+    "power_balance_error_pct": (
+        "power_balance_error_pct",
+        "chrono_contact.power_balance_error_pct",
+    ),
+    "torque_ripple_pct": ("torque_ripple_pct", "chrono_contact.torque_ripple_pct"),
+    "max_penetration_mm": (
+        "max_penetration_mm",
+        "chrono_contact.max_penetration_mm",
+    ),
+    "contact_force_rms_N": (
+        "contact_force_rms_N",
+        "chrono_contact.contact_force_rms_N",
+    ),
+}
+NO_PROCEDURAL_FALLBACK_ALIASES = (
+    "procedural_cycloidal_fallback",
+    "chrono.procedural_cycloidal_fallback",
+    "chrono_contact.procedural_cycloidal_fallback",
+)
 
 
 @dataclass
@@ -44,24 +80,40 @@ class RewardResult:
     hard_gate_passed: bool
     evaluation_valid: bool
     failure_codes: list[str] = field(default_factory=list)
+    feedback: list[dict[str, str]] = field(default_factory=list)
     submission_path: str = ""
     design_py_extracted: bool = False
     raw_score_json: str = ""
+    cad_audits: int = 0
+    chrono_audits: int = 0
+    physical_metrics: dict[str, float] = field(default_factory=dict)
+    no_procedural_fallback: bool | None = None
 
     def to_dict(self) -> dict:
-        return {
+        out = {
             "score": self.score,
             "verified_score": self.verified_score,
             "hard_gate_passed": self.hard_gate_passed,
             "evaluation_valid": self.evaluation_valid,
             "failure_codes": list(self.failure_codes),
+            "feedback": list(self.feedback),
             "submission_path": self.submission_path,
             "design_py_extracted": self.design_py_extracted,
+            "cad_audits": self.cad_audits,
+            "chrono_audits": self.chrono_audits,
+            "physical_metrics": dict(self.physical_metrics),
         }
+        if self.no_procedural_fallback is not None:
+            out["no_procedural_fallback"] = self.no_procedural_fallback
+        return out
 
 
 _CODE_FENCE_RE = re.compile(
     r"```(?:python|py)?\s*\n(.*?)```",
+    flags=re.DOTALL | re.IGNORECASE,
+)
+_OPEN_CODE_FENCE_RE = re.compile(
+    r"```(?:python|py)?\s*\n(.*)",
     flags=re.DOTALL | re.IGNORECASE,
 )
 
@@ -76,8 +128,18 @@ def extract_design_py(completion: str) -> tuple[str, bool]:
     """
     m = _CODE_FENCE_RE.search(completion)
     if m:
-        return m.group(1).strip() + "\n", True
-    return completion.strip() + "\n", False
+        source = m.group(1)
+        extracted = True
+    else:
+        m_open = _OPEN_CODE_FENCE_RE.search(completion)
+        if m_open:
+            source = m_open.group(1)
+            extracted = True
+        else:
+            source = completion
+            extracted = False
+    source = re.sub(r"(?:\s*(?:<\|im_end\|>|<\|endoftext\|>|</s>))*\s*$", "", source, flags=re.IGNORECASE)
+    return source.strip() + "\n", extracted
 
 
 def score_completion(
@@ -144,10 +206,19 @@ def score_completion(
         )
 
     codes: list[str] = []
+    feedback: list[dict[str, str]] = []
     for f in blob.get("feedback") or []:
         c = f.get("code")
         if isinstance(c, str) and c not in codes:
             codes.append(c)
+        if isinstance(f, dict):
+            item: dict[str, str] = {}
+            for key in ("code", "severity", "message", "where"):
+                val = f.get(key)
+                if val is not None:
+                    item[key] = str(val)
+            if item and len(feedback) < 8:
+                feedback.append(item)
 
     score = float(blob.get("score") or 0.0)
     valid = bool(blob.get("evaluation_valid"))
@@ -170,10 +241,116 @@ def score_completion(
         hard_gate_passed=gate,
         evaluation_valid=valid,
         failure_codes=codes,
+        feedback=feedback,
         submission_path=str(submission_dir),
         design_py_extracted=extracted,
         raw_score_json=proc.stdout,
+        cad_audits=cad_audit_count(blob),
+        chrono_audits=chrono_audit_count(blob),
+        physical_metrics=extract_physical_metrics(blob),
+        no_procedural_fallback=extract_no_procedural_fallback(blob),
     )
+
+
+def _finite_float(raw: Any) -> float | None:
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return None
+    if value != value or value in {float("inf"), float("-inf")}:
+        return None
+    return value
+
+
+def _lookup_key_or_path(source: dict[str, Any], key: str) -> Any:
+    if key in source:
+        return source[key]
+    current: Any = source
+    for part in key.split("."):
+        if not isinstance(current, dict) or part not in current:
+            return None
+        current = current[part]
+    return current
+
+
+def _lookup_score_value(score_blob: dict[str, Any], key: str) -> Any:
+    for container_key in ("metrics", "scalar_metrics", "general_metrics"):
+        container = score_blob.get(container_key)
+        if isinstance(container, dict):
+            value = _lookup_key_or_path(container, key)
+            if value is not None:
+                return value
+    return _lookup_key_or_path(score_blob, key)
+
+
+def _metric_values_with_suffix(
+    score_blob: dict[str, Any],
+    *,
+    suffix: str,
+) -> list[float]:
+    values: list[float] = []
+    for container_key in ("metrics", "scalar_metrics", "general_metrics"):
+        container = score_blob.get(container_key)
+        if not isinstance(container, dict):
+            continue
+        for key, raw in container.items():
+            if str(key).endswith(suffix):
+                value = _finite_float(raw)
+                if value is not None:
+                    values.append(value)
+    return values
+
+
+def extract_physical_metrics(score_blob: dict[str, Any]) -> dict[str, float]:
+    out: dict[str, float] = {}
+    for canonical, aliases in PHYSICAL_METRIC_ALIASES.items():
+        for alias in aliases:
+            value = _finite_float(_lookup_score_value(score_blob, alias))
+            if value is not None:
+                out[canonical] = value
+                break
+    if "max_penetration_mm" not in out:
+        values = _metric_values_with_suffix(
+            score_blob,
+            suffix=".max_penetration_mm",
+        ) + _metric_values_with_suffix(score_blob, suffix=".max_pen_mm")
+        if values:
+            out["max_penetration_mm"] = max(values)
+    if "contact_force_rms_N" not in out:
+        values = _metric_values_with_suffix(score_blob, suffix=".rms_N")
+        if values:
+            out["contact_force_rms_N"] = max(values)
+    if "out_omega_med" not in out:
+        output_motion = _finite_float(
+            _lookup_score_value(score_blob, "lockup.output_motion_rad")
+        )
+        if output_motion is not None:
+            out["out_omega_med"] = output_motion
+    return out
+
+
+def extract_no_procedural_fallback(score_blob: dict[str, Any]) -> bool | None:
+    for alias in NO_PROCEDURAL_FALLBACK_ALIASES:
+        raw = _lookup_score_value(score_blob, alias)
+        if raw is None:
+            continue
+        if isinstance(raw, bool):
+            return not raw
+        value = _finite_float(raw)
+        if value is not None:
+            return value == 0.0
+        text = str(raw).strip().lower()
+        if text in {"false", "no", "0"}:
+            return True
+        if text in {"true", "yes", "1"}:
+            return False
+    timings = score_blob.get("timings")
+    if (
+        isinstance(timings, dict)
+        and _lookup_key_or_path(timings, "adapter.chrono_contact") is not None
+    ):
+        return True
+    return None
 
 
 # --------------------------------------------------------------------- #

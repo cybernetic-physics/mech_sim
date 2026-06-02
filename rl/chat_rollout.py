@@ -32,9 +32,11 @@ return per-token ids in the chat endpoint).
 from __future__ import annotations
 
 import json
+import shutil
 import threading
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 try:
@@ -173,6 +175,68 @@ def _format_verifier_feedback(turn: TurnTrace) -> str:
 
 _LORA_LOAD_LOCK = threading.Lock()
 _LOADED_LORA_ADAPTERS: set[tuple[str, str]] = set()
+_FILTERED_LORA_ADAPTERS: dict[str, str] = {}
+
+
+def _maybe_filter_sglang_lora_adapter(lora_path: str) -> str:
+    """Return an SGLang-loadable adapter path.
+
+    Qwen3.6 text config uses an attention output gate. Current SGLang LoRA
+    loading rejects the expanded q_proj LoRA tensors exported by PEFT for this
+    model, while k/v/o tensors are compatible. Filter q_proj tensors into a
+    sibling adapter for SGLang evaluation instead of crashing the server.
+    """
+    source = Path(lora_path)
+    config_path = source / "adapter_config.json"
+    weights_path = source / "adapter_model.safetensors"
+    if not config_path.is_file() or not weights_path.is_file():
+        return lora_path
+    cached = _FILTERED_LORA_ADAPTERS.get(str(source))
+    if cached:
+        return cached
+
+    try:
+        from safetensors.torch import safe_open, save_file  # type: ignore[import-not-found]
+    except Exception:
+        return lora_path
+
+    with safe_open(weights_path, framework="pt", device="cpu") as handle:
+        keys = list(handle.keys())
+        has_q_proj = any(".q_proj." in key for key in keys)
+        if not has_q_proj:
+            return lora_path
+        tensors = {
+            key: handle.get_tensor(key)
+            for key in keys
+            if ".q_proj." not in key
+        }
+    if not tensors:
+        return lora_path
+
+    filtered = source.with_name(source.name + "_sglang_kvo")
+    filtered.mkdir(parents=True, exist_ok=True)
+    for item in source.iterdir():
+        if item.name in {"adapter_model.safetensors", "adapter_config.json"}:
+            continue
+        dst = filtered / item.name
+        if item.is_dir():
+            if not dst.exists():
+                shutil.copytree(item, dst)
+        elif not dst.exists():
+            shutil.copy2(item, dst)
+
+    config = json.loads(config_path.read_text())
+    targets = config.get("target_modules")
+    if isinstance(targets, list):
+        config["target_modules"] = [
+            item for item in targets if str(item) != "q_proj"
+        ]
+    (filtered / "adapter_config.json").write_text(
+        json.dumps(config, indent=2, sort_keys=True) + "\n"
+    )
+    save_file(tensors, str(filtered / "adapter_model.safetensors"))
+    _FILTERED_LORA_ADAPTERS[str(source)] = str(filtered)
+    return str(filtered)
 
 
 def _chat_completion(
@@ -202,6 +266,7 @@ def _chat_completion(
     if seed is not None:
         body["seed"] = int(seed)
     if lora_path:
+        lora_path = _maybe_filter_sglang_lora_adapter(lora_path)
         body["lora_path"] = lora_path
     r = requests.post(url, json=body, timeout=timeout_s,
                       headers={"Authorization": "Bearer dummy"})
@@ -243,6 +308,7 @@ def _load_sglang_lora_adapter(
 ) -> None:
     if requests is None:
         raise RuntimeError("`requests` is not installed in this venv")
+    lora_path = _maybe_filter_sglang_lora_adapter(lora_path)
     key = (base_url.rstrip("/"), lora_path)
     with _LORA_LOAD_LOCK:
         if key in _LOADED_LORA_ADAPTERS:

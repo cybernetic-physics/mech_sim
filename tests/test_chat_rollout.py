@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import json
 from typing import Any
+
+import torch
+from safetensors.torch import save_file
 
 from rl import chat_rollout
 
@@ -135,3 +139,37 @@ def test_lora_load_is_cached(monkeypatch) -> None:
     assert [url.rsplit("/", 1)[-1] for url, _ in FakeLoRARequests.calls] == [
         "load_lora_adapter",
     ]
+
+
+def test_lora_filter_removes_q_proj_for_sglang(tmp_path) -> None:
+    adapter = tmp_path / "adapter"
+    adapter.mkdir()
+    (adapter / "adapter_config.json").write_text(json.dumps({
+        "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj"],
+    }))
+    save_file({
+        "base_model.model.layers.0.self_attn.q_proj.lora_A.weight": torch.ones(2, 3),
+        "base_model.model.layers.0.self_attn.q_proj.lora_B.weight": torch.ones(4, 2),
+        "base_model.model.layers.0.self_attn.k_proj.lora_A.weight": torch.ones(2, 3),
+        "base_model.model.layers.0.self_attn.k_proj.lora_B.weight": torch.ones(1, 2),
+    }, str(adapter / "adapter_model.safetensors"))
+
+    chat_rollout._FILTERED_LORA_ADAPTERS.clear()
+    filtered = chat_rollout._maybe_filter_sglang_lora_adapter(str(adapter))
+
+    assert filtered != str(adapter)
+    filtered_dir = tmp_path / "adapter_sglang_kvo"
+    assert filtered == str(filtered_dir)
+    config = json.loads((filtered_dir / "adapter_config.json").read_text())
+    assert config["target_modules"] == ["k_proj", "v_proj", "o_proj"]
+
+    from safetensors.torch import safe_open
+
+    with safe_open(
+        filtered_dir / "adapter_model.safetensors",
+        framework="pt",
+        device="cpu",
+    ) as handle:
+        keys = list(handle.keys())
+    assert all(".q_proj." not in key for key in keys)
+    assert any(".k_proj." in key for key in keys)
