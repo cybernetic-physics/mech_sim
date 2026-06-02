@@ -32,6 +32,7 @@ return per-token ids in the chat endpoint).
 from __future__ import annotations
 
 import json
+import threading
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -170,6 +171,10 @@ def _format_verifier_feedback(turn: TurnTrace) -> str:
 # --------------------------------------------------------------------- #
 
 
+_LORA_LOAD_LOCK = threading.Lock()
+_LOADED_LORA_ADAPTERS: set[tuple[str, str]] = set()
+
+
 def _chat_completion(
     *,
     base_url: str,
@@ -238,26 +243,31 @@ def _load_sglang_lora_adapter(
 ) -> None:
     if requests is None:
         raise RuntimeError("`requests` is not installed in this venv")
-    url = base_url.rstrip("/") + "/load_lora_adapter"
-    body = {
-        "lora_name": lora_path,
-        "lora_path": lora_path,
-        "pinned": False,
-    }
-    r = requests.post(url, json=body, timeout=timeout_s,
-                      headers={"Authorization": "Bearer dummy"})
-    try:
-        r.raise_for_status()
-    except Exception as exc:
-        body_preview = ""
+    key = (base_url.rstrip("/"), lora_path)
+    with _LORA_LOAD_LOCK:
+        if key in _LOADED_LORA_ADAPTERS:
+            return
+        url = key[0] + "/load_lora_adapter"
+        body = {
+            "lora_name": lora_path,
+            "lora_path": lora_path,
+            "pinned": False,
+        }
+        r = requests.post(url, json=body, timeout=timeout_s,
+                          headers={"Authorization": "Bearer dummy"})
         try:
-            body_preview = f" response={r.text[:500]}"
-        except Exception:
-            pass
-        raise RuntimeError(
-            f"failed to load SGLang LoRA adapter {lora_path!r}: "
-            f"{exc}{body_preview}"
-        ) from exc
+            r.raise_for_status()
+        except Exception as exc:
+            body_preview = ""
+            try:
+                body_preview = f" response={r.text[:500]}"
+            except Exception:
+                pass
+            raise RuntimeError(
+                f"failed to load SGLang LoRA adapter {lora_path!r}: "
+                f"{exc}{body_preview}"
+            ) from exc
+        _LOADED_LORA_ADAPTERS.add(key)
 
 
 # --------------------------------------------------------------------- #

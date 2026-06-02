@@ -89,6 +89,7 @@ class FakeLoRARequests:
 
 def test_chat_completion_loads_unloaded_lora_then_retries(monkeypatch) -> None:
     FakeLoRARequests.calls = []
+    chat_rollout._LOADED_LORA_ADAPTERS.clear()
     monkeypatch.setattr(chat_rollout, "requests", FakeLoRARequests)
 
     result = chat_rollout._chat_completion(
@@ -113,3 +114,24 @@ def test_chat_completion_loads_unloaded_lora_then_retries(monkeypatch) -> None:
         "lora_path": "/tmp/adapter",
         "pinned": False,
     }
+
+
+def test_lora_load_is_cached(monkeypatch) -> None:
+    FakeLoRARequests.calls = []
+    chat_rollout._LOADED_LORA_ADAPTERS.clear()
+    monkeypatch.setattr(chat_rollout, "requests", FakeLoRARequests)
+
+    chat_rollout._load_sglang_lora_adapter(
+        base_url="http://localhost:30000",
+        lora_path="/tmp/adapter",
+        timeout_s=1.0,
+    )
+    chat_rollout._load_sglang_lora_adapter(
+        base_url="http://localhost:30000",
+        lora_path="/tmp/adapter",
+        timeout_s=1.0,
+    )
+
+    assert [url.rsplit("/", 1)[-1] for url, _ in FakeLoRARequests.calls] == [
+        "load_lora_adapter",
+    ]
