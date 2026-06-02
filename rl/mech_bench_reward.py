@@ -119,19 +119,32 @@ _OPEN_CODE_FENCE_RE = re.compile(
 
 
 def extract_design_py(completion: str) -> tuple[str, bool]:
-    """Pull the first Python code block out of *completion*.
+    """Pull the intended Python design file out of *completion*.
 
     Returns (source, extracted). When no fenced block is found, the
     whole completion is returned with extracted=False so the caller
     can still attempt to score (and likely get an invalid_artifact
     failure, which is the desired signal during early training).
     """
-    m = _CODE_FENCE_RE.search(completion)
-    if m:
-        source = m.group(1)
+    matches = list(_CODE_FENCE_RE.finditer(completion))
+    if matches:
+        design_matches = [
+            m for m in matches
+            if "def build_design" in m.group(1)
+        ]
+        source = (design_matches[-1] if design_matches else matches[0]).group(1)
         extracted = True
     else:
-        m_open = _OPEN_CODE_FENCE_RE.search(completion)
+        open_matches = list(_OPEN_CODE_FENCE_RE.finditer(completion))
+        design_open_matches = [
+            m for m in open_matches
+            if "def build_design" in m.group(1)
+        ]
+        m_open = (
+            design_open_matches[-1]
+            if design_open_matches else
+            (open_matches[-1] if open_matches else None)
+        )
         if m_open:
             source = m_open.group(1)
             extracted = True
