@@ -152,16 +152,18 @@ def test_lora_filter_removes_q_proj_for_sglang(tmp_path) -> None:
         "base_model.model.layers.0.self_attn.q_proj.lora_B.weight": torch.ones(4, 2),
         "base_model.model.layers.0.self_attn.k_proj.lora_A.weight": torch.ones(2, 3),
         "base_model.model.layers.0.self_attn.k_proj.lora_B.weight": torch.ones(1, 2),
+        "base_model.model.layers.0.self_attn.o_proj.lora_A.weight": torch.ones(2, 3),
+        "base_model.model.layers.0.self_attn.o_proj.lora_B.weight": torch.ones(1, 2),
     }, str(adapter / "adapter_model.safetensors"))
 
     chat_rollout._FILTERED_LORA_ADAPTERS.clear()
     filtered = chat_rollout._maybe_filter_sglang_lora_adapter(str(adapter))
 
     assert filtered != str(adapter)
-    filtered_dir = tmp_path / "adapter_sglang_kvo"
+    filtered_dir = tmp_path / "adapter_sglang_o"
     assert filtered == str(filtered_dir)
     config = json.loads((filtered_dir / "adapter_config.json").read_text())
-    assert config["target_modules"] == ["k_proj", "v_proj", "o_proj"]
+    assert config["target_modules"] == ["o_proj"]
 
     from safetensors.torch import safe_open
 
@@ -172,4 +174,6 @@ def test_lora_filter_removes_q_proj_for_sglang(tmp_path) -> None:
     ) as handle:
         keys = list(handle.keys())
     assert all(".q_proj." not in key for key in keys)
-    assert any(".k_proj." in key for key in keys)
+    assert all(".k_proj." not in key for key in keys)
+    assert all(".v_proj." not in key for key in keys)
+    assert any(".o_proj." in key for key in keys)

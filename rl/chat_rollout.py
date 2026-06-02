@@ -182,9 +182,9 @@ def _maybe_filter_sglang_lora_adapter(lora_path: str) -> str:
     """Return an SGLang-loadable adapter path.
 
     Qwen3.6 text config uses an attention output gate. Current SGLang LoRA
-    loading rejects the expanded q_proj LoRA tensors exported by PEFT for this
-    model, while k/v/o tensors are compatible. Filter q_proj tensors into a
-    sibling adapter for SGLang evaluation instead of crashing the server.
+    loading exposes fused attention targets as qkv_proj/o_proj, while PEFT
+    exports separate q/k/v/o tensors. Keep the compatible o_proj tensors for
+    SGLang evaluation instead of crashing the server.
     """
     source = Path(lora_path)
     config_path = source / "adapter_config.json"
@@ -202,18 +202,21 @@ def _maybe_filter_sglang_lora_adapter(lora_path: str) -> str:
 
     with safe_open(weights_path, framework="pt", device="cpu") as handle:
         keys = list(handle.keys())
-        has_q_proj = any(".q_proj." in key for key in keys)
-        if not has_q_proj:
+        attention_projection_keys = [
+            key for key in keys
+            if any(f".{name}." in key for name in ("q_proj", "k_proj", "v_proj"))
+        ]
+        if not attention_projection_keys:
             return lora_path
         tensors = {
             key: handle.get_tensor(key)
             for key in keys
-            if ".q_proj." not in key
+            if not any(f".{name}." in key for name in ("q_proj", "k_proj", "v_proj"))
         }
     if not tensors:
         return lora_path
 
-    filtered = source.with_name(source.name + "_sglang_kvo")
+    filtered = source.with_name(source.name + "_sglang_o")
     filtered.mkdir(parents=True, exist_ok=True)
     for item in source.iterdir():
         if item.name in {"adapter_model.safetensors", "adapter_config.json"}:
@@ -229,7 +232,8 @@ def _maybe_filter_sglang_lora_adapter(lora_path: str) -> str:
     targets = config.get("target_modules")
     if isinstance(targets, list):
         config["target_modules"] = [
-            item for item in targets if str(item) != "q_proj"
+            item for item in targets
+            if str(item) not in {"q_proj", "k_proj", "v_proj"}
         ]
     (filtered / "adapter_config.json").write_text(
         json.dumps(config, indent=2, sort_keys=True) + "\n"
