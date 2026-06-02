@@ -51,6 +51,7 @@ class ChronoAdapterError(RuntimeError):
 @dataclass
 class RuntimeSpec:
     contact_pairs: list[str]
+    contact_pair_aliases: dict[str, list[str]]
     motors: list[dict[str, Any]]
     loads: list[dict[str, Any]]
     probe_specs: list[dict[str, Any]]
@@ -125,7 +126,8 @@ def run(ir: DesignIR, config: dict[str, Any]) -> dict[str, Any]:
             + load_issues + load_api_issues
         )
 
-        record = _Recorder(ir, spec.contact_pairs, samples)
+        record = _Recorder(
+            ir, spec.contact_pairs, samples, spec.contact_pair_aliases)
         current_t = 0.0
         eps = max(1e-12, abs(dt) * 1e-9)
         for i, sample_t in enumerate(time_s):
@@ -221,6 +223,7 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
     torque_probe_cfg = _probe_config_from_raw(probe_specs, "torque_load_trial")
 
     pairs: list[str] = []
+    pair_aliases: dict[str, list[str]] = {}
     motors: list[dict[str, Any]] = []
     loads: list[dict[str, Any]] = []
     scene_result = _scene_graph_from_context(ir, cfg, probe_specs)
@@ -264,10 +267,7 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
         for raw in probe_specs:
             ptype = str(raw.get("type", ""))
             pcfg = raw.get("config") if isinstance(raw.get("config"), dict) else {}
-            if ptype == "contact_engagement":
-                for pair in pcfg.get("required_pairs", []) or []:
-                    pairs.append(_normalize_pair(str(pair)))
-            elif ptype == "torque_load_trial":
+            if ptype == "torque_load_trial":
                 input_port = str(pcfg.get("input_port", "input_port"))
                 output_port = str(pcfg.get("output_port", "output_port"))
                 input_joint = _resolve_port_to_joint(ir, input_port) or input_port
@@ -305,6 +305,19 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
                         cfg.get("brake_smoothing_rad_s", 0.05),
                     )),
                 })
+
+    for raw in probe_specs:
+        if str(raw.get("type", "")) != "contact_engagement":
+            continue
+        pcfg = raw.get("config") if isinstance(raw.get("config"), dict) else {}
+        for raw_pair in pcfg.get("required_pairs", []) or []:
+            pair = _normalize_pair(str(raw_pair))
+            pairs.append(pair)
+            aliases = _contact_pair_aliases(ir, str(raw_pair))
+            if aliases:
+                pairs.extend(aliases)
+                pair_aliases[pair] = _dedupe(
+                    pair_aliases.get(pair, []) + aliases)
 
     for pair in cfg.get("contact_pairs", []) or []:
         pairs.append(_normalize_pair(str(pair)))
@@ -385,6 +398,7 @@ def _runtime_spec(ir: DesignIR, cfg: dict[str, Any]) -> RuntimeSpec:
 
     return RuntimeSpec(
         contact_pairs=_dedupe(pairs),
+        contact_pair_aliases=pair_aliases,
         motors=motors,
         loads=loads,
         probe_specs=probe_specs,
@@ -1407,9 +1421,19 @@ def _body_omega_about_axis(body: Any, axis: Iterable[float]) -> float:
 
 
 class _Recorder:
-    def __init__(self, ir: DesignIR, contact_pairs: list[str], samples: int):
+    def __init__(
+        self,
+        ir: DesignIR,
+        contact_pairs: list[str],
+        samples: int,
+        contact_pair_aliases: dict[str, list[str]] | None = None,
+    ):
         self.ir = ir
         self.contact_pairs = contact_pairs
+        self.contact_pair_aliases = {
+            _normalize_pair(k): [_normalize_pair(v) for v in vals]
+            for k, vals in (contact_pair_aliases or {}).items()
+        }
         self.joint_positions: dict[str, np.ndarray] = {}
         self.joint_velocities: dict[str, np.ndarray] = {}
         self.body_poses: dict[str, np.ndarray] = {
@@ -1529,6 +1553,13 @@ class _Recorder:
                 force, pen = contact_snapshot[pair]
                 self.contact_forces[pair][i] = force
                 self.penetration[pair][i] = pen
+                continue
+            for alias in self.contact_pair_aliases.get(pair, []):
+                if alias in contact_snapshot:
+                    force, pen = contact_snapshot[alias]
+                    self.contact_forces[pair][i] = force
+                    self.penetration[pair][i] = pen
+                    break
         for motor in spec.motors:
             if motor.get("mode") != "speed":
                 continue
@@ -2850,6 +2881,41 @@ def _resolve_port_to_joint(ir: DesignIR, port_id: str) -> str | None:
     if port is not None and port.kind in ("revolute_joint", "prismatic_joint"):
         return port.part
     return None
+
+
+def _joint_child_body(ir: DesignIR, joint_id: str) -> str | None:
+    for joint in ir.joints:
+        if joint.id == joint_id:
+            return joint.child
+    return None
+
+
+def _contact_pair_side_bodies(ir: DesignIR, ref: str) -> list[str]:
+    part_ids = {part.id for part in ir.parts}
+    port = ir.ports.get(ref)
+    if port is not None:
+        if port.kind in ("revolute_joint", "prismatic_joint"):
+            child = _joint_child_body(ir, port.part)
+            return [child] if child else []
+        return [port.part] if port.part in part_ids else []
+    child = _joint_child_body(ir, ref)
+    if child:
+        return [child]
+    return [ref] if ref in part_ids else []
+
+
+def _contact_pair_aliases(ir: DesignIR, pair: str) -> list[str]:
+    a, _, b = str(pair).partition(":")
+    if not b:
+        return []
+    original = _normalize_pair(pair)
+    aliases: list[str] = []
+    for body_a in _contact_pair_side_bodies(ir, a):
+        for body_b in _contact_pair_side_bodies(ir, b):
+            alias = _normalize_pair(f"{body_a}:{body_b}")
+            if alias != original:
+                aliases.append(alias)
+    return _dedupe(aliases)
 
 
 def _joint_to_port(ir: DesignIR, joint_id: str) -> str:

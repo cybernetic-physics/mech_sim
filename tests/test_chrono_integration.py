@@ -218,6 +218,72 @@ def test_chrono_runtime_spec_extracts_contacts_drive_and_load(tmp_path):
     assert resolved_loads[0]["ramp_s"] == 0.15
 
 
+def test_chrono_runtime_spec_aliases_port_contact_pairs_to_joint_bodies(tmp_path):
+    from mech_bench.adapters import _chrono_impl
+
+    ir = _minimal_ir()
+    cfg = {
+        "_mech_bench": {
+            "build_root": str(tmp_path),
+            "probe_specs": [{
+                "id": "contact",
+                "type": "contact_engagement",
+                "config": {"required_pairs": ["input_port:output_port"]},
+            }],
+        },
+    }
+
+    spec = _chrono_impl._runtime_spec(ir, cfg)
+
+    assert "input_port:output_port" in spec.contact_pairs
+    assert "input:output" in spec.contact_pairs
+    assert spec.contact_pair_aliases == {
+        "input_port:output_port": ["input:output"],
+    }
+
+
+def test_chrono_recorder_fills_required_port_pair_from_body_alias(monkeypatch):
+    from mech_bench.adapters import _chrono_impl
+
+    ir = _minimal_ir()
+    recorder = _chrono_impl._Recorder(
+        ir,
+        ["input_port:output_port"],
+        2,
+        {"input_port:output_port": ["input:output"]},
+    )
+    spec = _chrono_impl.RuntimeSpec(
+        contact_pairs=["input_port:output_port"],
+        contact_pair_aliases={"input_port:output_port": ["input:output"]},
+        motors=[],
+        loads=[],
+        probe_specs=[],
+        build_root=None,
+    )
+
+    monkeypatch.setattr(
+        _chrono_impl,
+        "_report_contacts",
+        lambda chrono, system, bodies: {"input:output": (2.5, 0.125)},
+    )
+    monkeypatch.setattr(_chrono_impl, "_safe_num_contacts", lambda system: 1)
+
+    recorder.sample(
+        chrono=object(),
+        system=object(),
+        i=0,
+        t=0.0,
+        bodies={},
+        links={},
+        motors={},
+        loads=[],
+        spec=spec,
+    )
+
+    assert recorder.contact_forces["input_port:output_port"][0] == 2.5
+    assert recorder.penetration["input_port:output_port"][0] == 0.125
+
+
 def test_chrono_load_modulation_function_ramps_after_start():
     from mech_bench.adapters import _chrono_impl
 

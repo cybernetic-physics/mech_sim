@@ -35,6 +35,7 @@ TTRL_GRPO_MAX_COMPLETION_LENGTH="${TTRL_GRPO_MAX_COMPLETION_LENGTH:-512}"
 TTRL_GRPO_TORCH_DTYPE="${TTRL_GRPO_TORCH_DTYPE:-bfloat16}"
 TTRL_GRPO_ATTN_IMPLEMENTATION="${TTRL_GRPO_ATTN_IMPLEMENTATION:-eager}"
 TTRL_GRPO_MAX_MEMORY="${TTRL_GRPO_MAX_MEMORY:-}"
+MAX_TOKENS="${MAX_TOKENS:-1536}"
 SGLANG_MEM_FRAC="${SGLANG_MEM_FRAC:-0.82}"
 SGLANG_CTX="${SGLANG_CTX:-16384}"
 SGLANG_MAX_REQS="${SGLANG_MAX_REQS:-4}"
@@ -83,6 +84,7 @@ Environment overrides:
   TTRL_GRPO_TORCH_DTYPE=$TTRL_GRPO_TORCH_DTYPE
   TTRL_GRPO_ATTN_IMPLEMENTATION=$TTRL_GRPO_ATTN_IMPLEMENTATION
   TTRL_GRPO_MAX_MEMORY=$TTRL_GRPO_MAX_MEMORY
+  MAX_TOKENS=$MAX_TOKENS
   SGLANG_JSON_MODEL_OVERRIDE_ARGS=$SGLANG_JSON_MODEL_OVERRIDE_ARGS
     Set this to an empty string to launch SGLang with the model's full
     architecture, which is required for full-size LoRA adapter compatibility.
@@ -376,6 +378,7 @@ uv run python scripts/run_family_generalization_benchmark.py \\
   --ttrl-grpo-load-in-4bit \\
   --ttrl-grpo-max-prompt-length "$TTRL_GRPO_MAX_PROMPT_LENGTH" \\
   --ttrl-grpo-max-completion-length "$TTRL_GRPO_MAX_COMPLETION_LENGTH" \\
+  --max-tokens "$MAX_TOKENS" \\
   --ttrl-grpo-torch-dtype "$TTRL_GRPO_TORCH_DTYPE" \\
   --ttrl-grpo-attn-implementation "$TTRL_GRPO_ATTN_IMPLEMENTATION" \\
   --ttrl-grpo-device-map "\$train_device_map" \\
