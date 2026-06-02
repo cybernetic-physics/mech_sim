@@ -239,6 +239,34 @@ def test_split_role_metrics_expose_unseen_family_result() -> None:
     assert by_method["mechanical_evolve_ttrl"]["repair_success_rate"] == 0.5
 
 
+def test_split_role_metrics_canonicalize_raw_family_names() -> None:
+    split = {
+        **_split(),
+        "unseen_families": ["cam_follower"],
+        "task_index": {
+            "cam_follower_contact_stub_s0001_paper_verifier": {
+                "task_id": "cam_follower_contact_stub_s0001_paper_verifier",
+                "raw_family": "cam_follower_contact_stub",
+                "canonical_family": "cam_follower",
+            },
+        },
+    }
+    rows = [
+        {
+            "method": "mechanical_evolve_ttrl",
+            "family": "cam_follower_contact_stub",
+            "n_tasks": 1,
+            "verified_pass_rate": 1.0,
+            "mean_verified_reward": 0.5,
+            "best_verified_reward": 0.5,
+        },
+    ]
+
+    out = summarize_split_role_metrics(split, rows)
+
+    assert out[0]["split_role"] == "unseen"
+
+
 def test_unseen_baseline_gate_uses_split_role_best_reward_mean() -> None:
     split_role_rows = [
         {

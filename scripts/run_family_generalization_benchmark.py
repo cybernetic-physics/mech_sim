@@ -2136,9 +2136,20 @@ def normalize_result_row(row: dict[str, Any]) -> dict[str, Any]:
 def split_role_for_family(split: dict[str, Any], family: str) -> str:
     seen = {str(item) for item in split.get("seen_families", []) or []}
     unseen = {str(item) for item in split.get("unseen_families", []) or []}
-    if family in seen:
+    canonical = str(family)
+    task_index = split.get("task_index", {}) or {}
+    if isinstance(task_index, dict):
+        for meta in task_index.values():
+            if not isinstance(meta, dict):
+                continue
+            raw = str(meta.get("raw_family") or "")
+            task_id = str(meta.get("task_id") or "")
+            if canonical in {raw, task_id}:
+                canonical = str(meta.get("canonical_family") or canonical)
+                break
+    if canonical in seen:
         return "seen"
-    if family in unseen:
+    if canonical in unseen:
         return "unseen"
     return "unknown"
 
