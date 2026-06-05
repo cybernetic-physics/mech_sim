@@ -26,6 +26,7 @@ emits text) and the deterministic reward (mech_bench probes).
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -88,6 +89,13 @@ class RewardResult:
     chrono_audits: int = 0
     physical_metrics: dict[str, float] = field(default_factory=dict)
     no_procedural_fallback: bool | None = None
+    # Synthetic-oracle quarantine (anti-hack gate). On this training surface a
+    # synthetic oracle forces ``verified_score`` to 0 by default so the policy
+    # never learns from a fabricated verifier. ``dev_verified_score`` keeps the
+    # would-be score for inspection.
+    oracle_is_synthetic: bool = False
+    dev_verified_score: float = 0.0
+    reward_quarantined: bool = False
 
     def to_dict(self) -> dict:
         out = {
@@ -102,6 +110,9 @@ class RewardResult:
             "cad_audits": self.cad_audits,
             "chrono_audits": self.chrono_audits,
             "physical_metrics": dict(self.physical_metrics),
+            "oracle_is_synthetic": self.oracle_is_synthetic,
+            "dev_verified_score": self.dev_verified_score,
+            "reward_quarantined": self.reward_quarantined,
         }
         if self.no_procedural_fallback is not None:
             out["no_procedural_fallback"] = self.no_procedural_fallback
@@ -161,6 +172,7 @@ def score_completion(
     *,
     scratch_root: Path | None = None,
     timeout_s: float = 60.0,
+    allow_synthetic_reward: bool = False,
 ) -> RewardResult:
     """Score *completion* against *task_dir*.
 
@@ -191,11 +203,18 @@ def score_completion(
         "--full",
         "--allow-partial",
     ]
+    # Env hygiene: never let an inherited MECH_BENCH_USE_FAKE_ORACLE /
+    # MECH_BENCH_TEST_MODE silently register the synthetic oracle in the
+    # training subprocess. (The reward-quarantine below is the real guard for
+    # tasks that enable the fake oracle in their own config.)
+    child_env = dict(os.environ)
+    child_env.pop("MECH_BENCH_USE_FAKE_ORACLE", None)
+    child_env.pop("MECH_BENCH_TEST_MODE", None)
     try:
         proc = subprocess.run(
             cmd, capture_output=True, text=True,
             timeout=timeout_s, check=False,
-            cwd=REPO_ROOT,
+            cwd=REPO_ROOT, env=child_env,
         )
     except subprocess.TimeoutExpired:
         return RewardResult(
@@ -236,7 +255,12 @@ def score_completion(
     score = float(blob.get("score") or 0.0)
     valid = bool(blob.get("evaluation_valid"))
     gate = bool(blob.get("hard_gate_passed"))
-    verified = score if (valid and gate) else 0.0
+    synthetic = bool(blob.get("oracle_is_synthetic"))
+    dev_verified = score if (valid and gate) else 0.0
+    # Anti-hack gate: a synthetic oracle never mints learnable reward on the
+    # training surface (default), unless the caller explicitly opts in.
+    quarantined = synthetic and not allow_synthetic_reward
+    verified = 0.0 if quarantined else dev_verified
 
     if cleanup:
         # Keep the design.py around for caller inspection; only
@@ -262,6 +286,9 @@ def score_completion(
         chrono_audits=chrono_audit_count(blob),
         physical_metrics=extract_physical_metrics(blob),
         no_procedural_fallback=extract_no_procedural_fallback(blob),
+        oracle_is_synthetic=synthetic,
+        dev_verified_score=dev_verified,
+        reward_quarantined=quarantined,
     )
 
 
