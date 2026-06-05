@@ -48,6 +48,16 @@ class RLVRResult:
     retry_suggestions: list[str] = field(default_factory=list)
     scalar_channels: dict[str, float] = field(default_factory=dict)
     oracle_is_synthetic: bool = False
+    # The score the run WOULD earn (valid+gate rule) before any synthetic-oracle
+    # quarantine. Non-learning: for eval/dev visibility only.
+    dev_reward: float = 0.0
+    # True iff a synthetic oracle forced the learnable ``reward`` to 0 under the
+    # train profile. Mirrors GBA-Eval's anti-hack gate: a verifier that cannot
+    # prove the candidate solved the task must never mint learnable credit.
+    reward_quarantined: bool = False
+    # "eval" (default): report the synthetic score transparently. "train":
+    # quarantine synthetic reward to 0 so the policy never learns from a fake.
+    reward_profile: str = "eval"
     mode: str = "fast"
     task_id: str = ""
     run_id: str = ""
@@ -69,20 +79,40 @@ def evaluate_for_rlvr(
     *,
     mode: str = "fast",
     report_dir: Path | None = None,
+    reward_profile: str = "eval",
+    allow_synthetic_reward: bool = False,
 ) -> RLVRResult:
     """Evaluate one submission and return the compact RLVR payload.
 
     ``mode`` is one of ``"fast"``, ``"oracle"``, ``"final"`` or empty
     (default eval config). ``report_dir`` opt-in writes the full bundle
     to disk and the path is referenced in the result.
+
+    ``reward_profile`` selects the eval-vs-RL reward contract:
+
+    * ``"eval"`` (default) — report the score transparently even when the
+      oracle is synthetic. Use for benchmarking/leaderboards.
+    * ``"train"`` — quarantine synthetic-oracle reward to 0 (anti-hack), so a
+      policy never learns from a fabricated verifier. The would-be score is
+      still reported as ``dev_reward``.
+
+    ``allow_synthetic_reward=True`` overrides the quarantine even under the
+    train profile (use only for deliberately training against the fake oracle).
     """
+    if reward_profile not in ("eval", "train"):
+        raise ValueError(
+            f"reward_profile must be 'eval' or 'train', got {reward_profile!r}")
     from mech_bench.evaluator import (
         evaluate_with_evidence,
         write_run_bundle,
     )
 
     if mode == "final":
-        return _rlvr_final(task_dir, submission_dir, report_dir=report_dir)
+        return _rlvr_final(
+            task_dir, submission_dir, report_dir=report_dir,
+            reward_profile=reward_profile,
+            allow_synthetic_reward=allow_synthetic_reward,
+        )
 
     evidence = evaluate_with_evidence(
         Path(task_dir), Path(submission_dir), mode=mode)
@@ -99,7 +129,29 @@ def evaluate_for_rlvr(
         evidence_cfg_visibility=evidence.cfg.visibility,
         mode=mode or "fast",
         report_dir=rd_out,
+        reward_profile=reward_profile,
+        allow_synthetic_reward=allow_synthetic_reward,
     )
+
+
+def _quarantine(
+    base_reward: float,
+    synthetic: bool,
+    reward_profile: str,
+    allow_synthetic_reward: bool,
+) -> tuple[float, bool]:
+    """Apply the synthetic-oracle anti-hack gate.
+
+    Returns ``(reward, quarantined)``. Under the ``train`` profile a synthetic
+    oracle forces reward to 0 unless explicitly allowed; under ``eval`` the
+    score is reported transparently.
+    """
+    quarantined = (
+        synthetic
+        and reward_profile == "train"
+        and not allow_synthetic_reward
+    )
+    return (0.0 if quarantined else base_reward), quarantined
 
 
 def _build_rlvr_result(
@@ -108,18 +160,19 @@ def _build_rlvr_result(
     evidence_cfg_visibility,
     mode: str,
     report_dir: Path | None,
+    reward_profile: str = "eval",
+    allow_synthetic_reward: bool = False,
 ) -> RLVRResult:
     valid = bool(report.evaluation_valid)
     hard_gate = bool(report.hard_gate_passed)
     dense = float(report.score)
+    synthetic = bool(report.oracle_is_synthetic)
 
-    # Reward gate: zero when invalid or hard-gate failed.
-    if not valid:
-        reward = 0.0
-    elif not hard_gate:
-        reward = 0.0
-    else:
-        reward = dense
+    # Score the run WOULD earn: zero when invalid or hard-gate failed.
+    base_reward = dense if (valid and hard_gate) else 0.0
+    # Anti-hack gate: a synthetic oracle must never mint learnable reward.
+    reward, quarantined = _quarantine(
+        base_reward, synthetic, reward_profile, allow_synthetic_reward)
 
     public_feedback = []
     codes_seen: list[str] = []
@@ -156,7 +209,10 @@ def _build_rlvr_result(
         report_dir=report_dir,
         retry_suggestions=_suggestions_for(codes_seen),
         scalar_channels=scalar_channels,
-        oracle_is_synthetic=bool(report.oracle_is_synthetic),
+        oracle_is_synthetic=synthetic,
+        dev_reward=base_reward,
+        reward_quarantined=quarantined,
+        reward_profile=reward_profile,
         mode=mode,
         task_id=str(report.task_id),
         run_id=str(report.run_id),
@@ -168,6 +224,8 @@ def _rlvr_final(
     submission_dir: Path,
     *,
     report_dir: Path | None,
+    reward_profile: str = "eval",
+    allow_synthetic_reward: bool = False,
 ) -> RLVRResult:
     from mech_bench.evaluator import write_run_bundle
     from mech_bench.modes import run_final
@@ -227,8 +285,11 @@ def _rlvr_final(
             )
     scalar_channels["agreement_score"] = float(final.agreement_score)
 
-    reward = float(final.final_score) if (
+    synthetic = bool(final.oracle_is_synthetic)
+    base_reward = float(final.final_score) if (
         final.evaluation_valid and final.hard_gate_passed) else 0.0
+    reward, quarantined = _quarantine(
+        base_reward, synthetic, reward_profile, allow_synthetic_reward)
 
     return RLVRResult(
         reward=reward,
@@ -246,7 +307,10 @@ def _rlvr_final(
         report_dir=rd_out,
         retry_suggestions=_suggestions_for(codes_seen),
         scalar_channels=scalar_channels,
-        oracle_is_synthetic=bool(final.oracle_is_synthetic),
+        oracle_is_synthetic=synthetic,
+        dev_reward=base_reward,
+        reward_quarantined=quarantined,
+        reward_profile=reward_profile,
         mode="final",
         task_id=str(final.fast.report.task_id if final.fast
                     else (final.oracle.report.task_id if final.oracle

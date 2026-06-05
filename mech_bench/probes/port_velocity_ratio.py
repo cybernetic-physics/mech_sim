@@ -27,6 +27,7 @@ from typing import Any
 
 import numpy as np
 
+from mech_bench import scoring
 from mech_bench.feedback import Failure, FailureCode, Severity
 from mech_bench.probes import Capability, Probe, register_probe
 from mech_bench.schema import DesignIR, ProbeResult
@@ -188,7 +189,9 @@ class PortVelocityRatio(Probe):
 
         passed = err_pct <= tolerance_pct
         if tolerance_pct > 0.0:
-            score = max(0.0, 1.0 - err_pct / tolerance_pct)
+            # Dense quartic sigmoid: 1.0 at exact, 0.5 at tolerance, smoothly
+            # decaying past it (GBA-Eval scoring shape) -- not a linear cliff.
+            score = scoring.score_from_error_pct(err_pct, tolerance_pct)
         else:
             score = 1.0 if passed else 0.0
         metrics = {

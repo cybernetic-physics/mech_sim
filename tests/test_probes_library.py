@@ -271,7 +271,34 @@ def test_port_velocity_ratio_fails_when_off():
     })
     assert not result.passed
     assert any(f.code == FailureCode.WRONG_RATIO for f in result.failures)
-    assert result.score == pytest.approx(0.0)
+    # Dense scoring: a 25%-off ratio (5x tolerance) is near-zero but smooth,
+    # not a hard 0. score(5*tau) = 1/(1+5^4) ~= 0.0016.
+    assert result.score < 0.01
+    assert result.score > 0.0
+
+
+def test_port_velocity_ratio_score_half_at_tolerance():
+    """Dense reward: a ratio off by exactly the tolerance scores ~0.5."""
+    probe = get_probe("port_velocity_ratio")
+    v_in = np.ones(200)
+    v_out = -4.2 * v_in  # 5% off from -4.0, tolerance 5%
+    result = probe.run(_ir_minimal(), {
+        "joint_velocities": {"input_port": v_in, "output_port": v_out},
+    }, {"expected": -4.0, "tolerance_pct": 5.0})
+    assert result.score == pytest.approx(0.5, abs=1e-6)
+
+
+def test_port_velocity_ratio_score_is_monotonic():
+    """Dense reward: score decreases monotonically as error grows."""
+    probe = get_probe("port_velocity_ratio")
+    prev = 1.01
+    for factor in (-4.0, -4.1, -4.2, -4.5, -5.0):
+        v_in = np.ones(200)
+        result = probe.run(_ir_minimal(), {
+            "joint_velocities": {"input_port": v_in, "output_port": factor * v_in},
+        }, {"expected": -4.0, "tolerance_pct": 5.0})
+        assert result.score <= prev + 1e-9
+        prev = result.score
 
 
 def test_port_velocity_ratio_derives_from_positions():
@@ -441,9 +468,9 @@ def test_lockup_detects_zero_output_motion():
     assert result.metrics["lockup_detected"] == pytest.approx(1.0)
 
 
-def test_lockup_skips_when_input_unidriven():
-    """If input itself didn't move, the probe cannot diagnose lockup
-    and should report a benign pass with a skipped_reason."""
+def test_lockup_undriven_input_awards_no_credit():
+    """Anti-hack gate: if the input itself never moved, the lockup test is
+    vacuous — a static (dead) design must NOT collect a degenerate pass."""
     probe = get_probe("lockup")
     n = 100
     sim = {
@@ -454,8 +481,11 @@ def test_lockup_skips_when_input_unidriven():
         "time_s": np.linspace(0, 1, n),
     }
     result = probe.run(_ir_minimal(), sim, {})
-    assert result.passed
-    assert result.skipped_reason
+    assert not result.passed
+    assert result.score == 0.0
+    codes = {f.code.value if hasattr(f.code, "value") else str(f.code)
+             for f in result.failures}
+    assert "degenerate_test" in codes
 
 
 # --------------------------------------------------------------------- #

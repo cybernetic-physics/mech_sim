@@ -1,10 +1,14 @@
-"""PyChrono contact-dynamics adapter (skeleton).
+"""PyChrono contact-dynamics adapter — the high-fidelity oracle tier.
 
-Real Chrono integration is gated on the optional ``pychrono`` package
-being importable. When it's absent, this module still defines the
-adapter class so its existence is discoverable, but the adapter is NOT
-registered and the dispatcher will surface CAPABILITY_UNAVAILABLE for
-any probe that depends on its capabilities.
+The in-repo runner (``mech_bench.adapters._chrono_impl``: V-HACD, contact-pair
+instrumentation, pose sampling) IS present. Real execution is gated solely on
+the optional native ``pychrono`` package being importable. When pychrono is
+absent, this module still defines the adapter class so its existence is
+discoverable, but the adapter is NOT registered and the dispatcher surfaces
+CAPABILITY_UNAVAILABLE for any probe that depends on its capabilities — there
+is never a silent pass. To enable on capable hardware (no macOS-ARM PyPI wheel
+exists for pychrono), run ``scripts/enable_real_oracle.sh`` (conda) or build
+``docker/solver/environment.yml``.
 
 The adapter supports two execution modes:
 
@@ -31,6 +35,7 @@ from typing import Any
 import numpy as np
 
 from mech_bench.adapters import SimAdapter, register_adapter
+from mech_bench.oracle.reference_cache import REFERENCE_CACHE_VERSION
 from mech_bench.probes import Capability
 from mech_bench.schema import DesignIR
 
@@ -92,17 +97,55 @@ def _probe_pychrono() -> tuple[bool, str]:
         return False, f"pychrono not importable: {e}"
     try:
         from mech_bench.adapters import _chrono_impl  # noqa: F401
-    except ImportError:
+    except ImportError as e:
         return False, (
             "pychrono is importable but the chrono runner shim "
-            "mech_bench.adapters._chrono_impl is not provided; the "
-            "Chrono runner is intentionally vendored out to keep the "
-            "base install lean."
+            f"mech_bench.adapters._chrono_impl failed to import: {e}"
         )
     return True, "pychrono available (in-process)"
 
 
 CHRONO_AVAILABLE, _DIAGNOSTIC = _probe_pychrono()
+
+# Default solver image built by scripts/solver_smoke.sh / docker/solver/Dockerfile.
+_DEFAULT_DOCKER_IMAGE = "mech-bench-solver:local"
+
+
+def _docker_image() -> str:
+    return os.environ.get(
+        "MECH_BENCH_CHRONO_DOCKER_IMAGE", _DEFAULT_DOCKER_IMAGE)
+
+
+def _docker_enabled(config: dict[str, Any] | None = None) -> bool:
+    """True when Chrono should run inside the solver container.
+
+    Enabled by config ``{"docker": true}`` or env
+    ``MECH_BENCH_CHRONO_DOCKER`` in {1,true,yes,auto}. ``auto`` means "use
+    Docker only when local pychrono is not importable" — i.e. "use docker if
+    needed", which is the common case on a box without a native Chrono.
+    """
+    if config and bool(config.get("docker")):
+        return True
+    val = os.environ.get("MECH_BENCH_CHRONO_DOCKER", "").strip().lower()
+    if val in ("1", "true", "yes"):
+        return True
+    if val == "auto":
+        return not CHRONO_AVAILABLE
+    return False
+
+
+def _docker_cli() -> str | None:
+    return shutil.which("docker")
+
+
+def _docker_registration_enabled() -> bool:
+    """Whether to register the adapter in Docker mode at import time.
+
+    We register when Docker mode is requested AND the docker CLI exists. We do
+    NOT pull/inspect the image here (too slow for import); a missing image
+    surfaces as capability_unavailable at run time, never a silent pass.
+    """
+    return _docker_enabled() and _docker_cli() is not None
 
 
 # --------------------------------------------------------------------- #
@@ -136,10 +179,15 @@ class ChronoContactAdapter(SimAdapter):
         ir: DesignIR,
         config: dict[str, Any],
     ) -> dict[str, Any]:
+        # Docker mode: run the real Chrono runner inside the solver container.
+        # This is the path for hosts without a native pychrono (e.g. macOS).
+        if _docker_enabled(config):
+            return _run_chrono_docker(ir, config)
+
         if not CHRONO_AVAILABLE:
             # This path is impossible during normal operation because
-            # the adapter only registers when CHRONO_AVAILABLE; we keep
-            # the guard so direct callers see a clear error.
+            # the adapter only registers when CHRONO_AVAILABLE or Docker
+            # mode; we keep the guard so direct callers see a clear error.
             return _capability_unavailable_payload(_DIAGNOSTIC)
 
         use_subprocess = bool(
@@ -176,19 +224,19 @@ def _run_chrono_inproc(
     """In-process Chrono execution.
 
     The real implementation builds the scene, ticks the solver, and
-    records traces. The skeleton stub here delegates to the canonical
-    chrono runner module which is provided externally by the operator
-    when wiring up the optional dependency.
+    records traces. It delegates to ``mech_bench.adapters._chrono_impl``,
+    the in-repo Chrono runner (V-HACD, contact-pair instrumentation, pose
+    sampling). That module IS present in this repo; the only thing gating
+    real execution is whether ``pychrono`` itself is importable.
     """
     try:
         from mech_bench.adapters import _chrono_impl  # type: ignore[import-not-found]
-    except ImportError:
+    except ImportError as e:
         return _capability_unavailable_payload(
-            "pychrono is importable but mech_bench.adapters._chrono_impl "
-            "is not provided. The Chrono runner is intentionally vendored "
-            "out of this repo to keep the base install lean — copy your "
-            "phys-sim _chrono_mesh_runner equivalent into this package "
-            "to enable in-process execution."
+            "mech_bench.adapters._chrono_impl failed to import "
+            f"({e}). The runner is present in this repo; this usually means "
+            "pychrono or a transitive native dependency is missing — see "
+            "scripts/enable_real_oracle.sh."
         )
     return _chrono_impl.run(ir, config)  # type: ignore[no-any-return]
 
@@ -254,6 +302,93 @@ def _run_chrono_subprocess(
         return _coerce_numpy(raw)
 
 
+# The in-container runner: reads ir/config JSON from the mounted /io dir, runs
+# the real _chrono_impl, writes output JSON. Kept identical in spirit to the
+# subprocess runner so both paths exercise the same code in the image.
+_DOCKER_RUNNER = (
+    "import json\n"
+    "from mech_bench.adapters import _chrono_impl\n"
+    "from mech_bench.schema import DesignIR\n"
+    "ir = DesignIR.from_dict(json.loads(open('/io/ir.json').read()))\n"
+    "cfg = json.loads(open('/io/config.json').read())\n"
+    "result = _chrono_impl.run(ir, cfg)\n"
+    "def _enc(x):\n"
+    "    if hasattr(x, 'tolist'):\n"
+    "        return x.tolist()\n"
+    "    raise TypeError(type(x))\n"
+    "open('/io/output.json', 'w').write(json.dumps(result, default=_enc))\n"
+)
+
+
+def _run_chrono_docker(
+    ir: DesignIR,
+    config: dict[str, Any],
+) -> dict[str, Any]:
+    """Run the real Chrono runner inside the solver Docker image.
+
+    The host needs only Docker + the built image (scripts/solver_smoke.sh or
+    scripts/enable_real_oracle.sh). IR/config/output are exchanged through a
+    bind-mounted temp dir. Any failure (no docker, no image, timeout, nonzero
+    exit) surfaces as capability_unavailable — never a silent pass.
+    """
+    docker = _docker_cli()
+    if docker is None:
+        return _capability_unavailable_payload(
+            "MECH_BENCH_CHRONO_DOCKER is set but the docker CLI is not on PATH.")
+    image = _docker_image()
+    platform = os.environ.get("MECH_BENCH_SOLVER_PLATFORM", "").strip()
+    max_wall_s = float(config.get("max_wall_s", 600.0))
+
+    with tempfile.TemporaryDirectory() as td:
+        # Resolve symlinks (macOS /var -> /private/var) so the bind mount points
+        # at a path Docker Desktop actually shares.
+        td_real = str(Path(td).resolve())
+        (Path(td_real) / "ir.json").write_text(
+            json.dumps(_ir_to_dict(ir), default=str))
+        (Path(td_real) / "config.json").write_text(
+            json.dumps(config, default=str))
+
+        cmd = [docker, "run", "--rm"]
+        if platform:
+            cmd += ["--platform", platform]
+        cmd += [
+            "-v", f"{td_real}:/io",
+            "--entrypoint", "micromamba",
+            image,
+            "run", "-n", "base", "python", "-c", _DOCKER_RUNNER,
+        ]
+        try:
+            proc = subprocess.run(
+                cmd, capture_output=True, text=True,
+                timeout=max_wall_s, check=False,
+            )
+        except FileNotFoundError as e:
+            return _capability_unavailable_payload(
+                f"docker invocation failed: {e}")
+        except subprocess.TimeoutExpired:
+            return _capability_unavailable_payload(
+                f"chrono docker run exceeded max_wall_s={max_wall_s}")
+        if proc.returncode != 0:
+            tail = (proc.stderr or "").strip()[-500:]
+            return _capability_unavailable_payload(
+                f"chrono docker run exited {proc.returncode} "
+                f"(image {image!r}): {tail}")
+        out_path = Path(td_real) / "output.json"
+        if not out_path.exists():
+            return _capability_unavailable_payload(
+                "chrono docker run produced no output JSON")
+        try:
+            raw = json.loads(out_path.read_text())
+        except (OSError, json.JSONDecodeError) as e:
+            return _capability_unavailable_payload(
+                f"chrono docker JSON unparseable: {e}")
+        result = _coerce_numpy(raw)
+        if isinstance(result.get("metadata"), dict):
+            result["metadata"]["execution"] = "docker"
+            result["metadata"]["docker_image"] = image
+        return result
+
+
 def _ir_to_dict(ir: DesignIR) -> dict[str, Any]:
     return {
         "schema_version": ir.schema_version,
@@ -305,14 +440,21 @@ def _coerce_numpy(blob: dict[str, Any]) -> dict[str, Any]:
 # --------------------------------------------------------------------- #
 
 
-if CHRONO_AVAILABLE:
+if CHRONO_AVAILABLE or _docker_registration_enabled():
     register_adapter(ChronoContactAdapter)
+    if not CHRONO_AVAILABLE:  # pragma: no cover - needs docker
+        _LOG.info(
+            "chrono_contact registered in Docker mode (image %s); the real "
+            "Chrono runner executes inside the solver container.",
+            _docker_image(),
+        )
 else:  # pragma: no cover - exercised by absence of pychrono
     _LOG.info(
         "chrono_contact adapter not registered: %s. Tasks that require "
         "CONTACT_FORCES will surface CAPABILITY_UNAVAILABLE until "
-        "pychrono is installed or MECH_BENCH_CHRONO_PYTHON points at a "
-        "compatible interpreter.",
+        "pychrono is installed, MECH_BENCH_CHRONO_PYTHON points at a "
+        "compatible interpreter, or MECH_BENCH_CHRONO_DOCKER is enabled "
+        "with the solver image built.",
         _DIAGNOSTIC,
     )
 
@@ -339,8 +481,14 @@ def chrono_diagnostic() -> dict[str, Any]:
     except ImportError:
         impl_ok = False
 
+    docker_mode = _docker_enabled()
+    docker_cli = _docker_cli() is not None
     if CHRONO_AVAILABLE:
         runner_status = "ready"
+        status = "available"
+    elif docker_mode and docker_cli:
+        # Real Chrono runs inside the solver container.
+        runner_status = "docker"
         status = "available"
     elif pychrono_ok and not impl_ok:
         runner_status = "skeleton_only"
@@ -349,6 +497,27 @@ def chrono_diagnostic() -> dict[str, Any]:
         runner_status = "missing_dependency"
         status = "unavailable"
 
+    if status == "available" and runner_status == "docker":
+        remediation = (
+            f"Docker mode active (image {_docker_image()}). Build it with "
+            "scripts/solver_smoke.sh if `docker run` reports a missing image."
+        )
+    elif status == "available":
+        remediation = ""
+    elif not pychrono_ok:
+        remediation = (
+            "pychrono is not importable. Install the native solver stack "
+            "(conda channel 'projectchrono') via scripts/enable_real_oracle.sh "
+            "or build docker/solver/environment.yml. There are no macOS-ARM "
+            "PyPI wheels for pychrono — use the conda/Docker path."
+        )
+    else:
+        remediation = (
+            "pychrono imports but the in-repo runner "
+            "mech_bench.adapters._chrono_impl did not — check native deps "
+            "(OCP/gmsh/HDF5). See scripts/enable_real_oracle.sh."
+        )
+
     return {
         "adapter": "chrono_contact",
         "status": status,
@@ -356,6 +525,11 @@ def chrono_diagnostic() -> dict[str, Any]:
         "pychrono_importable": pychrono_ok,
         "_chrono_impl_importable": impl_ok,
         "runner_status": runner_status,
+        "remediation": remediation,
+        "reference_cache_version": REFERENCE_CACHE_VERSION,
+        "docker_mode": docker_mode,
+        "docker_cli_available": docker_cli,
+        "docker_image": _docker_image(),
     }
 
 

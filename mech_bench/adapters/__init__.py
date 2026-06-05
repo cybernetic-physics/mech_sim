@@ -127,5 +127,6 @@ def get_adapter(type_name: str) -> SimAdapter:
 
 # Trigger registration.
 from mech_bench.adapters import planar_kinematics  # noqa: E402, F401
+from mech_bench.adapters import analytic_mechanics  # noqa: E402, F401
 from mech_bench.adapters import fake_contact_oracle  # noqa: E402, F401
 from mech_bench.adapters import chrono_contact  # noqa: E402, F401

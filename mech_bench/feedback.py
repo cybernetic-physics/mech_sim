@@ -55,6 +55,11 @@ class FailureCode(str, Enum):
     SIMULATOR_DIVERGENCE = "simulator_divergence"
     CAPABILITY_UNAVAILABLE = "capability_unavailable"
 
+    # Anti-hack gates: the probe could not run a *meaningful* test on this
+    # design, so it must award no credit rather than a degenerate pass.
+    DEGENERATE_TEST = "degenerate_test"
+    IMPLAUSIBLE_GEOMETRY = "implausible_geometry"
+
 
 @dataclass
 class Failure:

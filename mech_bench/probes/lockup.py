@@ -96,25 +96,38 @@ class Lockup(Probe):
         out_v_max = (float(np.max(np.abs(out_vel)))
                      if out_vel is not None else 0.0)
 
-        # Lockup only makes sense if the input *was* driven.
+        # Lockup only makes sense if the input *was* driven. If the input
+        # never moved, there is no valid test to pass — award no credit
+        # (anti-hack gate) rather than a degenerate 1.0 that a dead mechanism
+        # could collect. Mirrors GBA-Eval refusing to credit a blank frame.
         if in_pos is None or in_motion < 1e-6:
             return ProbeResult(
                 probe_id="",
                 probe_type=self.type_name,
-                passed=True,
-                score=1.0,
+                passed=False,
+                score=0.0,
                 metrics={
                     "input_motion_rad": float(in_motion),
                     "output_motion_rad": float(out_motion),
                     "output_velocity_max": float(out_v_max),
                     "lockup_detected": 0.0,
-                    "skipped_no_input_drive": 1.0,
+                    "degenerate_no_input_drive": 1.0,
                 },
-                failures=[],
-                skipped_reason=(
-                    "Input port was not driven (motion below 1e-6 rad). "
-                    "Lockup is undefined; reporting pass."
-                ),
+                failures=[Failure(
+                    code=FailureCode.DEGENERATE_TEST,
+                    severity=Severity.CRITICAL,
+                    message=(
+                        "Input port was not driven (motion below 1e-6 rad), "
+                        "so the lockup test is vacuous."
+                    ),
+                    metric="input_motion_rad",
+                    observed=float(in_motion),
+                    target=1e-6,
+                    public_hint=(
+                        "Drive the input port so the mechanism actually moves; "
+                        "a static design cannot pass the lockup test."
+                    ),
+                )],
             )
 
         motion_lockup = out_motion < min_out_motion

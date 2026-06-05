@@ -229,6 +229,8 @@ def _cmd_rlvr_eval(args: argparse.Namespace) -> int:
         Path(args.submission),
         mode=args.mode,
         report_dir=Path(args.report_dir) if args.report_dir else None,
+        reward_profile=getattr(args, "reward_profile", "eval"),
+        allow_synthetic_reward=getattr(args, "allow_synthetic_reward", False),
     )
     blob = rlvr.to_dict()
     out = json.dumps(
@@ -413,6 +415,15 @@ def main(argv: list[str] | None = None) -> int:
     rl.add_argument("--report-dir", default=None)
     rl.add_argument("--out", default=None,
                     help="also write the compact JSON to this path")
+    rl.add_argument(
+        "--reward-profile", default="eval", choices=["eval", "train"],
+        help=("'eval' (default) reports the score even for a synthetic oracle; "
+              "'train' quarantines synthetic-oracle reward to 0 (anti-hack)."),
+    )
+    rl.add_argument(
+        "--allow-synthetic-reward", action="store_true",
+        help="override the train-profile synthetic-oracle quarantine.",
+    )
     rl.set_defaults(func=_cmd_rlvr_eval)
 
     vd = sub.add_parser(

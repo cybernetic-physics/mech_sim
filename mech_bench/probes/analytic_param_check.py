@@ -36,6 +36,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
+from mech_bench import scoring
 from mech_bench.feedback import Failure, FailureCode, Severity
 from mech_bench.probes import Capability, Probe, register_probe
 from mech_bench.schema import DesignIR, ProbeResult
@@ -239,10 +240,13 @@ class AnalyticParamCheck(Probe):
             passed = (within_pct or within_abs
                       or (tolerance_pct == 0 and tolerance_abs == 0
                           and err_abs < 1e-9))
+            # Dense score (GBA-Eval quartic sigmoid): smooth partial credit
+            # that is 1.0 at zero error, 0.5 at the tolerance, and decays
+            # toward 0 well past it — instead of a linear cliff to 0.
             if tolerance_pct > 0:
-                score = max(0.0, 1.0 - err_pct / tolerance_pct)
+                score = scoring.score_from_error_pct(err_pct, tolerance_pct)
             elif tolerance_abs > 0:
-                score = max(0.0, 1.0 - err_abs / tolerance_abs)
+                score = scoring.score_from_error(err_abs, tolerance_abs)
             else:
                 score = 1.0 if passed else 0.0
 

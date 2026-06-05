@@ -161,3 +161,96 @@ def test_rlvr_eval_final_includes_agreement(fourbar_task: Path):
     )
     assert rlvr.mode == "final"
     assert "agreement_score" in rlvr.scalar_channels
+
+
+# --------------------------------------------------------------------- #
+# Synthetic-oracle reward quarantine (anti-hack gate)                    #
+# --------------------------------------------------------------------- #
+
+
+def test_quarantine_helper_semantics():
+    from mech_bench.rlvr import _quarantine
+
+    # Real oracle: never quarantined.
+    assert _quarantine(0.9, False, "train", False) == (0.9, False)
+    # Synthetic + eval profile: reported transparently.
+    assert _quarantine(0.9, True, "eval", False) == (0.9, False)
+    # Synthetic + train profile: quarantined to 0.
+    assert _quarantine(0.9, True, "train", False) == (0.0, True)
+    # Synthetic + train + explicit opt-in: restored.
+    assert _quarantine(0.9, True, "train", True) == (0.9, False)
+
+
+@pytest.fixture
+def synthetic_contact_task(tmp_path) -> Path:
+    from mech_bench.adapters.fake_contact_oracle import force_register
+    from mech_bench.generators.benchmark_suite import (
+        GearPairLoadTrialStubGenerator,
+    )
+    from mech_bench.generators.base import write_task_directory
+
+    force_register()
+    task = GearPairLoadTrialStubGenerator().generate(seed=0)
+    return write_task_directory(task, tmp_path)
+
+
+def test_rlvr_eval_profile_reports_synthetic_reward(synthetic_contact_task: Path):
+    from mech_bench.rlvr import evaluate_for_rlvr
+
+    r = evaluate_for_rlvr(
+        synthetic_contact_task,
+        synthetic_contact_task / "reference_solution",
+        mode="oracle", reward_profile="eval",
+    )
+    assert r.oracle_is_synthetic is True
+    assert r.reward > 0.0          # transparent for benchmarking
+    assert r.reward_quarantined is False
+
+
+def test_rlvr_train_profile_quarantines_synthetic_reward(
+    synthetic_contact_task: Path,
+):
+    from mech_bench.rlvr import evaluate_for_rlvr
+
+    r = evaluate_for_rlvr(
+        synthetic_contact_task,
+        synthetic_contact_task / "reference_solution",
+        mode="oracle", reward_profile="train",
+    )
+    assert r.oracle_is_synthetic is True
+    assert r.reward == 0.0          # never learn from a fabricated verifier
+    assert r.reward_quarantined is True
+    assert r.dev_reward > 0.0       # would-be score still reported
+
+
+def test_rlvr_train_profile_allow_synthetic_opt_in(synthetic_contact_task: Path):
+    from mech_bench.rlvr import evaluate_for_rlvr
+
+    r = evaluate_for_rlvr(
+        synthetic_contact_task,
+        synthetic_contact_task / "reference_solution",
+        mode="oracle", reward_profile="train", allow_synthetic_reward=True,
+    )
+    assert r.reward > 0.0
+    assert r.reward_quarantined is False
+
+
+def test_rlvr_default_profile_is_eval(synthetic_contact_task: Path):
+    from mech_bench.rlvr import evaluate_for_rlvr
+
+    r = evaluate_for_rlvr(
+        synthetic_contact_task,
+        synthetic_contact_task / "reference_solution", mode="oracle",
+    )
+    assert r.reward_profile == "eval"
+    assert r.reward > 0.0  # back-compat: default does not quarantine
+
+
+def test_rlvr_invalid_reward_profile_raises(fourbar_task: Path):
+    from mech_bench.rlvr import evaluate_for_rlvr
+
+    with pytest.raises(ValueError):
+        evaluate_for_rlvr(
+            fourbar_task, fourbar_task / "reference_solution",
+            reward_profile="bogus",
+        )
