@@ -354,12 +354,25 @@ warning.
 
 ## Chrono status
 
-PyChrono integration is intentionally **skeleton-only** in this repo.
-`mech_bench/adapters/chrono_contact.py` advertises the conceptual
-capabilities (rigid-body dynamics, contact forces, joint constraints,
-motor drives, load torques, pose traces, mesh overlap) and supports
-subprocess execution, but it **only registers** when both `pychrono`
-*and* a vendor-out `_chrono_impl` module are importable.
+`mech_bench/adapters/chrono_contact.py` is the high-fidelity oracle tier
+(rigid-body dynamics, contact forces, joint constraints, motor drives, load
+torques, pose traces, mesh overlap). The in-repo runner
+(`mech_bench/adapters/_chrono_impl.py`) is real; execution is gated only on
+`pychrono`. It registers and runs in any of three modes:
+
+1. **Native** — when `pychrono` imports in-process.
+2. **Subprocess** — `MECH_BENCH_CHRONO_PYTHON` points at a Chrono-capable
+   interpreter (e.g. a conda env from `scripts/enable_real_oracle.sh`).
+3. **Docker** — `MECH_BENCH_CHRONO_DOCKER=auto` (use Docker when native
+   pychrono is absent) or `=1` (always). The real runner executes inside the
+   solver image (`MECH_BENCH_CHRONO_DOCKER_IMAGE`, default
+   `mech-bench-solver:local`; build with `scripts/solver_smoke.sh`). This is
+   the path for hosts without native Chrono (e.g. Apple Silicon — the
+   `projectchrono` channel publishes a native linux-aarch64 pychrono, so the
+   image builds without emulation).
+
+When none are available, contact tasks surface `capability_unavailable` — never
+a silent pass.
 
 Check the state of the backend:
 

@@ -7,12 +7,36 @@ good (see `../rl-environment-design-notes.md` and `../mech-sim-rl-improvement-no
 Driven by an 8-agent inspection workflow whose full plan is in
 `gbaeval-grade-implementation-plan.json`.
 
-**Status: core suite green at 331 passed** (was 282; +49 new tests), 12 skipped,
+**Status: core suite green at 336 passed** (was 282; +54 new tests), 12 skipped,
 1 pre-existing unrelated failure (`test_resolve_family_tasks_root_materializes_paper_tasks`
 — missing `scripts.materialize_paper_family_tasks`, present at baseline).
-PyChrono cannot be installed on the macOS-ARM dev box (conda/Docker-only, no
-PyPI wheel), so all work is verifiable without it; Chrono is wired as the
-high-fidelity tier for capable hardware.
+
+**The real PyChrono oracle now runs via Docker.** PyChrono has no macOS-ARM PyPI
+wheel, but the `projectchrono` conda channel *does* publish a native
+linux-aarch64 build, so the solver image builds natively (no emulation). The
+image is verified end-to-end:
+
+```
+docker run --rm mech-bench-solver:local oracle-smoke --require-real
+#   chrono: ok (pychrono.core),  OCP: ok,  gmsh 4.15.2: ok
+```
+
+and the Chrono adapter transparently dispatches into the container:
+
+```
+export MECH_BENCH_CHRONO_DOCKER=auto     # use Docker only when native pychrono is absent
+#   (or =1 to force; MECH_BENCH_CHRONO_DOCKER_IMAGE / MECH_BENCH_SOLVER_PLATFORM to tune)
+python -m mech_bench evaluate --task <contact_task> --submission <sub> --mode oracle
+```
+
+`chrono_diagnostic()` reports `runner_status="docker"`, `status="available"`
+when Docker mode is active. A verified host→container dispatch ran the real
+`_chrono_impl`, which correctly *declined* a geometry-underspecified design
+("bodies lack Chrono collision geometry") rather than fabricate forces — the
+real solver enforces the same no-silent-pass discipline as the rest of the stack.
+
+To build the image: `scripts/solver_smoke.sh` (builds + runs the real smoke) or
+`docker build -f docker/solver/Dockerfile -t mech-bench-solver:local .`.
 
 ## What landed (per commit)
 
