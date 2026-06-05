@@ -441,9 +441,9 @@ def test_lockup_detects_zero_output_motion():
     assert result.metrics["lockup_detected"] == pytest.approx(1.0)
 
 
-def test_lockup_skips_when_input_unidriven():
-    """If input itself didn't move, the probe cannot diagnose lockup
-    and should report a benign pass with a skipped_reason."""
+def test_lockup_undriven_input_awards_no_credit():
+    """Anti-hack gate: if the input itself never moved, the lockup test is
+    vacuous — a static (dead) design must NOT collect a degenerate pass."""
     probe = get_probe("lockup")
     n = 100
     sim = {
@@ -454,8 +454,11 @@ def test_lockup_skips_when_input_unidriven():
         "time_s": np.linspace(0, 1, n),
     }
     result = probe.run(_ir_minimal(), sim, {})
-    assert result.passed
-    assert result.skipped_reason
+    assert not result.passed
+    assert result.score == 0.0
+    codes = {f.code.value if hasattr(f.code, "value") else str(f.code)
+             for f in result.failures}
+    assert "degenerate_test" in codes
 
 
 # --------------------------------------------------------------------- #
