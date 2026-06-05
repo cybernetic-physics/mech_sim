@@ -1,10 +1,14 @@
-"""PyChrono contact-dynamics adapter (skeleton).
+"""PyChrono contact-dynamics adapter — the high-fidelity oracle tier.
 
-Real Chrono integration is gated on the optional ``pychrono`` package
-being importable. When it's absent, this module still defines the
-adapter class so its existence is discoverable, but the adapter is NOT
-registered and the dispatcher will surface CAPABILITY_UNAVAILABLE for
-any probe that depends on its capabilities.
+The in-repo runner (``mech_bench.adapters._chrono_impl``: V-HACD, contact-pair
+instrumentation, pose sampling) IS present. Real execution is gated solely on
+the optional native ``pychrono`` package being importable. When pychrono is
+absent, this module still defines the adapter class so its existence is
+discoverable, but the adapter is NOT registered and the dispatcher surfaces
+CAPABILITY_UNAVAILABLE for any probe that depends on its capabilities — there
+is never a silent pass. To enable on capable hardware (no macOS-ARM PyPI wheel
+exists for pychrono), run ``scripts/enable_real_oracle.sh`` (conda) or build
+``docker/solver/environment.yml``.
 
 The adapter supports two execution modes:
 
@@ -31,6 +35,7 @@ from typing import Any
 import numpy as np
 
 from mech_bench.adapters import SimAdapter, register_adapter
+from mech_bench.oracle.reference_cache import REFERENCE_CACHE_VERSION
 from mech_bench.probes import Capability
 from mech_bench.schema import DesignIR
 
@@ -92,12 +97,10 @@ def _probe_pychrono() -> tuple[bool, str]:
         return False, f"pychrono not importable: {e}"
     try:
         from mech_bench.adapters import _chrono_impl  # noqa: F401
-    except ImportError:
+    except ImportError as e:
         return False, (
             "pychrono is importable but the chrono runner shim "
-            "mech_bench.adapters._chrono_impl is not provided; the "
-            "Chrono runner is intentionally vendored out to keep the "
-            "base install lean."
+            f"mech_bench.adapters._chrono_impl failed to import: {e}"
         )
     return True, "pychrono available (in-process)"
 
@@ -176,19 +179,19 @@ def _run_chrono_inproc(
     """In-process Chrono execution.
 
     The real implementation builds the scene, ticks the solver, and
-    records traces. The skeleton stub here delegates to the canonical
-    chrono runner module which is provided externally by the operator
-    when wiring up the optional dependency.
+    records traces. It delegates to ``mech_bench.adapters._chrono_impl``,
+    the in-repo Chrono runner (V-HACD, contact-pair instrumentation, pose
+    sampling). That module IS present in this repo; the only thing gating
+    real execution is whether ``pychrono`` itself is importable.
     """
     try:
         from mech_bench.adapters import _chrono_impl  # type: ignore[import-not-found]
-    except ImportError:
+    except ImportError as e:
         return _capability_unavailable_payload(
-            "pychrono is importable but mech_bench.adapters._chrono_impl "
-            "is not provided. The Chrono runner is intentionally vendored "
-            "out of this repo to keep the base install lean — copy your "
-            "phys-sim _chrono_mesh_runner equivalent into this package "
-            "to enable in-process execution."
+            "mech_bench.adapters._chrono_impl failed to import "
+            f"({e}). The runner is present in this repo; this usually means "
+            "pychrono or a transitive native dependency is missing — see "
+            "scripts/enable_real_oracle.sh."
         )
     return _chrono_impl.run(ir, config)  # type: ignore[no-any-return]
 
@@ -349,6 +352,22 @@ def chrono_diagnostic() -> dict[str, Any]:
         runner_status = "missing_dependency"
         status = "unavailable"
 
+    if status == "available":
+        remediation = ""
+    elif not pychrono_ok:
+        remediation = (
+            "pychrono is not importable. Install the native solver stack "
+            "(conda channel 'projectchrono') via scripts/enable_real_oracle.sh "
+            "or build docker/solver/environment.yml. There are no macOS-ARM "
+            "PyPI wheels for pychrono — use the conda/Docker path."
+        )
+    else:
+        remediation = (
+            "pychrono imports but the in-repo runner "
+            "mech_bench.adapters._chrono_impl did not — check native deps "
+            "(OCP/gmsh/HDF5). See scripts/enable_real_oracle.sh."
+        )
+
     return {
         "adapter": "chrono_contact",
         "status": status,
@@ -356,6 +375,8 @@ def chrono_diagnostic() -> dict[str, Any]:
         "pychrono_importable": pychrono_ok,
         "_chrono_impl_importable": impl_ok,
         "runner_status": runner_status,
+        "remediation": remediation,
+        "reference_cache_version": REFERENCE_CACHE_VERSION,
     }
 
 
