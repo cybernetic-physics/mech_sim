@@ -8,7 +8,7 @@ MERGE_JOB_NAME="${MERGE_JOB_NAME:-corl_mech_phys_merge}"
 ACCOUNT="${ACCOUNT:-matx}"
 PARTITION="${PARTITION:-matx}"
 QOS="${QOS:-normal}"
-GRES="${GRES:-gpu:l40s:4}"
+GRES="${GRES:-gpu:l40s:2}"
 CPUS_PER_TASK="${CPUS_PER_TASK:-16}"
 MEM="${MEM:-160G}"
 TIME="${TIME:-4-00:00:00}"
@@ -193,11 +193,13 @@ slurm_cuda_visible_devices="\${CUDA_VISIBLE_DEVICES:-}"
 if [[ -n "\$slurm_cuda_visible_devices" && "\$slurm_cuda_visible_devices" == *,* ]]; then
   first_cuda="\${slurm_cuda_visible_devices%%,*}"
   rest_cuda="\${slurm_cuda_visible_devices#*,}"
+  first_train_cuda="\${rest_cuda%%,*}"
   sglang_cuda_visible_devices="\${sglang_cuda_visible_devices:-\$first_cuda}"
-  train_cuda_visible_devices="\${train_cuda_visible_devices:-\$rest_cuda}"
+  train_cuda_visible_devices="\${train_cuda_visible_devices:-\$first_train_cuda}"
 fi
 sglang_cuda_visible_devices="\${sglang_cuda_visible_devices:-0}"
 train_cuda_visible_devices="\${train_cuda_visible_devices:-0}"
+echo "CUDA split: sglang=\$sglang_cuda_visible_devices train=\$train_cuda_visible_devices"
 
 sglang_venv="$REMOTE_ROOT/sglang_venv"
 (
