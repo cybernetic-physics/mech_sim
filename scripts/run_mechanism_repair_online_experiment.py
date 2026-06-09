@@ -439,7 +439,8 @@ def main() -> int:
                         tasks_root=benchmark_dir / "tasks",
                         train_file=train_file,
                         seed=seed,
-                        resume_existing=bool(args.resume_existing),
+                        resume_existing=bool(args.resume_existing)
+                        or shared_sft_root is not None,
                     )
             for method in requested_methods:
                 if method in TTRL_METHODS:
