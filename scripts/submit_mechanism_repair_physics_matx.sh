@@ -5,6 +5,7 @@ REMOTE_HOST="${REMOTE_HOST:-sc}"
 REMOTE_ROOT="${REMOTE_ROOT:-/matx/u/knatalia/corl_mechanism_repair_physics}"
 JOB_NAME="${JOB_NAME:-corl_mech_phys}"
 MERGE_JOB_NAME="${MERGE_JOB_NAME:-corl_mech_phys_merge}"
+JOB_RUNTIME_ROOT="${JOB_RUNTIME_ROOT:-$REMOTE_ROOT}"
 ACCOUNT="${ACCOUNT:-matx}"
 PARTITION="${PARTITION:-matx}"
 QOS="${QOS:-normal}"
@@ -23,7 +24,7 @@ SGLANG_MODEL="${SGLANG_MODEL:-$BASE_MODEL}"
 SGLANG_PORT="${SGLANG_PORT:-30000}"
 SGLANG_PIP_SPEC="${SGLANG_PIP_SPEC:-sglang==0.5.9}"
 SGLANG_PIP_EXTRA="${SGLANG_PIP_EXTRA:-ninja}"
-SGLANG_VENV="${SGLANG_VENV:-$REMOTE_ROOT/sglang_venv}"
+SGLANG_VENV="${SGLANG_VENV:-$JOB_RUNTIME_ROOT/sglang_venv}"
 SGLANG_TP="${SGLANG_TP:-1}"
 SGLANG_MEM_FRAC="${SGLANG_MEM_FRAC:-0.82}"
 SGLANG_CTX="${SGLANG_CTX:-16384}"
@@ -72,6 +73,7 @@ dependent merge/audit job.
 Useful overrides:
   REMOTE_HOST=$REMOTE_HOST
   REMOTE_ROOT=$REMOTE_ROOT
+  JOB_RUNTIME_ROOT=$JOB_RUNTIME_ROOT
   SOURCE_REF=HEAD
   OUT_DIR=$OUT_DIR
   NUM_SHARDS=$NUM_SHARDS
@@ -144,17 +146,17 @@ export PYTHONPATH="$remote_repo:\${PYTHONPATH:-}"
 export HF_HOME="\${HF_HOME:-$REMOTE_ROOT/hf_home}"
 export TRANSFORMERS_CACHE="\${TRANSFORMERS_CACHE:-$REMOTE_ROOT/hf_home/transformers}"
 export HF_HUB_CACHE="\${HF_HUB_CACHE:-$REMOTE_ROOT/hf_home/hub}"
-export UV_CACHE_DIR="\${UV_CACHE_DIR:-$REMOTE_ROOT/uv_cache}"
-export UV_PROJECT_ENVIRONMENT="\${UV_PROJECT_ENVIRONMENT:-$REMOTE_ROOT/venvs/mechanism_repair_$source_commit}"
-export XDG_CACHE_HOME="\${XDG_CACHE_HOME:-$REMOTE_ROOT/xdg_cache}"
-export TRITON_CACHE_DIR="\${TRITON_CACHE_DIR:-$REMOTE_ROOT/triton_cache}"
-export HOME="\${JOB_HOME:-$REMOTE_ROOT/home}"
+export UV_CACHE_DIR="\${UV_CACHE_DIR:-$JOB_RUNTIME_ROOT/uv_cache}"
+export UV_PROJECT_ENVIRONMENT="\${UV_PROJECT_ENVIRONMENT:-$JOB_RUNTIME_ROOT/venvs/mechanism_repair_$source_commit}"
+export XDG_CACHE_HOME="\${XDG_CACHE_HOME:-$JOB_RUNTIME_ROOT/xdg_cache}"
+export TRITON_CACHE_DIR="\${TRITON_CACHE_DIR:-$JOB_RUNTIME_ROOT/triton_cache}"
+export HOME="\${JOB_HOME:-$JOB_RUNTIME_ROOT/home}"
 export SGLANG_DISABLE_CUDNN_CHECK="\${SGLANG_DISABLE_CUDNN_CHECK:-1}"
 export USE_HUB_KERNELS="\${USE_HUB_KERNELS:-0}"
 export PYTORCH_CUDA_ALLOC_CONF="\${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
 mkdir -p "\$HF_HOME" "\$TRANSFORMERS_CACHE" "\$HF_HUB_CACHE" \\
   "\$UV_CACHE_DIR" "\$XDG_CACHE_HOME" "\$TRITON_CACHE_DIR" "\$HOME" \\
-  "$REMOTE_ROOT/locks" "$REMOTE_ROOT/venvs"
+  "$REMOTE_ROOT/locks" "$REMOTE_ROOT/venvs" "$JOB_RUNTIME_ROOT/venvs"
 
 if ! command -v uv >/dev/null 2>&1; then
   (
@@ -383,11 +385,11 @@ cat >"$tmp_merge" <<EOF
 set -euo pipefail
 cd "$remote_repo"
 export PYTHONPATH="$remote_repo:\${PYTHONPATH:-}"
-export UV_CACHE_DIR="\${UV_CACHE_DIR:-$REMOTE_ROOT/uv_cache}"
-export UV_PROJECT_ENVIRONMENT="\${UV_PROJECT_ENVIRONMENT:-$REMOTE_ROOT/venvs/mechanism_repair_$source_commit}"
-export XDG_CACHE_HOME="\${XDG_CACHE_HOME:-$REMOTE_ROOT/xdg_cache}"
-export HOME="\${JOB_HOME:-$REMOTE_ROOT/home}"
-mkdir -p "$REMOTE_ROOT/locks" "$REMOTE_ROOT/venvs" "\$UV_CACHE_DIR" "\$XDG_CACHE_HOME" "\$HOME"
+export UV_CACHE_DIR="\${UV_CACHE_DIR:-$JOB_RUNTIME_ROOT/uv_cache}"
+export UV_PROJECT_ENVIRONMENT="\${UV_PROJECT_ENVIRONMENT:-$JOB_RUNTIME_ROOT/venvs/mechanism_repair_$source_commit}"
+export XDG_CACHE_HOME="\${XDG_CACHE_HOME:-$JOB_RUNTIME_ROOT/xdg_cache}"
+export HOME="\${JOB_HOME:-$JOB_RUNTIME_ROOT/home}"
+mkdir -p "$REMOTE_ROOT/locks" "$REMOTE_ROOT/venvs" "$JOB_RUNTIME_ROOT/venvs" "\$UV_CACHE_DIR" "\$XDG_CACHE_HOME" "\$HOME"
 if ! command -v uv >/dev/null 2>&1; then
   (
     flock 9
