@@ -11,7 +11,9 @@ not, the adapter must:
 
 from __future__ import annotations
 
+import sys
 import types
+from pathlib import Path
 
 import pytest
 
@@ -24,6 +26,10 @@ def test_chrono_diagnostic_has_structured_shape():
     assert diag["status"] in ("available", "unavailable")
     assert isinstance(diag["pychrono_importable"], bool)
     assert isinstance(diag["pychrono_project_chrono"], bool)
+    assert isinstance(diag["pychrono_inprocess_importable"], bool)
+    assert isinstance(diag["pychrono_subprocess_importable"], bool)
+    assert diag["pychrono_import_mode"] in ("in_process", "subprocess", "missing")
+    assert diag["chrono_python"] is None or isinstance(diag["chrono_python"], str)
     assert isinstance(diag["_chrono_impl_importable"], bool)
     assert diag["runner_status"] in (
         "ready", "skeleton_only", "missing_dependency",
@@ -48,6 +54,8 @@ def test_probe_rejects_non_project_chrono_pychrono(monkeypatch):
     """The PyPI timing package named pychrono must not register Chrono."""
     import mech_bench.adapters.chrono_contact as chrono_contact
 
+    monkeypatch.delenv("MECH_BENCH_CHRONO_PYTHON", raising=False)
+    monkeypatch.setenv("MECH_BENCH_DISABLE_CHRONO_AUTO", "1")
     fake = types.SimpleNamespace(__file__="/tmp/pychrono/__init__.py")
 
     def fake_import(name, *args, **kwargs):
@@ -62,6 +70,24 @@ def test_probe_rejects_non_project_chrono_pychrono(monkeypatch):
 
     assert available is False
     assert "not projectchrono::pychrono" in reason
+
+
+def test_chrono_python_probe_accepts_project_chrono_subprocess(tmp_path, monkeypatch):
+    from mech_bench.adapters.chrono_env import probe_chrono_python
+
+    fake_pkg = tmp_path / "fake_site"
+    fake_pkg.mkdir()
+    (fake_pkg / "pychrono.py").write_text(
+        "class ChSystemSMC:\n"
+        "    pass\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("PYTHONPATH", str(fake_pkg))
+
+    available, reason = probe_chrono_python(Path(sys.executable))
+
+    assert available is True
+    assert "pychrono + _chrono_impl available" in reason
 
 
 def test_chrono_unavailable_yields_capability_unavailable(tmp_path):

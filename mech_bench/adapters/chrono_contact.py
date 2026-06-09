@@ -31,6 +31,12 @@ from typing import Any
 import numpy as np
 
 from mech_bench.adapters import SimAdapter, register_adapter
+from mech_bench.adapters.chrono_env import (
+    CHRONO_PYTHON_ENV,
+    chrono_child_env,
+    find_chrono_python,
+    probe_chrono_python,
+)
 from mech_bench.probes import Capability
 from mech_bench.schema import DesignIR
 
@@ -49,59 +55,14 @@ def _has_project_chrono_symbols(module: Any) -> bool:
     return any(hasattr(module, name) for name in _REQUIRED_CHRONO_SYSTEM_SYMBOLS)
 
 
-def _probe_pychrono() -> tuple[bool, str]:
-    """Return (available, diagnostic).
-
-    Tries an in-process import. Honors ``MECH_BENCH_CHRONO_PYTHON`` which
-    points at a separate python interpreter — if set, we declare
-    available iff that interpreter can ``import pychrono``.
-
-    The adapter additionally requires ``mech_bench.adapters._chrono_impl``
-    to be present, which is the vendor-out runner module. Without it,
-    we register nothing and the dispatcher correctly surfaces
-    CAPABILITY_UNAVAILABLE.
-    """
-    alt_python = os.environ.get("MECH_BENCH_CHRONO_PYTHON")
-    if alt_python:
-        if not Path(alt_python).exists():
-            return False, (
-                f"MECH_BENCH_CHRONO_PYTHON is set to {alt_python!r}, "
-                f"but that path does not exist."
-            )
-        # Both Project Chrono's pychrono module and the _chrono_impl shim
-        # must import in the alt interpreter — otherwise the adapter would
-        # advertise contact forces while having no runner to call.
-        child_env = os.environ.copy()
-        child_env.pop("MECH_BENCH_CHRONO_PYTHON", None)
-        try:
-            proc = subprocess.run(
-                [alt_python, "-c",
-                 "import pychrono; "
-                 "assert any(hasattr(pychrono, n) for n in "
-                 "('ChSystem','ChSystemSMC','ChSystemNSC')), "
-                 "'pychrono is not Project Chrono'; "
-                 "import mech_bench.adapters._chrono_impl"],
-                capture_output=True, text=True, timeout=30,
-                check=False, env=child_env,
-            )
-        except (OSError, subprocess.TimeoutExpired) as e:
-            return False, f"subprocess probe failed: {e}"
-        if proc.returncode != 0:
-            return False, (
-                f"{alt_python} cannot import pychrono + "
-                f"mech_bench.adapters._chrono_impl: "
-                f"{(proc.stderr or '').strip()[-200:]}"
-            )
-        return True, (
-            f"pychrono + _chrono_impl available via {alt_python} "
-            f"(subprocess)"
-        )
+def _probe_inprocess_pychrono() -> tuple[bool, bool, bool, str]:
+    """Return in-process pychrono/Project Chrono/_chrono_impl status."""
     try:
         import pychrono  # type: ignore[import-not-found]
     except ImportError as e:
-        return False, f"pychrono not importable: {e}"
+        return False, False, False, f"pychrono not importable: {e}"
     if not _has_project_chrono_symbols(pychrono):
-        return False, (
+        return True, False, False, (
             "pychrono imports but does not expose Project Chrono system "
             "classes such as ChSystemSMC; this is likely the unrelated PyPI "
             "pychrono timing package, not projectchrono::pychrono."
@@ -109,13 +70,45 @@ def _probe_pychrono() -> tuple[bool, str]:
     try:
         from mech_bench.adapters import _chrono_impl  # noqa: F401
     except ImportError:
-        return False, (
+        return True, True, False, (
             "pychrono is importable but the chrono runner shim "
             "mech_bench.adapters._chrono_impl is not provided; the "
             "Chrono runner is intentionally vendored out to keep the "
             "base install lean."
         )
-    return True, "pychrono available (in-process)"
+    return True, True, True, "pychrono available (in-process)"
+
+
+def _probe_pychrono() -> tuple[bool, str]:
+    """Return (available, diagnostic).
+
+    Project Chrono is not pip-installable in the repo's normal ``uv``
+    interpreter on every platform. We therefore accept either an in-process
+    Project Chrono import or a verified external interpreter discovered from
+    ``MECH_BENCH_CHRONO_PYTHON`` / repo-local ``chrono_env`` locations.
+    """
+    alt_python = os.environ.get(CHRONO_PYTHON_ENV)
+    if alt_python:
+        path = Path(alt_python).expanduser()
+        if not path.exists():
+            return False, (
+                f"MECH_BENCH_CHRONO_PYTHON is set to {alt_python!r}, "
+                f"but that path does not exist."
+            )
+        return probe_chrono_python(path)
+
+    pychrono_ok, project_ok, impl_ok, reason = _probe_inprocess_pychrono()
+    if pychrono_ok and project_ok and impl_ok:
+        return True, reason
+
+    discovered = find_chrono_python()
+    if discovered is not None:
+        ok, subprocess_reason = probe_chrono_python(discovered)
+        if ok:
+            return True, subprocess_reason
+        return False, subprocess_reason
+
+    return False, reason
 
 
 CHRONO_AVAILABLE, _DIAGNOSTIC = _probe_pychrono()
@@ -160,7 +153,8 @@ class ChronoContactAdapter(SimAdapter):
 
         use_subprocess = bool(
             config.get("subprocess", False)
-            or os.environ.get("MECH_BENCH_CHRONO_PYTHON")
+            or os.environ.get(CHRONO_PYTHON_ENV)
+            or find_chrono_python()
         )
         if use_subprocess:
             return _run_chrono_subprocess(ir, config)
@@ -214,8 +208,7 @@ def _run_chrono_subprocess(
     config: dict[str, Any],
 ) -> dict[str, Any]:
     """Run Chrono in a subprocess (alternative interpreter)."""
-    alt_python = os.environ.get(
-        "MECH_BENCH_CHRONO_PYTHON", sys.executable)
+    alt_python = find_chrono_python() or Path(sys.executable)
     max_wall_s = float(config.get("max_wall_s", 600.0))
 
     with tempfile.TemporaryDirectory() as td:
@@ -241,14 +234,12 @@ def _run_chrono_subprocess(
             "open(out_path, 'w').write(json.dumps(result, default=_enc))\n"
         )
         try:
-            child_env = os.environ.copy()
-            child_env.pop("MECH_BENCH_CHRONO_PYTHON", None)
             proc = subprocess.run(
-                [alt_python, "-c", runner,
+                [str(alt_python), "-c", runner,
                  str(ir_path), str(cfg_path), str(out_path)],
                 capture_output=True, text=True,
                 timeout=max_wall_s, check=False,
-                env=child_env,
+                env=chrono_child_env(),
             )
         except subprocess.TimeoutExpired:
             return _capability_unavailable_payload(
@@ -342,14 +333,16 @@ def chrono_diagnostic() -> dict[str, Any]:
     importable but the real runner isn't ported) or ``"ready"`` (both
     PyChrono and ``_chrono_impl`` are importable).
     """
-    pychrono_importable = False
-    pychrono_project = False
-    try:
-        import pychrono  # type: ignore[import-not-found]
-        pychrono_importable = True
-        pychrono_project = _has_project_chrono_symbols(pychrono)
-    except ImportError:
-        pychrono_importable = False
+    inproc_importable, inproc_project, _inproc_impl_ok, _inproc_reason = (
+        _probe_inprocess_pychrono()
+    )
+    chrono_python = find_chrono_python()
+    subprocess_importable = False
+    subprocess_reason = ""
+    if chrono_python is not None:
+        subprocess_importable, subprocess_reason = probe_chrono_python(chrono_python)
+    pychrono_importable = inproc_project or subprocess_importable
+    pychrono_project = inproc_project or subprocess_importable
     impl_ok = False
     try:
         from mech_bench.adapters import _chrono_impl  # noqa: F401
@@ -373,6 +366,18 @@ def chrono_diagnostic() -> dict[str, Any]:
         "reason": _DIAGNOSTIC,
         "pychrono_importable": pychrono_importable,
         "pychrono_project_chrono": pychrono_project,
+        "pychrono_inprocess_importable": inproc_importable,
+        "pychrono_inprocess_project_chrono": inproc_project,
+        "pychrono_subprocess_importable": subprocess_importable,
+        "pychrono_subprocess_reason": subprocess_reason,
+        "chrono_python": str(chrono_python) if chrono_python else None,
+        "pychrono_import_mode": (
+            "in_process"
+            if inproc_project
+            else "subprocess"
+            if subprocess_importable
+            else "missing"
+        ),
         "_chrono_impl_importable": impl_ok,
         "runner_status": runner_status,
     }

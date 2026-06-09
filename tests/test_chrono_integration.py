@@ -528,9 +528,11 @@ def test_freecad_cycloidal_cad_eccentric_body_frames(tmp_path):
         (33.0, 0.0, -2.5))
 
 
-def test_chrono_impl_direct_run_reports_missing_pychrono():
+def test_chrono_impl_direct_run_reports_missing_pychrono(monkeypatch):
     if importlib.util.find_spec("pychrono") is not None:
         pytest.skip("host has PyChrono; direct missing-dependency path not active")
+    monkeypatch.delenv("MECH_BENCH_CHRONO_PYTHON", raising=False)
+    monkeypatch.setenv("MECH_BENCH_DISABLE_CHRONO_AUTO", "1")
 
     from mech_bench.adapters import _chrono_impl
 

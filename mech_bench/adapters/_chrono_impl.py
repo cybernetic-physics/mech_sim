@@ -35,6 +35,10 @@ from typing import Any
 
 import numpy as np
 
+from mech_bench.adapters.chrono_env import (
+    chrono_child_env,
+    find_chrono_python,
+)
 from mech_bench.scene_graph import build_scene_graph_from_design_ir
 from mech_bench.schema import DesignIR, EvalConfig, Joint, Part, ProbeSpec, TaskSpec
 
@@ -68,9 +72,9 @@ def run(ir: DesignIR, config: dict[str, Any]) -> dict[str, Any]:
     try:
         import pychrono as chrono  # type: ignore[import-not-found]
     except ImportError as e:
-        alt_python = os.environ.get("MECH_BENCH_CHRONO_PYTHON")
-        if alt_python and Path(alt_python).exists():
-            return _run_via_chrono_python(ir, config, alt_python)
+        alt_python = find_chrono_python()
+        if alt_python and alt_python.exists():
+            return _run_via_chrono_python(ir, config, str(alt_python))
         return _capability_unavailable_payload(f"pychrono not importable: {e}")
 
     started = time.perf_counter()
@@ -3199,8 +3203,6 @@ def _run_via_chrono_python(
             "    raise TypeError(type(value))\n"
             "open(out_path, 'w').write(json.dumps(result, default=_enc))\n"
         )
-        env = os.environ.copy()
-        env.pop("MECH_BENCH_CHRONO_PYTHON", None)
         try:
             proc = subprocess.run(
                 [alt_python, "-c", runner, str(ir_path), str(cfg_path), str(out_path)],
@@ -3208,7 +3210,7 @@ def _run_via_chrono_python(
                 text=True,
                 timeout=max_wall_s,
                 check=False,
-                env=env,
+                env=chrono_child_env(),
             )
         except subprocess.TimeoutExpired:
             return _capability_unavailable_payload(
