@@ -1,0 +1,8 @@
+{
+  "family": "lead_screw_linear_travel",
+  "tier": "transmission_analytic",
+  "seed": 20263609,
+  "difficulty": 2,
+  "lead_mm": 6.92,
+  "task_id": "lead_screw_linear_travel_s20263609"
+}

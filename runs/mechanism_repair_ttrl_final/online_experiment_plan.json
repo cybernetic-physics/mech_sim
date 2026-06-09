@@ -1,0 +1,58 @@
+{
+  "audit_retries": 0,
+  "benchmark_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final",
+  "budget_verifier_calls_per_cell": 32,
+  "feedback_turns": 4,
+  "full_expected_cells_from_manifest": 720,
+  "hypothesis": "online verifier-derived GRPO updates improve held-out verified mechanism repair over the same no-update verifier-feedback loop",
+  "init_online_from_sft": true,
+  "limit_tasks": 0,
+  "llm_evolve_feedback_turns": 4,
+  "llm_evolve_max_verifier_calls_per_task": 32,
+  "llm_evolve_samples_per_task": 32,
+  "methods": [
+    "frozen_model",
+    "verifier_gated",
+    "no_update_search",
+    "llm_evolve_no_update",
+    "sft_model",
+    "mechanical_evolve_ttrl"
+  ],
+  "out_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final",
+  "planned_cells": 120,
+  "schema": "mechanism_repair_ttrl.online_plan.v1",
+  "seeds": [
+    20260607
+  ],
+  "split_tasks": {
+    "A": [
+      "cycloidal_layout_ratio_s20267607",
+      "cycloidal_layout_ratio_s20267608",
+      "cycloidal_layout_ratio_s20267609",
+      "cycloidal_layout_ratio_s20267610",
+      "cycloidal_layout_ratio_s20267611",
+      "lead_screw_linear_travel_s20263607",
+      "lead_screw_linear_travel_s20263608",
+      "lead_screw_linear_travel_s20263609",
+      "lead_screw_linear_travel_s20263610",
+      "lead_screw_linear_travel_s20263611",
+      "planetary_fixed_ring_ratio_analytic_s20264607",
+      "planetary_fixed_ring_ratio_analytic_s20264609",
+      "planetary_fixed_ring_ratio_analytic_s20264611",
+      "planetary_fixed_sun_ratio_analytic_s20264608",
+      "planetary_fixed_sun_ratio_analytic_s20264610",
+      "slider_crank_quick_return_proxy_s20266609",
+      "slider_crank_stroke_precision_s20266608",
+      "slider_crank_stroke_precision_s20266611",
+      "slider_crank_stroke_s20266607",
+      "slider_crank_stroke_s20266610"
+    ]
+  },
+  "splits": [
+    "A"
+  ],
+  "ttrl_max_steps": 32,
+  "ttrl_num_generations": 4,
+  "ttrl_reward_channel": "artifact_progress",
+  "ttrl_rollout_evaluations_per_cell": 32
+}

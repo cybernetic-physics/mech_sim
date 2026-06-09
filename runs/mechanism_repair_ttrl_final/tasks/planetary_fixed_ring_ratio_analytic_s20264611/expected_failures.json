@@ -1,0 +1,23 @@
+{
+  "description": "Tier 2 planetary_fixed_ring_ratio_analytic negatives.",
+  "controls": [
+    {
+      "id": "wrong_ratio",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.5,
+      "submission": "negative_solutions/wrong_ratio"
+    },
+    {
+      "id": "swapped_sun_ring",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.6,
+      "submission": "negative_solutions/swapped_sun_ring"
+    }
+  ]
+}

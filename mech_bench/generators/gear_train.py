@@ -566,6 +566,220 @@ class BeltPulleyRatioGenerator(TaskGenerator):
 
 
 # --------------------------------------------------------------------- #
+# Cycloidal layout ratio (analytic)                                     #
+# --------------------------------------------------------------------- #
+
+
+class CycloidalLayoutRatioGenerator(TaskGenerator):
+    family = "cycloidal_layout_ratio"
+    tier = "transmission_analytic"
+
+    def generate(self, seed: int, difficulty: int = 2) -> GeneratedTask:
+        rng = random.Random(seed + 6060)
+        pins = rng.choice([8, 10, 12, 14])
+        eccentricity_mm = round(rng.uniform(1.0, 2.5), 3)
+        ratio = float(pins - 1)
+        task_id = make_task_id(self.family, seed)
+
+        prompt = (
+            "# Cycloidal reducer layout ratio\n\n"
+            f"Design a single-stage cycloidal reducer layout with {pins} "
+            f"fixed ring pins and target reduction ratio {ratio:g}:1.\n\n"
+            "* Required topology: fixed housing/ring, eccentric input, "
+            "cycloidal disc, and output carrier.\n"
+            "* Required ports: `input_port` and `output_port`, both grounded "
+            "revolute_joint ports.\n"
+            f"* Declare `params.ring_pin_count = {pins}` and "
+            f"`params.declared_ratio = {ratio:g}`.\n"
+            f"* Declare `params.eccentricity_mm = {eccentricity_mm}`.\n"
+        )
+
+        ref_py = (
+            _PUBLIC_HEAD
+            + "from pathlib import Path\n\n\n"
+            + "def build_design(out_dir: Path) -> dict:\n"
+            + f"    PINS = {pins}\n"
+            + f"    RATIO = {ratio}\n"
+            + f"    ECC_MM = {eccentricity_mm}\n"
+            + "    parts = [\n"
+            + "        {'id': 'housing', 'role': 'ground', 'mass_kg': 0.0, "
+            "'fixed': True, 'com_local_mm': (0.0, 0.0, 0.0), "
+            "'params': {'ring_pin_count': PINS}},\n"
+            + "        {'id': 'eccentric_input', 'role': 'eccentric_input', "
+            "'mass_kg': 0.04, 'com_local_mm': (0.0, 0.0, 0.0), "
+            "'params': {'eccentricity_mm': ECC_MM}},\n"
+            + "        {'id': 'cycloidal_disc', 'role': 'cycloidal_disc', "
+            "'mass_kg': 0.08, 'com_local_mm': (ECC_MM, 0.0, 0.0), "
+            "'params': {'lobes': PINS - 1}},\n"
+            + "        {'id': 'output_carrier', 'role': 'output_carrier', "
+            "'mass_kg': 0.05, 'com_local_mm': (0.0, 0.0, 0.0)},\n"
+            + "    ]\n"
+            + "    joints = [\n"
+            + "        {'id': 'input_axis', 'type': 'revolute', "
+            "'parent': 'housing', 'child': 'eccentric_input', "
+            "'axis_world': (0.0, 0.0, 1.0), "
+            "'anchor_world_mm': (0.0, 0.0, 0.0)},\n"
+            + "        {'id': 'eccentric_disc_axis', 'type': 'revolute', "
+            "'parent': 'eccentric_input', 'child': 'cycloidal_disc', "
+            "'axis_world': (0.0, 0.0, 1.0), "
+            "'anchor_world_mm': (ECC_MM, 0.0, 0.0)},\n"
+            + "        {'id': 'output_axis', 'type': 'revolute', "
+            "'parent': 'housing', 'child': 'output_carrier', "
+            "'axis_world': (0.0, 0.0, 1.0), "
+            "'anchor_world_mm': (0.0, 0.0, 0.0)},\n"
+            + "    ]\n"
+            + "    ports = {\n"
+            + "        'input_port': {'id': 'input_port', "
+            "'part': 'input_axis', 'kind': 'revolute_joint', "
+            "'pose_local_mm': (0.0, 0.0, 0.0)},\n"
+            + "        'output_port': {'id': 'output_port', "
+            "'part': 'output_axis', 'kind': 'revolute_joint', "
+            "'pose_local_mm': (0.0, 0.0, 0.0)},\n"
+            + "    }\n"
+            + "    return {\n"
+            + "        'schema_version': 'design_ir.v2',\n"
+            + "        'parts': parts,\n"
+            + "        'joints': joints,\n"
+            + "        'ports': ports,\n"
+            + "        'params': {\n"
+            + "            'ring_pin_count': PINS,\n"
+            + "            'disc_lobe_count': PINS - 1,\n"
+            + "            'declared_ratio': RATIO,\n"
+            + "            'eccentricity_mm': ECC_MM,\n"
+            + "        },\n"
+            + "    }\n"
+        )
+
+        def _cfg(tol_pct: float) -> dict[str, Any]:
+            return {
+                "probes": [
+                    {"id": "mobility", "type": "dof_grubler",
+                     "space": "planar", "expected": 3, "tolerance": 0,
+                     "hard_gate": True, "severity": "critical"},
+                    {"id": "ports", "type": "required_ports",
+                     "ports": ["input_port", "output_port"],
+                     "require_grounded": ["input_port", "output_port"],
+                     "require_kinds": {
+                         "input_port": "revolute_joint",
+                         "output_port": "revolute_joint"},
+                     "hard_gate": True, "severity": "critical"},
+                    {"id": "ratio", "type": "analytic_param_check",
+                     "path": "params.declared_ratio",
+                     "expected": float(ratio),
+                     "comparator": "eq",
+                     "tolerance_pct": float(tol_pct),
+                     "failure_code": "wrong_ratio",
+                     "weight": 0.7, "severity": "major"},
+                    {"id": "pin_count", "type": "analytic_param_check",
+                     "path": "params.ring_pin_count",
+                     "expected": float(pins),
+                     "comparator": "eq",
+                     "failure_code": "wrong_topology",
+                     "weight": 0.3, "severity": "major"},
+                ],
+                "feedback": {
+                    "public_metrics": [
+                        "mobility.observed", "mobility.expected",
+                        "ratio.observed", "ratio.expected",
+                        "pin_count.observed", "pin_count.expected",
+                    ],
+                    "hidden_metrics": ["ratio.error_pct"],
+                },
+                "hard_gate": {"require": ["mobility", "ports"]},
+            }
+
+        negatives = {
+            "wrong_ratio": _negative_overlay(
+                f"    ir['params']['declared_ratio'] = "
+                f"{round(max(1.0, ratio - 2.0), 6)}"
+            ),
+            "missing_output_port": _negative_overlay(
+                "    del ir['ports']['output_port']"
+            ),
+            "wrong_pin_count": _negative_overlay(
+                "    ir['params']['ring_pin_count'] = "
+                f"{pins + 2}"
+            ),
+            "wrong_mobility_extra_fixed": _negative_overlay(
+                "    ir['joints'].append({\n"
+                "        'id': 'disc_lock', 'type': 'fixed',\n"
+                "        'parent': 'housing', 'child': 'cycloidal_disc',\n"
+                "        'axis_world': (0.0, 0.0, 1.0),\n"
+                "        'anchor_world_mm': (0.0, 0.0, 0.0)})"
+            ),
+        }
+        expected = {
+            "description": (
+                "Tier 2 cycloidal_layout_ratio negative controls."),
+            "controls": [
+                {
+                    "id": "wrong_ratio",
+                    "submission": "negative_solutions/wrong_ratio",
+                    "expected_failure_codes": ["wrong_ratio"],
+                    "expected_hard_gate_passed": True,
+                    "expected_score_below": 0.8,
+                },
+                {
+                    "id": "missing_output_port",
+                    "submission": "negative_solutions/missing_output_port",
+                    "expected_failure_codes": ["missing_port"],
+                    "expected_hard_gate_passed": False,
+                    "expected_score_below": 0.001,
+                },
+                {
+                    "id": "wrong_pin_count",
+                    "submission": "negative_solutions/wrong_pin_count",
+                    "expected_failure_codes": ["wrong_topology"],
+                    "expected_hard_gate_passed": True,
+                    "expected_score_below": 0.9,
+                },
+                {
+                    "id": "wrong_mobility_extra_fixed",
+                    "submission":
+                        "negative_solutions/wrong_mobility_extra_fixed",
+                    "expected_failure_codes": ["wrong_mobility"],
+                    "expected_hard_gate_passed": False,
+                    "expected_score_below": 0.001,
+                },
+            ],
+        }
+        task_toml = {
+            "task": {"id": task_id, "family": self.family,
+                     "difficulty": int(difficulty), "units": "mm",
+                     "tier": self.tier},
+            "requirements": {
+                "required_ports": ["input_port", "output_port"],
+                "expected_mobility": 3,
+                "max_envelope_mm": [200, 200, 80],
+            },
+            "objective": {
+                "description": (
+                    f"Cycloidal layout with {pins} ring pins and "
+                    f"{ratio:g}:1 declared ratio."
+                ),
+                "allow_massless_links": False,
+                "ground_required": True,
+            },
+        }
+        return GeneratedTask(
+            task_id=task_id, family=self.family,
+            difficulty=int(difficulty), prompt_md=prompt,
+            task_toml=task_toml,
+            eval_config_toml=_cfg(tol_pct=2.0),
+            eval_config_hidden_toml=_cfg(tol_pct=1.0),
+            fixtures={},
+            reference_solution_py=ref_py,
+            negative_solutions=negatives,
+            expected_failures=expected,
+            metadata=common_metadata(self.family, self.tier, seed,
+                                     difficulty,
+                                     ring_pin_count=pins,
+                                     target_ratio=ratio,
+                                     eccentricity_mm=eccentricity_mm),
+        )
+
+
+# --------------------------------------------------------------------- #
 # Tier 3 stubs — contact-dynamics, expected to surface                  #
 # capability_unavailable until a contact adapter ships.                 #
 # --------------------------------------------------------------------- #

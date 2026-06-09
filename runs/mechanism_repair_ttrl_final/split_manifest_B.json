@@ -1,0 +1,530 @@
+{
+  "excluded_families": [],
+  "excluded_task_ids": [],
+  "family_manifest": {
+    "belt": {
+      "n_tasks": 5,
+      "role": "unseen",
+      "test_task_ids": [
+        "belt_pulley_ratio_s20260607",
+        "belt_pulley_ratio_s20260609",
+        "belt_pulley_ratio_s20260611",
+        "timing_belt_center_distance_s20260608",
+        "timing_belt_center_distance_s20260610"
+      ]
+    },
+    "chain": {
+      "n_tasks": 5,
+      "role": "unseen",
+      "test_task_ids": [
+        "chain_sprocket_ratio_s20261607",
+        "chain_sprocket_ratio_s20261608",
+        "chain_sprocket_ratio_s20261609",
+        "chain_sprocket_ratio_s20261610",
+        "chain_sprocket_ratio_s20261611"
+      ]
+    },
+    "cycloidal": {
+      "n_tasks": 5,
+      "role": "unseen",
+      "test_task_ids": [
+        "cycloidal_layout_ratio_s20267607",
+        "cycloidal_layout_ratio_s20267608",
+        "cycloidal_layout_ratio_s20267609",
+        "cycloidal_layout_ratio_s20267610",
+        "cycloidal_layout_ratio_s20267611"
+      ]
+    },
+    "fourbar": {
+      "n_tasks": 5,
+      "role": "seen",
+      "train_task_ids": [
+        "fourbar_wiper_arc_s20265608",
+        "fourbar_path_s20265607",
+        "fourbar_dwell_path_s20265610",
+        "fourbar_straight_line_approx_s20265609"
+      ],
+      "val_task_ids": [
+        "fourbar_pump_handle_s20265611"
+      ]
+    },
+    "lead_screw": {
+      "n_tasks": 5,
+      "role": "seen",
+      "train_task_ids": [
+        "lead_screw_linear_travel_s20263610",
+        "lead_screw_linear_travel_s20263607",
+        "lead_screw_linear_travel_s20263611",
+        "lead_screw_linear_travel_s20263608"
+      ],
+      "val_task_ids": [
+        "lead_screw_linear_travel_s20263609"
+      ]
+    },
+    "planetary": {
+      "n_tasks": 5,
+      "role": "seen",
+      "train_task_ids": [
+        "planetary_fixed_ring_ratio_analytic_s20264609",
+        "planetary_fixed_sun_ratio_analytic_s20264610",
+        "planetary_fixed_ring_ratio_analytic_s20264611",
+        "planetary_fixed_ring_ratio_analytic_s20264607"
+      ],
+      "val_task_ids": [
+        "planetary_fixed_sun_ratio_analytic_s20264608"
+      ]
+    },
+    "rack_pinion": {
+      "n_tasks": 5,
+      "role": "unseen",
+      "test_task_ids": [
+        "rack_pinion_conversion_s20262607",
+        "rack_pinion_conversion_s20262609",
+        "rack_pinion_conversion_s20262611",
+        "rack_pinion_force_direction_s20262608",
+        "rack_pinion_force_direction_s20262610"
+      ]
+    },
+    "slider_crank": {
+      "n_tasks": 5,
+      "role": "seen",
+      "train_task_ids": [
+        "slider_crank_quick_return_proxy_s20266609",
+        "slider_crank_stroke_s20266607",
+        "slider_crank_stroke_s20266610",
+        "slider_crank_stroke_precision_s20266611"
+      ],
+      "val_task_ids": [
+        "slider_crank_stroke_precision_s20266608"
+      ]
+    }
+  },
+  "n_tasks_excluded": 0,
+  "n_tasks_total": 40,
+  "n_tasks_used": 40,
+  "schema": "mech_bench.family_generalization_split_manifest.v1",
+  "seed": 20260608,
+  "seen_families": [
+    "fourbar",
+    "lead_screw",
+    "planetary",
+    "slider_crank"
+  ],
+  "splits": {
+    "test": [
+      "belt_pulley_ratio_s20260607",
+      "belt_pulley_ratio_s20260609",
+      "belt_pulley_ratio_s20260611",
+      "chain_sprocket_ratio_s20261607",
+      "chain_sprocket_ratio_s20261608",
+      "chain_sprocket_ratio_s20261609",
+      "chain_sprocket_ratio_s20261610",
+      "chain_sprocket_ratio_s20261611",
+      "cycloidal_layout_ratio_s20267607",
+      "cycloidal_layout_ratio_s20267608",
+      "cycloidal_layout_ratio_s20267609",
+      "cycloidal_layout_ratio_s20267610",
+      "cycloidal_layout_ratio_s20267611",
+      "rack_pinion_conversion_s20262607",
+      "rack_pinion_conversion_s20262609",
+      "rack_pinion_conversion_s20262611",
+      "rack_pinion_force_direction_s20262608",
+      "rack_pinion_force_direction_s20262610",
+      "timing_belt_center_distance_s20260608",
+      "timing_belt_center_distance_s20260610"
+    ],
+    "train": [
+      "fourbar_dwell_path_s20265610",
+      "fourbar_path_s20265607",
+      "fourbar_straight_line_approx_s20265609",
+      "fourbar_wiper_arc_s20265608",
+      "lead_screw_linear_travel_s20263607",
+      "lead_screw_linear_travel_s20263608",
+      "lead_screw_linear_travel_s20263610",
+      "lead_screw_linear_travel_s20263611",
+      "planetary_fixed_ring_ratio_analytic_s20264607",
+      "planetary_fixed_ring_ratio_analytic_s20264609",
+      "planetary_fixed_ring_ratio_analytic_s20264611",
+      "planetary_fixed_sun_ratio_analytic_s20264610",
+      "slider_crank_quick_return_proxy_s20266609",
+      "slider_crank_stroke_precision_s20266611",
+      "slider_crank_stroke_s20266607",
+      "slider_crank_stroke_s20266610"
+    ],
+    "val": [
+      "fourbar_pump_handle_s20265611",
+      "lead_screw_linear_travel_s20263609",
+      "planetary_fixed_sun_ratio_analytic_s20264608",
+      "slider_crank_stroke_precision_s20266608"
+    ]
+  },
+  "task_index": {
+    "belt_pulley_ratio_s20260607": {
+      "canonical_family": "belt",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "belt_pulley_ratio",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/belt_pulley_ratio_s20260607"
+    },
+    "belt_pulley_ratio_s20260609": {
+      "canonical_family": "belt",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "belt_pulley_ratio",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/belt_pulley_ratio_s20260609"
+    },
+    "belt_pulley_ratio_s20260611": {
+      "canonical_family": "belt",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "belt_pulley_ratio",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/belt_pulley_ratio_s20260611"
+    },
+    "chain_sprocket_ratio_s20261607": {
+      "canonical_family": "chain",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "chain_sprocket_ratio",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/chain_sprocket_ratio_s20261607"
+    },
+    "chain_sprocket_ratio_s20261608": {
+      "canonical_family": "chain",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "chain_sprocket_ratio",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/chain_sprocket_ratio_s20261608"
+    },
+    "chain_sprocket_ratio_s20261609": {
+      "canonical_family": "chain",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "chain_sprocket_ratio",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/chain_sprocket_ratio_s20261609"
+    },
+    "chain_sprocket_ratio_s20261610": {
+      "canonical_family": "chain",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "chain_sprocket_ratio",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/chain_sprocket_ratio_s20261610"
+    },
+    "chain_sprocket_ratio_s20261611": {
+      "canonical_family": "chain",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "chain_sprocket_ratio",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/chain_sprocket_ratio_s20261611"
+    },
+    "cycloidal_layout_ratio_s20267607": {
+      "canonical_family": "cycloidal",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "cycloidal_layout_ratio",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/cycloidal_layout_ratio_s20267607"
+    },
+    "cycloidal_layout_ratio_s20267608": {
+      "canonical_family": "cycloidal",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "cycloidal_layout_ratio",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/cycloidal_layout_ratio_s20267608"
+    },
+    "cycloidal_layout_ratio_s20267609": {
+      "canonical_family": "cycloidal",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "cycloidal_layout_ratio",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/cycloidal_layout_ratio_s20267609"
+    },
+    "cycloidal_layout_ratio_s20267610": {
+      "canonical_family": "cycloidal",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "cycloidal_layout_ratio",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/cycloidal_layout_ratio_s20267610"
+    },
+    "cycloidal_layout_ratio_s20267611": {
+      "canonical_family": "cycloidal",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "cycloidal_layout_ratio",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/cycloidal_layout_ratio_s20267611"
+    },
+    "fourbar_dwell_path_s20265610": {
+      "canonical_family": "fourbar",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "fourbar_dwell_path",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/fourbar_dwell_path_s20265610"
+    },
+    "fourbar_path_s20265607": {
+      "canonical_family": "fourbar",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "fourbar_path",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/fourbar_path_s20265607"
+    },
+    "fourbar_pump_handle_s20265611": {
+      "canonical_family": "fourbar",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "fourbar_pump_handle",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/fourbar_pump_handle_s20265611"
+    },
+    "fourbar_straight_line_approx_s20265609": {
+      "canonical_family": "fourbar",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "fourbar_straight_line_approx",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/fourbar_straight_line_approx_s20265609"
+    },
+    "fourbar_wiper_arc_s20265608": {
+      "canonical_family": "fourbar",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "fourbar_wiper_arc",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/fourbar_wiper_arc_s20265608"
+    },
+    "lead_screw_linear_travel_s20263607": {
+      "canonical_family": "lead_screw",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "lead_screw_linear_travel",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/lead_screw_linear_travel_s20263607"
+    },
+    "lead_screw_linear_travel_s20263608": {
+      "canonical_family": "lead_screw",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "lead_screw_linear_travel",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/lead_screw_linear_travel_s20263608"
+    },
+    "lead_screw_linear_travel_s20263609": {
+      "canonical_family": "lead_screw",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "lead_screw_linear_travel",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/lead_screw_linear_travel_s20263609"
+    },
+    "lead_screw_linear_travel_s20263610": {
+      "canonical_family": "lead_screw",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "lead_screw_linear_travel",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/lead_screw_linear_travel_s20263610"
+    },
+    "lead_screw_linear_travel_s20263611": {
+      "canonical_family": "lead_screw",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "lead_screw_linear_travel",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/lead_screw_linear_travel_s20263611"
+    },
+    "planetary_fixed_ring_ratio_analytic_s20264607": {
+      "canonical_family": "planetary",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "planetary_fixed_ring_ratio_analytic",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/planetary_fixed_ring_ratio_analytic_s20264607"
+    },
+    "planetary_fixed_ring_ratio_analytic_s20264609": {
+      "canonical_family": "planetary",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "planetary_fixed_ring_ratio_analytic",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/planetary_fixed_ring_ratio_analytic_s20264609"
+    },
+    "planetary_fixed_ring_ratio_analytic_s20264611": {
+      "canonical_family": "planetary",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "planetary_fixed_ring_ratio_analytic",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/planetary_fixed_ring_ratio_analytic_s20264611"
+    },
+    "planetary_fixed_sun_ratio_analytic_s20264608": {
+      "canonical_family": "planetary",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "planetary_fixed_sun_ratio_analytic",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/planetary_fixed_sun_ratio_analytic_s20264608"
+    },
+    "planetary_fixed_sun_ratio_analytic_s20264610": {
+      "canonical_family": "planetary",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "planetary_fixed_sun_ratio_analytic",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/planetary_fixed_sun_ratio_analytic_s20264610"
+    },
+    "rack_pinion_conversion_s20262607": {
+      "canonical_family": "rack_pinion",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "rack_pinion_conversion",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/rack_pinion_conversion_s20262607"
+    },
+    "rack_pinion_conversion_s20262609": {
+      "canonical_family": "rack_pinion",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "rack_pinion_conversion",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/rack_pinion_conversion_s20262609"
+    },
+    "rack_pinion_conversion_s20262611": {
+      "canonical_family": "rack_pinion",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "rack_pinion_conversion",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/rack_pinion_conversion_s20262611"
+    },
+    "rack_pinion_force_direction_s20262608": {
+      "canonical_family": "rack_pinion",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "rack_pinion_force_direction",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/rack_pinion_force_direction_s20262608"
+    },
+    "rack_pinion_force_direction_s20262610": {
+      "canonical_family": "rack_pinion",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "rack_pinion_force_direction",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/rack_pinion_force_direction_s20262610"
+    },
+    "slider_crank_quick_return_proxy_s20266609": {
+      "canonical_family": "slider_crank",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "slider_crank_quick_return_proxy",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/slider_crank_quick_return_proxy_s20266609"
+    },
+    "slider_crank_stroke_precision_s20266608": {
+      "canonical_family": "slider_crank",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "slider_crank_stroke_precision",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/slider_crank_stroke_precision_s20266608"
+    },
+    "slider_crank_stroke_precision_s20266611": {
+      "canonical_family": "slider_crank",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "slider_crank_stroke_precision",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/slider_crank_stroke_precision_s20266611"
+    },
+    "slider_crank_stroke_s20266607": {
+      "canonical_family": "slider_crank",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "slider_crank_stroke",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/slider_crank_stroke_s20266607"
+    },
+    "slider_crank_stroke_s20266610": {
+      "canonical_family": "slider_crank",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "slider_crank_stroke",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/slider_crank_stroke_s20266610"
+    },
+    "timing_belt_center_distance_s20260608": {
+      "canonical_family": "belt",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "timing_belt_center_distance",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/timing_belt_center_distance_s20260608"
+    },
+    "timing_belt_center_distance_s20260610": {
+      "canonical_family": "belt",
+      "chrono_procedural_fallback_disabled": false,
+      "has_chrono_contact_config": false,
+      "has_trusted_asset_preflight": false,
+      "raw_family": "timing_belt_center_distance",
+      "requires_trusted_mass_properties": false,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/timing_belt_center_distance_s20260610"
+    }
+  },
+  "tasks_root": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks",
+  "unseen_families": [
+    "belt",
+    "chain",
+    "cycloidal",
+    "rack_pinion"
+  ]
+}

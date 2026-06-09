@@ -1,0 +1,47 @@
+{
+  "budget_curve": [
+    8,
+    16,
+    32,
+    64
+  ],
+  "causal_contrast": {
+    "difference": "mechanical_evolve_ttrl updates LoRA weights; llm_evolve_no_update does not",
+    "same_actual_verifier_calls": true,
+    "same_base_model": true,
+    "same_prompts": true,
+    "same_task_order": true,
+    "same_tasks": true,
+    "same_verifier_feedback": true
+  },
+  "eval_seeds": [
+    20260607,
+    20260608,
+    20260609
+  ],
+  "method_roles": {
+    "frozen_model": "base model, no updates",
+    "llm_evolve_no_update": "primary no-update feedback baseline",
+    "mechanical_evolve_ttrl": "verifier-derived GRPO/LoRA updates",
+    "no_update_search": "high-temperature best-of-K no-update",
+    "sft_model": "seen-family supervised adapter",
+    "verifier_gated": "low-temperature verifier-gated no-update"
+  },
+  "primary_baseline": "llm_evolve_no_update",
+  "primary_budget_verifier_calls": 32,
+  "primary_method": "mechanical_evolve_ttrl",
+  "required_methods": [
+    "frozen_model",
+    "verifier_gated",
+    "no_update_search",
+    "llm_evolve_no_update",
+    "sft_model",
+    "mechanical_evolve_ttrl"
+  ],
+  "schema": "mechanism_repair_ttrl.method_manifest.v1",
+  "success_threshold": {
+    "paired_reward_delta_must_be_positive": true,
+    "paired_statistical_support": "bootstrap_ci95_low_gt_0_or_paired_test_p_lte_0.05",
+    "verified_repair_success_abs_delta_pct": 15.0
+  }
+}

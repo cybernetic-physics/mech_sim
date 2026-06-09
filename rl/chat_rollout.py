@@ -109,6 +109,28 @@ def _format_verifier_feedback(turn: TurnTrace) -> str:
             details.append(f"- {prefix}{msg}{suffix}")
         if details:
             bits.append("details:\n" + "\n".join(details))
+    soft_physics_hint = ""
+    if turn.passed and turn.dense_pct < 99.5:
+        metrics = []
+        for key in (
+            "max_penetration_mm",
+            "contact_force_rms_N",
+            "ratio_error_pct",
+            "out_omega_med",
+        ):
+            value = turn.physical_metrics.get(key)
+            if value is not None:
+                metrics.append(f"{key}={value:.6g}")
+        metric_text = "; ".join(metrics)
+        soft_physics_hint = (
+            "soft_objective: hard gates passed but the dense physical reward "
+            f"is only {turn.dense_pct:.1f}/100. Improve the non-hard physical "
+            "objective without breaking required ports, topology, params, CAD, "
+            "or Chrono contact. For contact tasks, reduce penetration while "
+            "preserving required engagement/contact force."
+        )
+        if metric_text:
+            soft_physics_hint += f" Current metrics: {metric_text}."
     hint = ""
     if not turn.parsed_ok:
         hint = (
@@ -141,7 +163,8 @@ def _format_verifier_feedback(turn: TurnTrace) -> str:
         hint = (
             "wrong_ratio: a scalar in top-level `params` did not "
             "match the target. Use the exact key shown in the task "
-            "prompt, without a `declared_` prefix."
+            "prompt; do not invent aliases or rename required "
+            "`declared_*` keys."
         )
     elif "schema_error" in turn.failure_codes:
         hint = (
@@ -155,11 +178,14 @@ def _format_verifier_feedback(turn: TurnTrace) -> str:
             "invalid_artifact: the IR shape was malformed — most "
             "often an unsafe geometry path, non-finite value, missing "
             "schema_version, invalid mass/inertia, or a callable/object "
-            "inside the returned dict."
+            "inside the returned dict. Re-emit a complete design.py with "
+            "`def build_design(out_dir)` in one fenced block and no prose."
         )
     payload = "  ".join(bits)
     if hint:
         payload += "\n\n" + hint
+    if soft_physics_hint:
+        payload += "\n\n" + soft_physics_hint
     return (
         "VERIFIER FEEDBACK\n"
         f"{payload}\n\n"
@@ -254,6 +280,8 @@ def _chat_completion(
     timeout_s: float,
     seed: int | None = None,
     lora_path: str | None = None,
+    continue_final_message: bool = False,
+    extra_body: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Send one /v1/chat/completions request. Returns the JSON body."""
     if requests is None:
@@ -267,6 +295,10 @@ def _chat_completion(
         "top_p": float(top_p),
         "stream": False,
     }
+    if continue_final_message:
+        body["continue_final_message"] = True
+    if extra_body:
+        body.update(extra_body)
     if seed is not None:
         body["seed"] = int(seed)
     if lora_path:
@@ -360,12 +392,15 @@ def run_rollout(
     parse_bonus: float = 5.0,
     seed: int | None = None,
     lora_path: str | None = None,
+    stop_on_pass: bool = True,
+    assistant_prefill: str | None = None,
+    strict_user_suffix: str | None = None,
 ) -> Rollout:
     """One multi-turn rollout on *task* with feedback in the loop.
 
-    Stops early when the verifier's hard gate passes. Always plays
-    the final turn so the trainer has a clean closing assistant
-    span to apply CE on.
+    Stops early when the verifier's hard gate passes unless
+    ``stop_on_pass`` is false. Paper matched-budget evaluation disables
+    early stopping so multi-turn methods spend their full verifier budget.
     """
     # Local imports to keep this module importable without the full
     # mech_bench stack at import time.
@@ -375,6 +410,9 @@ def run_rollout(
     import mech_env as env  # noqa: E402  pyright: ignore
 
     started = time.perf_counter()
+    if strict_user_suffix and strict_user_suffix not in user_prompt:
+        user_prompt = user_prompt.rstrip() + "\n\n" + strict_user_suffix
+
     messages: list[dict[str, str]] = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
@@ -383,14 +421,31 @@ def run_rollout(
     rollout = Rollout(task_id=task.task_id, messages=messages)
 
     for turn_idx in range(max_turns):
+        request_messages = messages
+        if assistant_prefill:
+            request_messages = messages + [
+                {"role": "assistant", "content": assistant_prefill}
+            ]
         try:
             resp = _chat_completion(
-                base_url=base_url, model=model, messages=messages,
+                base_url=base_url, model=model, messages=request_messages,
                 max_tokens=max_tokens_per_turn,
                 temperature=temperature, top_p=top_p,
                 timeout_s=timeout_s,
                 seed=None if seed is None else seed + turn_idx,
                 lora_path=lora_path,
+                continue_final_message=bool(assistant_prefill),
+                extra_body=(
+                    {
+                        "separate_reasoning": False,
+                        "chat_template_kwargs": {
+                            "enable_thinking": False,
+                            "thinking": False,
+                        },
+                    }
+                    if assistant_prefill
+                    else None
+                ),
             )
         except Exception as e:  # noqa: BLE001 — sampler firewall
             rollout.turns.append(TurnTrace(
@@ -408,7 +463,12 @@ def run_rollout(
 
         choice = (resp.get("choices") or [{}])[0]
         msg = choice.get("message") or {}
-        assistant_text = str(msg.get("content") or "")
+        continuation = str(msg.get("content") or "")
+        assistant_text = (
+            continuation
+            if not assistant_prefill or continuation.startswith(assistant_prefill)
+            else assistant_prefill + continuation
+        )
         stop_reason = choice.get("finish_reason") or "stop"
         usage = resp.get("usage") or {}
         rollout.total_tokens_in += int(usage.get("prompt_tokens") or 0)
@@ -444,7 +504,7 @@ def run_rollout(
 
         # Append assistant message and decide whether to continue.
         messages.append({"role": "assistant", "content": assistant_text})
-        if ep.passed:
+        if ep.passed and stop_on_pass:
             break
         if turn_idx == max_turns - 1:
             break
@@ -517,6 +577,7 @@ def run_rollout_with_sampling_client(
     timeout_s: float = 240.0,
     parse_bonus: float = 5.0,
     seed: int | None = None,
+    stop_on_pass: bool = True,
 ) -> Rollout:
     """One multi-turn rollout using a Worldlines SamplingClient.
 
@@ -594,7 +655,7 @@ def run_rollout_with_sampling_client(
             rollout.best_dense_pct = ep.dense_pct
 
         messages.append({"role": "assistant", "content": assistant_text})
-        if ep.passed:
+        if ep.passed and stop_on_pass:
             break
         if turn_idx == max_turns - 1:
             break

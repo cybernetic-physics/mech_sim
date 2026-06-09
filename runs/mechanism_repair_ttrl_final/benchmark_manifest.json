@@ -1,0 +1,1624 @@
+{
+  "audit": {
+    "blockers": [],
+    "family_counts": {
+      "belt": 5,
+      "chain": 5,
+      "cycloidal": 5,
+      "fourbar": 5,
+      "lead_screw": 5,
+      "planetary": 5,
+      "rack_pinion": 5,
+      "slider_crank": 5
+    },
+    "min_tasks_per_family": 5,
+    "passes": true,
+    "primary_families": [
+      "belt",
+      "chain",
+      "rack_pinion",
+      "lead_screw",
+      "planetary",
+      "fourbar",
+      "slider_crank",
+      "cycloidal"
+    ],
+    "schema": "mechanism_repair_ttrl.benchmark_audit.v1",
+    "task_count": 40,
+    "tasks": [
+      {
+        "canonical_family": "belt",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "belt_pulley_ratio",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/belt_pulley_ratio_s20260607",
+        "task_hash": "b79efc69f64100264c37af66dab11dcdc537a53938834d420e97ab2dba08ce08",
+        "task_id": "belt_pulley_ratio_s20260607",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "belt",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "belt_pulley_ratio",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/belt_pulley_ratio_s20260609",
+        "task_hash": "566dd5bd0487111a70febad5d5fe6bb71645a42a9de275813bc2f96689cd140b",
+        "task_id": "belt_pulley_ratio_s20260609",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "belt",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "belt_pulley_ratio",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/belt_pulley_ratio_s20260611",
+        "task_hash": "1bb1e88d8b2e8f97387c45551e62b33ffb269acfcc6e8753db1e7de9fa310b0e",
+        "task_id": "belt_pulley_ratio_s20260611",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "chain",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "chain_sprocket_ratio",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/chain_sprocket_ratio_s20261607",
+        "task_hash": "d4376517fc7bfad4859545ff40349ed0e89a5280f724f655c18744891051490e",
+        "task_id": "chain_sprocket_ratio_s20261607",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "chain",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "chain_sprocket_ratio",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/chain_sprocket_ratio_s20261608",
+        "task_hash": "c348f0178890ddb567134ca04f8f2e9c87e448f3395321fa5d71f73c57bad5fd",
+        "task_id": "chain_sprocket_ratio_s20261608",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "chain",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "chain_sprocket_ratio",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/chain_sprocket_ratio_s20261609",
+        "task_hash": "e9afcae8cd6506b56da5a8802f54a91c5140acb2ce4159db6b0a9a3c4490778e",
+        "task_id": "chain_sprocket_ratio_s20261609",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "chain",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "chain_sprocket_ratio",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/chain_sprocket_ratio_s20261610",
+        "task_hash": "5fc064375cdb76fd82e8335140455fced480862d35bd08ddeeefddc75f1732cb",
+        "task_id": "chain_sprocket_ratio_s20261610",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "chain",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "chain_sprocket_ratio",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/chain_sprocket_ratio_s20261611",
+        "task_hash": "38be45b383cd5bb3ecd7c8c87d1d4990c4aa0b6023d139f4e99fd571adf05d48",
+        "task_id": "chain_sprocket_ratio_s20261611",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "cycloidal",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 4,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check",
+          "analytic_param_check"
+        ],
+        "raw_family": "cycloidal_layout_ratio",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/cycloidal_layout_ratio_s20267607",
+        "task_hash": "285d4af5fab5b47a75a1c628b3ac78b1e5698f36945664b1f596dcb62dfa6fe5",
+        "task_id": "cycloidal_layout_ratio_s20267607",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "cycloidal",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 4,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check",
+          "analytic_param_check"
+        ],
+        "raw_family": "cycloidal_layout_ratio",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/cycloidal_layout_ratio_s20267608",
+        "task_hash": "35febdfd9c4b0b300f613f90b122a836480c88586c3f78250060cf0284f9a52b",
+        "task_id": "cycloidal_layout_ratio_s20267608",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "cycloidal",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 4,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check",
+          "analytic_param_check"
+        ],
+        "raw_family": "cycloidal_layout_ratio",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/cycloidal_layout_ratio_s20267609",
+        "task_hash": "03f332e75669e9e95c1a03f0b9eaf924f349e7fc49ac7dae4acfacbf0d8bd7fe",
+        "task_id": "cycloidal_layout_ratio_s20267609",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "cycloidal",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 4,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check",
+          "analytic_param_check"
+        ],
+        "raw_family": "cycloidal_layout_ratio",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/cycloidal_layout_ratio_s20267610",
+        "task_hash": "d5dca7c985b3815eb8e2f6abfec0e486eee364a1c7fba851fa195090a58c149e",
+        "task_id": "cycloidal_layout_ratio_s20267610",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "cycloidal",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 4,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check",
+          "analytic_param_check"
+        ],
+        "raw_family": "cycloidal_layout_ratio",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/cycloidal_layout_ratio_s20267611",
+        "task_hash": "f6286a599b03e8b8d577854c49cbbde80a2ada9bd10d38a9cb72fdf98655b65f",
+        "task_id": "cycloidal_layout_ratio_s20267611",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "fourbar",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "path_trace_chamfer"
+        ],
+        "raw_family": "fourbar_dwell_path",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/fourbar_dwell_path_s20265610",
+        "task_hash": "0c38bae9bb404e060914017b61395cf285ca84352a288ce6c5126fdf633bb8b9",
+        "task_id": "fourbar_dwell_path_s20265610",
+        "tier": "planar_kinematics",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.9999997713864147
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "fourbar",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "path_trace_chamfer"
+        ],
+        "raw_family": "fourbar_path",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/fourbar_path_s20265607",
+        "task_hash": "0244a2df553fc68afcfb80d7cfc7cee146ff042e61aba892e020680eac438dfa",
+        "task_id": "fourbar_path_s20265607",
+        "tier": "planar_kinematics",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.9999997201054491
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "fourbar",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check",
+          "analytic_param_check"
+        ],
+        "raw_family": "fourbar_pump_handle",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/fourbar_pump_handle_s20265611",
+        "task_hash": "fa31f1a50e4a4af0bc0312dcebb15de57ba3a9b81a4dff3ce87d590d2b7ea942",
+        "task_id": "fourbar_pump_handle_s20265611",
+        "tier": "planar_kinematics",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "fourbar",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "path_trace_chamfer"
+        ],
+        "raw_family": "fourbar_straight_line_approx",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/fourbar_straight_line_approx_s20265609",
+        "task_hash": "123fad8566a75e578404660f475e73e705467bfa4bcd66bf67e251e09180ca84",
+        "task_id": "fourbar_straight_line_approx_s20265609",
+        "tier": "planar_kinematics",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.9999997067223291
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "fourbar",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "path_trace_chamfer"
+        ],
+        "raw_family": "fourbar_wiper_arc",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/fourbar_wiper_arc_s20265608",
+        "task_hash": "c97e6d14838279ad69eeeff2ca3babf1ebf928dc39880a75e21e5689e88c7f26",
+        "task_id": "fourbar_wiper_arc_s20265608",
+        "tier": "planar_kinematics",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.9999997462595794
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "lead_screw",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "lead_screw_linear_travel",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/lead_screw_linear_travel_s20263607",
+        "task_hash": "2635a8017d4337a65520f9625b1dc360137dc0a3965a1ae553435f6732f27490",
+        "task_id": "lead_screw_linear_travel_s20263607",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "lead_screw",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "lead_screw_linear_travel",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/lead_screw_linear_travel_s20263608",
+        "task_hash": "bea57d8bccf24f314c536f625207121fe6d36cbdf0393647edeb4f8121c603c2",
+        "task_id": "lead_screw_linear_travel_s20263608",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "lead_screw",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "lead_screw_linear_travel",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/lead_screw_linear_travel_s20263609",
+        "task_hash": "81c6bf0ba73a9708654dd292c74ad0358383940f627db7defff5dac57848cd12",
+        "task_id": "lead_screw_linear_travel_s20263609",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "lead_screw",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "lead_screw_linear_travel",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/lead_screw_linear_travel_s20263610",
+        "task_hash": "f311c07a64cbe401e5d4f7084fb7dad47eed4fbd094c1bec8cdac8cbc6225c58",
+        "task_id": "lead_screw_linear_travel_s20263610",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "lead_screw",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "lead_screw_linear_travel",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/lead_screw_linear_travel_s20263611",
+        "task_hash": "3c81db60201b862d62f2968ab7fe0c9ab54c9bf84d46bc0223b3a4bf128dbf1a",
+        "task_id": "lead_screw_linear_travel_s20263611",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "planetary",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "planetary_fixed_ring_ratio_analytic",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/planetary_fixed_ring_ratio_analytic_s20264607",
+        "task_hash": "30249be8ad950485d913fdb67f3f08af42beac5d674bb1d26a18e929c1ac6cf5",
+        "task_id": "planetary_fixed_ring_ratio_analytic_s20264607",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "planetary",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "planetary_fixed_ring_ratio_analytic",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/planetary_fixed_ring_ratio_analytic_s20264609",
+        "task_hash": "aba3b10e806248dfd4ffc2e4c42a15576192ecc91323b528745a3004e3f76357",
+        "task_id": "planetary_fixed_ring_ratio_analytic_s20264609",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "planetary",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "planetary_fixed_ring_ratio_analytic",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/planetary_fixed_ring_ratio_analytic_s20264611",
+        "task_hash": "dae7567b967c92483c5332441e6a7806e784bdfce6a6a41c671da6c46bf02fa8",
+        "task_id": "planetary_fixed_ring_ratio_analytic_s20264611",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "planetary",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "planetary_fixed_sun_ratio_analytic",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/planetary_fixed_sun_ratio_analytic_s20264608",
+        "task_hash": "633e6df4492a491ed209092069e545424026c6c14f3b5b75c3666326fa9f2ce9",
+        "task_id": "planetary_fixed_sun_ratio_analytic_s20264608",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "planetary",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "planetary_fixed_sun_ratio_analytic",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/planetary_fixed_sun_ratio_analytic_s20264610",
+        "task_hash": "b209629f32e59431953417c517b9932ce00e8027b970289e4788dfa86c5c4fb9",
+        "task_id": "planetary_fixed_sun_ratio_analytic_s20264610",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "rack_pinion",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "rack_pinion_conversion",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/rack_pinion_conversion_s20262607",
+        "task_hash": "15646b5977857fdd832037641fcc1327063f88a654d19c6c84ddc74ec11009fb",
+        "task_id": "rack_pinion_conversion_s20262607",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "rack_pinion",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "rack_pinion_conversion",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/rack_pinion_conversion_s20262609",
+        "task_hash": "8a1201e2df1e629a59ad50e03bb6052ac20f47f886cf892069ad1aed9b2a2121",
+        "task_id": "rack_pinion_conversion_s20262609",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "rack_pinion",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "rack_pinion_conversion",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/rack_pinion_conversion_s20262611",
+        "task_hash": "d0576b16c38bc087a9c507622b5847ee3e5d284d37167056455d1054ebe7f8f9",
+        "task_id": "rack_pinion_conversion_s20262611",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "rack_pinion",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "rack_pinion_force_direction",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/rack_pinion_force_direction_s20262608",
+        "task_hash": "1da769825d03d174af93d33380927351b5e1963a7776f13d713f50805ce58f2c",
+        "task_id": "rack_pinion_force_direction_s20262608",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "rack_pinion",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "rack_pinion_force_direction",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/rack_pinion_force_direction_s20262610",
+        "task_hash": "04c8b049a62225ae52a60ef24ac03dae48be7ecc6e72338bc63ab88136ea908c",
+        "task_id": "rack_pinion_force_direction_s20262610",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "slider_crank",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "slider_crank_quick_return_proxy",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/slider_crank_quick_return_proxy_s20266609",
+        "task_hash": "6c380d9f7ac7a4498ac3b24812c8f37de277bc3f5aac5d3bb9421a8cf6412470",
+        "task_id": "slider_crank_quick_return_proxy_s20266609",
+        "tier": "planar_kinematics",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "slider_crank",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "slider_crank_stroke_precision",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/slider_crank_stroke_precision_s20266608",
+        "task_hash": "82642ca112d73ca25a5c787d2dac21a0b594f3d0093047f3a59469f0b1523e92",
+        "task_id": "slider_crank_stroke_precision_s20266608",
+        "tier": "planar_kinematics",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "slider_crank",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "slider_crank_stroke_precision",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/slider_crank_stroke_precision_s20266611",
+        "task_hash": "f1027db2c91ac5db0cbd5e2473ecabb0b5e1dd2ebaf5a00d36e4489c3d0fba9d",
+        "task_id": "slider_crank_stroke_precision_s20266611",
+        "tier": "planar_kinematics",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "slider_crank",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "slider_crank_stroke",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/slider_crank_stroke_s20266607",
+        "task_hash": "c3a1d11ff7ca4ebecd184043275dd4c9a32b9f38737f2893e9636f0b123d2a85",
+        "task_id": "slider_crank_stroke_s20266607",
+        "tier": "planar_kinematics",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "slider_crank",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check"
+        ],
+        "raw_family": "slider_crank_stroke",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/slider_crank_stroke_s20266610",
+        "task_hash": "867031ccdfc466be238c6676a89bae78060d9c8b3eb477bc7318daad53421c49",
+        "task_id": "slider_crank_stroke_s20266610",
+        "tier": "planar_kinematics",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "belt",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check",
+          "analytic_param_check"
+        ],
+        "raw_family": "timing_belt_center_distance",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/timing_belt_center_distance_s20260608",
+        "task_hash": "b837fb0f70c9e82e1beff8d13abbd14e452ada2a9c92f3abcc2325aa1570be1b",
+        "task_id": "timing_belt_center_distance_s20260608",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      },
+      {
+        "canonical_family": "belt",
+        "constraint_classes": [
+          "functional_behavior",
+          "topology_or_mobility"
+        ],
+        "has_negative_control": true,
+        "negative_control_count": 2,
+        "probe_types": [
+          "dof_grubler",
+          "required_ports",
+          "analytic_param_check",
+          "analytic_param_check"
+        ],
+        "raw_family": "timing_belt_center_distance",
+        "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/timing_belt_center_distance_s20260610",
+        "task_hash": "67b8abed7d09687f6bbddde94b646095628e586fa970dd4ea181040823d1845c",
+        "task_id": "timing_belt_center_distance_s20260610",
+        "tier": "transmission_analytic",
+        "uses_fake_contact_oracle": false,
+        "validation": {
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
+        },
+        "verifier_level": 1
+      }
+    ],
+    "tasks_root": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks",
+    "validate": true
+  },
+  "base_seed": 20260607,
+  "experiment_ready": true,
+  "method_manifest_path": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/method_manifest.json",
+  "primary_families": [
+    "belt",
+    "chain",
+    "rack_pinion",
+    "lead_screw",
+    "planetary",
+    "fourbar",
+    "slider_crank",
+    "cycloidal"
+  ],
+  "schema": "mechanism_repair_ttrl.benchmark_manifest.v1",
+  "splits": {
+    "A": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/split_manifest_A.json",
+    "B": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/split_manifest_B.json"
+  },
+  "task_count": 40,
+  "tasks": [
+    {
+      "canonical_family": "belt",
+      "generator": "mech_bench.generators.gear_train.BeltPulleyRatioGenerator",
+      "raw_family": "belt_pulley_ratio",
+      "seed": 20260607,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/belt_pulley_ratio_s20260607",
+      "task_id": "belt_pulley_ratio_s20260607",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "belt",
+      "generator": "mech_bench.generators.transmission_analytic.TimingBeltCenterDistanceGenerator",
+      "raw_family": "timing_belt_center_distance",
+      "seed": 20260608,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/timing_belt_center_distance_s20260608",
+      "task_id": "timing_belt_center_distance_s20260608",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "belt",
+      "generator": "mech_bench.generators.gear_train.BeltPulleyRatioGenerator",
+      "raw_family": "belt_pulley_ratio",
+      "seed": 20260609,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/belt_pulley_ratio_s20260609",
+      "task_id": "belt_pulley_ratio_s20260609",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "belt",
+      "generator": "mech_bench.generators.transmission_analytic.TimingBeltCenterDistanceGenerator",
+      "raw_family": "timing_belt_center_distance",
+      "seed": 20260610,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/timing_belt_center_distance_s20260610",
+      "task_id": "timing_belt_center_distance_s20260610",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "belt",
+      "generator": "mech_bench.generators.gear_train.BeltPulleyRatioGenerator",
+      "raw_family": "belt_pulley_ratio",
+      "seed": 20260611,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/belt_pulley_ratio_s20260611",
+      "task_id": "belt_pulley_ratio_s20260611",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "chain",
+      "generator": "mech_bench.generators.transmission_analytic.ChainSprocketRatioGenerator",
+      "raw_family": "chain_sprocket_ratio",
+      "seed": 20261607,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/chain_sprocket_ratio_s20261607",
+      "task_id": "chain_sprocket_ratio_s20261607",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "chain",
+      "generator": "mech_bench.generators.transmission_analytic.ChainSprocketRatioGenerator",
+      "raw_family": "chain_sprocket_ratio",
+      "seed": 20261608,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/chain_sprocket_ratio_s20261608",
+      "task_id": "chain_sprocket_ratio_s20261608",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "chain",
+      "generator": "mech_bench.generators.transmission_analytic.ChainSprocketRatioGenerator",
+      "raw_family": "chain_sprocket_ratio",
+      "seed": 20261609,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/chain_sprocket_ratio_s20261609",
+      "task_id": "chain_sprocket_ratio_s20261609",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "chain",
+      "generator": "mech_bench.generators.transmission_analytic.ChainSprocketRatioGenerator",
+      "raw_family": "chain_sprocket_ratio",
+      "seed": 20261610,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/chain_sprocket_ratio_s20261610",
+      "task_id": "chain_sprocket_ratio_s20261610",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "chain",
+      "generator": "mech_bench.generators.transmission_analytic.ChainSprocketRatioGenerator",
+      "raw_family": "chain_sprocket_ratio",
+      "seed": 20261611,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/chain_sprocket_ratio_s20261611",
+      "task_id": "chain_sprocket_ratio_s20261611",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "rack_pinion",
+      "generator": "mech_bench.generators.gear_train.RackPinionConversionGenerator",
+      "raw_family": "rack_pinion_conversion",
+      "seed": 20262607,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/rack_pinion_conversion_s20262607",
+      "task_id": "rack_pinion_conversion_s20262607",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "rack_pinion",
+      "generator": "mech_bench.generators.transmission_analytic.RackPinionForceDirectionGenerator",
+      "raw_family": "rack_pinion_force_direction",
+      "seed": 20262608,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/rack_pinion_force_direction_s20262608",
+      "task_id": "rack_pinion_force_direction_s20262608",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "rack_pinion",
+      "generator": "mech_bench.generators.gear_train.RackPinionConversionGenerator",
+      "raw_family": "rack_pinion_conversion",
+      "seed": 20262609,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/rack_pinion_conversion_s20262609",
+      "task_id": "rack_pinion_conversion_s20262609",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "rack_pinion",
+      "generator": "mech_bench.generators.transmission_analytic.RackPinionForceDirectionGenerator",
+      "raw_family": "rack_pinion_force_direction",
+      "seed": 20262610,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/rack_pinion_force_direction_s20262610",
+      "task_id": "rack_pinion_force_direction_s20262610",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "rack_pinion",
+      "generator": "mech_bench.generators.gear_train.RackPinionConversionGenerator",
+      "raw_family": "rack_pinion_conversion",
+      "seed": 20262611,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/rack_pinion_conversion_s20262611",
+      "task_id": "rack_pinion_conversion_s20262611",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "lead_screw",
+      "generator": "mech_bench.generators.transmission_analytic.LeadScrewLinearTravelGenerator",
+      "raw_family": "lead_screw_linear_travel",
+      "seed": 20263607,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/lead_screw_linear_travel_s20263607",
+      "task_id": "lead_screw_linear_travel_s20263607",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "lead_screw",
+      "generator": "mech_bench.generators.transmission_analytic.LeadScrewLinearTravelGenerator",
+      "raw_family": "lead_screw_linear_travel",
+      "seed": 20263608,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/lead_screw_linear_travel_s20263608",
+      "task_id": "lead_screw_linear_travel_s20263608",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "lead_screw",
+      "generator": "mech_bench.generators.transmission_analytic.LeadScrewLinearTravelGenerator",
+      "raw_family": "lead_screw_linear_travel",
+      "seed": 20263609,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/lead_screw_linear_travel_s20263609",
+      "task_id": "lead_screw_linear_travel_s20263609",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "lead_screw",
+      "generator": "mech_bench.generators.transmission_analytic.LeadScrewLinearTravelGenerator",
+      "raw_family": "lead_screw_linear_travel",
+      "seed": 20263610,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/lead_screw_linear_travel_s20263610",
+      "task_id": "lead_screw_linear_travel_s20263610",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "lead_screw",
+      "generator": "mech_bench.generators.transmission_analytic.LeadScrewLinearTravelGenerator",
+      "raw_family": "lead_screw_linear_travel",
+      "seed": 20263611,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/lead_screw_linear_travel_s20263611",
+      "task_id": "lead_screw_linear_travel_s20263611",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "planetary",
+      "generator": "mech_bench.generators.transmission_analytic.PlanetaryFixedRingRatioGenerator",
+      "raw_family": "planetary_fixed_ring_ratio_analytic",
+      "seed": 20264607,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/planetary_fixed_ring_ratio_analytic_s20264607",
+      "task_id": "planetary_fixed_ring_ratio_analytic_s20264607",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "planetary",
+      "generator": "mech_bench.generators.transmission_analytic.PlanetaryFixedSunRatioGenerator",
+      "raw_family": "planetary_fixed_sun_ratio_analytic",
+      "seed": 20264608,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/planetary_fixed_sun_ratio_analytic_s20264608",
+      "task_id": "planetary_fixed_sun_ratio_analytic_s20264608",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "planetary",
+      "generator": "mech_bench.generators.transmission_analytic.PlanetaryFixedRingRatioGenerator",
+      "raw_family": "planetary_fixed_ring_ratio_analytic",
+      "seed": 20264609,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/planetary_fixed_ring_ratio_analytic_s20264609",
+      "task_id": "planetary_fixed_ring_ratio_analytic_s20264609",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "planetary",
+      "generator": "mech_bench.generators.transmission_analytic.PlanetaryFixedSunRatioGenerator",
+      "raw_family": "planetary_fixed_sun_ratio_analytic",
+      "seed": 20264610,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/planetary_fixed_sun_ratio_analytic_s20264610",
+      "task_id": "planetary_fixed_sun_ratio_analytic_s20264610",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "planetary",
+      "generator": "mech_bench.generators.transmission_analytic.PlanetaryFixedRingRatioGenerator",
+      "raw_family": "planetary_fixed_ring_ratio_analytic",
+      "seed": 20264611,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/planetary_fixed_ring_ratio_analytic_s20264611",
+      "task_id": "planetary_fixed_ring_ratio_analytic_s20264611",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "fourbar",
+      "generator": "mech_bench.generators.fourbar.FourbarPathGenerator",
+      "raw_family": "fourbar_path",
+      "seed": 20265607,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/fourbar_path_s20265607",
+      "task_id": "fourbar_path_s20265607",
+      "tier": "planar_kinematics"
+    },
+    {
+      "canonical_family": "fourbar",
+      "generator": "mech_bench.generators.planar_kinematics_extra.FourbarWiperArcGenerator",
+      "raw_family": "fourbar_wiper_arc",
+      "seed": 20265608,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/fourbar_wiper_arc_s20265608",
+      "task_id": "fourbar_wiper_arc_s20265608",
+      "tier": "planar_kinematics"
+    },
+    {
+      "canonical_family": "fourbar",
+      "generator": "mech_bench.generators.planar_kinematics_extra.FourbarStraightLineApproxGenerator",
+      "raw_family": "fourbar_straight_line_approx",
+      "seed": 20265609,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/fourbar_straight_line_approx_s20265609",
+      "task_id": "fourbar_straight_line_approx_s20265609",
+      "tier": "planar_kinematics"
+    },
+    {
+      "canonical_family": "fourbar",
+      "generator": "mech_bench.generators.planar_kinematics_extra.FourbarDwellPathGenerator",
+      "raw_family": "fourbar_dwell_path",
+      "seed": 20265610,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/fourbar_dwell_path_s20265610",
+      "task_id": "fourbar_dwell_path_s20265610",
+      "tier": "planar_kinematics"
+    },
+    {
+      "canonical_family": "fourbar",
+      "generator": "mech_bench.generators.planar_kinematics_extra.FourbarPumpHandleGenerator",
+      "raw_family": "fourbar_pump_handle",
+      "seed": 20265611,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/fourbar_pump_handle_s20265611",
+      "task_id": "fourbar_pump_handle_s20265611",
+      "tier": "planar_kinematics"
+    },
+    {
+      "canonical_family": "slider_crank",
+      "generator": "mech_bench.generators.slider_crank.SliderCrankStrokeGenerator",
+      "raw_family": "slider_crank_stroke",
+      "seed": 20266607,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/slider_crank_stroke_s20266607",
+      "task_id": "slider_crank_stroke_s20266607",
+      "tier": "planar_kinematics"
+    },
+    {
+      "canonical_family": "slider_crank",
+      "generator": "mech_bench.generators.planar_kinematics_extra.SliderCrankStrokePrecisionGenerator",
+      "raw_family": "slider_crank_stroke_precision",
+      "seed": 20266608,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/slider_crank_stroke_precision_s20266608",
+      "task_id": "slider_crank_stroke_precision_s20266608",
+      "tier": "planar_kinematics"
+    },
+    {
+      "canonical_family": "slider_crank",
+      "generator": "mech_bench.generators.planar_kinematics_extra.SliderCrankQuickReturnProxyGenerator",
+      "raw_family": "slider_crank_quick_return_proxy",
+      "seed": 20266609,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/slider_crank_quick_return_proxy_s20266609",
+      "task_id": "slider_crank_quick_return_proxy_s20266609",
+      "tier": "planar_kinematics"
+    },
+    {
+      "canonical_family": "slider_crank",
+      "generator": "mech_bench.generators.slider_crank.SliderCrankStrokeGenerator",
+      "raw_family": "slider_crank_stroke",
+      "seed": 20266610,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/slider_crank_stroke_s20266610",
+      "task_id": "slider_crank_stroke_s20266610",
+      "tier": "planar_kinematics"
+    },
+    {
+      "canonical_family": "slider_crank",
+      "generator": "mech_bench.generators.planar_kinematics_extra.SliderCrankStrokePrecisionGenerator",
+      "raw_family": "slider_crank_stroke_precision",
+      "seed": 20266611,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/slider_crank_stroke_precision_s20266611",
+      "task_id": "slider_crank_stroke_precision_s20266611",
+      "tier": "planar_kinematics"
+    },
+    {
+      "canonical_family": "cycloidal",
+      "generator": "mech_bench.generators.gear_train.CycloidalLayoutRatioGenerator",
+      "raw_family": "cycloidal_layout_ratio",
+      "seed": 20267607,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/cycloidal_layout_ratio_s20267607",
+      "task_id": "cycloidal_layout_ratio_s20267607",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "cycloidal",
+      "generator": "mech_bench.generators.gear_train.CycloidalLayoutRatioGenerator",
+      "raw_family": "cycloidal_layout_ratio",
+      "seed": 20267608,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/cycloidal_layout_ratio_s20267608",
+      "task_id": "cycloidal_layout_ratio_s20267608",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "cycloidal",
+      "generator": "mech_bench.generators.gear_train.CycloidalLayoutRatioGenerator",
+      "raw_family": "cycloidal_layout_ratio",
+      "seed": 20267609,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/cycloidal_layout_ratio_s20267609",
+      "task_id": "cycloidal_layout_ratio_s20267609",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "cycloidal",
+      "generator": "mech_bench.generators.gear_train.CycloidalLayoutRatioGenerator",
+      "raw_family": "cycloidal_layout_ratio",
+      "seed": 20267610,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/cycloidal_layout_ratio_s20267610",
+      "task_id": "cycloidal_layout_ratio_s20267610",
+      "tier": "transmission_analytic"
+    },
+    {
+      "canonical_family": "cycloidal",
+      "generator": "mech_bench.generators.gear_train.CycloidalLayoutRatioGenerator",
+      "raw_family": "cycloidal_layout_ratio",
+      "seed": 20267611,
+      "task_dir": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks/cycloidal_layout_ratio_s20267611",
+      "task_id": "cycloidal_layout_ratio_s20267611",
+      "tier": "transmission_analytic"
+    }
+  ],
+  "tasks_per_family_target": 5,
+  "tasks_root": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks",
+  "verifier_manifest_path": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/verifier_manifest.json"
+}

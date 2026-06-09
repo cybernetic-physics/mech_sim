@@ -1,0 +1,14 @@
+{
+  "duplicates": [],
+  "replace_existing": true,
+  "rows": 720,
+  "schema": "mechanism_repair_ttrl.merge_manifest.v1",
+  "sources": [
+    "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final",
+    "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260608/repo/runs/mechanism_repair_ttrl_final",
+    "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260609/repo/runs/mechanism_repair_ttrl_final",
+    "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_B_20260607/repo/runs/mechanism_repair_ttrl_final",
+    "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_B_20260608/repo/runs/mechanism_repair_ttrl_final",
+    "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_B_20260609/repo/runs/mechanism_repair_ttrl_final"
+  ]
+}

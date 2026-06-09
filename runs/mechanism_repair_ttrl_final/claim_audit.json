@@ -1,0 +1,12 @@
+{
+  "blockers": [],
+  "claim_status": "supports_primary_hypothesis",
+  "evidence": {
+    "failure_analysis": "failure_analysis.json",
+    "stats": "stats.json",
+    "trace_pairs": "trace_pairs.json"
+  },
+  "primary_baseline": "llm_evolve_no_update",
+  "primary_method": "mechanical_evolve_ttrl",
+  "schema": "mechanism_repair_ttrl.claim_audit.v1"
+}

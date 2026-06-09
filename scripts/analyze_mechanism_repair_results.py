@@ -1,0 +1,1290 @@
+#!/usr/bin/env python3
+"""Analyze MechanismRepair-TTRL cell-level results.
+
+The input is a long-form CSV or JSON rows file with one row per
+split/task/seed/method cell. The script computes paired TTRL-vs-no-update
+statistics and writes the machine-readable artifacts required by ``goals.md``.
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import math
+import random
+from collections import Counter, defaultdict
+from pathlib import Path
+from typing import Any
+
+from scripts.prepare_mechanism_repair_benchmark import (
+    EVAL_SEEDS,
+    PRIMARY_BASELINE,
+    PRIMARY_BUDGET,
+    PRIMARY_METHOD,
+    REQUIRED_METHODS,
+    SUCCESS_DELTA_PCT,
+)
+
+SECONDARY_METRIC_FIELDS = (
+    "first_valid_verifier_call",
+    "strict_score_pass_rate",
+    "wrong_mobility_rate",
+    "missing_port_rate",
+    "ungrounded_port_rate",
+    "invalid_topology_rate",
+    "invalid_artifact_rate",
+    "cad_pass_rate",
+    "chrono_real_geometry_rate",
+    "no_procedural_fallback_rate",
+    "lockup_rate",
+    "contact_lockup_rate",
+    "best_ratio_error_pct",
+    "best_path_trace_error",
+    "best_max_penetration_mm",
+    "best_contact_force_rms_N",
+    "adapter_updates",
+    "trained_tokens",
+    "rl_trained_tokens",
+    "n_rl_datums",
+    "sampler_error_count",
+    "invalid_artifact_count",
+    "timeout_count",
+    "audit_retry_count",
+)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--results", required=True)
+    parser.add_argument("--out-dir", default="runs/mechanism_repair_ttrl_final")
+    parser.add_argument(
+        "--benchmark-dir",
+        default=None,
+        help="directory containing method_manifest.json and split manifests; "
+             "when present, the claim audit rejects incomplete coverage",
+    )
+    parser.add_argument("--bootstrap-samples", type=int, default=5000)
+    parser.add_argument("--seed", type=int, default=20260607)
+    args = parser.parse_args()
+
+    out_dir = Path(args.out_dir).expanduser().resolve()
+    benchmark_dir = (
+        Path(args.benchmark_dir).expanduser().resolve()
+        if args.benchmark_dir
+        else default_benchmark_dir(out_dir)
+    )
+    expected = (
+        build_expected_coverage(benchmark_dir)
+        if benchmark_dir is not None
+        else None
+    )
+    benchmark_readiness = (
+        build_benchmark_readiness(benchmark_dir)
+        if benchmark_dir is not None
+        else {"enforced": False}
+    )
+    rows = normalize_rows(load_rows(Path(args.results).expanduser().resolve()))
+    stats = analyze_rows(
+        rows,
+        bootstrap_samples=max(100, int(args.bootstrap_samples)),
+        seed=int(args.seed),
+        expected_coverage=expected,
+        benchmark_readiness=benchmark_readiness,
+    )
+    failure_analysis = build_failure_analysis(rows)
+    trace_pairs = build_trace_pairs(rows)
+    claim_audit = build_claim_audit(stats)
+
+    write_json(out_dir / "stats.json", stats)
+    write_json(out_dir / "failure_analysis.json", failure_analysis)
+    write_json(out_dir / "trace_pairs.json", {"pairs": trace_pairs})
+    write_json(out_dir / "claim_audit.json", claim_audit)
+    print(json.dumps({
+        "stats": str(out_dir / "stats.json"),
+        "failure_analysis": str(out_dir / "failure_analysis.json"),
+        "trace_pairs": str(out_dir / "trace_pairs.json"),
+        "claim_audit": str(out_dir / "claim_audit.json"),
+        "claim_status": claim_audit["claim_status"],
+        "blockers": claim_audit["blockers"],
+    }, indent=2, sort_keys=True))
+    return 0 if claim_audit["claim_status"] == "supports_primary_hypothesis" else 2
+
+
+def load_rows(path: Path) -> list[dict[str, Any]]:
+    if path.suffix.lower() == ".jsonl":
+        return [
+            json.loads(line)
+            for line in path.read_text().splitlines()
+            if line.strip()
+        ]
+    if path.suffix.lower() == ".csv":
+        with path.open(newline="") as f:
+            return [dict(row) for row in csv.DictReader(f)]
+    data = json.loads(path.read_text())
+    if isinstance(data, list):
+        return [dict(row) for row in data]
+    if isinstance(data, dict):
+        for key in ("cells", "rows", "results"):
+            value = data.get(key)
+            if isinstance(value, list):
+                return [dict(row) for row in value]
+    raise ValueError(f"unsupported results shape in {path}")
+
+
+def normalize_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    normalized: list[dict[str, Any]] = []
+    for raw in rows:
+        row = dict(raw)
+        method = str(row.get("method") or "")
+        split = str(row.get("split") or row.get("split_name") or "")
+        task_id = str(row.get("task_id") or "")
+        family = str(row.get("family") or row.get("canonical_family") or "")
+        seed = int(float(row.get("seed", 0)))
+        success = bool_value(
+            row.get("verified_repair_success_at_32",
+                    row.get("verified_repair_success",
+                            row.get("verifier_valid_passed",
+                                    row.get("strict_passed", False))))
+        )
+        reward = float_value(
+            row.get("best_verified_reward_at_32",
+                    row.get("best_verified_reward",
+                            row.get("verified_score", 0.0)))
+        )
+        verifier_calls = int(float_value(row.get("verifier_calls", 0)))
+        cad_audits = int(float_value(row.get("cad_audits", 0)))
+        chrono_audits = int(float_value(row.get("chrono_audits", 0)))
+        normalized.append({
+            **row,
+            "method": method,
+            "split": split,
+            "task_id": task_id,
+            "family": family,
+            "seed": seed,
+            "verified_repair_success_at_32": success,
+            "best_verified_reward_at_32": reward,
+            "verifier_calls": verifier_calls,
+            "cad_audits": cad_audits,
+            "chrono_audits": chrono_audits,
+            "_pair_key": (split, family, task_id, seed),
+        })
+    return normalized
+
+
+def analyze_rows(
+    rows: list[dict[str, Any]],
+    *,
+    bootstrap_samples: int,
+    seed: int,
+    expected_coverage: dict[str, Any] | None = None,
+    benchmark_readiness: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    by_method: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        by_method[row["method"]].append(row)
+
+    method_summary = {
+        method: summarize_method(items)
+        for method, items in sorted(by_method.items())
+    }
+    paired = paired_primary_rows(rows)
+    success_deltas = [
+        float(p["primary_success"]) - float(p["baseline_success"])
+        for p in paired
+    ]
+    reward_deltas = [
+        float(p["primary_reward"]) - float(p["baseline_reward"])
+        for p in paired
+    ]
+    success_mean = mean(success_deltas)
+    reward_mean = mean(reward_deltas)
+    success_ci = bootstrap_ci(success_deltas, bootstrap_samples, seed)
+    reward_ci = bootstrap_ci(reward_deltas, bootstrap_samples, seed + 1)
+    sign_p = one_sided_sign_test(success_deltas)
+    family_rows = family_delta_rows(paired)
+    leave_one = leave_one_family_out(paired)
+    budget_audit = audit_budget(rows)
+    evidence_audit = audit_evidence(rows)
+    learning_audit = audit_ttrl_learning(rows)
+    coverage_audit = audit_expected_coverage(rows, expected_coverage)
+    family_method_summary = summarize_family_methods(rows)
+    required_present = all(method in by_method for method in REQUIRED_METHODS)
+    reward_beats = reward_beats_all_required(method_summary)
+
+    return {
+        "schema": "mechanism_repair_ttrl.stats.v1",
+        "primary_method": PRIMARY_METHOD,
+        "primary_baseline": PRIMARY_BASELINE,
+        "required_methods": list(REQUIRED_METHODS),
+        "required_methods_present": required_present,
+        "missing_required_methods": [
+            method for method in REQUIRED_METHODS if method not in by_method
+        ],
+        "primary_budget_verifier_calls": PRIMARY_BUDGET,
+        "eval_seeds_expected": list(EVAL_SEEDS),
+        "n_rows": len(rows),
+        "n_paired_cells": len(paired),
+        "method_summary": method_summary,
+        "family_method_summary": family_method_summary,
+        "primary_comparison": {
+            "success_delta_mean": success_mean,
+            "success_delta_pct": success_mean * 100.0,
+            "success_delta_ci95": success_ci,
+            "success_sign_test_p_one_sided": sign_p,
+            "reward_delta_mean": reward_mean,
+            "reward_delta_ci95": reward_ci,
+            "success_threshold_pct": SUCCESS_DELTA_PCT,
+        },
+        "family_deltas": family_rows,
+        "leave_one_family_out": leave_one,
+        "budget_audit": budget_audit,
+        "evidence_audit": evidence_audit,
+        "learning_audit": learning_audit,
+        "coverage_audit": coverage_audit,
+        "benchmark_readiness_audit": (
+            benchmark_readiness
+            if benchmark_readiness is not None
+            else {"enforced": False}
+        ),
+        "reward_beats_all_required_baselines": reward_beats,
+    }
+
+
+def summarize_method(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    return {
+        "n": len(rows),
+        "verified_repair_success_at_32": mean([
+            float(row["verified_repair_success_at_32"]) for row in rows
+        ]),
+        "best_verified_reward_at_32": mean([
+            float(row["best_verified_reward_at_32"]) for row in rows
+        ]),
+        "verifier_calls_mean": mean([
+            float(row["verifier_calls"]) for row in rows
+        ]),
+        "cad_audits_mean": mean([float(row["cad_audits"]) for row in rows]),
+        "chrono_audits_mean": mean([
+            float(row["chrono_audits"]) for row in rows
+        ]),
+        "secondary_metrics": summarize_secondary_metrics(rows),
+    }
+
+
+def summarize_family_methods(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        grouped[(str(row["method"]), str(row["family"]))].append(row)
+    return [
+        {
+            "method": method,
+            "family": family,
+            "n": len(items),
+            "verified_repair_success_at_32": mean([
+                float(item["verified_repair_success_at_32"])
+                for item in items
+            ]),
+            "best_verified_reward_at_32": mean([
+                float(item["best_verified_reward_at_32"]) for item in items
+            ]),
+            "secondary_metrics": summarize_secondary_metrics(items),
+        }
+        for (method, family), items in sorted(grouped.items())
+    ]
+
+
+def summarize_secondary_metrics(
+    rows: list[dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    return {
+        field: summarize_metric_field(rows, field)
+        for field in SECONDARY_METRIC_FIELDS
+    }
+
+
+def summarize_metric_field(
+    rows: list[dict[str, Any]],
+    field: str,
+) -> dict[str, Any]:
+    values: list[float] = []
+    for row in rows:
+        raw = row.get(field)
+        if raw is None or raw == "":
+            continue
+        try:
+            value = float(raw)
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(value):
+            values.append(value)
+    return {
+        "n_present": len(values),
+        "mean": mean(values) if values else None,
+    }
+
+
+def paired_primary_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by_key_method: dict[tuple[Any, ...], dict[str, dict[str, Any]]] = defaultdict(dict)
+    for row in rows:
+        by_key_method[row["_pair_key"]][row["method"]] = row
+    paired: list[dict[str, Any]] = []
+    for key, methods in sorted(by_key_method.items()):
+        primary = methods.get(PRIMARY_METHOD)
+        baseline = methods.get(PRIMARY_BASELINE)
+        if primary is None or baseline is None:
+            continue
+        split, family, task_id, seed = key
+        paired.append({
+            "split": split,
+            "family": family,
+            "task_id": task_id,
+            "seed": seed,
+            "primary_success": primary["verified_repair_success_at_32"],
+            "baseline_success": baseline["verified_repair_success_at_32"],
+            "primary_reward": primary["best_verified_reward_at_32"],
+            "baseline_reward": baseline["best_verified_reward_at_32"],
+        })
+    return paired
+
+
+def family_delta_rows(paired: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by_family: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in paired:
+        by_family[str(row["family"])].append(row)
+    out: list[dict[str, Any]] = []
+    for family, rows in sorted(by_family.items()):
+        success_delta = mean([
+            float(row["primary_success"]) - float(row["baseline_success"])
+            for row in rows
+        ])
+        reward_delta = mean([
+            float(row["primary_reward"]) - float(row["baseline_reward"])
+            for row in rows
+        ])
+        out.append({
+            "family": family,
+            "n": len(rows),
+            "success_delta": success_delta,
+            "success_delta_pct": success_delta * 100.0,
+            "reward_delta": reward_delta,
+            "ttrl_wins_reward": reward_delta > 0,
+        })
+    return out
+
+
+def leave_one_family_out(paired: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    families = sorted({str(row["family"]) for row in paired})
+    out: list[dict[str, Any]] = []
+    for family in families:
+        kept = [row for row in paired if row["family"] != family]
+        reward_delta = mean([
+            float(row["primary_reward"]) - float(row["baseline_reward"])
+            for row in kept
+        ])
+        out.append({
+            "removed_family": family,
+            "n": len(kept),
+            "reward_delta": reward_delta,
+            "keeps_positive_sign": reward_delta > 0,
+        })
+    return out
+
+
+def reward_beats_all_required(method_summary: dict[str, dict[str, Any]]) -> bool:
+    primary = method_summary.get(PRIMARY_METHOD)
+    if not primary:
+        return False
+    primary_reward = float(primary["best_verified_reward_at_32"])
+    for method in REQUIRED_METHODS:
+        if method == PRIMARY_METHOD:
+            continue
+        summary = method_summary.get(method)
+        if summary is None:
+            return False
+        if primary_reward <= float(summary["best_verified_reward_at_32"]):
+            return False
+    return True
+
+
+def audit_budget(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    by_cell: dict[tuple[Any, ...], list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        split, family, task_id, seed = row["_pair_key"]
+        by_cell[(split, family, task_id, seed)].append(row)
+    mismatches: list[dict[str, Any]] = []
+    wrong_primary_budget: list[dict[str, Any]] = []
+    for key, cell_rows in sorted(by_cell.items()):
+        verifier = {row["method"]: int(row["verifier_calls"]) for row in cell_rows}
+        cad = {row["method"]: int(row["cad_audits"]) for row in cell_rows}
+        chrono = {row["method"]: int(row["chrono_audits"]) for row in cell_rows}
+        for method, calls in verifier.items():
+            if calls != PRIMARY_BUDGET:
+                wrong_primary_budget.append({
+                    "cell": list(key),
+                    "method": method,
+                    "verifier_calls": calls,
+                    "expected": PRIMARY_BUDGET,
+                })
+        if len(set(verifier.values())) > 1:
+            mismatches.append({"cell": list(key), "kind": "verifier", "values": verifier})
+        if len(set(cad.values())) > 1:
+            mismatches.append({"cell": list(key), "kind": "cad", "values": cad})
+        if len(set(chrono.values())) > 1:
+            mismatches.append({"cell": list(key), "kind": "chrono", "values": chrono})
+    return {
+        "n_cells": len(by_cell),
+        "budget_matched": not mismatches,
+        "primary_budget_spent": not wrong_primary_budget,
+        "mismatches": mismatches[:100],
+        "n_mismatches": len(mismatches),
+        "wrong_primary_budget": wrong_primary_budget[:100],
+        "n_wrong_primary_budget": len(wrong_primary_budget),
+    }
+
+
+def audit_evidence(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    missing_raw_rows: list[dict[str, Any]] = []
+    missing_verifier_rows: list[dict[str, Any]] = []
+    missing_raw_files: list[dict[str, Any]] = []
+    missing_verifier_files: list[dict[str, Any]] = []
+    verifier_count_mismatches: list[dict[str, Any]] = []
+    missing_summary_files: list[dict[str, Any]] = []
+    missing_ttrl_training_logs: list[dict[str, Any]] = []
+    missing_ttrl_adapters: list[dict[str, Any]] = []
+
+    for row in rows:
+        ref = row_ref(row)
+        raw_paths = parse_paths(row.get("raw_completion_paths", []))
+        verifier_paths = parse_paths(row.get("verifier_output_paths", []))
+        if not raw_paths:
+            missing_raw_rows.append(ref)
+        if not verifier_paths:
+            missing_verifier_rows.append(ref)
+        for path in raw_paths:
+            if not Path(path).is_file():
+                missing_raw_files.append({**ref, "path": path})
+        for path in verifier_paths:
+            if not Path(path).is_file():
+                missing_verifier_files.append({**ref, "path": path})
+        verifier_calls = int(row.get("verifier_calls", 0) or 0)
+        if verifier_calls and len(verifier_paths) != verifier_calls:
+            verifier_count_mismatches.append({
+                **ref,
+                "verifier_calls": verifier_calls,
+                "verifier_output_paths": len(verifier_paths),
+            })
+        summary_path = str(row.get("summary_path") or "")
+        if summary_path and not Path(summary_path).is_file():
+            missing_summary_files.append({**ref, "path": summary_path})
+        if row["method"] == PRIMARY_METHOD:
+            trace_path = str(row.get("trace_path") or "")
+            if not trace_path or not Path(trace_path).is_file():
+                missing_ttrl_training_logs.append({**ref, "path": trace_path})
+            adapter_path = str(row.get("adapter_path") or "")
+            if not adapter_path or not Path(adapter_path).exists():
+                missing_ttrl_adapters.append({**ref, "path": adapter_path})
+
+    paired_with_evidence = count_paired_trace_evidence(rows)
+    ok = not any([
+        missing_raw_rows,
+        missing_verifier_rows,
+        missing_raw_files,
+        missing_verifier_files,
+        verifier_count_mismatches,
+        missing_summary_files,
+        missing_ttrl_training_logs,
+        missing_ttrl_adapters,
+    ])
+    return {
+        "raw_completions_present": not missing_raw_rows and not missing_raw_files,
+        "verifier_outputs_present": (
+            not missing_verifier_rows
+            and not missing_verifier_files
+            and not verifier_count_mismatches
+        ),
+        "training_logs_present": not missing_ttrl_training_logs,
+        "adapter_checkpoints_present": not missing_ttrl_adapters,
+        "matched_ttrl_vs_no_update_trace_pairs_with_evidence": paired_with_evidence,
+        "required_min_trace_pairs": 8,
+        "evidence_complete": ok and paired_with_evidence >= 8,
+        "n_missing_raw_rows": len(missing_raw_rows),
+        "n_missing_verifier_rows": len(missing_verifier_rows),
+        "n_missing_raw_files": len(missing_raw_files),
+        "n_missing_verifier_files": len(missing_verifier_files),
+        "n_verifier_count_mismatches": len(verifier_count_mismatches),
+        "n_missing_summary_files": len(missing_summary_files),
+        "n_missing_ttrl_training_logs": len(missing_ttrl_training_logs),
+        "n_missing_ttrl_adapters": len(missing_ttrl_adapters),
+        "missing_raw_rows": missing_raw_rows[:100],
+        "missing_verifier_rows": missing_verifier_rows[:100],
+        "missing_raw_files": missing_raw_files[:100],
+        "missing_verifier_files": missing_verifier_files[:100],
+        "verifier_count_mismatches": verifier_count_mismatches[:100],
+        "missing_summary_files": missing_summary_files[:100],
+        "missing_ttrl_training_logs": missing_ttrl_training_logs[:100],
+        "missing_ttrl_adapters": missing_ttrl_adapters[:100],
+    }
+
+
+def audit_ttrl_learning(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    ttrl_rows = [row for row in rows if row["method"] == PRIMARY_METHOD]
+    bad_rows: list[dict[str, Any]] = []
+    for row in ttrl_rows:
+        adapter_updates = int(row.get("adapter_updates", 0) or 0)
+        trained_tokens = int(row.get("trained_tokens", 0) or 0)
+        rl_trained_tokens = int(row.get("rl_trained_tokens", 0) or 0)
+        n_rl_datums = int(row.get("n_rl_datums", 0) or 0)
+        min_rl_datums = max(PRIMARY_BUDGET, int(row.get("verifier_calls", 0) or 0))
+        reasons = []
+        if adapter_updates <= 0:
+            reasons.append("adapter_updates<=0")
+        if trained_tokens <= 0:
+            reasons.append("trained_tokens<=0")
+        if rl_trained_tokens <= 0:
+            reasons.append("rl_trained_tokens<=0")
+        if n_rl_datums < min_rl_datums:
+            reasons.append(f"n_rl_datums<{min_rl_datums}")
+        if reasons:
+            bad_rows.append({
+                **row_ref(row),
+                "adapter_updates": adapter_updates,
+                "trained_tokens": trained_tokens,
+                "rl_trained_tokens": rl_trained_tokens,
+                "n_rl_datums": n_rl_datums,
+                "reasons": reasons,
+            })
+    return {
+        "ttrl_rows": len(ttrl_rows),
+        "ttrl_learning_evidence_complete": bool(ttrl_rows) and not bad_rows,
+        "n_bad_ttrl_learning_rows": len(bad_rows),
+        "bad_ttrl_learning_rows": bad_rows[:100],
+    }
+
+
+def count_paired_trace_evidence(rows: list[dict[str, Any]]) -> int:
+    by_key_method: dict[tuple[Any, ...], dict[str, dict[str, Any]]] = defaultdict(dict)
+    for row in rows:
+        by_key_method[row["_pair_key"]][row["method"]] = row
+    count = 0
+    for methods in by_key_method.values():
+        primary = methods.get(PRIMARY_METHOD)
+        baseline = methods.get(PRIMARY_BASELINE)
+        if not primary or not baseline:
+            continue
+        if row_has_evidence(primary, require_training=True) and row_has_evidence(
+            baseline,
+            require_training=False,
+        ):
+            count += 1
+    return count
+
+
+def row_has_evidence(row: dict[str, Any], *, require_training: bool) -> bool:
+    raw_paths = parse_paths(row.get("raw_completion_paths", []))
+    verifier_paths = parse_paths(row.get("verifier_output_paths", []))
+    if not raw_paths or not verifier_paths:
+        return False
+    if any(not Path(path).is_file() for path in raw_paths):
+        return False
+    if any(not Path(path).is_file() for path in verifier_paths):
+        return False
+    verifier_calls = int(row.get("verifier_calls", 0) or 0)
+    if verifier_calls and len(verifier_paths) != verifier_calls:
+        return False
+    if require_training:
+        trace_path = str(row.get("trace_path") or "")
+        adapter_path = str(row.get("adapter_path") or "")
+        if not trace_path or not Path(trace_path).is_file():
+            return False
+        if not adapter_path or not Path(adapter_path).exists():
+            return False
+    return True
+
+
+def row_ref(row: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "split": str(row.get("split") or ""),
+        "task_id": str(row.get("task_id") or ""),
+        "seed": int(row.get("seed", 0) or 0),
+        "method": str(row.get("method") or ""),
+    }
+
+
+def build_failure_analysis(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    counts: Counter[tuple[str, str, str]] = Counter()
+    method_family: Counter[tuple[str, str]] = Counter()
+    for row in rows:
+        method = str(row["method"])
+        family = str(row["family"])
+        method_family[(method, family)] += 1
+        for code in parse_codes(row.get("failure_codes", "")):
+            counts[(method, family, code)] += 1
+    return {
+        "schema": "mechanism_repair_ttrl.failure_analysis.v1",
+        "counts": [
+            {"method": method, "family": family, "failure_code": code, "n": n}
+            for (method, family, code), n in sorted(counts.items())
+        ],
+        "first_to_final_attempt_changes": first_to_final_attempt_changes(rows),
+        "ttrl_vs_no_update_failure_deltas": failure_code_deltas(
+            counts,
+            method_family,
+            primary=PRIMARY_METHOD,
+            baseline=PRIMARY_BASELINE,
+        ),
+        "repair_dimension_deltas": repair_dimension_deltas(rows),
+    }
+
+
+def build_trace_pairs(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by_key_method: dict[tuple[Any, ...], dict[str, dict[str, Any]]] = defaultdict(dict)
+    for row in rows:
+        by_key_method[row["_pair_key"]][row["method"]] = row
+    pairs: list[dict[str, Any]] = []
+    for key, methods in sorted(by_key_method.items()):
+        primary = methods.get(PRIMARY_METHOD)
+        baseline = methods.get(PRIMARY_BASELINE)
+        if not primary or not baseline:
+            continue
+        split, family, task_id, seed = key
+        pairs.append({
+            "split": split,
+            "family": family,
+            "task_id": task_id,
+            "seed": seed,
+            "primary_success": primary["verified_repair_success_at_32"],
+            "baseline_success": baseline["verified_repair_success_at_32"],
+            "primary_failure_codes": parse_codes(primary.get("failure_codes", "")),
+            "baseline_failure_codes": parse_codes(baseline.get("failure_codes", "")),
+            "primary_trace_path": primary.get("trace_path", ""),
+            "baseline_trace_path": baseline.get("trace_path", ""),
+            "primary_raw_completion_paths": parse_paths(
+                primary.get("raw_completion_paths", [])
+            ),
+            "baseline_raw_completion_paths": parse_paths(
+                baseline.get("raw_completion_paths", [])
+            ),
+            "primary_verifier_output_paths": parse_paths(
+                primary.get("verifier_output_paths", [])
+            ),
+            "baseline_verifier_output_paths": parse_paths(
+                baseline.get("verifier_output_paths", [])
+            ),
+            "same_verifier_budget": (
+                int(primary.get("verifier_calls", 0) or 0)
+                == int(baseline.get("verifier_calls", 0) or 0)
+            ),
+            "verifier_calls": {
+                PRIMARY_METHOD: int(primary.get("verifier_calls", 0) or 0),
+                PRIMARY_BASELINE: int(baseline.get("verifier_calls", 0) or 0),
+            },
+            "repair_dimension_delta": repair_dimension_delta(primary, baseline),
+        })
+    return pairs
+
+
+def first_to_final_attempt_changes(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    changes: list[dict[str, Any]] = []
+    for row in rows:
+        paths = parse_paths(row.get("verifier_output_paths", []))
+        if len(paths) < 2:
+            continue
+        first = load_json_path(paths[0])
+        final = load_json_path(paths[-1])
+        if first is None or final is None:
+            continue
+        first_codes = parse_codes(first.get("failure_codes", []))
+        final_codes = parse_codes(final.get("failure_codes", []))
+        first_set = set(first_codes)
+        final_set = set(final_codes)
+        changes.append({
+            "split": row["split"],
+            "family": row["family"],
+            "task_id": row["task_id"],
+            "seed": row["seed"],
+            "method": row["method"],
+            "attempts": len(paths),
+            "first_failure_codes": first_codes,
+            "final_failure_codes": final_codes,
+            "resolved_failure_codes": sorted(first_set - final_set),
+            "new_failure_codes": sorted(final_set - first_set),
+            "first_verified_score": float_value(first.get("verified_score", 0.0)),
+            "final_verified_score": float_value(final.get("verified_score", 0.0)),
+            "first_score": float_value(first.get("score", 0.0)),
+            "final_score": float_value(final.get("score", 0.0)),
+            "first_evaluation_valid": bool_value(first.get("evaluation_valid", False)),
+            "final_evaluation_valid": bool_value(final.get("evaluation_valid", False)),
+            "first_hard_gate_passed": bool_value(first.get("hard_gate_passed", False)),
+            "final_hard_gate_passed": bool_value(final.get("hard_gate_passed", False)),
+        })
+    return changes
+
+
+def failure_code_deltas(
+    counts: Counter[tuple[str, str, str]],
+    method_family: Counter[tuple[str, str]],
+    *,
+    primary: str,
+    baseline: str,
+) -> list[dict[str, Any]]:
+    families = sorted({
+        family
+        for method, family in method_family
+        if method in {primary, baseline}
+    })
+    codes = sorted({
+        code
+        for method, _family, code in counts
+        if method in {primary, baseline}
+    })
+    out: list[dict[str, Any]] = []
+    for family in families:
+        n_primary = method_family.get((primary, family), 0)
+        n_baseline = method_family.get((baseline, family), 0)
+        for code in codes:
+            primary_n = counts.get((primary, family, code), 0)
+            baseline_n = counts.get((baseline, family, code), 0)
+            primary_rate = primary_n / n_primary if n_primary else 0.0
+            baseline_rate = baseline_n / n_baseline if n_baseline else 0.0
+            out.append({
+                "family": family,
+                "failure_code": code,
+                "primary_n": primary_n,
+                "baseline_n": baseline_n,
+                "primary_rate": primary_rate,
+                "baseline_rate": baseline_rate,
+                "rate_delta_primary_minus_baseline": (
+                    primary_rate - baseline_rate
+                ),
+            })
+    return out
+
+
+def repair_dimension_deltas(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by_key_method: dict[tuple[Any, ...], dict[str, dict[str, Any]]] = defaultdict(dict)
+    for row in rows:
+        by_key_method[row["_pair_key"]][row["method"]] = row
+    paired = [
+        (methods[PRIMARY_METHOD], methods[PRIMARY_BASELINE])
+        for methods in by_key_method.values()
+        if PRIMARY_METHOD in methods and PRIMARY_BASELINE in methods
+    ]
+    by_family: dict[str, list[dict[str, float]]] = defaultdict(list)
+    for primary, baseline in paired:
+        by_family[str(primary["family"])].append(
+            repair_dimension_delta(primary, baseline)
+        )
+    out: list[dict[str, Any]] = []
+    for family, deltas in sorted(by_family.items()):
+        keys = sorted({key for delta in deltas for key in delta})
+        out.append({
+            "family": family,
+            "n": len(deltas),
+            "mean_deltas": {
+                key: mean([float(delta.get(key, 0.0)) for delta in deltas])
+                for key in keys
+            },
+        })
+    return out
+
+
+def repair_dimension_delta(
+    primary: dict[str, Any],
+    baseline: dict[str, Any],
+) -> dict[str, float]:
+    lower_is_better = {
+        "topology_error_rate": [
+            "wrong_mobility_rate",
+            "invalid_topology_rate",
+        ],
+        "port_error_rate": [
+            "missing_port_rate",
+            "ungrounded_port_rate",
+        ],
+        "artifact_error_rate": [
+            "invalid_artifact_rate",
+        ],
+        "contact_error_rate": [
+            "lockup_rate",
+            "contact_lockup_rate",
+        ],
+        "ratio_error_pct": [
+            "best_ratio_error_pct",
+        ],
+        "path_trace_error": [
+            "best_path_trace_error",
+        ],
+        "max_penetration_mm": [
+            "best_max_penetration_mm",
+        ],
+        "contact_force_rms_N": [
+            "best_contact_force_rms_N",
+        ],
+    }
+    higher_is_better = {
+        "artifact_validity_rate": [
+            "cad_pass_rate",
+            "no_procedural_fallback_rate",
+        ],
+        "chrono_real_geometry_rate": [
+            "chrono_real_geometry_rate",
+        ],
+        "strict_score_pass_rate": [
+            "strict_score_pass_rate",
+        ],
+    }
+    out: dict[str, float] = {}
+    for name, fields in lower_is_better.items():
+        p = mean_present(primary, fields)
+        b = mean_present(baseline, fields)
+        if p is not None and b is not None:
+            out[name + "_improvement"] = b - p
+    for name, fields in higher_is_better.items():
+        p = mean_present(primary, fields)
+        b = mean_present(baseline, fields)
+        if p is not None and b is not None:
+            out[name + "_improvement"] = p - b
+    out["verified_reward_improvement"] = (
+        float(primary.get("best_verified_reward_at_32", 0.0) or 0.0)
+        - float(baseline.get("best_verified_reward_at_32", 0.0) or 0.0)
+    )
+    out["verified_success_improvement"] = (
+        float(bool_value(primary.get("verified_repair_success_at_32", False)))
+        - float(bool_value(baseline.get("verified_repair_success_at_32", False)))
+    )
+    return out
+
+
+def build_claim_audit(stats: dict[str, Any]) -> dict[str, Any]:
+    comparison = stats["primary_comparison"]
+    family_deltas = stats["family_deltas"]
+    leave_one = stats["leave_one_family_out"]
+    blockers: list[str] = []
+    if not stats["required_methods_present"]:
+        blockers.append(
+            "missing required methods: "
+            + ", ".join(stats["missing_required_methods"])
+        )
+    if stats["n_paired_cells"] <= 0:
+        blockers.append("no paired primary/baseline cells")
+    if comparison["success_delta_pct"] < SUCCESS_DELTA_PCT:
+        blockers.append(
+            "success delta below threshold: "
+            f"{comparison['success_delta_pct']:.3f} < {SUCCESS_DELTA_PCT:.3f}"
+        )
+    success_ci = comparison["success_delta_ci95"]
+    sign_p = comparison["success_sign_test_p_one_sided"]
+    if not (success_ci["low"] > 0 or sign_p <= 0.05):
+        blockers.append(
+            "primary success delta lacks statistical support: "
+            f"ci_low={success_ci['low']:.6f}, p={sign_p:.6f}"
+        )
+    if comparison["reward_delta_mean"] <= 0:
+        blockers.append("paired reward delta is not positive")
+    if not stats["reward_beats_all_required_baselines"]:
+        blockers.append("TTRL does not beat every required baseline on reward")
+    wins = sum(1 for row in family_deltas if row["reward_delta"] > 0)
+    if family_deltas and wins <= len(family_deltas) / 2:
+        blockers.append("TTRL does not win in a majority of held-out families")
+    if any(not row["keeps_positive_sign"] for row in leave_one):
+        blockers.append("leave-one-family-out check flips reward delta sign")
+    if not stats["budget_audit"]["budget_matched"]:
+        blockers.append("actual verifier/CAD/Chrono budgets are not matched")
+    if not stats["budget_audit"].get("primary_budget_spent", False):
+        blockers.append(
+            f"not every cell spent B={PRIMARY_BUDGET} verifier calls"
+        )
+    evidence = stats.get("evidence_audit") or {}
+    if not evidence.get("evidence_complete", False):
+        blockers.append(
+            "raw/verifier/training/adapter evidence is incomplete: "
+            f"missing_raw_rows={evidence.get('n_missing_raw_rows', 0)}, "
+            f"missing_verifier_rows={evidence.get('n_missing_verifier_rows', 0)}, "
+            f"missing_raw_files={evidence.get('n_missing_raw_files', 0)}, "
+            f"missing_verifier_files={evidence.get('n_missing_verifier_files', 0)}, "
+            f"trace_pairs={evidence.get('matched_ttrl_vs_no_update_trace_pairs_with_evidence', 0)}"
+        )
+    learning = stats.get("learning_audit") or {}
+    if not learning.get("ttrl_learning_evidence_complete", False):
+        blockers.append(
+            "TTRL learning evidence is incomplete: "
+            f"bad_rows={learning.get('n_bad_ttrl_learning_rows', 0)}, "
+            f"ttrl_rows={learning.get('ttrl_rows', 0)}"
+        )
+    benchmark = stats.get("benchmark_readiness_audit") or {}
+    if benchmark.get("enforced") and not benchmark.get("benchmark_ready", False):
+        blockers.append(
+            "benchmark/split/verifier readiness failed: "
+            + "; ".join((benchmark.get("blockers") or [])[:5])
+        )
+    coverage = stats.get("coverage_audit") or {}
+    if coverage.get("enforced") and not coverage.get("complete_coverage"):
+        blockers.append(
+            "incomplete expected split/task/seed/method coverage: "
+            f"missing={coverage.get('n_missing_cells', 0)}, "
+            f"extra={coverage.get('n_extra_cells', 0)}"
+        )
+    return {
+        "schema": "mechanism_repair_ttrl.claim_audit.v1",
+        "claim_status": (
+            "supports_primary_hypothesis"
+            if not blockers
+            else "does_not_support_primary_hypothesis"
+        ),
+        "blockers": blockers,
+        "primary_method": PRIMARY_METHOD,
+        "primary_baseline": PRIMARY_BASELINE,
+        "evidence": {
+            "stats": "stats.json",
+            "failure_analysis": "failure_analysis.json",
+            "trace_pairs": "trace_pairs.json",
+        },
+    }
+
+
+def bootstrap_ci(values: list[float], samples: int, seed: int) -> dict[str, float]:
+    if not values:
+        return {"low": math.nan, "high": math.nan}
+    if len(values) == 1:
+        return {"low": values[0], "high": values[0]}
+    rng = random.Random(seed)
+    means = []
+    n = len(values)
+    for _ in range(samples):
+        means.append(mean([values[rng.randrange(n)] for _ in range(n)]))
+    means.sort()
+    low_idx = max(0, int(0.025 * (samples - 1)))
+    high_idx = min(samples - 1, int(0.975 * (samples - 1)))
+    return {"low": means[low_idx], "high": means[high_idx]}
+
+
+def one_sided_sign_test(values: list[float]) -> float:
+    pos = sum(1 for value in values if value > 0)
+    neg = sum(1 for value in values if value < 0)
+    n = pos + neg
+    if n == 0:
+        return 1.0
+    tail = sum(math.comb(n, k) for k in range(pos, n + 1)) / (2 ** n)
+    return float(tail)
+
+
+def parse_codes(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(item) for item in value if str(item)]
+    text = str(value).strip()
+    if not text:
+        return []
+    if text.startswith("["):
+        try:
+            parsed = json.loads(text)
+            if isinstance(parsed, list):
+                return [str(item) for item in parsed if str(item)]
+        except json.JSONDecodeError:
+            pass
+    return [item.strip() for item in text.split(";") if item.strip()]
+
+
+def parse_paths(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(item) for item in value if str(item)]
+    text = str(value).strip()
+    if not text:
+        return []
+    if text.startswith("["):
+        try:
+            parsed = json.loads(text)
+            if isinstance(parsed, list):
+                return [str(item) for item in parsed if str(item)]
+        except json.JSONDecodeError:
+            pass
+    return [item.strip() for item in text.split(";") if item.strip()]
+
+
+def load_json_path(path: str) -> dict[str, Any] | None:
+    try:
+        data = json.loads(Path(path).read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def bool_value(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    if isinstance(value, (int, float)):
+        return bool(value)
+    text = str(value).strip().lower()
+    return text in {"1", "true", "yes", "y", "pass", "passed"}
+
+
+def float_value(value: Any) -> float:
+    if value is None or value == "":
+        return 0.0
+    return float(value)
+
+
+def default_benchmark_dir(out_dir: Path) -> Path | None:
+    required = (
+        out_dir / "method_manifest.json",
+        out_dir / "split_manifest_A.json",
+        out_dir / "split_manifest_B.json",
+    )
+    if all(path.is_file() for path in required):
+        return out_dir
+    return None
+
+
+def build_expected_coverage(benchmark_dir: Path) -> dict[str, Any]:
+    method_manifest = json.loads(
+        (benchmark_dir / "method_manifest.json").read_text()
+    )
+    methods = [
+        str(method)
+        for method in method_manifest.get("required_methods", REQUIRED_METHODS)
+    ]
+    seeds = [
+        int(seed)
+        for seed in method_manifest.get("eval_seeds", EVAL_SEEDS)
+    ]
+    expected: set[tuple[str, str, int, str]] = set()
+    split_task_counts: dict[str, int] = {}
+    for split_path in sorted(benchmark_dir.glob("split_manifest_*.json")):
+        split = split_path.stem.rsplit("_", 1)[-1]
+        manifest = json.loads(split_path.read_text())
+        task_ids = [
+            str(task_id)
+            for task_id in (manifest.get("splits") or {}).get("test", [])
+        ]
+        split_task_counts[split] = len(task_ids)
+        for task_id in task_ids:
+            for seed in seeds:
+                for method in methods:
+                    expected.add((split, task_id, seed, method))
+    return {
+        "methods": methods,
+        "seeds": seeds,
+        "split_task_counts": split_task_counts,
+        "expected_cells": sorted(list(expected)),
+    }
+
+
+def build_benchmark_readiness(benchmark_dir: Path) -> dict[str, Any]:
+    blockers: list[str] = []
+    benchmark_path = benchmark_dir / "benchmark_manifest.json"
+    verifier_path = benchmark_dir / "verifier_manifest.json"
+    if not benchmark_path.is_file():
+        blockers.append("missing benchmark_manifest.json")
+        benchmark = {}
+    else:
+        benchmark = json.loads(benchmark_path.read_text())
+    if not verifier_path.is_file():
+        blockers.append("missing verifier_manifest.json")
+        verifier = {}
+    else:
+        verifier = json.loads(verifier_path.read_text())
+
+    audit = benchmark.get("audit") or {}
+    audit_tasks = audit.get("tasks") or []
+    family_counts = audit.get("family_counts") or {}
+    primary_families = (
+        audit.get("primary_families")
+        or benchmark.get("primary_families")
+        or []
+    )
+    if benchmark.get("experiment_ready") is not True:
+        blockers.append("benchmark_manifest experiment_ready is not true")
+    if audit and audit.get("passes") is not True:
+        blockers.append("benchmark audit did not pass")
+    for blocker in audit.get("blockers") or []:
+        blockers.append(f"benchmark audit blocker: {blocker}")
+    if int(audit.get("task_count") or benchmark.get("task_count") or 0) < 40:
+        blockers.append("benchmark has fewer than 40 tasks")
+    if len(primary_families) < 8:
+        blockers.append("benchmark has fewer than 8 primary families")
+    if family_counts:
+        low = {
+            str(family): int(count)
+            for family, count in family_counts.items()
+            if int(count) < 5
+        }
+        if low:
+            blockers.append(f"primary families below 5 tasks: {low}")
+    if not audit_tasks:
+        blockers.append("benchmark audit task records are missing")
+    else:
+        bad_constraints = []
+        bad_negatives = []
+        bad_reference = []
+        fake_oracles = []
+        for task in audit_tasks:
+            task_id = str(task.get("task_id") or "")
+            classes = set(str(item) for item in task.get("constraint_classes") or [])
+            if (
+                len(classes) < 2
+                or "topology_or_mobility" not in classes
+                or "functional_behavior" not in classes
+            ):
+                bad_constraints.append(task_id)
+            if (
+                task.get("has_negative_control") is not True
+                or int(task.get("negative_control_count") or 0) < 1
+            ):
+                bad_negatives.append(task_id)
+            validation = task.get("validation") or {}
+            if (
+                validation.get("reference_passed") is not True
+                or validation.get("reference_evaluation_valid") is not True
+                or validation.get("reference_hard_gate_passed") is not True
+            ):
+                bad_reference.append(task_id)
+            if task.get("uses_fake_contact_oracle") is True:
+                fake_oracles.append(task_id)
+        if bad_constraints:
+            blockers.append(
+                "tasks missing required non-toy constraint classes: "
+                + ", ".join(bad_constraints[:20])
+            )
+        if bad_negatives:
+            blockers.append(
+                "tasks missing negative controls: "
+                + ", ".join(bad_negatives[:20])
+            )
+        if bad_reference:
+            blockers.append(
+                "tasks missing passing reference validation: "
+                + ", ".join(bad_reference[:20])
+            )
+        if fake_oracles:
+            blockers.append(
+                "tasks use fake contact oracle: " + ", ".join(fake_oracles[:20])
+            )
+
+    if verifier.get("main_claim_allows_fake_oracle") is not False:
+        blockers.append("verifier manifest allows fake oracle in main claim")
+    if verifier.get("fake_oracle_tasks"):
+        blockers.append("verifier manifest lists fake oracle tasks")
+    verifier_levels = verifier.get("verifier_levels") or {}
+    if not verifier_levels:
+        blockers.append("verifier levels are missing")
+
+    expected_splits = {
+        "A": {
+            "seen": {"belt", "chain", "rack_pinion", "fourbar"},
+            "unseen": {"planetary", "lead_screw", "slider_crank", "cycloidal"},
+        },
+        "B": {
+            "seen": {"planetary", "lead_screw", "fourbar", "slider_crank"},
+            "unseen": {"belt", "chain", "rack_pinion", "cycloidal"},
+        },
+    }
+    split_summary: dict[str, Any] = {}
+    for split, expected in expected_splits.items():
+        path = benchmark_dir / f"split_manifest_{split}.json"
+        if not path.is_file():
+            blockers.append(f"missing split_manifest_{split}.json")
+            continue
+        manifest = json.loads(path.read_text())
+        splits = manifest.get("splits") or {}
+        train = set(str(item) for item in splits.get("train", []) or [])
+        test = set(str(item) for item in splits.get("test", []) or [])
+        seen = set(str(item) for item in manifest.get("seen_families") or [])
+        unseen = set(str(item) for item in manifest.get("unseen_families") or [])
+        split_summary[split] = {
+            "train_tasks": len(train),
+            "test_tasks": len(test),
+            "seen_families": sorted(seen),
+            "unseen_families": sorted(unseen),
+        }
+        if len(test) < 20:
+            blockers.append(f"split {split} has fewer than 20 held-out tasks")
+        if seen != expected["seen"]:
+            blockers.append(
+                f"split {split} seen families mismatch: {sorted(seen)}"
+            )
+        if unseen != expected["unseen"]:
+            blockers.append(
+                f"split {split} unseen families mismatch: {sorted(unseen)}"
+            )
+        if train & test:
+            blockers.append(f"split {split} has train/test overlap")
+
+    return {
+        "enforced": True,
+        "benchmark_ready": not blockers,
+        "blockers": blockers,
+        "task_count": int(audit.get("task_count") or benchmark.get("task_count") or 0),
+        "family_counts": family_counts,
+        "primary_families": primary_families,
+        "verifier_levels": verifier_levels,
+        "split_summary": split_summary,
+    }
+
+
+def audit_expected_coverage(
+    rows: list[dict[str, Any]],
+    expected_coverage: dict[str, Any] | None,
+) -> dict[str, Any]:
+    if expected_coverage is None:
+        return {"enforced": False}
+    expected = {
+        tuple(item)
+        for item in expected_coverage.get("expected_cells", []) or []
+    }
+    observed = {
+        (
+            str(row["split"]),
+            str(row["task_id"]),
+            int(row["seed"]),
+            str(row["method"]),
+        )
+        for row in rows
+    }
+    missing = sorted(expected - observed)
+    extra = sorted(observed - expected)
+    return {
+        "enforced": True,
+        "complete_coverage": not missing and not extra,
+        "expected_cells": len(expected),
+        "observed_cells": len(observed),
+        "n_missing_cells": len(missing),
+        "n_extra_cells": len(extra),
+        "missing_cells": [list(item) for item in missing[:100]],
+        "extra_cells": [list(item) for item in extra[:100]],
+        "methods": expected_coverage.get("methods", []),
+        "seeds": expected_coverage.get("seeds", []),
+        "split_task_counts": expected_coverage.get("split_task_counts", {}),
+    }
+
+
+def mean(values: list[float]) -> float:
+    return sum(values) / len(values) if values else 0.0
+
+
+def mean_present(row: dict[str, Any], fields: list[str]) -> float | None:
+    values: list[float] = []
+    for field in fields:
+        raw = row.get(field)
+        if raw is None or raw == "":
+            continue
+        try:
+            value = float(raw)
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(value):
+            values.append(value)
+    return mean(values) if values else None
+
+
+def write_json(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

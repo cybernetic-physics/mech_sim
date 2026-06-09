@@ -1,0 +1,10 @@
+{
+  "family": "cycloidal_layout_ratio",
+  "tier": "transmission_analytic",
+  "seed": 20267610,
+  "difficulty": 2,
+  "ring_pin_count": 10,
+  "target_ratio": 9.0,
+  "eccentricity_mm": 1.287,
+  "task_id": "cycloidal_layout_ratio_s20267610"
+}

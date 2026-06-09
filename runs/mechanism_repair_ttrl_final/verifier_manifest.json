@@ -1,0 +1,18 @@
+{
+  "constraint_class_policy": {
+    "classes": [
+      "topology_or_mobility",
+      "functional_behavior",
+      "artifact_validity",
+      "contact_or_dynamics"
+    ],
+    "non_toy_min_classes": 2
+  },
+  "fake_oracle_tasks": [],
+  "main_claim_allows_fake_oracle": false,
+  "schema": "mechanism_repair_ttrl.verifier_manifest.v1",
+  "tasks_root": "/matx/u/knatalia/corl_mechanism_repair_ttrl_exact_A_20260607/repo/runs/mechanism_repair_ttrl_final/tasks",
+  "verifier_levels": {
+    "1": 40
+  }
+}

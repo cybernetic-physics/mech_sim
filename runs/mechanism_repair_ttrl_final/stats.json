@@ -1,0 +1,5321 @@
+{
+  "benchmark_readiness_audit": {
+    "benchmark_ready": true,
+    "blockers": [],
+    "enforced": true,
+    "family_counts": {
+      "belt": 5,
+      "chain": 5,
+      "cycloidal": 5,
+      "fourbar": 5,
+      "lead_screw": 5,
+      "planetary": 5,
+      "rack_pinion": 5,
+      "slider_crank": 5
+    },
+    "primary_families": [
+      "belt",
+      "chain",
+      "rack_pinion",
+      "lead_screw",
+      "planetary",
+      "fourbar",
+      "slider_crank",
+      "cycloidal"
+    ],
+    "split_summary": {
+      "A": {
+        "seen_families": [
+          "belt",
+          "chain",
+          "fourbar",
+          "rack_pinion"
+        ],
+        "test_tasks": 20,
+        "train_tasks": 16,
+        "unseen_families": [
+          "cycloidal",
+          "lead_screw",
+          "planetary",
+          "slider_crank"
+        ]
+      },
+      "B": {
+        "seen_families": [
+          "fourbar",
+          "lead_screw",
+          "planetary",
+          "slider_crank"
+        ],
+        "test_tasks": 20,
+        "train_tasks": 16,
+        "unseen_families": [
+          "belt",
+          "chain",
+          "cycloidal",
+          "rack_pinion"
+        ]
+      }
+    },
+    "task_count": 40,
+    "verifier_levels": {
+      "1": 40
+    }
+  },
+  "budget_audit": {
+    "budget_matched": true,
+    "mismatches": [],
+    "n_cells": 120,
+    "n_mismatches": 0,
+    "n_wrong_primary_budget": 0,
+    "primary_budget_spent": true,
+    "wrong_primary_budget": []
+  },
+  "coverage_audit": {
+    "complete_coverage": true,
+    "enforced": true,
+    "expected_cells": 720,
+    "extra_cells": [],
+    "methods": [
+      "frozen_model",
+      "verifier_gated",
+      "no_update_search",
+      "llm_evolve_no_update",
+      "sft_model",
+      "mechanical_evolve_ttrl"
+    ],
+    "missing_cells": [],
+    "n_extra_cells": 0,
+    "n_missing_cells": 0,
+    "observed_cells": 720,
+    "seeds": [
+      20260607,
+      20260608,
+      20260609
+    ],
+    "split_task_counts": {
+      "A": 20,
+      "B": 20
+    }
+  },
+  "eval_seeds_expected": [
+    20260607,
+    20260608,
+    20260609
+  ],
+  "evidence_audit": {
+    "adapter_checkpoints_present": true,
+    "evidence_complete": true,
+    "matched_ttrl_vs_no_update_trace_pairs_with_evidence": 120,
+    "missing_raw_files": [],
+    "missing_raw_rows": [],
+    "missing_summary_files": [],
+    "missing_ttrl_adapters": [],
+    "missing_ttrl_training_logs": [],
+    "missing_verifier_files": [],
+    "missing_verifier_rows": [],
+    "n_missing_raw_files": 0,
+    "n_missing_raw_rows": 0,
+    "n_missing_summary_files": 0,
+    "n_missing_ttrl_adapters": 0,
+    "n_missing_ttrl_training_logs": 0,
+    "n_missing_verifier_files": 0,
+    "n_missing_verifier_rows": 0,
+    "n_verifier_count_mismatches": 0,
+    "raw_completions_present": true,
+    "required_min_trace_pairs": 8,
+    "training_logs_present": true,
+    "verifier_count_mismatches": [],
+    "verifier_outputs_present": true
+  },
+  "family_deltas": [
+    {
+      "family": "belt",
+      "n": 15,
+      "reward_delta": 0.6666666666666666,
+      "success_delta": 0.6666666666666666,
+      "success_delta_pct": 66.66666666666666,
+      "ttrl_wins_reward": true
+    },
+    {
+      "family": "chain",
+      "n": 15,
+      "reward_delta": 0.8666666666666667,
+      "success_delta": 0.8666666666666667,
+      "success_delta_pct": 86.66666666666667,
+      "ttrl_wins_reward": true
+    },
+    {
+      "family": "cycloidal",
+      "n": 30,
+      "reward_delta": 0.4666666666666667,
+      "success_delta": 0.4666666666666667,
+      "success_delta_pct": 46.666666666666664,
+      "ttrl_wins_reward": true
+    },
+    {
+      "family": "lead_screw",
+      "n": 15,
+      "reward_delta": 0.6,
+      "success_delta": 0.6,
+      "success_delta_pct": 60.0,
+      "ttrl_wins_reward": true
+    },
+    {
+      "family": "planetary",
+      "n": 15,
+      "reward_delta": 0.7333333333333333,
+      "success_delta": 0.7333333333333333,
+      "success_delta_pct": 73.33333333333333,
+      "ttrl_wins_reward": true
+    },
+    {
+      "family": "rack_pinion",
+      "n": 15,
+      "reward_delta": 0.6666666666666666,
+      "success_delta": 0.6666666666666666,
+      "success_delta_pct": 66.66666666666666,
+      "ttrl_wins_reward": true
+    },
+    {
+      "family": "slider_crank",
+      "n": 15,
+      "reward_delta": 0.5333333333333333,
+      "success_delta": 0.5333333333333333,
+      "success_delta_pct": 53.333333333333336,
+      "ttrl_wins_reward": true
+    }
+  ],
+  "family_method_summary": [
+    {
+      "best_verified_reward_at_32": 0.13333333333333333,
+      "family": "belt",
+      "method": "frozen_model",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 2
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 20.0,
+          "n_present": 5
+        },
+        "invalid_artifact_count": {
+          "mean": 30.133333333333333,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.9416666666666667,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.04583333333333333,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.004166666666666667,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.00625,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.13333333333333333
+    },
+    {
+      "best_verified_reward_at_32": 0.06666666666666667,
+      "family": "chain",
+      "method": "frozen_model",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 1
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 3.0,
+          "n_present": 1
+        },
+        "invalid_artifact_count": {
+          "mean": 31.733333333333334,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.9916666666666667,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.00625,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.0020833333333333333,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.06666666666666667
+    },
+    {
+      "best_verified_reward_at_32": 0.0,
+      "family": "cycloidal",
+      "method": "frozen_model",
+      "n": 30,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "first_valid_verifier_call": {
+          "mean": 25.0,
+          "n_present": 1
+        },
+        "invalid_artifact_count": {
+          "mean": 31.933333333333334,
+          "n_present": 30
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.9979166666666667,
+          "n_present": 30
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "missing_port_rate": {
+          "mean": 0.0010416666666666667,
+          "n_present": 30
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0010416666666666667,
+          "n_present": 30
+        }
+      },
+      "verified_repair_success_at_32": 0.0
+    },
+    {
+      "best_verified_reward_at_32": 0.7333333333333333,
+      "family": "lead_screw",
+      "method": "frozen_model",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 10.384615384615385,
+          "n_present": 13
+        },
+        "invalid_artifact_count": {
+          "mean": 30.466666666666665,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.9520833333333333,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.004166666666666667,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.041666666666666664,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0020833333333333333,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.7333333333333333
+    },
+    {
+      "best_verified_reward_at_32": 0.2,
+      "family": "planetary",
+      "method": "frozen_model",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 3
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 12.333333333333334,
+          "n_present": 6
+        },
+        "invalid_artifact_count": {
+          "mean": 31.6,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.9875,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.00625,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.00625,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.2
+    },
+    {
+      "best_verified_reward_at_32": 0.5333333333333333,
+      "family": "rack_pinion",
+      "method": "frozen_model",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 16.875,
+          "n_present": 8
+        },
+        "invalid_artifact_count": {
+          "mean": 30.866666666666667,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.9645833333333333,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.035416666666666666,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.5333333333333333
+    },
+    {
+      "best_verified_reward_at_32": 0.0,
+      "family": "slider_crank",
+      "method": "frozen_model",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": null,
+          "n_present": 0
+        },
+        "invalid_artifact_count": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 1.0,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.0
+    },
+    {
+      "best_verified_reward_at_32": 0.2,
+      "family": "belt",
+      "method": "llm_evolve_no_update",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 2
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 3.9,
+          "n_present": 10
+        },
+        "invalid_artifact_count": {
+          "mean": 6.666666666666667,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.8333333333333334,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.041666666666666664,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.041666666666666664,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.075,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.2
+    },
+    {
+      "best_verified_reward_at_32": 0.13333333333333333,
+      "family": "chain",
+      "method": "llm_evolve_no_update",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 2
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 3.857142857142857,
+          "n_present": 7
+        },
+        "invalid_artifact_count": {
+          "mean": 6.066666666666666,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.7583333333333333,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.10833333333333334,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.025,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.058333333333333334,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.13333333333333333
+    },
+    {
+      "best_verified_reward_at_32": 0.03333333333333333,
+      "family": "cycloidal",
+      "method": "llm_evolve_no_update",
+      "n": 30,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 1
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "first_valid_verifier_call": {
+          "mean": 4.0,
+          "n_present": 7
+        },
+        "invalid_artifact_count": {
+          "mean": 6.533333333333333,
+          "n_present": 30
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.8803571428571428,
+          "n_present": 30
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "missing_port_rate": {
+          "mean": 0.0628968253968254,
+          "n_present": 30
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.004166666666666667,
+          "n_present": 30
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.03333333333333333,
+          "n_present": 30
+        }
+      },
+      "verified_repair_success_at_32": 0.03333333333333333
+    },
+    {
+      "best_verified_reward_at_32": 0.4,
+      "family": "lead_screw",
+      "method": "llm_evolve_no_update",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 3.25,
+          "n_present": 8
+        },
+        "invalid_artifact_count": {
+          "mean": 6.6,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.825,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.075,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.05,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.03333333333333333,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.4
+    },
+    {
+      "best_verified_reward_at_32": 0.26666666666666666,
+      "family": "planetary",
+      "method": "llm_evolve_no_update",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 5
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 4.666666666666667,
+          "n_present": 9
+        },
+        "invalid_artifact_count": {
+          "mean": 6.866666666666666,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.8583333333333333,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.03333333333333333,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.03333333333333333,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.075,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.26666666666666666
+    },
+    {
+      "best_verified_reward_at_32": 0.3333333333333333,
+      "family": "rack_pinion",
+      "method": "llm_evolve_no_update",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 3.1666666666666665,
+          "n_present": 6
+        },
+        "invalid_artifact_count": {
+          "mean": 7.2,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.9,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.03333333333333333,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.05,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.016666666666666666,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.3333333333333333
+    },
+    {
+      "best_verified_reward_at_32": 0.4666666666666667,
+      "family": "slider_crank",
+      "method": "llm_evolve_no_update",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 1
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 4.375,
+          "n_present": 8
+        },
+        "invalid_artifact_count": {
+          "mean": 6.933333333333334,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.8666666666666667,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.075,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.008333333333333333,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.4666666666666667
+    },
+    {
+      "best_verified_reward_at_32": 0.8666666666666667,
+      "family": "belt",
+      "method": "mechanical_evolve_ttrl",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 9
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 2.066666666666667,
+          "n_present": 15
+        },
+        "invalid_artifact_count": {
+          "mean": 6.8,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.2125,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.19791666666666666,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 147356.6,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.25833333333333336,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 147356.6,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.175,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.8666666666666667
+    },
+    {
+      "best_verified_reward_at_32": 1.0,
+      "family": "chain",
+      "method": "mechanical_evolve_ttrl",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 1.4666666666666666,
+          "n_present": 15
+        },
+        "invalid_artifact_count": {
+          "mean": 3.7333333333333334,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.11666666666666667,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.23958333333333334,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 147644.06666666668,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.4625,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 147644.06666666668,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0875,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 1.0
+    },
+    {
+      "best_verified_reward_at_32": 0.5,
+      "family": "cycloidal",
+      "method": "mechanical_evolve_ttrl",
+      "n": 30,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 32.0,
+          "n_present": 30
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 20
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "first_valid_verifier_call": {
+          "mean": 8.413793103448276,
+          "n_present": 29
+        },
+        "invalid_artifact_count": {
+          "mean": 3.566666666666667,
+          "n_present": 30
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.11145833333333334,
+          "n_present": 30
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "missing_port_rate": {
+          "mean": 0.728125,
+          "n_present": 30
+        },
+        "n_rl_datums": {
+          "mean": 32.0,
+          "n_present": 30
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "rl_trained_tokens": {
+          "mean": 155977.5,
+          "n_present": 30
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.020833333333333332,
+          "n_present": 30
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "trained_tokens": {
+          "mean": 155977.5,
+          "n_present": 30
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.05625,
+          "n_present": 30
+        }
+      },
+      "verified_repair_success_at_32": 0.5
+    },
+    {
+      "best_verified_reward_at_32": 1.0,
+      "family": "lead_screw",
+      "method": "mechanical_evolve_ttrl",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 1.6666666666666667,
+          "n_present": 15
+        },
+        "invalid_artifact_count": {
+          "mean": 14.0,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.4375,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.075,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 145119.4,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.3729166666666667,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 145119.4,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.08541666666666667,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 1.0
+    },
+    {
+      "best_verified_reward_at_32": 1.0,
+      "family": "planetary",
+      "method": "mechanical_evolve_ttrl",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 1.8666666666666667,
+          "n_present": 15
+        },
+        "invalid_artifact_count": {
+          "mean": 3.066666666666667,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.09583333333333334,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.44166666666666665,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 148368.73333333334,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.22916666666666666,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 148368.73333333334,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.11666666666666667,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 1.0
+    },
+    {
+      "best_verified_reward_at_32": 1.0,
+      "family": "rack_pinion",
+      "method": "mechanical_evolve_ttrl",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 2.8666666666666667,
+          "n_present": 15
+        },
+        "invalid_artifact_count": {
+          "mean": 14.533333333333333,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.45416666666666666,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.03333333333333333,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 147142.2,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.39791666666666664,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 147142.2,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.016666666666666666,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 1.0
+    },
+    {
+      "best_verified_reward_at_32": 1.0,
+      "family": "slider_crank",
+      "method": "mechanical_evolve_ttrl",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 3
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 1.2666666666666666,
+          "n_present": 15
+        },
+        "invalid_artifact_count": {
+          "mean": 2.8,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.0875,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.029166666666666667,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 153259.06666666668,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.39791666666666664,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 153259.06666666668,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.23958333333333334,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 1.0
+    },
+    {
+      "best_verified_reward_at_32": 0.4666666666666667,
+      "family": "belt",
+      "method": "no_update_search",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 5
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 11.166666666666666,
+          "n_present": 12
+        },
+        "invalid_artifact_count": {
+          "mean": 27.066666666666666,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.8458333333333333,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.09166666666666666,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.020833333333333332,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.020833333333333332,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.4666666666666667
+    },
+    {
+      "best_verified_reward_at_32": 0.6,
+      "family": "chain",
+      "method": "no_update_search",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 10
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 9.285714285714286,
+          "n_present": 14
+        },
+        "invalid_artifact_count": {
+          "mean": 26.0,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.8125,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.1,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.025,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.03958333333333333,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.6
+    },
+    {
+      "best_verified_reward_at_32": 0.03333333333333333,
+      "family": "cycloidal",
+      "method": "no_update_search",
+      "n": 30,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 1
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "first_valid_verifier_call": {
+          "mean": 17.571428571428573,
+          "n_present": 14
+        },
+        "invalid_artifact_count": {
+          "mean": 28.6,
+          "n_present": 30
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.89375,
+          "n_present": 30
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "missing_port_rate": {
+          "mean": 0.08020833333333334,
+          "n_present": 30
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.0010416666666666667,
+          "n_present": 30
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.016666666666666666,
+          "n_present": 30
+        }
+      },
+      "verified_repair_success_at_32": 0.03333333333333333
+    },
+    {
+      "best_verified_reward_at_32": 0.6,
+      "family": "lead_screw",
+      "method": "no_update_search",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 16.0,
+          "n_present": 12
+        },
+        "invalid_artifact_count": {
+          "mean": 27.8,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.86875,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.06041666666666667,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.027083333333333334,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0125,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.6
+    },
+    {
+      "best_verified_reward_at_32": 0.26666666666666666,
+      "family": "planetary",
+      "method": "no_update_search",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 5
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 12.88888888888889,
+          "n_present": 9
+        },
+        "invalid_artifact_count": {
+          "mean": 26.6,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.83125,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.09791666666666667,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.016666666666666666,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.025,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.26666666666666666
+    },
+    {
+      "best_verified_reward_at_32": 0.8,
+      "family": "rack_pinion",
+      "method": "no_update_search",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 7.333333333333333,
+          "n_present": 15
+        },
+        "invalid_artifact_count": {
+          "mean": 26.266666666666666,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.8208333333333333,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.075,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.04583333333333333,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.027083333333333334,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.8
+    },
+    {
+      "best_verified_reward_at_32": 0.8666666666666667,
+      "family": "slider_crank",
+      "method": "no_update_search",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 2
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 11.538461538461538,
+          "n_present": 13
+        },
+        "invalid_artifact_count": {
+          "mean": 28.8,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.9,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.010416666666666666,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.041666666666666664,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.010416666666666666,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.8666666666666667
+    },
+    {
+      "best_verified_reward_at_32": 0.06666666666666667,
+      "family": "belt",
+      "method": "sft_model",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 64.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 1
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 18.0,
+          "n_present": 3
+        },
+        "invalid_artifact_count": {
+          "mean": 31.0,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.96875,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.020833333333333332,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.0020833333333333333,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 524288.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.00625,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.06666666666666667
+    },
+    {
+      "best_verified_reward_at_32": 0.06666666666666667,
+      "family": "chain",
+      "method": "sft_model",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 64.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 1
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 32.0,
+          "n_present": 1
+        },
+        "invalid_artifact_count": {
+          "mean": 31.666666666666668,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.9895833333333334,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.008333333333333333,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.0020833333333333333,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 524288.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.06666666666666667
+    },
+    {
+      "best_verified_reward_at_32": 0.0,
+      "family": "cycloidal",
+      "method": "sft_model",
+      "n": 30,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 64.0,
+          "n_present": 30
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "first_valid_verifier_call": {
+          "mean": null,
+          "n_present": 0
+        },
+        "invalid_artifact_count": {
+          "mean": 31.833333333333332,
+          "n_present": 30
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.9947916666666666,
+          "n_present": 30
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "missing_port_rate": {
+          "mean": 0.004166666666666667,
+          "n_present": 30
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "trained_tokens": {
+          "mean": 524288.0,
+          "n_present": 30
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        }
+      },
+      "verified_repair_success_at_32": 0.0
+    },
+    {
+      "best_verified_reward_at_32": 0.8666666666666667,
+      "family": "lead_screw",
+      "method": "sft_model",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 64.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 8.428571428571429,
+          "n_present": 14
+        },
+        "invalid_artifact_count": {
+          "mean": 29.266666666666666,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.9145833333333333,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.01875,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.06458333333333334,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 524288.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.00625,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.8666666666666667
+    },
+    {
+      "best_verified_reward_at_32": 0.06666666666666667,
+      "family": "planetary",
+      "method": "sft_model",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 64.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 1
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 19.0,
+          "n_present": 4
+        },
+        "invalid_artifact_count": {
+          "mean": 31.6,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.9875,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.0020833333333333333,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 524288.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.010416666666666666,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.06666666666666667
+    },
+    {
+      "best_verified_reward_at_32": 0.3333333333333333,
+      "family": "rack_pinion",
+      "method": "sft_model",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 64.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 17.6,
+          "n_present": 5
+        },
+        "invalid_artifact_count": {
+          "mean": 31.666666666666668,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.9895833333333334,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.010416666666666666,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 524288.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.3333333333333333
+    },
+    {
+      "best_verified_reward_at_32": 0.13333333333333333,
+      "family": "slider_crank",
+      "method": "sft_model",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 64.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": 18.0,
+          "n_present": 2
+        },
+        "invalid_artifact_count": {
+          "mean": 31.866666666666667,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.9958333333333333,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.004166666666666667,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 524288.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.13333333333333333
+    },
+    {
+      "best_verified_reward_at_32": 0.0,
+      "family": "belt",
+      "method": "verifier_gated",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": null,
+          "n_present": 0
+        },
+        "invalid_artifact_count": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 1.0,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.0
+    },
+    {
+      "best_verified_reward_at_32": 0.0,
+      "family": "chain",
+      "method": "verifier_gated",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": null,
+          "n_present": 0
+        },
+        "invalid_artifact_count": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 1.0,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.0
+    },
+    {
+      "best_verified_reward_at_32": 0.0,
+      "family": "cycloidal",
+      "method": "verifier_gated",
+      "n": 30,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "first_valid_verifier_call": {
+          "mean": null,
+          "n_present": 0
+        },
+        "invalid_artifact_count": {
+          "mean": 32.0,
+          "n_present": 30
+        },
+        "invalid_artifact_rate": {
+          "mean": 1.0,
+          "n_present": 30
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "missing_port_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0,
+          "n_present": 30
+        }
+      },
+      "verified_repair_success_at_32": 0.0
+    },
+    {
+      "best_verified_reward_at_32": 0.0,
+      "family": "lead_screw",
+      "method": "verifier_gated",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": null,
+          "n_present": 0
+        },
+        "invalid_artifact_count": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 1.0,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.0
+    },
+    {
+      "best_verified_reward_at_32": 0.0,
+      "family": "planetary",
+      "method": "verifier_gated",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": null,
+          "n_present": 0
+        },
+        "invalid_artifact_count": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 1.0,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.0
+    },
+    {
+      "best_verified_reward_at_32": 0.0,
+      "family": "rack_pinion",
+      "method": "verifier_gated",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": null,
+          "n_present": 0
+        },
+        "invalid_artifact_count": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 1.0,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.0
+    },
+    {
+      "best_verified_reward_at_32": 0.0,
+      "family": "slider_crank",
+      "method": "verifier_gated",
+      "n": 15,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "first_valid_verifier_call": {
+          "mean": null,
+          "n_present": 0
+        },
+        "invalid_artifact_count": {
+          "mean": 32.0,
+          "n_present": 15
+        },
+        "invalid_artifact_rate": {
+          "mean": 1.0,
+          "n_present": 15
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "missing_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0,
+          "n_present": 15
+        }
+      },
+      "verified_repair_success_at_32": 0.0
+    }
+  ],
+  "learning_audit": {
+    "bad_ttrl_learning_rows": [],
+    "n_bad_ttrl_learning_rows": 0,
+    "ttrl_learning_evidence_complete": true,
+    "ttrl_rows": 120
+  },
+  "leave_one_family_out": [
+    {
+      "keeps_positive_sign": true,
+      "n": 105,
+      "removed_family": "belt",
+      "reward_delta": 0.6190476190476191
+    },
+    {
+      "keeps_positive_sign": true,
+      "n": 105,
+      "removed_family": "chain",
+      "reward_delta": 0.5904761904761905
+    },
+    {
+      "keeps_positive_sign": true,
+      "n": 90,
+      "removed_family": "cycloidal",
+      "reward_delta": 0.6777777777777778
+    },
+    {
+      "keeps_positive_sign": true,
+      "n": 105,
+      "removed_family": "lead_screw",
+      "reward_delta": 0.6285714285714286
+    },
+    {
+      "keeps_positive_sign": true,
+      "n": 105,
+      "removed_family": "planetary",
+      "reward_delta": 0.6095238095238096
+    },
+    {
+      "keeps_positive_sign": true,
+      "n": 105,
+      "removed_family": "rack_pinion",
+      "reward_delta": 0.6190476190476191
+    },
+    {
+      "keeps_positive_sign": true,
+      "n": 105,
+      "removed_family": "slider_crank",
+      "reward_delta": 0.638095238095238
+    }
+  ],
+  "method_summary": {
+    "frozen_model": {
+      "best_verified_reward_at_32": 0.20833333333333334,
+      "cad_audits_mean": 0.0,
+      "chrono_audits_mean": 0.0,
+      "n": 120,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 6
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "first_valid_verifier_call": {
+          "mean": 13.882352941176471,
+          "n_present": 34
+        },
+        "invalid_artifact_count": {
+          "mean": 31.333333333333332,
+          "n_present": 120
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.9791666666666666,
+          "n_present": 120
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "missing_port_rate": {
+          "mean": 0.007291666666666667,
+          "n_present": 120
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.011197916666666667,
+          "n_present": 120
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0020833333333333333,
+          "n_present": 120
+        }
+      },
+      "verified_repair_success_at_32": 0.20833333333333334,
+      "verifier_calls_mean": 32.0
+    },
+    "llm_evolve_no_update": {
+      "best_verified_reward_at_32": 0.23333333333333334,
+      "cad_audits_mean": 0.0,
+      "chrono_audits_mean": 0.0,
+      "n": 120,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 11
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "first_valid_verifier_call": {
+          "mean": 3.9272727272727272,
+          "n_present": 55
+        },
+        "invalid_artifact_count": {
+          "mean": 6.675,
+          "n_present": 120
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.8502976190476191,
+          "n_present": 120
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "missing_port_rate": {
+          "mean": 0.052182539682539685,
+          "n_present": 120
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.035416666666666666,
+          "n_present": 120
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.041666666666666664,
+          "n_present": 120
+        }
+      },
+      "verified_repair_success_at_32": 0.23333333333333334,
+      "verifier_calls_mean": 32.0
+    },
+    "mechanical_evolve_ttrl": {
+      "best_verified_reward_at_32": 0.8583333333333333,
+      "cad_audits_mean": 0.0,
+      "chrono_audits_mean": 0.0,
+      "n": 120,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 32.0,
+          "n_present": 120
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 62
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "first_valid_verifier_call": {
+          "mean": 3.46218487394958,
+          "n_present": 119
+        },
+        "invalid_artifact_count": {
+          "mean": 6.508333333333334,
+          "n_present": 120
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.20338541666666668,
+          "n_present": 120
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "missing_port_rate": {
+          "mean": 0.30911458333333336,
+          "n_present": 120
+        },
+        "n_rl_datums": {
+          "mean": 32.0,
+          "n_present": 120
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "rl_trained_tokens": {
+          "mean": 150105.63333333333,
+          "n_present": 120
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.27005208333333336,
+          "n_present": 120
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "trained_tokens": {
+          "mean": 150105.63333333333,
+          "n_present": 120
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.10416666666666667,
+          "n_present": 120
+        }
+      },
+      "verified_repair_success_at_32": 0.8583333333333333,
+      "verifier_calls_mean": 32.0
+    },
+    "no_update_search": {
+      "best_verified_reward_at_32": 0.4583333333333333,
+      "cad_audits_mean": 0.0,
+      "chrono_audits_mean": 0.0,
+      "n": 120,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 23
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "first_valid_verifier_call": {
+          "mean": 12.112359550561798,
+          "n_present": 89
+        },
+        "invalid_artifact_count": {
+          "mean": 27.466666666666665,
+          "n_present": 120
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.8583333333333333,
+          "n_present": 120
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "missing_port_rate": {
+          "mean": 0.07447916666666667,
+          "n_present": 120
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.022395833333333334,
+          "n_present": 120
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.02109375,
+          "n_present": 120
+        }
+      },
+      "verified_repair_success_at_32": 0.4583333333333333,
+      "verifier_calls_mean": 32.0
+    },
+    "sft_model": {
+      "best_verified_reward_at_32": 0.19166666666666668,
+      "cad_audits_mean": 0.0,
+      "chrono_audits_mean": 0.0,
+      "n": 120,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 64.0,
+          "n_present": 120
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": 0.0,
+          "n_present": 3
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "first_valid_verifier_call": {
+          "mean": 13.931034482758621,
+          "n_present": 29
+        },
+        "invalid_artifact_count": {
+          "mean": 31.341666666666665,
+          "n_present": 120
+        },
+        "invalid_artifact_rate": {
+          "mean": 0.9794270833333333,
+          "n_present": 120
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "missing_port_rate": {
+          "mean": 0.00703125,
+          "n_present": 120
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.010677083333333334,
+          "n_present": 120
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "trained_tokens": {
+          "mean": 524288.0,
+          "n_present": 120
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.002864583333333333,
+          "n_present": 120
+        }
+      },
+      "verified_repair_success_at_32": 0.19166666666666668,
+      "verifier_calls_mean": 32.0
+    },
+    "verifier_gated": {
+      "best_verified_reward_at_32": 0.0,
+      "cad_audits_mean": 0.0,
+      "chrono_audits_mean": 0.0,
+      "n": 120,
+      "secondary_metrics": {
+        "adapter_updates": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "audit_retry_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "best_contact_force_rms_N": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_max_penetration_mm": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_path_trace_error": {
+          "mean": null,
+          "n_present": 0
+        },
+        "best_ratio_error_pct": {
+          "mean": null,
+          "n_present": 0
+        },
+        "cad_pass_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "chrono_real_geometry_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "contact_lockup_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "first_valid_verifier_call": {
+          "mean": null,
+          "n_present": 0
+        },
+        "invalid_artifact_count": {
+          "mean": 32.0,
+          "n_present": 120
+        },
+        "invalid_artifact_rate": {
+          "mean": 1.0,
+          "n_present": 120
+        },
+        "invalid_topology_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "lockup_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "missing_port_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "n_rl_datums": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "no_procedural_fallback_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "rl_trained_tokens": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "sampler_error_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "strict_score_pass_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "timeout_count": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "trained_tokens": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "ungrounded_port_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        },
+        "wrong_mobility_rate": {
+          "mean": 0.0,
+          "n_present": 120
+        }
+      },
+      "verified_repair_success_at_32": 0.0,
+      "verifier_calls_mean": 32.0
+    }
+  },
+  "missing_required_methods": [],
+  "n_paired_cells": 120,
+  "n_rows": 720,
+  "primary_baseline": "llm_evolve_no_update",
+  "primary_budget_verifier_calls": 32,
+  "primary_comparison": {
+    "reward_delta_ci95": {
+      "high": 0.7166666666666667,
+      "low": 0.5333333333333333
+    },
+    "reward_delta_mean": 0.625,
+    "success_delta_ci95": {
+      "high": 0.7083333333333334,
+      "low": 0.5333333333333333
+    },
+    "success_delta_mean": 0.625,
+    "success_delta_pct": 62.5,
+    "success_sign_test_p_one_sided": 5.161607022330893e-22,
+    "success_threshold_pct": 15.0
+  },
+  "primary_method": "mechanical_evolve_ttrl",
+  "required_methods": [
+    "frozen_model",
+    "verifier_gated",
+    "no_update_search",
+    "llm_evolve_no_update",
+    "sft_model",
+    "mechanical_evolve_ttrl"
+  ],
+  "required_methods_present": true,
+  "reward_beats_all_required_baselines": true,
+  "schema": "mechanism_repair_ttrl.stats.v1"
+}

@@ -1,12 +1,30 @@
 from __future__ import annotations
 
-import pytest
+from pathlib import Path
 
+import pytest
+import torch
+
+from rl.mech_env import TaskInfo
+from rl.mech_bench_reward import RewardResult
 from rl.train_true_grpo_trl import (
+    STRICT_FENCED_OUTPUT_INSTRUCTION,
+    _chat_prompt_rows,
     _estimate_prompt_tokens,
+    _reward_base,
+    _finite_named_tensor_audit,
+    _full_eval_contract_suffix,
+    _guarded_optimizer_manifest,
     _load_text_tokenizer,
+    _make_guarded_adamw,
+    _messages_for_rollout,
     _parse_max_memory,
+    _prepare_model_for_kbit_training_lightweight,
+    _prompt_text_for_rollout,
+    _raise_if_nonfinite_trainable_parameters,
+    _sanitize_token_ids,
     _truncate_prompt_rows,
+    _truncate_token_ids,
 )
 
 
@@ -19,6 +37,9 @@ class FakeTokenizer:
     pad_token_id = None
     eos_token = "<eos>"
     pad_token = None
+
+    def __len__(self) -> int:
+        return 10
 
 
 class FakeAutoTokenizer:
@@ -56,6 +77,24 @@ class DictLikeTokenizer:
         return " ".join(f"tok{i}" for i in input_ids)
 
 
+class ChatTemplateTokenizer:
+    def apply_chat_template(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        tokenize: bool = False,
+        add_generation_prompt: bool = True,
+    ) -> str:
+        assert tokenize is False
+        rendered = "".join(
+            f"<{item['role']}>{item['content']}</{item['role']}>"
+            for item in messages
+        )
+        if add_generation_prompt:
+            rendered += "<assistant>"
+        return rendered
+
+
 def test_estimate_prompt_tokens_counts_processor_input_ids() -> None:
     rows = [
         {"prompt": "one two three"},
@@ -82,6 +121,76 @@ def test_load_text_tokenizer_sets_pad_without_auto_processor() -> None:
     assert tokenizer.pad_token == "<eos>"
 
 
+def test_reward_base_keeps_strict_verified_channel_binary() -> None:
+    result = RewardResult(
+        score=0.75,
+        verified_score=0.0,
+        hard_gate_passed=False,
+        evaluation_valid=True,
+        failure_codes=["missing_port"],
+    )
+
+    reward, features = _reward_base(
+        "```python\nfrom pathlib import Path\n```",
+        result,
+        reward_channel="verified_score",
+    )
+
+    assert reward == 0.0
+    assert features == {}
+
+
+def test_artifact_progress_reward_orders_syntax_and_schema_progress() -> None:
+    truncated = (
+        "```python\n"
+        "from pathlib import Path\n"
+        "def build_design(out_dir: Path) -> dict:\n"
+        "    return {'schema_version':'design_ir.v2','parts':["
+    )
+    complete = (
+        "```python\n"
+        "from pathlib import Path\n"
+        "def build_design(out_dir: Path) -> dict:\n"
+        "    return {'schema_version':'design_ir.v2','parts':[],"
+        "'joints':[],'ports':{'input_port':{},'output_port':{}},"
+        "'params':{}}\n"
+        "```"
+    )
+    invalid_result = RewardResult(
+        score=0.0,
+        verified_score=0.0,
+        hard_gate_passed=False,
+        evaluation_valid=False,
+        failure_codes=["invalid_artifact"],
+        design_py_extracted=True,
+    )
+    schema_result = RewardResult(
+        score=0.0,
+        verified_score=0.0,
+        hard_gate_passed=False,
+        evaluation_valid=False,
+        failure_codes=["schema_error"],
+        design_py_extracted=True,
+    )
+
+    truncated_reward, truncated_features = _reward_base(
+        truncated,
+        invalid_result,
+        reward_channel="artifact_progress",
+    )
+    complete_reward, complete_features = _reward_base(
+        complete,
+        schema_result,
+        reward_channel="artifact_progress",
+    )
+
+    assert truncated_reward > 0.0
+    assert complete_reward > truncated_reward
+    assert truncated_features["syntax_ok"] is False
+    assert complete_features["syntax_ok"] is True
+    assert complete_features["closed_code_fence"] is True
+
+
 def test_parse_max_memory_accepts_comma_map_and_json() -> None:
     assert _parse_max_memory("0:32GiB,1:44GiB,cpu:128GiB") == {
         0: "32GiB",
@@ -99,7 +208,7 @@ def test_parse_max_memory_rejects_malformed_entry() -> None:
         _parse_max_memory("0:32GiB,missing-memory")
 
 
-def test_truncate_prompt_rows_keeps_prompt_tail() -> None:
+def test_truncate_prompt_rows_keeps_prompt_head_and_tail() -> None:
     rows = [{"prompt": "zero one two three", "task_id": "t1"}]
 
     truncated, audit = _truncate_prompt_rows(
@@ -108,7 +217,7 @@ def test_truncate_prompt_rows_keeps_prompt_tail() -> None:
         max_prompt_length=2,
     )
 
-    assert truncated == [{"prompt": "two three", "task_id": "t1"}]
+    assert truncated == [{"prompt": "zero three", "task_id": "t1"}]
     assert audit == {
         "enabled": True,
         "max_prompt_length": 2,
@@ -126,6 +235,201 @@ def test_truncate_prompt_rows_accepts_batchencoding_like_output() -> None:
         max_prompt_length=2,
     )
 
-    assert truncated == [{"prompt": "tok2 tok3", "task_id": "t1"}]
+    assert truncated == [{"prompt": "tok0 tok3", "task_id": "t1"}]
     assert audit["enabled"] is True
     assert audit["max_before"] == 4
+
+
+def test_truncate_token_ids_keeps_head_and_tail() -> None:
+    assert _truncate_token_ids([0, 1, 2, 3, 4], 3) == [0, 3, 4]
+    assert _truncate_token_ids([0, 1, 2], 3) == [0, 1, 2]
+    assert _truncate_token_ids([0, 1, 2], 0) == [0, 1, 2]
+
+
+def test_sanitize_token_ids_drops_invalid_and_out_of_vocab_ids() -> None:
+    assert _sanitize_token_ids(
+        [0, "3", -1, 10, 11, None, 9],
+        tokenizer=FakeTokenizer(),
+    ) == [0, 3, 9]
+
+
+def test_grpo_finite_tensor_audit_reports_nonfinite_values() -> None:
+    audit = _finite_named_tensor_audit([
+        ("good", torch.tensor([1.0, 2.0])),
+        ("bad", torch.tensor([float("nan"), float("inf")])),
+    ])
+
+    assert audit["checked_tensors"] == 2
+    assert audit["total_values"] == 4
+    assert audit["nonfinite_values"] == 2
+    assert audit["examples"][0]["name"] == "bad"
+
+
+def test_grpo_nonfinite_trainable_adapter_weights_raise() -> None:
+    module = torch.nn.Linear(2, 2, bias=False)
+    with torch.no_grad():
+        module.weight[0, 0] = float("nan")
+
+    with pytest.raises(RuntimeError, match="non-finite trainable adapter weights"):
+        _raise_if_nonfinite_trainable_parameters(module, label="test adapter")
+
+
+def test_guarded_adamw_counts_successful_finite_update() -> None:
+    module = torch.nn.Linear(2, 1, bias=False)
+    optimizer = _make_guarded_adamw(module, learning_rate=1e-3)
+    loss = module(torch.ones(1, 2)).sum()
+
+    loss.backward()
+    optimizer.step()
+
+    manifest = _guarded_optimizer_manifest(optimizer)
+    assert manifest["attempted_steps"] == 1
+    assert manifest["successful_steps"] == 1
+    assert manifest["skipped_nonfinite_gradient_steps"] == 0
+    assert manifest["rolled_back_nonfinite_update_steps"] == 0
+    assert torch.isfinite(module.weight).all()
+
+
+def test_guarded_adamw_skips_all_nonfinite_gradient_update() -> None:
+    module = torch.nn.Linear(2, 1, bias=False)
+    optimizer = _make_guarded_adamw(module, learning_rate=1e-3)
+    before = module.weight.detach().clone()
+    module.weight.grad = torch.full_like(module.weight, float("nan"))
+
+    optimizer.step()
+
+    manifest = _guarded_optimizer_manifest(optimizer)
+    assert manifest["successful_steps"] == 0
+    assert manifest["skipped_nonfinite_gradient_steps"] == 1
+    assert manifest["skipped_all_nonfinite_gradient_steps"] == 1
+    assert torch.equal(module.weight, before)
+
+
+def test_guarded_adamw_sanitizes_partial_nonfinite_gradient_update() -> None:
+    module = torch.nn.Linear(2, 1, bias=False)
+    optimizer = _make_guarded_adamw(module, learning_rate=1e-3)
+    before = module.weight.detach().clone()
+    module.weight.grad = torch.tensor([[float("nan"), 1.0]])
+
+    optimizer.step()
+
+    manifest = _guarded_optimizer_manifest(optimizer)
+    assert manifest["successful_steps"] == 1
+    assert manifest["sanitized_nonfinite_gradient_steps"] == 1
+    assert manifest["sanitized_nonfinite_gradient_values"] == 1
+    assert manifest["last_step_status"] == "successful_after_gradient_sanitize"
+    assert torch.isfinite(module.weight).all()
+    assert torch.equal(module.weight[:, :1], before[:, :1])
+    assert not torch.equal(module.weight[:, 1:], before[:, 1:])
+
+
+def test_guarded_adamw_rolls_back_nonfinite_post_update_weights() -> None:
+    module = torch.nn.Linear(2, 1, bias=False)
+    optimizer = _make_guarded_adamw(module, learning_rate=float("inf"))
+    before = module.weight.detach().clone()
+    module.weight.grad = torch.ones_like(module.weight)
+
+    optimizer.step()
+
+    manifest = _guarded_optimizer_manifest(optimizer)
+    assert manifest["successful_steps"] == 0
+    assert manifest["rolled_back_nonfinite_update_steps"] == 1
+    assert torch.equal(module.weight, before)
+    assert torch.isfinite(module.weight).all()
+
+
+def test_grpo_lightweight_kbit_prepare_freezes_base_weights() -> None:
+    module = torch.nn.Linear(2, 2, bias=False)
+
+    prepared = _prepare_model_for_kbit_training_lightweight(
+        module,
+        use_gradient_checkpointing=False,
+    )
+
+    assert prepared is module
+    assert all(not parameter.requires_grad for parameter in module.parameters())
+
+
+def test_chat_prompt_rows_preserves_system_and_user_messages() -> None:
+    rows = [{
+        "prompt": "ignored",
+        "_system_prompt": "system text",
+        "_user_prompt": "user text",
+        "task_id": "t1",
+    }]
+
+    assert _chat_prompt_rows(rows) == [{
+        "prompt": [
+            {"role": "system", "content": "system text"},
+            {"role": "user", "content": "user text"},
+        ],
+        "_system_prompt": "system text",
+        "_user_prompt": "user text",
+        "task_id": "t1",
+    }]
+
+
+def test_rollout_prompt_text_uses_chat_template_for_messages() -> None:
+    messages = [
+        {"role": "system", "content": "system text"},
+        {"role": "user", "content": "user text"},
+    ]
+
+    assert _prompt_text_for_rollout(ChatTemplateTokenizer(), messages) == (
+        "<system>system text</system><user>user text\n\n"
+        f"{STRICT_FENCED_OUTPUT_INSTRUCTION}</user><assistant>"
+    )
+    rollout_messages = _messages_for_rollout(messages)
+    assert rollout_messages[0] == {"role": "system", "content": "system text"}
+    assert rollout_messages[1]["role"] == "user"
+    assert rollout_messages[1]["content"] == (
+        "user text\n\n" + STRICT_FENCED_OUTPUT_INSTRUCTION
+    )
+    assert _messages_for_rollout(
+        messages,
+        require_fenced_output=False,
+    ) == messages
+
+
+def test_full_eval_contract_suffix_includes_hidden_paper_verifier_requirements(
+    tmp_path: Path,
+) -> None:
+    task_dir = tmp_path / "task"
+    task_dir.mkdir()
+    (task_dir / "eval_config.toml").write_text(
+        """
+[adapters.chrono_contact]
+procedural_cycloidal_fallback = false
+
+[[probes]]
+id = "trusted_asset_preflight"
+type = "trusted_asset_preflight"
+require_geometry_roles = ["cad"]
+require_materials = true
+require_trusted_mass_properties = true
+
+[[probes]]
+id = "chrono_contact_smoke"
+type = "contact_engagement"
+adapter = "chrono_contact"
+"""
+    )
+    task = TaskInfo(
+        task_id="t1",
+        family="chain",
+        tier="paper",
+        prompt="prompt",
+        task_toml="[requirements]\nrequired_ports = []\n",
+        task_dir=task_dir,
+    )
+
+    suffix = _full_eval_contract_suffix(task)
+
+    assert "full private verifier contract" in suffix
+    assert "trusted_cad_preflight" in suffix
+    assert "trusted_mass_properties_required" in suffix
+    assert "chrono_contact_required" in suffix
+    assert "params.cad_mass_properties" in suffix
+    assert "chrono_collision" in suffix
+    assert "frame(out_dir)" in suffix
+    assert "containing `belt` or `chain` is invalid" in suffix

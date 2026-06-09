@@ -31,6 +31,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
 
+from rl.mech_bench_reward import (
+    extract_no_procedural_fallback,
+    extract_physical_metrics,
+)
+from rl.verifier_audits import cad_audit_count, chrono_audit_count
+
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TASKS_DIR = REPO_ROOT / "tasks"
@@ -71,7 +77,12 @@ class EpisodeResult:
     parse_bonus: float = 0.0
     completion_tokens: int = 0
     failure_codes: list[str] = field(default_factory=list)
+    feedback: list[dict[str, str]] = field(default_factory=list)
     evaluation_valid: bool = False
+    cad_audits: int = 0
+    chrono_audits: int = 0
+    physical_metrics: dict[str, float] = field(default_factory=dict)
+    no_procedural_fallback: bool | None = None
     # Dense per-probe reward — mean(probe.score) * 100. Always
     # defined whether or not the hard gate passed, so the RL loop
     # has a continuous signal even on hard-gate failures.
@@ -178,9 +189,9 @@ def extract_design_py(text: str) -> tuple[str, bool]:
     no fenced block is found.
     """
     m = _CODE_FENCE_RE.search(text)
-    if m:
-        return m.group(1).strip() + "\n", True
-    return text.strip() + "\n", False
+    source = m.group(1) if m else text
+    source = re.sub(r"(?:\s*(?:<\|im_end\|>|<\|endoftext\|>|</s>))*\s*$", "", source, flags=re.IGNORECASE)
+    return source.strip() + "\n", bool(m)
 
 
 # --------------------------------------------------------------------- #
@@ -195,6 +206,23 @@ def _failure_codes_of(blob: dict) -> list[str]:
         if isinstance(c, str) and c not in codes:
             codes.append(c)
     return codes
+
+
+def _feedback_of(blob: dict, *, max_items: int = 8) -> list[dict[str, str]]:
+    out: list[dict[str, str]] = []
+    for f in blob.get("feedback") or []:
+        if not isinstance(f, dict):
+            continue
+        item: dict[str, str] = {}
+        for key in ("code", "severity", "message", "where"):
+            val = f.get(key)
+            if val is not None:
+                item[key] = str(val)
+        if item:
+            out.append(item)
+        if len(out) >= max_items:
+            break
+    return out
 
 
 def score(
@@ -258,6 +286,7 @@ def score(
         )
 
     codes = _failure_codes_of(blob)
+    feedback = _feedback_of(blob)
     raw_score = float(blob.get("score") or 0.0)
     valid = bool(blob.get("evaluation_valid"))
     gate = bool(blob.get("hard_gate_passed"))
@@ -284,14 +313,20 @@ def score(
             pass
 
     return EpisodeResult(
-        task_id=task.task_id, parsed_ok=parsed, passed=(valid and gate),
+        task_id=task.task_id, parsed_ok=parsed,
+        passed=(valid and gate and final_score > 0.0),
         score=final_score, max_score=100.0,
         details=f"valid={valid} gate={gate} probes={len(subs)} codes={codes}",
         raw_text=raw_text, error="",
         subscores=subs,
         parse_bonus=parse_bonus if parsed else 0.0,
         failure_codes=codes,
+        feedback=feedback,
         evaluation_valid=valid,
+        cad_audits=cad_audit_count(blob),
+        chrono_audits=chrono_audit_count(blob),
+        physical_metrics=extract_physical_metrics(blob),
+        no_procedural_fallback=extract_no_procedural_fallback(blob),
         dense_pct=dense_pct,
     )
 

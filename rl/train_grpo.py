@@ -66,6 +66,10 @@ USER_PROMPT_TEMPLATE = """Solve mech_bench task **{task_id}**.
 {task_toml}
 ```
 
+## final task-specific overrides
+These override all examples above:
+{contract}
+
 Emit ONE Python file as a single fenced ```python ... ``` block.
 No prose outside the block.
 
@@ -75,7 +79,8 @@ unless the contract or prompt itself uses that exact key. Legal port
 kinds are only `frame`,
 `revolute_joint`, and `prismatic_joint`. The task's explicit
 `requirements.expected_mobility`, prompt mobility statement, and
-required port kinds override the task title and tier name.
+required port kinds override the task title, tier name, and any
+conflicting example in the system prompt.
 """
 
 
@@ -143,6 +148,12 @@ def _contract_from_task(
     """Extract the visible contract into a small, hard-to-miss block."""
     ports: list[str] = []
     mobility: int | None = None
+    required_kinds: dict[str, str] = {}
+    require_grounded: list[str] = []
+    has_trusted_cad_preflight = False
+    requires_trusted_mass = False
+    uses_chrono_contact = False
+    chrono_fallback_disabled = False
     try:
         import tomllib
         blob = tomllib.loads(task_toml)
@@ -164,6 +175,35 @@ def _contract_from_task(
             eval_blob = tomllib.loads(eval_config_toml)
             params.update(_collect_param_paths(eval_blob))
             constraints = _collect_public_param_constraints(eval_blob)
+            adapters = eval_blob.get("adapters") or {}
+            if isinstance(adapters, dict):
+                chrono_cfg = adapters.get("chrono_contact") or {}
+                if isinstance(chrono_cfg, dict):
+                    uses_chrono_contact = True
+                    chrono_fallback_disabled = (
+                        chrono_cfg.get("procedural_cycloidal_fallback") is False
+                    )
+            for probe in eval_blob.get("probes", []) or []:
+                if not isinstance(probe, dict):
+                    continue
+                if probe.get("type") == "trusted_asset_preflight":
+                    has_trusted_cad_preflight = True
+                    requires_trusted_mass = (
+                        requires_trusted_mass
+                        or probe.get("require_trusted_mass_properties") is True
+                    )
+                if probe.get("adapter") == "chrono_contact":
+                    uses_chrono_contact = True
+                if probe.get("type") != "required_ports":
+                    continue
+                raw_grounded = probe.get("require_grounded") or []
+                if isinstance(raw_grounded, list):
+                    require_grounded.extend(str(p) for p in raw_grounded)
+                raw_kinds = probe.get("require_kinds") or {}
+                if isinstance(raw_kinds, dict):
+                    required_kinds.update(
+                        {str(k): str(v) for k, v in raw_kinds.items()}
+                    )
         except Exception:  # noqa: BLE001
             pass
     params = sorted(params)
@@ -172,8 +212,73 @@ def _contract_from_task(
         lines.append(f"- expected_mobility: {mobility}")
     if ports:
         lines.append("- required_ports: " + ", ".join(f"`{p}`" for p in ports))
+    if required_kinds:
+        lines.append(
+            "- required_port_kinds: "
+            + ", ".join(
+                f"`{port}` must be `{kind}`"
+                for port, kind in sorted(required_kinds.items())
+            )
+        )
+    if require_grounded:
+        lines.append(
+            "- grounded_ports: "
+            + ", ".join(f"`{p}`" for p in sorted(set(require_grounded)))
+        )
+    if has_trusted_cad_preflight:
+        lines.append(
+            "- trusted_cad_preflight: include CAD geometry roles, material "
+            "records, material provenance, and trusted CAD-derived mass/COM/"
+            "inertia evidence for checked positive-mass parts"
+        )
+    if requires_trusted_mass:
+        lines.append(
+            "- trusted_mass_properties_required: positive-mass parts must "
+            "provide `params.cad_mass_properties` evidence recomputed from "
+            "trusted CAD; declared mass alone is not enough"
+        )
+    if uses_chrono_contact:
+        lines.append(
+            "- chrono_contact_required: design must support real Chrono SMC "
+            "contact/dynamics verification; do not rely on fake or procedural "
+            "contact outputs"
+        )
+    if chrono_fallback_disabled:
+        lines.append(
+            "- procedural_fallback_disabled: "
+            "`procedural_cycloidal_fallback` is false"
+        )
     if params:
         lines.append("- required_params: " + ", ".join(f"`{p}`" for p in params))
+        lines.append(
+            "- params rule: the top-level `params` dict must contain the "
+            "required key names exactly; do not substitute similarly named "
+            "keys copied from examples"
+        )
+    if "params.declared_travel_per_rev_mm" in params:
+        lines.append(
+            "- lead_screw_param_alias_warning: use "
+            "`params.declared_travel_per_rev_mm`; do not use "
+            "`params.declared_linear_per_rev_mm`"
+        )
+    slider_crank_params = {
+        "params.declared_quick_return_ratio",
+        "params.declared_stroke_mm",
+    }
+    if required_kinds.get("output_port") == "prismatic_joint" and (
+        slider_crank_params & set(params)
+    ):
+        lines.append(
+            "- slider_crank_topology_warning: this is a "
+            "slider-crank, not a four-bar. Use parts `ground`, `crank`, "
+            "`coupler`, `slider`; use joints `joint_input`, `joint_bc`, "
+            "`joint_cs`, and `joint_slide`; `joint_slide` must have "
+            "`type == \"prismatic\"` and x-axis `(1.0, 0.0, 0.0)`; "
+            "`ports[\"output_port\"][\"part\"]` must be `joint_slide`; do "
+            "not create `rocker`, four-bar `joint_output`, or a `G` ground "
+            "length; do not use undefined four-bar variables `A`, `B`, "
+            "`C`, or `G`"
+        )
     for constraint in constraints:
         lines.append(f"- public_param_constraint: `{constraint}`")
     if mobility == 0:
@@ -222,6 +327,22 @@ def append_jsonl(path: Path, row: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a") as f:
         f.write(json.dumps(row, default=str) + "\n")
+
+
+def load_jsonl(path: Path) -> list[dict[str, Any]]:
+    if not path.is_file():
+        return []
+    rows: list[dict[str, Any]] = []
+    for line in path.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(row, dict):
+            rows.append(row)
+    return rows
 
 
 # --------------------------------------------------------------------- #
@@ -454,6 +575,12 @@ def main() -> int:
     p.add_argument("--positive-pass-weight", type=float, default=1.0,
                    help="total sequence weight for each passing rollout when "
                         "--positive-only-passes is enabled")
+    p.add_argument("--verifier-pass-fallback-weight", type=float, default=0.0,
+                   help="when group-relative advantages produce no rollout "
+                        "datums for a task group, add verifier-passing "
+                        "rollouts with this total sequence weight. This keeps "
+                        "test-time adaptation verifier-derived instead of "
+                        "falling back to reference SFT only")
     p.add_argument("--positive-min-score", type=float, default=100.0,
                    help="minimum 0-100 verified score for a rollout to be "
                         "used by --positive-only-passes")
@@ -859,6 +986,7 @@ def main() -> int:
 
         # Build advantage-weighted Datums.
         data: list = []
+        data_meta: list[dict[str, Any]] = []
         kept = 0
         all_rewards: list[float] = []
         n_reference_sft = 0
@@ -868,6 +996,7 @@ def main() -> int:
             prompt_ids: list[int],
             final_ids: list[int],
             total_weight: float,
+            source: str,
         ) -> None:
             nonlocal kept
             pl = len(prompt_ids)
@@ -901,13 +1030,22 @@ def main() -> int:
                 model_input=wl.ModelInput.from_ints(full_ids),
                 loss_fn_inputs=loss_inputs,
             ))
+            data_meta.append({
+                "source": source,
+                "completion_tokens": cl,
+            })
             kept += 1
 
         def _add_weighted_datum(r: dict, adv: float) -> None:
-            _add_ids_datum(r["prompt_ids"], r["final_ids"], adv)
+            _add_ids_datum(
+                r["prompt_ids"], r["final_ids"], adv, "rl_rollout"
+            )
 
         for g in groups:
             rewards: list[float] = []
+            group_rl_before = sum(
+                1 for meta in data_meta if meta["source"].startswith("rl_")
+            )
             for r in g["rollouts"]:
                 # Dense reward = best-across-turns dense_pct (mean of
                 # per-probe scores) + verified-pass bonus on the
@@ -962,6 +1100,21 @@ def main() -> int:
                 if adv == 0.0:
                     continue
                 _add_weighted_datum(r, adv)
+            if args.verifier_pass_fallback_weight > 0:
+                group_rl_after = sum(
+                    1 for meta in data_meta
+                    if meta["source"].startswith("rl_")
+                )
+                if group_rl_after == group_rl_before:
+                    for r in g["rollouts"]:
+                        if not r["passed"]:
+                            continue
+                        _add_ids_datum(
+                            r["prompt_ids"],
+                            r["final_ids"],
+                            float(args.verifier_pass_fallback_weight),
+                            "rl_pass_fallback",
+                        )
 
         if groups:
             top_by_task = {
@@ -1024,6 +1177,7 @@ def main() -> int:
                 _add_ids_datum(
                     prompt_ids, final_ids,
                     float(args.reference_sft_weight),
+                    "reference_sft",
                 )
                 n_reference_sft += 1
             if n_reference_sft:
@@ -1061,6 +1215,7 @@ def main() -> int:
                     continue
                 _add_ids_datum(
                     prompt_ids, final_ids, float(args.sample_sft_weight),
+                    "sample_sft",
                 )
                 n_sample_sft += 1
             if n_sample_sft:
@@ -1072,27 +1227,59 @@ def main() -> int:
         if args.max_train_datums_per_step > 0 and len(data) > args.max_train_datums_per_step:
             n_before_cap = len(data)
             cap = args.max_train_datums_per_step
-            rl_data = data[:rl_data_len]
-            sft_data = data[rl_data_len:]
-            rng.shuffle(rl_data)
-            rng.shuffle(sft_data)
-            if len(sft_data) >= cap:
-                data = sft_data[:cap]
+            rl_pairs = list(zip(
+                data[:rl_data_len],
+                data_meta[:rl_data_len],
+                strict=True,
+            ))
+            sft_pairs = list(zip(
+                data[rl_data_len:],
+                data_meta[rl_data_len:],
+                strict=True,
+            ))
+            rng.shuffle(rl_pairs)
+            rng.shuffle(sft_pairs)
+            if rl_pairs:
+                n_rl_keep = min(len(rl_pairs), cap)
+                selected = rl_pairs[:n_rl_keep]
+                selected += sft_pairs[: max(0, cap - len(selected))]
             else:
-                data = rl_data[: cap - len(sft_data)] + sft_data
+                selected = sft_pairs[:cap]
+            data = [item[0] for item in selected]
+            data_meta = [item[1] for item in selected]
             kept = len(data)
             print(
                 f"  [train] capped kept datums "
                 f"{n_before_cap}->{len(data)} for memory "
-                f"(sft_kept={min(len(sft_data), len(data))})"
+                f"(sft_kept={sum(1 for m in data_meta if not m['source'].startswith('rl_'))})"
             )
 
         if data:
             try:
+                source_counts: dict[str, int] = {}
+                source_tokens: dict[str, int] = {}
+                for meta in data_meta:
+                    source = str(meta.get("source") or "unknown")
+                    source_counts[source] = source_counts.get(source, 0) + 1
+                    source_tokens[source] = (
+                        source_tokens.get(source, 0)
+                        + int(meta.get("completion_tokens", 0) or 0)
+                    )
+                n_rl_datums = sum(
+                    count for source, count in source_counts.items()
+                    if source.startswith("rl_")
+                )
+                rl_trained_tokens = sum(
+                    tokens for source, tokens in source_tokens.items()
+                    if source.startswith("rl_")
+                )
+                trained_completion_tokens = sum(source_tokens.values())
                 heartbeat(runs_dir, phase="optim", round=round_idx,
                           step=step, n_kept=kept, n_data=len(data),
                           n_reference_sft=n_reference_sft,
-                          n_sample_sft=n_sample_sft)
+                          n_sample_sft=n_sample_sft,
+                          n_rl_datums=n_rl_datums,
+                          rl_trained_tokens=rl_trained_tokens)
                 fb = train.forward_backward(
                     data=data, loss_fn="cross_entropy",
                 ).result()
@@ -1124,6 +1311,11 @@ def main() -> int:
                     "step": step, "round": round_idx,
                     "loss": loss, "n_losses": len(losses),
                     "lr": args.lr, "n_kept": kept,
+                    "trained_tokens": trained_completion_tokens,
+                    "source_counts": source_counts,
+                    "source_trained_tokens": source_tokens,
+                    "n_rl_datums": n_rl_datums,
+                    "rl_trained_tokens": rl_trained_tokens,
                     "n_reference_sft": n_reference_sft,
                     "n_sample_sft": n_sample_sft,
                     "algo": "group-relative-weighted-ce",
@@ -1200,12 +1392,27 @@ def main() -> int:
             name=args.save_final_sampler_name,
         ).result()
         path = getattr(result, "path", None)
+        history_rows = load_jsonl(runs_dir / "history.jsonl")
+        optim_rows = [row for row in history_rows if row.get("kind") == "optim"]
         manifest = {
             "ts": time.time(),
             "kind": "final_sampler",
             "name": args.save_final_sampler_name,
             "path": str(path),
             "step": step,
+            "adapter_updates": len(optim_rows),
+            "trained_tokens": sum(
+                int(row.get("trained_tokens", 0) or 0)
+                for row in optim_rows
+            ),
+            "rl_trained_tokens": sum(
+                int(row.get("rl_trained_tokens", 0) or 0)
+                for row in optim_rows
+            ),
+            "n_rl_datums": sum(
+                int(row.get("n_rl_datums", 0) or 0)
+                for row in optim_rows
+            ),
             "base_model": args.base_model,
             "lora_rank": args.lora_rank,
             "rollout_backend": args.rollout_backend,

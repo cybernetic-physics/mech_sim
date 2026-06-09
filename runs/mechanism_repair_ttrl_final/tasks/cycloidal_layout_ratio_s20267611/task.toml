@@ -1,0 +1,16 @@
+[task]
+id = "cycloidal_layout_ratio_s20267611"
+family = "cycloidal_layout_ratio"
+difficulty = 2
+units = "mm"
+tier = "transmission_analytic"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 3
+max_envelope_mm = [200, 200, 80]
+
+[objective]
+description = "Cycloidal layout with 14 ring pins and 13:1 declared ratio."
+allow_massless_links = false
+ground_required = true

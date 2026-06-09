@@ -47,6 +47,22 @@ class FakeRequests:
         return FakeResponse(200, {"ok": True})
 
 
+class FakeOkRequests:
+    calls: list[dict[str, Any]] = []
+
+    @classmethod
+    def post(
+        cls,
+        url: str,
+        *,
+        json: dict[str, Any],
+        timeout: float,
+        headers: dict[str, str],
+    ) -> FakeResponse:
+        cls.calls.append(json)
+        return FakeResponse(200, {"ok": True})
+
+
 def test_chat_completion_retries_without_seed_on_bad_request(monkeypatch) -> None:
     FakeRequests.calls = []
     monkeypatch.setattr(chat_rollout, "requests", FakeRequests)
@@ -65,6 +81,26 @@ def test_chat_completion_retries_without_seed_on_bad_request(monkeypatch) -> Non
     assert result == {"ok": True}
     assert FakeRequests.calls[0]["seed"] == 123
     assert "seed" not in FakeRequests.calls[1]
+
+
+def test_chat_completion_forwards_continue_final_message(monkeypatch) -> None:
+    FakeOkRequests.calls = []
+    monkeypatch.setattr(chat_rollout, "requests", FakeOkRequests)
+
+    chat_rollout._chat_completion(
+        base_url="http://localhost:30000",
+        model="model",
+        messages=[{"role": "assistant", "content": "```python\n"}],
+        max_tokens=8,
+        temperature=0.7,
+        top_p=0.95,
+        timeout_s=1.0,
+        continue_final_message=True,
+        extra_body={"separate_reasoning": False},
+    )
+
+    assert FakeOkRequests.calls[0]["continue_final_message"] is True
+    assert FakeOkRequests.calls[0]["separate_reasoning"] is False
 
 
 class FakeLoRARequests:
@@ -177,3 +213,30 @@ def test_lora_filter_removes_q_proj_for_sglang(tmp_path) -> None:
     assert all(".k_proj." not in key for key in keys)
     assert all(".v_proj." not in key for key in keys)
     assert any(".o_proj." in key for key in keys)
+
+
+def test_verifier_feedback_includes_soft_physics_hint_for_submaximal_pass() -> None:
+    turn = chat_rollout.TurnTrace(
+        turn_idx=0,
+        assistant_text="```python\npass\n```",
+        score=50.0,
+        dense_pct=50.0,
+        passed=True,
+        parsed_ok=True,
+        failure_codes=[],
+        completion_tokens=12,
+        stop_reason="stop",
+        physical_metrics={
+            "max_penetration_mm": 0.025,
+            "contact_force_rms_N": 16836.5,
+            "out_omega_med": 50.3677,
+        },
+    )
+
+    feedback = chat_rollout._format_verifier_feedback(turn)
+
+    assert "soft_objective" in feedback
+    assert "dense physical reward is only 50.0/100" in feedback
+    assert "max_penetration_mm=0.025" in feedback
+    assert "contact_force_rms_N=16836.5" in feedback
+    assert "reduce penetration" in feedback

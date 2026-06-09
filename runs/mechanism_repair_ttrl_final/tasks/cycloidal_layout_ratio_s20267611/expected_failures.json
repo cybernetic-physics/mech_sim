@@ -1,0 +1,41 @@
+{
+  "description": "Tier 2 cycloidal_layout_ratio negative controls.",
+  "controls": [
+    {
+      "id": "wrong_ratio",
+      "submission": "negative_solutions/wrong_ratio",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.8
+    },
+    {
+      "id": "missing_output_port",
+      "submission": "negative_solutions/missing_output_port",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001
+    },
+    {
+      "id": "wrong_pin_count",
+      "submission": "negative_solutions/wrong_pin_count",
+      "expected_failure_codes": [
+        "wrong_topology"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.9
+    },
+    {
+      "id": "wrong_mobility_extra_fixed",
+      "submission": "negative_solutions/wrong_mobility_extra_fixed",
+      "expected_failure_codes": [
+        "wrong_mobility"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001
+    }
+  ]
+}

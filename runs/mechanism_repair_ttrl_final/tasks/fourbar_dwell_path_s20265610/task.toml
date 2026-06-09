@@ -1,0 +1,16 @@
+[task]
+id = "fourbar_dwell_path_s20265610"
+family = "fourbar_dwell_path"
+difficulty = 2
+units = "mm"
+tier = "planar_kinematics"
+
+[requirements]
+required_ports = ["input_port", "output_port", "coupler_point"]
+expected_mobility = 1
+max_envelope_mm = [220, 220, 50]
+
+[objective]
+description = "Dwell-region coupler path."
+target_path_csv = "target_path.csv"
+ground_required = true

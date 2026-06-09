@@ -8,10 +8,10 @@ config.
   M_planar  = 3(n − 1) − 2 j_lower
   M_spatial = 6(n − 1) − 5 j_lower
 
-where `n` is the body count (parts; "world" / fixed parts count too,
-following standard convention) and `j_lower` is the count of lower-
-pair (1-DOF) joints: revolute, prismatic, fixed (contributes 6 in
-spatial, 3 in planar — but we treat as constraint count).
+where `n` is the link count after collapsing grounded/fixed links and
+fixed joints, and `j_lower` is the count of lower-pair moving joints.
+``Part.fixed`` denotes membership in the single ground link; it is not
+an additional free body.
 """
 
 from __future__ import annotations
@@ -24,17 +24,55 @@ from mech_bench.schema import DesignIR, ProbeResult
 
 
 def _grubler(ir: DesignIR, space: str) -> int:
-    n = len(ir.parts)
-    revolute = sum(1 for j in ir.joints if j.type == "revolute")
-    prismatic = sum(1 for j in ir.joints if j.type == "prismatic")
-    fixed = sum(1 for j in ir.joints if j.type == "fixed")
-    spherical = sum(1 for j in ir.joints if j.type == "spherical")
+    parent = {p.id: p.id for p in ir.parts}
+    fixed_ids = [p.id for p in ir.parts if p.fixed]
+
+    def find(x: str) -> str:
+        root = parent[x]
+        if root != x:
+            parent[x] = find(root)
+        return parent[x]
+
+    def union(a: str, b: str) -> None:
+        if a not in parent or b not in parent:
+            return
+        ra = find(a)
+        rb = find(b)
+        if ra != rb:
+            parent[rb] = ra
+
+    if fixed_ids:
+        ground = fixed_ids[0]
+        for part_id in fixed_ids[1:]:
+            union(ground, part_id)
+    for joint in ir.joints:
+        if joint.type == "fixed":
+            union(joint.parent, joint.child)
+
+    components = {find(p.id) for p in ir.parts}
+    n = len(components)
+    revolute = 0
+    prismatic = 0
+    spherical = 0
+    for joint in ir.joints:
+        if joint.type in {"fixed", "contact_pair"}:
+            continue
+        if joint.parent not in parent or joint.child not in parent:
+            continue
+        if find(joint.parent) == find(joint.child):
+            continue
+        if joint.type == "revolute":
+            revolute += 1
+        elif joint.type == "prismatic":
+            prismatic += 1
+        elif joint.type == "spherical":
+            spherical += 1
     if space == "planar":
-        # 1-DOF joints (revolute, prismatic) subtract 2 each; fixed
-        # subtracts 3 (full constraint in plane).
-        return 3 * (n - 1) - 2 * (revolute + prismatic) - 3 * fixed
+        # 1-DOF joints (revolute, prismatic) subtract 2 each after
+        # fixed joints and fixed=True parts have been collapsed.
+        return 3 * (n - 1) - 2 * (revolute + prismatic)
     # spatial
-    return 6 * (n - 1) - 5 * (revolute + prismatic) - 6 * fixed - 3 * spherical
+    return 6 * (n - 1) - 5 * (revolute + prismatic) - 3 * spherical
 
 
 @register_probe

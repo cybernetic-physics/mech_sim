@@ -1,0 +1,9 @@
+{
+  "family": "timing_belt_center_distance",
+  "tier": "transmission_analytic",
+  "seed": 20260610,
+  "difficulty": 2,
+  "belt_length_mm": 960.0,
+  "center_distance_mm": 460.0,
+  "task_id": "timing_belt_center_distance_s20260610"
+}

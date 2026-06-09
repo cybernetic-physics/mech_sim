@@ -1,16 +1,23 @@
 from __future__ import annotations
 
+import json
 from types import SimpleNamespace
 
+from rl import sample_and_score
 from rl.mech_bench_reward import (
     RewardResult,
     extract_no_procedural_fallback,
     extract_physical_metrics,
 )
 from rl.sample_and_score import (
+    ASSISTANT_CODE_PREFILL,
     SampleOutcome,
+    STRICT_FENCED_OUTPUT_INSTRUCTION,
+    _needs_audit_retry,
     _reward_from_rollout_final,
+    _rollout_audit_totals,
     _rollout_verifier_calls,
+    _sglang_one_turn_messages,
 )
 from rl.verifier_audits import cad_audit_count, chrono_audit_count
 
@@ -45,6 +52,22 @@ def test_verifier_valid_pass_can_have_subunit_continuous_score() -> None:
     assert outcome.verifier_valid_passed()
     assert outcome.to_dict()["strict_passed"] is False
     assert outcome.to_dict()["verifier_valid_passed"] is True
+
+
+def test_sglang_one_turn_messages_continue_code_prefill() -> None:
+    messages = _sglang_one_turn_messages(
+        system_prompt="sys",
+        user_prompt="task",
+    )
+
+    assert messages == [
+        {"role": "system", "content": "sys"},
+        {
+            "role": "user",
+            "content": "task\n\n" + STRICT_FENCED_OUTPUT_INSTRUCTION,
+        },
+        {"role": "assistant", "content": ASSISTANT_CODE_PREFILL},
+    ]
 
 
 def test_verifier_valid_pass_rejects_failures_even_with_score() -> None:
@@ -121,9 +144,283 @@ def test_sample_outcome_serializes_cad_audits() -> None:
             cad_audits=1,
         )
     )
-    outcome.cad_audits = 1
+    outcome.cad_audits = 2
 
-    assert outcome.to_dict()["cad_audits"] == 1
+    assert outcome.to_dict()["cad_audits"] == 2
+
+
+def test_audit_retries_count_actual_budget(monkeypatch, tmp_path) -> None:
+    tasks = tmp_path / "tasks"
+    task_dir = tasks / "task_a"
+    task_dir.mkdir(parents=True)
+    (task_dir / "task.toml").write_text("[task]\n")
+    system_prompt = tmp_path / "system.md"
+    system_prompt.write_text("system")
+    report_dir = tmp_path / "report"
+
+    def fake_run_one(task_dir, **kwargs):
+        is_retry = "audit_retry" in str(kwargs["out_root"])
+        outcome = _outcome(
+            RewardResult(
+                score=1.0,
+                verified_score=1.0,
+                hard_gate_passed=True,
+                evaluation_valid=True,
+                failure_codes=[],
+                cad_audits=1 if is_retry else 0,
+                chrono_audits=1 if is_retry else 0,
+            )
+        )
+        outcome.task_id = task_dir.name
+        outcome.verifier_calls = 1
+        outcome.cad_audits = 1 if is_retry else 0
+        outcome.chrono_audits = 1 if is_retry else 0
+        return outcome
+
+    monkeypatch.setattr(sample_and_score, "run_one", fake_run_one)
+
+    rc = sample_and_score.main([
+        "--tasks", str(tasks),
+        "--report-dir", str(report_dir),
+        "--system-prompt-file", str(system_prompt),
+        "--samples-per-task", "1",
+        "--audit-retries", "1",
+    ])
+
+    assert rc == 0
+    summary = json.loads((report_dir / "smoke_summary.json").read_text())
+    sample = summary["all_samples"][0]
+    assert sample["verifier_calls"] == 2
+    assert sample["cad_audits"] == 1
+    assert sample["chrono_audits"] == 1
+    assert sample["audit_retry_count"] == 1
+
+
+def test_max_verifier_calls_per_task_caps_multiturn_budget(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    tasks = tmp_path / "tasks"
+    task_dir = tasks / "task_a"
+    task_dir.mkdir(parents=True)
+    (task_dir / "task.toml").write_text("[task]\n")
+    system_prompt = tmp_path / "system.md"
+    system_prompt.write_text("system")
+    report_dir = tmp_path / "report"
+    observed_turns: list[int] = []
+
+    def fake_run_one(task_dir, **kwargs):
+        max_turns = int(kwargs["max_turns"])
+        observed_turns.append(max_turns)
+        outcome = _outcome(
+            RewardResult(
+                score=0.0,
+                verified_score=0.0,
+                hard_gate_passed=False,
+                evaluation_valid=True,
+                failure_codes=["wrong_ratio"],
+            )
+        )
+        outcome.task_id = task_dir.name
+        outcome.sample_idx = len(observed_turns) - 1
+        outcome.verifier_calls = max_turns
+        return outcome
+
+    monkeypatch.setattr(sample_and_score, "run_one", fake_run_one)
+
+    rc = sample_and_score.main([
+        "--tasks", str(tasks),
+        "--report-dir", str(report_dir),
+        "--system-prompt-file", str(system_prompt),
+        "--samples-per-task", "32",
+        "--max-turns", "4",
+        "--max-verifier-calls-per-task", "6",
+    ])
+
+    assert rc == 0
+    summary = json.loads((report_dir / "smoke_summary.json").read_text())
+    assert observed_turns == [4, 2]
+    assert len(summary["all_samples"]) == 2
+    assert sum(item["verifier_calls"] for item in summary["all_samples"]) == 6
+
+
+def test_sampler_retry_preserves_spent_verifier_call_traces(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    tasks = tmp_path / "tasks"
+    task_dir = tasks / "task_a"
+    task_dir.mkdir(parents=True)
+    (task_dir / "task.toml").write_text("[task]\n")
+    system_prompt = tmp_path / "system.md"
+    system_prompt.write_text("system")
+    report_dir = tmp_path / "report"
+    calls = 0
+
+    def trace(turn_idx: int, text: str) -> dict:
+        return {
+            "turn_idx": turn_idx,
+            "assistant_text": text,
+            "dense_pct": 0.0,
+            "score": 0.0,
+            "passed": False,
+            "parsed_ok": True,
+            "evaluation_valid": True,
+            "failure_codes": ["wrong_ratio"],
+        }
+
+    def fake_run_one(task_dir, **kwargs):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            return SampleOutcome(
+                task_id=task_dir.name,
+                family="cycloidal",
+                tier="contact_dynamics",
+                sample_idx=0,
+                sample_duration_s=0.0,
+                sample_tokens_in=0,
+                sample_tokens_out=0,
+                completion_chars=0,
+                reward=None,
+                verifier_calls=3,
+                pass_threshold=1.0,
+                error="[sampler_error: context length]",
+                turn_traces=[
+                    trace(0, "failed attempt turn 0"),
+                    trace(1, "failed attempt turn 1"),
+                    trace(2, "failed attempt turn 2"),
+                ],
+            )
+        outcome = _outcome(
+            RewardResult(
+                score=0.0,
+                verified_score=0.0,
+                hard_gate_passed=False,
+                evaluation_valid=True,
+                failure_codes=["wrong_ratio"],
+            )
+        )
+        outcome.task_id = task_dir.name
+        outcome.verifier_calls = 1
+        outcome.turn_traces = [trace(0, "retry turn 0")]
+        return outcome
+
+    monkeypatch.setattr(sample_and_score, "run_one", fake_run_one)
+
+    rc = sample_and_score.main([
+        "--tasks", str(tasks),
+        "--report-dir", str(report_dir),
+        "--system-prompt-file", str(system_prompt),
+        "--samples-per-task", "1",
+        "--max-turns", "4",
+        "--sampler-retries", "1",
+        "--max-verifier-calls-per-task", "4",
+    ])
+
+    assert rc == 0
+    summary = json.loads((report_dir / "smoke_summary.json").read_text())
+    sample = summary["all_samples"][0]
+    assert sample["verifier_calls"] == 4
+    assert len(sample["turn_traces"]) == 4
+    assert [
+        turn["verifier_call_idx_within_sample"]
+        for turn in sample["turn_traces"]
+    ] == [0, 1, 2, 3]
+    assert [
+        turn["sampler_attempt"] for turn in sample["turn_traces"]
+    ] == [0, 0, 0, 1]
+
+
+def test_sampler_retry_synthesizes_terminal_trace_when_retry_uses_final_call(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    tasks = tmp_path / "tasks"
+    task_dir = tasks / "task_a"
+    task_dir.mkdir(parents=True)
+    (task_dir / "task.toml").write_text("[task]\n")
+    system_prompt = tmp_path / "system.md"
+    system_prompt.write_text("system")
+    report_dir = tmp_path / "report"
+    calls = 0
+
+    def trace(turn_idx: int, text: str) -> dict:
+        return {
+            "turn_idx": turn_idx,
+            "assistant_text": text,
+            "dense_pct": 0.0,
+            "score": 0.0,
+            "passed": False,
+            "parsed_ok": True,
+            "evaluation_valid": True,
+            "failure_codes": ["wrong_ratio"],
+        }
+
+    def fake_run_one(task_dir, **kwargs):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            return SampleOutcome(
+                task_id=task_dir.name,
+                family="cycloidal",
+                tier="contact_dynamics",
+                sample_idx=0,
+                sample_duration_s=0.0,
+                sample_tokens_in=0,
+                sample_tokens_out=0,
+                completion_chars=0,
+                reward=None,
+                verifier_calls=3,
+                pass_threshold=1.0,
+                error="[sampler_error: context length]",
+                turn_traces=[
+                    trace(0, "failed attempt turn 0"),
+                    trace(1, "failed attempt turn 1"),
+                    trace(2, "failed attempt turn 2"),
+                ],
+            )
+        per_task = kwargs["out_root"] / task_dir.name
+        per_task.mkdir(parents=True)
+        (per_task / "completion.txt").write_text("terminal design")
+        outcome = _outcome(
+            RewardResult(
+                score=0.0,
+                verified_score=0.0,
+                hard_gate_passed=False,
+                evaluation_valid=True,
+                failure_codes=["wrong_ratio"],
+            )
+        )
+        outcome.task_id = task_dir.name
+        outcome.verifier_calls = 1
+        return outcome
+
+    monkeypatch.setattr(sample_and_score, "run_one", fake_run_one)
+
+    rc = sample_and_score.main([
+        "--tasks", str(tasks),
+        "--report-dir", str(report_dir),
+        "--system-prompt-file", str(system_prompt),
+        "--samples-per-task", "1",
+        "--max-turns", "4",
+        "--sampler-retries", "1",
+        "--max-verifier-calls-per-task", "4",
+    ])
+
+    assert rc == 0
+    summary = json.loads((report_dir / "smoke_summary.json").read_text())
+    sample = summary["all_samples"][0]
+    assert sample["verifier_calls"] == 4
+    assert len(sample["turn_traces"]) == 4
+    assert sample["turn_traces"][-1]["assistant_text"] == "terminal design"
+    assert [
+        turn["verifier_call_idx_within_sample"]
+        for turn in sample["turn_traces"]
+    ] == [0, 1, 2, 3]
+    assert [
+        turn["sampler_attempt"] for turn in sample["turn_traces"]
+    ] == [0, 0, 0, 1]
 
 
 def test_rollout_verifier_calls_excludes_sampler_errors() -> None:
@@ -136,8 +433,20 @@ def test_rollout_verifier_calls_excludes_sampler_errors() -> None:
     assert _rollout_verifier_calls(rollout) == 2
 
 
-def test_reward_from_rollout_final_reuses_final_turn_score() -> None:
+def test_reward_from_rollout_final_uses_best_scored_turn() -> None:
     rollout = SimpleNamespace(turns=[
+        SimpleNamespace(
+            dense_pct=25.0,
+            score=25.0,
+            passed=False,
+            evaluation_valid=True,
+            failure_codes=["wrong_ratio"],
+            feedback=[],
+            parsed_ok=True,
+            cad_audits=1,
+            chrono_audits=1,
+            no_procedural_fallback=True,
+        ),
         SimpleNamespace(
             dense_pct=75.0,
             score=50.0,
@@ -163,6 +472,52 @@ def test_reward_from_rollout_final_reuses_final_turn_score() -> None:
     assert reward.cad_audits == 1
     assert reward.chrono_audits == 1
     assert reward.no_procedural_fallback is True
+
+
+def test_rollout_audit_totals_sum_non_sampler_error_turns() -> None:
+    rollout = SimpleNamespace(turns=[
+        SimpleNamespace(failure_codes=[], cad_audits=1, chrono_audits=1),
+        SimpleNamespace(
+            failure_codes=["wrong_ratio"],
+            cad_audits=1,
+            chrono_audits=0,
+        ),
+        SimpleNamespace(
+            failure_codes=["sampler_error"],
+            cad_audits=1,
+            chrono_audits=1,
+        ),
+    ])
+
+    assert _rollout_audit_totals(rollout) == (2, 1)
+
+
+def test_needs_audit_retry_requires_planned_cad_and_chrono_budget() -> None:
+    outcome = _outcome(
+        RewardResult(
+            score=1.0,
+            verified_score=1.0,
+            hard_gate_passed=True,
+            evaluation_valid=True,
+            failure_codes=[],
+        )
+    )
+    outcome.cad_audits = 1
+    outcome.chrono_audits = 1
+
+    assert _needs_audit_retry(
+        outcome,
+        required_cad_audits=2,
+        required_chrono_audits=2,
+    )
+
+    outcome.cad_audits = 2
+    outcome.chrono_audits = 2
+    assert not _needs_audit_retry(
+        outcome,
+        required_cad_audits=2,
+        required_chrono_audits=2,
+    )
 
 
 def test_reward_from_rollout_final_ignores_sampler_error() -> None:

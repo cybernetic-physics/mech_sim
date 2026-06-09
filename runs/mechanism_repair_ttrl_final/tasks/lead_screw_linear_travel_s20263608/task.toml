@@ -1,0 +1,15 @@
+[task]
+id = "lead_screw_linear_travel_s20263608"
+family = "lead_screw_linear_travel"
+difficulty = 2
+units = "mm"
+tier = "transmission_analytic"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 2
+max_envelope_mm = [200, 80, 50]
+
+[objective]
+description = "Lead screw travel/rev = 6.278 mm."
+ground_required = true

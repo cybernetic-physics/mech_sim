@@ -38,6 +38,10 @@ class TaskRecord:
     raw_family: str
     canonical_family: str
     task_dir: Path
+    has_chrono_contact_config: bool = False
+    chrono_procedural_fallback_disabled: bool = False
+    has_trusted_asset_preflight: bool = False
+    requires_trusted_mass_properties: bool = False
 
 
 def canonical_mechanism_family(raw_family: str) -> str:
@@ -48,6 +52,57 @@ def canonical_mechanism_family(raw_family: str) -> str:
     return value
 
 
+def _probe_specs(eval_config: dict[str, Any]) -> list[dict[str, Any]]:
+    probes = eval_config.get("probes") or []
+    if not isinstance(probes, list):
+        return []
+    return [probe for probe in probes if isinstance(probe, dict)]
+
+
+def _task_has_chrono_contact_config(
+    task_data: dict[str, Any],
+    eval_config: dict[str, Any],
+) -> bool:
+    if isinstance(task_data.get("chrono_contact"), dict):
+        return True
+    return any(
+        str(probe.get("adapter") or "") == "chrono_contact"
+        for probe in _probe_specs(eval_config)
+    )
+
+
+def _chrono_procedural_fallback_disabled(task_data: dict[str, Any]) -> bool:
+    chrono = task_data.get("chrono_contact")
+    if isinstance(chrono, dict) and chrono.get("procedural_cycloidal_fallback") is False:
+        return True
+    return False
+
+
+def _eval_chrono_procedural_fallback_disabled(eval_config: dict[str, Any]) -> bool:
+    adapters = eval_config.get("adapters") or {}
+    if not isinstance(adapters, dict):
+        return False
+    chrono = adapters.get("chrono_contact")
+    if not isinstance(chrono, dict):
+        return False
+    return chrono.get("procedural_cycloidal_fallback") is False
+
+
+def _task_has_trusted_asset_preflight(eval_config: dict[str, Any]) -> bool:
+    return any(
+        str(probe.get("type") or "") == "trusted_asset_preflight"
+        for probe in _probe_specs(eval_config)
+    )
+
+
+def _requires_trusted_mass_properties(eval_config: dict[str, Any]) -> bool:
+    return any(
+        str(probe.get("type") or "") == "trusted_asset_preflight"
+        and probe.get("require_trusted_mass_properties") is True
+        for probe in _probe_specs(eval_config)
+    )
+
+
 def load_task_records(tasks_root: Path) -> list[TaskRecord]:
     tasks_root = Path(tasks_root)
     records: list[TaskRecord] = []
@@ -56,6 +111,12 @@ def load_task_records(tasks_root: Path) -> list[TaskRecord]:
         if not task_toml.is_file():
             continue
         data = tomllib.loads(task_toml.read_text())
+        eval_config_path = task_dir / "eval_config.toml"
+        eval_config = (
+            tomllib.loads(eval_config_path.read_text())
+            if eval_config_path.is_file()
+            else {}
+        )
         task = data.get("task", {})
         task_id = str(task.get("id", task_dir.name))
         raw_family = str(task.get("family", task_dir.name))
@@ -64,6 +125,19 @@ def load_task_records(tasks_root: Path) -> list[TaskRecord]:
             raw_family=raw_family,
             canonical_family=canonical_mechanism_family(raw_family),
             task_dir=task_dir,
+            has_chrono_contact_config=_task_has_chrono_contact_config(
+                data, eval_config
+            ),
+            chrono_procedural_fallback_disabled=(
+                _chrono_procedural_fallback_disabled(data)
+                or _eval_chrono_procedural_fallback_disabled(eval_config)
+            ),
+            has_trusted_asset_preflight=(
+                _task_has_trusted_asset_preflight(eval_config)
+            ),
+            requires_trusted_mass_properties=(
+                _requires_trusted_mass_properties(eval_config)
+            ),
         ))
     return records
 
@@ -171,6 +245,14 @@ def build_family_split_manifest(
                 "raw_family": r.raw_family,
                 "canonical_family": r.canonical_family,
                 "task_dir": str(r.task_dir),
+                "has_chrono_contact_config": r.has_chrono_contact_config,
+                "chrono_procedural_fallback_disabled": (
+                    r.chrono_procedural_fallback_disabled
+                ),
+                "has_trusted_asset_preflight": r.has_trusted_asset_preflight,
+                "requires_trusted_mass_properties": (
+                    r.requires_trusted_mass_properties
+                ),
             }
             for r in records
         },

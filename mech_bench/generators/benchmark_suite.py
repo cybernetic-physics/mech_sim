@@ -19,6 +19,7 @@ from mech_bench.generators.fourbar import FourbarPathGenerator
 from mech_bench.generators.gear_train import (
     BeltPulleyRatioGenerator,
     ContactGearPairStubGenerator,
+    CycloidalLayoutRatioGenerator,
     CycloidalLowNStubGenerator,
     RackPinionConversionGenerator,
     SpurGearRatioAnalyticGenerator,
@@ -116,6 +117,7 @@ SUITE: list[type[TaskGenerator]] = [
     SpurGearRatioAnalyticGenerator,
     RackPinionConversionGenerator,
     BeltPulleyRatioGenerator,
+    CycloidalLayoutRatioGenerator,
     # Part B — Tier 2 additions
     CompoundGearRatioAnalyticGenerator,
     IdlerGearDirectionAnalyticGenerator,
