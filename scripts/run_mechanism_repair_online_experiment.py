@@ -179,8 +179,8 @@ def main() -> int:
         type=int,
         default=None,
         help=(
-            "TRL GRPO reuse window. Defaults to the verifier budget so each "
-            "TTRL cell draws exactly one matched-budget generation batch."
+            "TRL GRPO reuse window. Defaults to num_generations, giving "
+            "matched-budget rollouts in memory-safe generation batches."
         ),
     )
     parser.add_argument("--ttrl-learning-rate", type=float, default=5.0e-6)
@@ -742,7 +742,7 @@ def ttrl_steps_per_generation_for_budget(
             f"TTRL budget mismatch: budget={budget} must divide evenly by "
             f"num_generations={num_generations}"
         )
-    return budget
+    return num_generations
 
 
 def reset_non_resume_outputs(*, out_dir: Path, run_root: Path) -> None:

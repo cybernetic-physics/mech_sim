@@ -45,20 +45,20 @@ def test_build_plan_records_ttrl_reward_channel(monkeypatch, tmp_path: Path) -> 
         init_online_from_sft=True,
         ttrl_steps=32,
         ttrl_generations=4,
-        ttrl_steps_per_generation=32,
+        ttrl_steps_per_generation=4,
         ttrl_reward_channel="artifact_progress",
     )
 
     assert plan["ttrl_reward_channel"] == "artifact_progress"
     assert plan["ttrl_rollout_evaluations_per_cell"] == 32
     assert plan["ttrl_optimizer_steps"] == 32
-    assert plan["ttrl_steps_per_generation"] == 32
+    assert plan["ttrl_steps_per_generation"] == 4
     assert plan["split_tasks"] == {"A": ["task_a"]}
     assert plan["planned_cells"] == 1
 
 
 def test_ttrl_steps_per_generation_for_budget_enforces_matched_rollouts() -> None:
-    assert ttrl_steps_per_generation_for_budget(budget=32, num_generations=4) == 32
+    assert ttrl_steps_per_generation_for_budget(budget=32, num_generations=4) == 4
     with pytest.raises(SystemExit, match="must divide evenly"):
         ttrl_steps_per_generation_for_budget(budget=30, num_generations=4)
 
@@ -104,7 +104,7 @@ def test_build_plan_filters_to_shard_cells_and_normalizes_paths(
         init_online_from_sft=True,
         ttrl_steps=32,
         ttrl_generations=4,
-        ttrl_steps_per_generation=32,
+        ttrl_steps_per_generation=4,
         ttrl_reward_channel="artifact_progress",
         shard_cells=shard_cells,
     )
