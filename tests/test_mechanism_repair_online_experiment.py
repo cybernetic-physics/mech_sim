@@ -420,6 +420,61 @@ def test_rows_from_sample_summary_keeps_retry_evidence_paths_unique(
     assert Path(row["raw_completion_paths"][1]).read_text() == "second retry turn"
 
 
+def test_rows_from_sample_summary_counts_recovered_sampler_retry(
+    tmp_path: Path,
+) -> None:
+    summary = {
+        "max_turns": 1,
+        "all_samples": [
+            {
+                "task_id": "cycloidal_task",
+                "family": "cycloidal",
+                "sample_idx": 0,
+                "verified_score": 0.0,
+                "evaluation_valid": True,
+                "hard_gate_passed": False,
+                "failure_codes": ["wrong_ratio"],
+                "verifier_calls": 1,
+                "cad_audits": 0,
+                "chrono_audits": 0,
+                "sampler_retry_count": 2,
+                "turn_traces": [
+                    {
+                        "turn_idx": 0,
+                        "assistant_text": "[sampler_error: 400]",
+                        "failure_codes": ["sampler_error"],
+                        "trace_kind": "sampler_error_retry",
+                        "verifier_call_idx_within_sample": 0,
+                    },
+                    {
+                        "turn_idx": 0,
+                        "assistant_text": "scored code",
+                        "failure_codes": ["wrong_ratio"],
+                        "trace_kind": "scored_attempt",
+                        "verifier_call_idx_within_sample": 1,
+                    },
+                ],
+            },
+        ],
+    }
+
+    rows = rows_from_sample_summary(
+        summary=summary,
+        method="adaptive_evolution",
+        split="A",
+        seed=20260607,
+        budget=1,
+        trace_root=tmp_path / "trace",
+        family_by_task={"cycloidal_task": "cycloidal"},
+        evidence_root=tmp_path / "evidence",
+    )
+
+    assert rows[0]["sampler_error_count"] == 1
+    assert rows[0]["sampler_retry_count"] == 3
+    assert len(rows[0]["raw_completion_paths"]) == 2
+    assert len(rows[0]["verifier_output_paths"]) == 1
+
+
 def test_rows_from_sample_summary_materializes_terminal_evidence_for_missing_trace(
     tmp_path: Path,
 ) -> None:

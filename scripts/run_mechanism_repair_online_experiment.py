@@ -1186,6 +1186,7 @@ def rows_from_sample_summary(
             task_id=task_id,
             rows=samples,
         )
+        sampler_error_attempts = sampler_error_attempt_count(samples)
         first_valid = first_valid_call(samples)
         best_metrics = dict(best.get("physical_metrics") or {})
         training = training_metadata_for_method(method, trace_root)
@@ -1237,7 +1238,7 @@ def rows_from_sample_summary(
             "best_path_trace_error": best_metrics.get("path_trace_error"),
             "best_max_penetration_mm": best_metrics.get("max_penetration_mm"),
             "best_contact_force_rms_N": best_metrics.get("contact_force_rms_N"),
-            "sampler_error_count": failure_count(samples, "sampler_error"),
+            "sampler_error_count": sampler_error_attempts,
             "sampler_http_400_count": sum(
                 int(item.get("sampler_http_400_count", 0) or 0)
                 for item in samples
@@ -1245,7 +1246,7 @@ def rows_from_sample_summary(
             "sampler_retry_count": sum(
                 int(item.get("sampler_retry_count", 0) or 0)
                 for item in samples
-            ),
+            ) + sampler_error_attempts,
             "invalid_artifact_count": invalid_artifact_count(samples),
             "timeout_count": failure_count(samples, "timeout"),
             "audit_retry_count": sum(
@@ -1440,6 +1441,8 @@ def materialize_sample_evidence(
                 raw_dest = raw_dir / f"{name_stem}.txt"
                 raw_dest.write_text(str(turn.get("assistant_text") or ""))
                 raw_paths.append(str(raw_dest))
+                if str(turn.get("trace_kind") or "") == "sampler_error_retry":
+                    continue
                 verifier_dest = verifier_dir / f"{name_stem}.json"
                 verifier_row = {
                     "task_id": item.get("task_id"),
@@ -1722,6 +1725,23 @@ def failure_codes(row: dict[str, Any]) -> set[str]:
 def failure_count(rows: list[dict[str, Any]], code: str) -> int:
     wanted = code.lower()
     return sum(1 for row in rows if wanted in failure_codes(row))
+
+
+def sampler_error_attempt_count(rows: list[dict[str, Any]]) -> int:
+    total = failure_count(rows, "sampler_error")
+    for row in rows:
+        for turn in row.get("turn_traces") or []:
+            if not isinstance(turn, dict):
+                continue
+            if str(turn.get("trace_kind") or "") == "sampler_error_retry":
+                total += 1
+                continue
+            codes = turn.get("failure_codes") or []
+            if isinstance(codes, str):
+                codes = [codes]
+            if any(str(code).lower() == "sampler_error" for code in codes):
+                total += 1
+    return total
 
 
 def failure_rate(rows: list[dict[str, Any]], code: str) -> float:
