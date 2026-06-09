@@ -208,6 +208,57 @@ def _build_rows(
     return rows
 
 
+def _repeat_rows_for_grpo_sampler(
+    rows: list[dict[str, Any]],
+    *,
+    generation_batch_size: int,
+    num_generations: int,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    if not rows:
+        return rows, {
+            "expanded": False,
+            "source_rows": 0,
+            "trainer_rows": 0,
+            "unique_prompts_per_generation": 0,
+            "repeat_factor": 0,
+        }
+    generation_batch_size = int(generation_batch_size)
+    num_generations = int(num_generations)
+    if generation_batch_size <= 0:
+        raise SystemExit("GRPO generation_batch_size must be positive")
+    if num_generations <= 0:
+        raise SystemExit("--num-generations must be positive")
+    if generation_batch_size % num_generations:
+        raise SystemExit(
+            "GRPO generation_batch_size must divide evenly by "
+            f"num_generations: {generation_batch_size} vs {num_generations}"
+        )
+    unique_prompts = generation_batch_size // num_generations
+    if len(rows) >= unique_prompts:
+        return rows, {
+            "expanded": False,
+            "source_rows": len(rows),
+            "trainer_rows": len(rows),
+            "unique_prompts_per_generation": unique_prompts,
+            "repeat_factor": 1,
+        }
+
+    expanded: list[dict[str, Any]] = []
+    for repeat_index in range(unique_prompts):
+        source_index = repeat_index % len(rows)
+        row = dict(rows[source_index])
+        row["_trainer_source_index"] = source_index
+        row["_trainer_repeat_index"] = repeat_index
+        expanded.append(row)
+    return expanded, {
+        "expanded": True,
+        "source_rows": len(rows),
+        "trainer_rows": len(expanded),
+        "unique_prompts_per_generation": unique_prompts,
+        "repeat_factor": (len(expanded) + len(rows) - 1) // len(rows),
+    }
+
+
 def _filtered_config(cls: type, values: dict[str, Any]) -> Any:
     params = inspect.signature(cls.__init__).parameters
     accepted = {
@@ -1190,12 +1241,8 @@ def main() -> int:
     if not rows:
         print("error: no tasks matched", file=sys.stderr)
         return 2
+    source_task_count = len(rows)
     init_adapter = _resolve_optional_path(args.init_adapter)
-
-    dataset_jsonl = out_dir / "train_prompts.jsonl"
-    with dataset_jsonl.open("w") as f:
-        for row in rows:
-            f.write(json.dumps(row, sort_keys=True) + "\n")
     generation_batch_size = (
         max(1, int(args.per_device_train_batch_size))
         * int(args.steps_per_generation)
@@ -1220,15 +1267,26 @@ def main() -> int:
         // effective_steps_per_generation
         * generation_batch_size
     )
+    rows, trainer_dataset_expansion = _repeat_rows_for_grpo_sampler(
+        rows,
+        generation_batch_size=generation_batch_size,
+        num_generations=int(args.num_generations),
+    )
+    dataset_jsonl = out_dir / "train_prompts.jsonl"
+    with dataset_jsonl.open("w") as f:
+        for row in rows:
+            f.write(json.dumps(row, sort_keys=True) + "\n")
     manifest = {
         "schema": SCHEMA,
         "argv": sys.argv,
         "model": args.model,
-        "task_count": len(rows),
+        "task_count": source_task_count,
+        "trainer_prompt_count": len(rows),
         "dataset_jsonl": str(dataset_jsonl),
         "split_file": str(split_file) if split_file else None,
         "families": sorted(families) if families else None,
         "tiers": sorted(tiers) if tiers else None,
+        "trainer_dataset_expansion": trainer_dataset_expansion,
         "algorithm": "trl.GRPOTrainer",
         "uses_policy_ratio_clipping": True,
         "uses_value_head": False,

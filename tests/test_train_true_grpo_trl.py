@@ -22,6 +22,7 @@ from rl.train_true_grpo_trl import (
     _prepare_model_for_kbit_training_lightweight,
     _prompt_text_for_rollout,
     _raise_if_nonfinite_trainable_parameters,
+    _repeat_rows_for_grpo_sampler,
     _sanitize_token_ids,
     _truncate_prompt_rows,
     _truncate_token_ids,
@@ -367,6 +368,56 @@ def test_chat_prompt_rows_preserves_system_and_user_messages() -> None:
         "_user_prompt": "user text",
         "task_id": "t1",
     }]
+
+
+def test_repeat_rows_for_grpo_sampler_expands_one_task_generation_batch() -> None:
+    rows = [{"prompt": "p", "task_id": "task"}]
+
+    expanded, audit = _repeat_rows_for_grpo_sampler(
+        rows,
+        generation_batch_size=32,
+        num_generations=4,
+    )
+
+    assert len(expanded) == 8
+    assert {row["task_id"] for row in expanded} == {"task"}
+    assert [row["_trainer_source_index"] for row in expanded] == [0] * 8
+    assert [row["_trainer_repeat_index"] for row in expanded] == list(range(8))
+    assert audit == {
+        "expanded": True,
+        "source_rows": 1,
+        "trainer_rows": 8,
+        "unique_prompts_per_generation": 8,
+        "repeat_factor": 8,
+    }
+
+
+def test_repeat_rows_for_grpo_sampler_keeps_sufficient_dataset() -> None:
+    rows = [{"prompt": f"p{i}", "task_id": f"task{i}"} for i in range(8)]
+
+    expanded, audit = _repeat_rows_for_grpo_sampler(
+        rows,
+        generation_batch_size=32,
+        num_generations=4,
+    )
+
+    assert expanded is rows
+    assert audit == {
+        "expanded": False,
+        "source_rows": 8,
+        "trainer_rows": 8,
+        "unique_prompts_per_generation": 8,
+        "repeat_factor": 1,
+    }
+
+
+def test_repeat_rows_for_grpo_sampler_rejects_fractional_prompt_groups() -> None:
+    with pytest.raises(SystemExit, match="divide evenly"):
+        _repeat_rows_for_grpo_sampler(
+            [{"prompt": "p", "task_id": "task"}],
+            generation_batch_size=10,
+            num_generations=4,
+        )
 
 
 def test_rollout_prompt_text_uses_chat_template_for_messages() -> None:
