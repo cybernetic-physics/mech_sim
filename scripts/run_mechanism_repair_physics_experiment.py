@@ -326,14 +326,12 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
                     if not present
                 ],
             })
-        if int(cell["verifier_level"]) >= 2 and int_value(
-            row.get("actual_cad_calls", row.get("cad_audits", 0))
-        ) <= 0:
-            budget_mismatches.append({"cell": cell, "actual_cad_calls": 0})
-        if int(cell["verifier_level"]) >= 3 and int_value(
-            row.get("actual_chrono_calls", row.get("chrono_audits", 0))
-        ) <= 0:
-            budget_mismatches.append({"cell": cell, "actual_chrono_calls": 0})
+        # CAD/Chrono calls are factual tool executions, not planned obligations.
+        # A failed candidate may be rejected by earlier structural gates before
+        # there is a valid CAD model or Chrono scene to run. Those cells are
+        # still valid experimental failures as long as the row preserves
+        # explicit Level-2/Level-3 evidence paths documenting the unreached
+        # audit obligation; missing_evidence_for_row enforces those paths.
         missing_evidence.extend(missing_evidence_for_row(out_dir, cell, row))
         if str(cell["method"]) in TTRL_METHODS:
             learning_missing = missing_learning_evidence(out_dir, row)

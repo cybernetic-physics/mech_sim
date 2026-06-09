@@ -199,6 +199,103 @@ def test_complete_synthetic_evidence_gets_binary_claim_status(
     assert audit["anti_shortcut_audit"]["anti_shortcut_executed"] is True
 
 
+def test_unreached_cad_chrono_obligation_evidence_is_not_budget_mismatch(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    for name in (
+        "raw_completions",
+        "verifier_outputs",
+        "cad_artifacts",
+        "chrono_outputs",
+        "training_logs",
+        "adapter_checkpoints",
+    ):
+        (out_dir / name).mkdir(parents=True)
+
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    rows = []
+    for cell in plan["expected_cells"]:
+        prefix = (
+            f"{cell['split']}_{cell['task_id']}_{cell['seed']}_"
+            f"{cell['method']}_{cell['budget']}"
+        )
+        raw = out_dir / "raw_completions" / f"{prefix}.txt"
+        verifier = out_dir / "verifier_outputs" / f"{prefix}.json"
+        cad = out_dir / "cad_artifacts" / f"{prefix}.json"
+        chrono = out_dir / "chrono_outputs" / f"{prefix}.json"
+        for path in (raw, verifier, cad, chrono):
+            path.write_text(
+                json.dumps({
+                    "status": "precondition_failed_no_actual_audit",
+                    "failure_codes": ["missing_port"],
+                }) + "\n"
+            )
+        row = {
+            "split": cell["split"],
+            "task_id": cell["task_id"],
+            "seed": cell["seed"],
+            "method": cell["method"],
+            "budget": cell["budget"],
+            "actual_verifier_calls": PRIMARY_BUDGET,
+            "actual_cad_calls": 0,
+            "actual_chrono_calls": 0,
+            "required_cad_audits": PRIMARY_BUDGET,
+            "required_chrono_audits": PRIMARY_BUDGET,
+            "raw_completion_paths": [str(raw.relative_to(out_dir))],
+            "verifier_output_paths": [str(verifier.relative_to(out_dir))],
+            "cad_artifact_paths": [str(cad.relative_to(out_dir))],
+            "chrono_output_paths": [str(chrono.relative_to(out_dir))],
+        }
+        if cell["method"] in physics.TTRL_METHODS:
+            log = out_dir / "training_logs" / f"{prefix}.log"
+            ckpt = out_dir / "adapter_checkpoints" / prefix
+            log.write_text("trained\n")
+            ckpt.mkdir()
+            row.update(
+                {
+                    "training_log_paths": [str(log.relative_to(out_dir))],
+                    "adapter_checkpoint_paths": [str(ckpt.relative_to(out_dir))],
+                    "adapter_updates": 1,
+                }
+            )
+        rows.append(row)
+    (out_dir / "cell_results.jsonl").write_text(
+        "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows)
+    )
+    for name in ("failure_analysis.json", "trace_pairs.json", "repair_taxonomy.json"):
+        _write_json(out_dir / name, {"schema": "test"})
+    _write_json(
+        out_dir / "stats.json",
+        {
+            "primary_comparison": {
+                "success_delta_pct": 0.0,
+                "success_delta_ci95": [0.0, 0.0],
+                "success_sign_test_p_one_sided": 1.0,
+            }
+        },
+    )
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["budget_audit"]["budget_matched"] is True
+    assert audit["budget_audit"]["budget_mismatch_count"] == 0
+    assert audit["claim_audit"]["goal_complete"] is True
+
+
 def test_shards_partition_full_experiment_plan(tmp_path: Path) -> None:
     benchmark = tmp_path / "benchmark"
     out_dir = tmp_path / "run"

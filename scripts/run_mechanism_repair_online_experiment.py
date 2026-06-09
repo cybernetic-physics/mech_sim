@@ -333,6 +333,7 @@ def main() -> int:
     )
     validate_benchmark(benchmark_dir)
     family_by_task = canonical_family_by_task(benchmark_dir)
+    verifier_level_by_task = verifier_level_by_task_id(benchmark_dir)
     budget = int(args.budget or method_contract["primary_budget"])
     args.budget = budget
     shard_filter = cell_filter_from_shard(shard_cells, budget=budget)
@@ -493,6 +494,7 @@ def main() -> int:
                                 default=str(args.ttrl_reward_channel),
                             ),
                             family_by_task=family_by_task,
+                            verifier_level_by_task=verifier_level_by_task,
                             evidence_root=out_dir,
                             evidence_layout=str(args.evidence_layout),
                             init_adapter=sft_adapter
@@ -556,6 +558,7 @@ def main() -> int:
                     budget=budget,
                     trace_root=report_dir,
                     family_by_task=family_by_task,
+                    verifier_level_by_task=verifier_level_by_task,
                     evidence_root=out_dir,
                     evidence_layout=str(args.evidence_layout),
                     sft_manifest=sft_manifest_path,
@@ -1036,6 +1039,7 @@ def run_or_load_ttrl_cell(
     evidence_root: Path,
     init_adapter: str | None,
     resume_existing: bool,
+    verifier_level_by_task: dict[str, int] | None = None,
     method: str = PRIMARY_METHOD,
     reward_channel: str | None = None,
     evidence_layout: str = "files",
@@ -1178,6 +1182,7 @@ def run_or_load_ttrl_cell(
         method=method,
         run_dir=run_dir,
         family_by_task=family_by_task,
+        verifier_level_by_task=verifier_level_by_task,
         evidence_root=evidence_root,
         evidence_layout=evidence_layout,
     )
@@ -1384,6 +1389,7 @@ def rows_from_sample_summary(
     budget: int,
     trace_root: Path,
     family_by_task: dict[str, str],
+    verifier_level_by_task: dict[str, int] | None = None,
     evidence_root: Path | None = None,
     evidence_layout: str = "files",
     sft_manifest: Path | None = None,
@@ -1399,6 +1405,11 @@ def rows_from_sample_summary(
         verifier_calls = sum(int(item.get("verifier_calls", 0) or 0) for item in samples)
         cad_audits = sum(int(item.get("cad_audits", 0) or 0) for item in samples)
         chrono_audits = sum(int(item.get("chrono_audits", 0) or 0) for item in samples)
+        verifier_level = int((verifier_level_by_task or {}).get(task_id, 0) or 0)
+        required_cad_audits, required_chrono_audits = required_audits_for_level(
+            verifier_level=verifier_level,
+            verifier_calls=verifier_calls,
+        )
         sample_idx = int(best.get("sample_idx", 0) or 0)
         raw_paths, verifier_paths = materialize_sample_evidence(
             evidence_root=evidence_root,
@@ -1417,6 +1428,8 @@ def rows_from_sample_summary(
             method=method,
             task_id=task_id,
             rows=samples,
+            required_cad_audits=required_cad_audits,
+            required_chrono_audits=required_chrono_audits,
             layout=evidence_layout,
         )
         sampler_error_attempts = sampler_error_attempt_count(samples)
@@ -1433,6 +1446,7 @@ def rows_from_sample_summary(
             "split": split,
             "task_id": task_id,
             "family": family_by_task.get(task_id, str(best.get("family") or "")),
+            "verifier_level": verifier_level or None,
             "seed": int(seed),
             "verified_repair_success_at_32": bool(
                 best.get("verifier_valid_passed")
@@ -1449,6 +1463,8 @@ def rows_from_sample_summary(
             "verifier_calls": verifier_calls,
             "cad_audits": cad_audits,
             "chrono_audits": chrono_audits,
+            "required_cad_audits": required_cad_audits,
+            "required_chrono_audits": required_chrono_audits,
             "actual_verifier_calls": verifier_calls,
             "actual_cad_calls": cad_audits,
             "actual_chrono_calls": chrono_audits,
@@ -1516,6 +1532,7 @@ def row_from_ttrl_reward_log(
     budget: int,
     run_dir: Path,
     family_by_task: dict[str, str],
+    verifier_level_by_task: dict[str, int] | None = None,
     evidence_root: Path | None = None,
     method: str = PRIMARY_METHOD,
     evidence_layout: str = "files",
@@ -1537,6 +1554,11 @@ def row_from_ttrl_reward_log(
     cad_audits = sum(int(item.get("cad_audits", 0) or 0) for item in matching)
     chrono_audits = sum(int(item.get("chrono_audits", 0) or 0) for item in matching)
     family = family_by_task.get(task_id) or family_from_task_dir(best.get("task_dir"))
+    verifier_level = int((verifier_level_by_task or {}).get(task_id, 0) or 0)
+    required_cad_audits, required_chrono_audits = required_audits_for_level(
+        verifier_level=verifier_level,
+        verifier_calls=verifier_calls,
+    )
     raw_paths, verifier_paths = materialize_ttrl_evidence(
         evidence_root=evidence_root,
         split=split,
@@ -1553,6 +1575,8 @@ def row_from_ttrl_reward_log(
         method=method,
         task_id=task_id,
         rows=matching,
+        required_cad_audits=required_cad_audits,
+        required_chrono_audits=required_chrono_audits,
         layout=evidence_layout,
     )
     best_metrics = dict(best.get("physical_metrics") or {})
@@ -1563,6 +1587,7 @@ def row_from_ttrl_reward_log(
         "split": split,
         "task_id": task_id,
         "family": family,
+        "verifier_level": verifier_level or None,
         "seed": int(seed),
         "verified_repair_success_at_32": bool(
             best.get("evaluation_valid")
@@ -1576,6 +1601,8 @@ def row_from_ttrl_reward_log(
         "verifier_calls": verifier_calls,
         "cad_audits": cad_audits,
         "chrono_audits": chrono_audits,
+        "required_cad_audits": required_cad_audits,
+        "required_chrono_audits": required_chrono_audits,
         "actual_verifier_calls": verifier_calls,
         "actual_cad_calls": cad_audits,
         "actual_chrono_calls": chrono_audits,
@@ -2042,6 +2069,8 @@ def materialize_audit_evidence(
     method: str,
     task_id: str,
     rows: list[dict[str, Any]],
+    required_cad_audits: int = 0,
+    required_chrono_audits: int = 0,
     layout: str = "files",
 ) -> tuple[list[str], list[str]]:
     cad_paths: list[str] = []
@@ -2059,6 +2088,8 @@ def materialize_audit_evidence(
             cad_dir=cad_dir,
             chrono_dir=chrono_dir,
             rows=rows,
+            required_cad_audits=required_cad_audits,
+            required_chrono_audits=required_chrono_audits,
         )
     if layout != "files":
         raise SystemExit(f"unknown evidence layout: {layout}")
@@ -2105,6 +2136,24 @@ def materialize_audit_evidence(
                 row=item,
             )
         )
+    if required_cad_audits > 0 and not cad_paths:
+        cad_paths.append(
+            str(write_audit_obligation_record(
+                out_dir=cad_dir,
+                kind="cad",
+                rows=rows,
+                required_audits=required_cad_audits,
+            ))
+        )
+    if required_chrono_audits > 0 and not chrono_paths:
+        chrono_paths.append(
+            str(write_audit_obligation_record(
+                out_dir=chrono_dir,
+                kind="chrono",
+                rows=rows,
+                required_audits=required_chrono_audits,
+            ))
+        )
     return cad_paths, chrono_paths
 
 
@@ -2113,6 +2162,8 @@ def materialize_audit_evidence_bundle(
     cad_dir: Path,
     chrono_dir: Path,
     rows: list[dict[str, Any]],
+    required_cad_audits: int = 0,
+    required_chrono_audits: int = 0,
 ) -> tuple[list[str], list[str]]:
     cad_bundle = cad_dir / "cad_audits.jsonl"
     chrono_bundle = chrono_dir / "chrono_audits.jsonl"
@@ -2135,7 +2186,100 @@ def materialize_audit_evidence_bundle(
                         json.dumps(chrono_record, sort_keys=True, default=str) + "\n"
                     )
                     chrono_paths.append(str(chrono_bundle))
+        if required_cad_audits > 0 and not cad_paths:
+            cad_f.write(
+                json.dumps(
+                    audit_obligation_record(
+                        kind="cad",
+                        rows=rows,
+                        required_audits=required_cad_audits,
+                    ),
+                    sort_keys=True,
+                    default=str,
+                ) + "\n"
+            )
+            cad_paths.append(str(cad_bundle))
+        if required_chrono_audits > 0 and not chrono_paths:
+            chrono_f.write(
+                json.dumps(
+                    audit_obligation_record(
+                        kind="chrono",
+                        rows=rows,
+                        required_audits=required_chrono_audits,
+                    ),
+                    sort_keys=True,
+                    default=str,
+                ) + "\n"
+            )
+            chrono_paths.append(str(chrono_bundle))
     return sorted(set(cad_paths)), sorted(set(chrono_paths))
+
+
+def required_audits_for_level(
+    *,
+    verifier_level: int,
+    verifier_calls: int,
+) -> tuple[int, int]:
+    calls = max(0, int(verifier_calls or 0))
+    level = int(verifier_level or 0)
+    return (calls if level >= 2 else 0, calls if level >= 3 else 0)
+
+
+def write_audit_obligation_record(
+    *,
+    out_dir: Path,
+    kind: str,
+    rows: list[dict[str, Any]],
+    required_audits: int,
+) -> Path:
+    dest = out_dir / f"{kind}_audit_obligation.json"
+    dest.write_text(
+        json.dumps(
+            audit_obligation_record(
+                kind=kind,
+                rows=rows,
+                required_audits=required_audits,
+            ),
+            indent=2,
+            sort_keys=True,
+            default=str,
+        ) + "\n"
+    )
+    return dest
+
+
+def audit_obligation_record(
+    *,
+    kind: str,
+    rows: list[dict[str, Any]],
+    required_audits: int,
+) -> dict[str, Any]:
+    failure_counts: dict[str, int] = defaultdict(int)
+    task_id = None
+    family = None
+    for row in rows:
+        task_id = task_id or row.get("task_id")
+        family = family or row.get("family")
+        for code in row.get("failure_codes") or []:
+            failure_counts[str(code)] += 1
+    return {
+        "schema": "mechanism_repair_ttrl.audit_obligation.v1",
+        "kind": kind,
+        "status": "precondition_failed_no_actual_audit",
+        "required_audits": int(required_audits),
+        "actual_audits": 0,
+        "task_id": task_id,
+        "family": family,
+        "candidate_count": len(rows),
+        "failure_code_counts": dict(sorted(failure_counts.items())),
+        "rationale": (
+            "The benchmark cell requires this Level-2/Level-3 verifier "
+            "evidence, but no candidate reached the tool-specific audit "
+            "because earlier structural gates failed. This record preserves "
+            "the failed evidence obligation without claiming that the CAD or "
+            "Chrono tool executed."
+        ),
+    }
 
 
 def evidence_stem(
@@ -2376,6 +2520,20 @@ def canonical_family_by_task(benchmark_dir: Path) -> dict[str, str]:
         )
         if task_id and family:
             out[task_id] = family
+    return out
+
+
+def verifier_level_by_task_id(benchmark_dir: Path) -> dict[str, int]:
+    manifest = json.loads((benchmark_dir / "benchmark_manifest.json").read_text())
+    out: dict[str, int] = {}
+    for row in manifest.get("tasks", []) or []:
+        task_id = str(row.get("task_id") or "")
+        if not task_id:
+            continue
+        try:
+            out[task_id] = int(row.get("verifier_level", 0) or 0)
+        except (TypeError, ValueError):
+            out[task_id] = 0
     return out
 
 

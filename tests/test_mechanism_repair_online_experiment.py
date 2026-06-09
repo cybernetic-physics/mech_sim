@@ -479,6 +479,57 @@ def test_rows_from_sample_summary_materializes_cad_chrono_evidence(
     assert chrono["physical_metrics"]["contact_force_rms_N"] == 3.0
 
 
+def test_rows_from_sample_summary_materializes_unreached_audit_obligations(
+    tmp_path: Path,
+) -> None:
+    summary = {
+        "max_turns": 1,
+        "all_samples": [
+            {
+                "task_id": "geneva_task",
+                "family": "geneva_indexer",
+                "sample_idx": 0,
+                "verified_score": 0.0,
+                "evaluation_valid": False,
+                "hard_gate_passed": False,
+                "failure_codes": ["missing_port"],
+                "verifier_calls": 32,
+                "cad_audits": 0,
+                "chrono_audits": 0,
+            },
+        ],
+    }
+
+    rows = rows_from_sample_summary(
+        summary=summary,
+        method="adaptive_evolution",
+        split="A",
+        seed=20260610,
+        budget=32,
+        trace_root=tmp_path / "trace",
+        family_by_task={"geneva_task": "geneva_indexer"},
+        verifier_level_by_task={"geneva_task": 3},
+        evidence_root=tmp_path / "evidence",
+        evidence_layout="bundled",
+    )
+
+    row = rows[0]
+    assert row["actual_cad_calls"] == 0
+    assert row["actual_chrono_calls"] == 0
+    assert row["required_cad_audits"] == 32
+    assert row["required_chrono_audits"] == 32
+    assert len(row["cad_artifact_paths"]) == 1
+    assert len(row["chrono_output_paths"]) == 1
+    cad_record = json.loads(Path(row["cad_artifact_paths"][0]).read_text().splitlines()[0])
+    chrono_record = json.loads(
+        Path(row["chrono_output_paths"][0]).read_text().splitlines()[0]
+    )
+    assert cad_record["status"] == "precondition_failed_no_actual_audit"
+    assert chrono_record["status"] == "precondition_failed_no_actual_audit"
+    assert cad_record["required_audits"] == 32
+    assert chrono_record["failure_code_counts"] == {"missing_port": 1}
+
+
 def test_rows_from_sample_summary_keeps_retry_evidence_paths_unique(
     tmp_path: Path,
 ) -> None:
