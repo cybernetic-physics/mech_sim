@@ -2,10 +2,11 @@
 set -euo pipefail
 
 REMOTE_HOST="${REMOTE_HOST:-sc}"
+REMOTE_USER="${REMOTE_USER:-knatalia}"
 REMOTE_ROOT="${REMOTE_ROOT:-/matx/u/knatalia/corl_mechanism_repair_physics}"
 JOB_NAME="${JOB_NAME:-corl_mech_phys}"
 MERGE_JOB_NAME="${MERGE_JOB_NAME:-corl_mech_phys_merge}"
-JOB_RUNTIME_ROOT="${JOB_RUNTIME_ROOT:-$REMOTE_ROOT}"
+JOB_RUNTIME_ROOT="${JOB_RUNTIME_ROOT:-auto}"
 ACCOUNT="${ACCOUNT:-matx}"
 PARTITION="${PARTITION:-matx}"
 QOS="${QOS:-normal}"
@@ -24,7 +25,7 @@ SGLANG_MODEL="${SGLANG_MODEL:-$BASE_MODEL}"
 SGLANG_PORT="${SGLANG_PORT:-30000}"
 SGLANG_PIP_SPEC="${SGLANG_PIP_SPEC:-sglang==0.5.9}"
 SGLANG_PIP_EXTRA="${SGLANG_PIP_EXTRA:-ninja}"
-SGLANG_VENV="${SGLANG_VENV:-$JOB_RUNTIME_ROOT/sglang_venv}"
+SGLANG_VENV="${SGLANG_VENV:-auto}"
 SGLANG_TP="${SGLANG_TP:-1}"
 SGLANG_MEM_FRAC="${SGLANG_MEM_FRAC:-0.82}"
 SGLANG_CTX="${SGLANG_CTX:-16384}"
@@ -62,8 +63,12 @@ ENABLE_CHRONO_ENV="${ENABLE_CHRONO_ENV:-1}"
 CHRONO_CONDA_EXE="${CHRONO_CONDA_EXE:-/matx/u/knatalia/miniconda3/bin/conda}"
 CHRONO_PYTHON_VERSION="${CHRONO_PYTHON_VERSION:-auto}"
 CHRONO_ENV_PREFIX="${CHRONO_ENV_PREFIX:-auto}"
-CHRONO_CONDA_PKGS_DIR="${CHRONO_CONDA_PKGS_DIR:-$JOB_RUNTIME_ROOT/conda_pkgs_chrono}"
+CHRONO_CONDA_PKGS_DIR="${CHRONO_CONDA_PKGS_DIR:-auto}"
 CHRONO_LINK_CURRENT_VENV="${CHRONO_LINK_CURRENT_VENV:-1}"
+SLURM_OUTPUT="${SLURM_OUTPUT:-auto}"
+SLURM_ERROR="${SLURM_ERROR:-auto}"
+MERGE_SLURM_OUTPUT="${MERGE_SLURM_OUTPUT:-auto}"
+MERGE_SLURM_ERROR="${MERGE_SLURM_ERROR:-auto}"
 
 usage() {
   cat <<EOF
@@ -75,6 +80,7 @@ dependent merge/audit job.
 
 Useful overrides:
   REMOTE_HOST=$REMOTE_HOST
+  REMOTE_USER=$REMOTE_USER
   REMOTE_ROOT=$REMOTE_ROOT
   JOB_RUNTIME_ROOT=$JOB_RUNTIME_ROOT
   SOURCE_REF=HEAD
@@ -93,6 +99,10 @@ Useful overrides:
   CHRONO_PYTHON_VERSION=$CHRONO_PYTHON_VERSION
   CHRONO_ENV_PREFIX=$CHRONO_ENV_PREFIX
   CHRONO_LINK_CURRENT_VENV=$CHRONO_LINK_CURRENT_VENV
+  SLURM_OUTPUT=$SLURM_OUTPUT
+  SLURM_ERROR=$SLURM_ERROR
+  MERGE_SLURM_OUTPUT=$MERGE_SLURM_OUTPUT
+  MERGE_SLURM_ERROR=$MERGE_SLURM_ERROR
 EOF
 }
 
@@ -120,6 +130,28 @@ remote_sbatch="$REMOTE_ROOT/run_mechanism_repair_physics_array.sbatch"
 remote_merge_sbatch="$REMOTE_ROOT/run_mechanism_repair_physics_merge.sbatch"
 source_ref="${SOURCE_REF:-HEAD}"
 source_commit="$(git -C "$repo_root" rev-parse "$source_ref")"
+source_commit_short="${source_commit:0:8}"
+if [[ "$JOB_RUNTIME_ROOT" == "auto" ]]; then
+  JOB_RUNTIME_ROOT="/tmp/$REMOTE_USER/corl_mech_phys_$source_commit_short"
+fi
+if [[ "$SGLANG_VENV" == "auto" ]]; then
+  SGLANG_VENV="$JOB_RUNTIME_ROOT/sglang_venv"
+fi
+if [[ "$CHRONO_CONDA_PKGS_DIR" == "auto" ]]; then
+  CHRONO_CONDA_PKGS_DIR="$JOB_RUNTIME_ROOT/conda_pkgs_chrono"
+fi
+if [[ "$SLURM_OUTPUT" == "auto" ]]; then
+  SLURM_OUTPUT="$remote_logs/%x-%A_%a.out"
+fi
+if [[ "$SLURM_ERROR" == "auto" ]]; then
+  SLURM_ERROR="$remote_logs/%x-%A_%a.err"
+fi
+if [[ "$MERGE_SLURM_OUTPUT" == "auto" ]]; then
+  MERGE_SLURM_OUTPUT="$remote_logs/%x-%j.out"
+fi
+if [[ "$MERGE_SLURM_ERROR" == "auto" ]]; then
+  MERGE_SLURM_ERROR="$remote_logs/%x-%j.err"
+fi
 array_end=$((NUM_SHARDS - 1))
 if (( NUM_SHARDS < 1 )); then
   echo "NUM_SHARDS must be >= 1" >&2
@@ -142,8 +174,8 @@ cat >"$tmp_sbatch" <<EOF
 #SBATCH --mem=$MEM
 #SBATCH --time=$TIME
 #SBATCH --array=0-$array_end%$ARRAY_CONCURRENCY
-#SBATCH --output=$remote_logs/%x-%A_%a.out
-#SBATCH --error=$remote_logs/%x-%A_%a.err
+#SBATCH --output=$SLURM_OUTPUT
+#SBATCH --error=$SLURM_ERROR
 
 set -euo pipefail
 
@@ -403,8 +435,8 @@ cat >"$tmp_merge" <<EOF
 #SBATCH --cpus-per-task=$MERGE_CPUS_PER_TASK
 #SBATCH --mem=$MERGE_MEM
 #SBATCH --time=$MERGE_TIME
-#SBATCH --output=$remote_logs/%x-%j.out
-#SBATCH --error=$remote_logs/%x-%j.err
+#SBATCH --output=$MERGE_SLURM_OUTPUT
+#SBATCH --error=$MERGE_SLURM_ERROR
 
 set -euo pipefail
 cd "$remote_repo"
