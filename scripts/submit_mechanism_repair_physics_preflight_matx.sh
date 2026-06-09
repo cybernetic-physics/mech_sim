@@ -19,8 +19,10 @@ OVERWRITE="${OVERWRITE:-1}"
 VALIDATE_LEVEL3="${VALIDATE_LEVEL3:-1}"
 ENABLE_CHRONO_ENV="${ENABLE_CHRONO_ENV:-1}"
 CHRONO_CONDA_EXE="${CHRONO_CONDA_EXE:-/matx/u/knatalia/miniconda3/bin/conda}"
-CHRONO_ENV_PREFIX="${CHRONO_ENV_PREFIX:-$REMOTE_ROOT/chrono_env}"
+CHRONO_PYTHON_VERSION="${CHRONO_PYTHON_VERSION:-auto}"
+CHRONO_ENV_PREFIX="${CHRONO_ENV_PREFIX:-auto}"
 CHRONO_CONDA_PKGS_DIR="${CHRONO_CONDA_PKGS_DIR:-$REMOTE_ROOT/conda_pkgs_chrono}"
+CHRONO_LINK_CURRENT_VENV="${CHRONO_LINK_CURRENT_VENV:-1}"
 
 usage() {
   cat <<EOF
@@ -37,7 +39,9 @@ Useful overrides:
   VALIDATE_LEVEL3=$VALIDATE_LEVEL3
   ENABLE_CHRONO_ENV=$ENABLE_CHRONO_ENV
   CHRONO_CONDA_EXE=$CHRONO_CONDA_EXE
+  CHRONO_PYTHON_VERSION=$CHRONO_PYTHON_VERSION
   CHRONO_ENV_PREFIX=$CHRONO_ENV_PREFIX
+  CHRONO_LINK_CURRENT_VENV=$CHRONO_LINK_CURRENT_VENV
 
 By default this stages files and writes the Slurm script. Pass --submit to
 call sbatch on the remote host.
@@ -107,6 +111,7 @@ export UV_CACHE_DIR="\${UV_CACHE_DIR:-$REMOTE_ROOT/uv_cache}"
 export XDG_CACHE_HOME="\${XDG_CACHE_HOME:-$REMOTE_ROOT/xdg_cache}"
 export HOME="\${JOB_HOME:-$REMOTE_ROOT/home}"
 mkdir -p "\$HF_HOME" "\$UV_CACHE_DIR" "\$XDG_CACHE_HOME" "\$HOME"
+mkdir -p "$REMOTE_ROOT/locks"
 
 if ! command -v uv >/dev/null 2>&1; then
   python3 -m venv "$REMOTE_ROOT/uv_bootstrap"
@@ -122,15 +127,40 @@ if [[ "$ENABLE_CHRONO_ENV" == "1" ]]; then
     echo "Chrono conda executable not found: $CHRONO_CONDA_EXE" >&2
     exit 1
   fi
-  if [[ ! -x "$CHRONO_ENV_PREFIX/bin/python" ]]; then
+  repo_python_version="\$("\$repo_python" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+  chrono_python_version="$CHRONO_PYTHON_VERSION"
+  if [[ "\$chrono_python_version" == "auto" ]]; then
+    chrono_python_version="\$repo_python_version"
+  fi
+  chrono_env_prefix="$CHRONO_ENV_PREFIX"
+  if [[ "\$chrono_env_prefix" == "auto" ]]; then
+    chrono_env_prefix="$REMOTE_ROOT/chrono_env_py\${chrono_python_version//./}"
+  fi
+  chrono_bootstrap_args=(
+    scripts/bootstrap_chrono_env.py
+    --conda-exe "$CHRONO_CONDA_EXE"
+    --prefix "\$chrono_env_prefix"
+    --python-version "\$chrono_python_version"
+  )
+  if [[ "$CHRONO_LINK_CURRENT_VENV" == "1" ]]; then
+    if [[ "\$chrono_python_version" != "\$repo_python_version" ]]; then
+      echo "CHRONO_LINK_CURRENT_VENV=1 requires Chrono Python \$chrono_python_version to match repo Python \$repo_python_version" >&2
+      exit 1
+    fi
+    chrono_bootstrap_args+=(--link-current-venv)
+  else
+    chrono_bootstrap_args+=(--no-link-current-venv)
+  fi
+  export LD_LIBRARY_PATH="\$chrono_env_prefix/lib:\${LD_LIBRARY_PATH:-}"
+  (
+    flock 9
     env \\
       CONDA_PKGS_DIRS="$CHRONO_CONDA_PKGS_DIR" \\
       XDG_CACHE_HOME="$REMOTE_ROOT/xdg_cache" \\
-      "$CHRONO_CONDA_EXE" create -y -p "$CHRONO_ENV_PREFIX" \\
-      --override-channels \\
-      -c projectchrono -c conda-forge python=3.13 pychrono numpy
-  fi
-  export MECH_BENCH_CHRONO_PYTHON="$CHRONO_ENV_PREFIX/bin/python"
+      "\$repo_python" "\${chrono_bootstrap_args[@]}"
+  ) 9>"$REMOTE_ROOT/locks/chrono_env_\${chrono_python_version//./}.lock"
+  export MECH_BENCH_CHRONO_PYTHON="\$chrono_env_prefix/bin/python"
+  export MECH_BENCH_CHRONO_ENV="\$chrono_env_prefix"
 fi
 
 "\$repo_python" - <<'PY'

@@ -19,6 +19,11 @@ REQUIRED_SYMBOLS = ("ChSystem", "ChSystemSMC", "ChSystemNSC")
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "--conda-exe",
+        default=os.environ.get("CHRONO_CONDA_EXE") or os.environ.get("CONDA_EXE"),
+        help="conda/mamba/micromamba executable used to create the Chrono env",
+    )
+    parser.add_argument(
         "--prefix",
         default=None,
         help="Chrono env prefix; defaults to .external/chrono_env_pyXY",
@@ -51,15 +56,16 @@ def main() -> int:
     chrono_python = prefix / "bin" / "python"
 
     if not args.skip_create and not chrono_python.exists():
-        micromamba = find_micromamba(root)
-        if micromamba is None:
+        conda_frontend = find_conda_frontend(root, args.conda_exe)
+        if conda_frontend is None:
             raise SystemExit(
-                "micromamba not found; install it or pass --skip-create with "
-                "an existing --prefix"
+                "conda/mamba/micromamba not found; install one, set "
+                "CHRONO_CONDA_EXE, or pass --skip-create with an existing "
+                "--prefix"
             )
         subprocess.run(
             [
-                str(micromamba),
+                str(conda_frontend),
                 "create",
                 "-y",
                 "-p",
@@ -98,14 +104,20 @@ def main() -> int:
     return 0
 
 
-def find_micromamba(root: Path) -> Path | None:
-    env_path = os.environ.get("MICROMAMBA_EXE") or os.environ.get("MAMBA_EXE")
+def find_conda_frontend(root: Path, explicit: str | None = None) -> Path | None:
+    env_path = (
+        explicit
+        or os.environ.get("MICROMAMBA_EXE")
+        or os.environ.get("MAMBA_EXE")
+        or os.environ.get("CONDA_EXE")
+    )
     candidates = [
         Path(env_path).expanduser() if env_path else None,
         root / ".external" / "bin" / "micromamba",
         root / ".external" / "micromamba" / "bin" / "micromamba",
         Path(shutil.which("micromamba") or ""),
         Path(shutil.which("mamba") or ""),
+        Path(shutil.which("conda") or ""),
     ]
     for candidate in candidates:
         if candidate and candidate.exists():
