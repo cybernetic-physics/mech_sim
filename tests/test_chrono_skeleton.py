@@ -11,6 +11,8 @@ not, the adapter must:
 
 from __future__ import annotations
 
+import types
+
 import pytest
 
 
@@ -21,6 +23,7 @@ def test_chrono_diagnostic_has_structured_shape():
     assert diag["adapter"] == "chrono_contact"
     assert diag["status"] in ("available", "unavailable")
     assert isinstance(diag["pychrono_importable"], bool)
+    assert isinstance(diag["pychrono_project_chrono"], bool)
     assert isinstance(diag["_chrono_impl_importable"], bool)
     assert diag["runner_status"] in (
         "ready", "skeleton_only", "missing_dependency",
@@ -39,6 +42,26 @@ def test_chrono_not_registered_when_impl_missing():
             "chrono_contact must not register when _chrono_impl missing"
         )
         assert diag["runner_status"] == "skeleton_only"
+
+
+def test_probe_rejects_non_project_chrono_pychrono(monkeypatch):
+    """The PyPI timing package named pychrono must not register Chrono."""
+    import mech_bench.adapters.chrono_contact as chrono_contact
+
+    fake = types.SimpleNamespace(__file__="/tmp/pychrono/__init__.py")
+
+    def fake_import(name, *args, **kwargs):
+        if name == "pychrono":
+            return fake
+        return real_import(name, *args, **kwargs)
+
+    real_import = __import__
+    monkeypatch.setattr("builtins.__import__", fake_import)
+
+    available, reason = chrono_contact._probe_pychrono()
+
+    assert available is False
+    assert "not projectchrono::pychrono" in reason
 
 
 def test_chrono_unavailable_yields_capability_unavailable(tmp_path):

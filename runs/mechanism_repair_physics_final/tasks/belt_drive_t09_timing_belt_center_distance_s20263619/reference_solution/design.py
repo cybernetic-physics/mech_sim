@@ -153,7 +153,7 @@ def _physics_default_chrono_collision(part, family):
             return {
                 "shape": "box",
                 "size_mm": (80.0, 3.0, 8.0),
-                "center_mm": (0.0, 13.55, 0.0),
+                "center_mm": center,
             }
     if family == "cam_follower":
         if part_id == "cam":
@@ -198,11 +198,26 @@ def _physics_default_chrono_collision(part, family):
 
 def _physics_default_initial_pose_mm(part, family):
     part_id = str(part.get("id", ""))
+    if family == "rack_pinion" and part_id == "rack":
+        return (0.0, 13.0, 0.0)
     if family == "cam_follower" and part_id == "follower":
         return (40.04, 0.0, 0.0)
     if family == "geneva_indexer" and part_id == "geneva":
         return (39.98, 0.0, 0.0)
     return None
+
+
+def _physics_adjust_chrono_joints(ir, family):
+    if family != "rack_pinion":
+        return
+    for joint in ir.get("joints", []) or []:
+        if not isinstance(joint, dict):
+            continue
+        if joint.get("type") == "prismatic" and joint.get("child") == "rack":
+            anchor = list(joint.get("anchor_world_mm") or (0.0, 0.0, 0.0))
+            while len(anchor) < 3:
+                anchor.append(0.0)
+            joint["anchor_world_mm"] = (float(anchor[0]), 13.0, float(anchor[2]))
 
 
 def _physics_enrich_design(ir, out_dir):
@@ -261,6 +276,7 @@ def _physics_enrich_design(ir, out_dir):
     contact_bodies = (
         _physics_contact_body_ids(ir) if 2 >= 3 else set()
     )
+    _physics_adjust_chrono_joints(ir, 'belt_drive')
     for index, part in enumerate(ir.get("parts", []) or []):
         if not isinstance(part, dict):
             continue

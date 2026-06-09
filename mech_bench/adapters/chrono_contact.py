@@ -42,6 +42,13 @@ _LOG = logging.getLogger("mech_bench.adapters.chrono_contact")
 # --------------------------------------------------------------------- #
 
 
+_REQUIRED_CHRONO_SYSTEM_SYMBOLS = ("ChSystem", "ChSystemSMC", "ChSystemNSC")
+
+
+def _has_project_chrono_symbols(module: Any) -> bool:
+    return any(hasattr(module, name) for name in _REQUIRED_CHRONO_SYSTEM_SYMBOLS)
+
+
 def _probe_pychrono() -> tuple[bool, str]:
     """Return (available, diagnostic).
 
@@ -61,15 +68,18 @@ def _probe_pychrono() -> tuple[bool, str]:
                 f"MECH_BENCH_CHRONO_PYTHON is set to {alt_python!r}, "
                 f"but that path does not exist."
             )
-        # Both pychrono AND the _chrono_impl shim must import in the
-        # alt interpreter — otherwise the adapter would advertise
-        # contact forces while having no runner to call.
+        # Both Project Chrono's pychrono module and the _chrono_impl shim
+        # must import in the alt interpreter — otherwise the adapter would
+        # advertise contact forces while having no runner to call.
         child_env = os.environ.copy()
         child_env.pop("MECH_BENCH_CHRONO_PYTHON", None)
         try:
             proc = subprocess.run(
                 [alt_python, "-c",
                  "import pychrono; "
+                 "assert any(hasattr(pychrono, n) for n in "
+                 "('ChSystem','ChSystemSMC','ChSystemNSC')), "
+                 "'pychrono is not Project Chrono'; "
                  "import mech_bench.adapters._chrono_impl"],
                 capture_output=True, text=True, timeout=30,
                 check=False, env=child_env,
@@ -87,9 +97,15 @@ def _probe_pychrono() -> tuple[bool, str]:
             f"(subprocess)"
         )
     try:
-        import pychrono  # type: ignore[import-not-found]  # noqa: F401
+        import pychrono  # type: ignore[import-not-found]
     except ImportError as e:
         return False, f"pychrono not importable: {e}"
+    if not _has_project_chrono_symbols(pychrono):
+        return False, (
+            "pychrono imports but does not expose Project Chrono system "
+            "classes such as ChSystemSMC; this is likely the unrelated PyPI "
+            "pychrono timing package, not projectchrono::pychrono."
+        )
     try:
         from mech_bench.adapters import _chrono_impl  # noqa: F401
     except ImportError:
@@ -326,12 +342,14 @@ def chrono_diagnostic() -> dict[str, Any]:
     importable but the real runner isn't ported) or ``"ready"`` (both
     PyChrono and ``_chrono_impl`` are importable).
     """
-    pychrono_ok = False
+    pychrono_importable = False
+    pychrono_project = False
     try:
-        import pychrono  # type: ignore[import-not-found]  # noqa: F401
-        pychrono_ok = True
+        import pychrono  # type: ignore[import-not-found]
+        pychrono_importable = True
+        pychrono_project = _has_project_chrono_symbols(pychrono)
     except ImportError:
-        pychrono_ok = False
+        pychrono_importable = False
     impl_ok = False
     try:
         from mech_bench.adapters import _chrono_impl  # noqa: F401
@@ -342,7 +360,7 @@ def chrono_diagnostic() -> dict[str, Any]:
     if CHRONO_AVAILABLE:
         runner_status = "ready"
         status = "available"
-    elif pychrono_ok and not impl_ok:
+    elif pychrono_project and not impl_ok:
         runner_status = "skeleton_only"
         status = "unavailable"
     else:
@@ -353,7 +371,8 @@ def chrono_diagnostic() -> dict[str, Any]:
         "adapter": "chrono_contact",
         "status": status,
         "reason": _DIAGNOSTIC,
-        "pychrono_importable": pychrono_ok,
+        "pychrono_importable": pychrono_importable,
+        "pychrono_project_chrono": pychrono_project,
         "_chrono_impl_importable": impl_ok,
         "runner_status": runner_status,
     }

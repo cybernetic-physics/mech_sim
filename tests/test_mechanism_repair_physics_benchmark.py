@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import tomllib
 from pathlib import Path
@@ -122,3 +123,35 @@ def test_level2_reference_passes_trusted_asset_gate_and_negative_fails(
     )
     assert not negative.hard_gate_passed
     assert "invalid_mass_properties" in _codes(negative)
+
+
+def test_rack_pinion_reference_places_rack_body_on_contact_line(
+    tmp_path: Path,
+) -> None:
+    out_dir = tmp_path / "mechanism_repair_physics"
+    tasks_root = out_dir / "tasks"
+    materialize_benchmark(
+        tasks_root=tasks_root,
+        tasks_per_family=1,
+        base_seed=20260610,
+    )
+
+    task_dir = _family_task(tasks_root, "rack_pinion")
+    design_path = task_dir / "reference_solution" / "design.py"
+    spec = importlib.util.spec_from_file_location("rack_reference", design_path)
+    assert spec is not None
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    ir = module.build_design(tmp_path / "rack_build")
+
+    rack = next(part for part in ir["parts"] if part["id"] == "rack")
+    rack_params = rack["params"]
+    assert tuple(rack_params["initial_pose_mm"]) == (0.0, 13.0, 0.0)
+    assert tuple(rack_params["chrono_collision"]["center_mm"]) == (
+        0.0,
+        0.0,
+        0.0,
+    )
+    output_axis = next(joint for joint in ir["joints"] if joint["id"] == "output_axis")
+    assert tuple(output_axis["anchor_world_mm"]) == (0.0, 13.0, 0.0)
