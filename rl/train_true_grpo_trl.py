@@ -288,6 +288,58 @@ def _remove_intermediate_checkpoints(out_dir: Path) -> list[str]:
     return removed
 
 
+def _cast_adapter_safetensors(adapter_dir: Path, dtype_name: str) -> dict[str, Any]:
+    path = adapter_dir / "adapter_model.safetensors"
+    requested = str(dtype_name or "native")
+    out: dict[str, Any] = {
+        "requested_dtype": requested,
+        "applied": False,
+        "path": str(path),
+    }
+    if requested == "native":
+        return out
+    if not path.is_file():
+        out["missing"] = True
+        return out
+
+    import torch
+    from safetensors import safe_open
+    from safetensors.torch import load_file, save_file
+
+    target_dtype = {
+        "bfloat16": torch.bfloat16,
+        "float16": torch.float16,
+        "float32": torch.float32,
+    }[requested]
+    before_bytes = path.stat().st_size
+    with safe_open(path, framework="pt", device="cpu") as handle:
+        metadata = handle.metadata()
+    tensors = load_file(str(path), device="cpu")
+    converted = {
+        key: tensor.to(dtype=target_dtype)
+        if torch.is_floating_point(tensor)
+        else tensor
+        for key, tensor in tensors.items()
+    }
+    converted_count = sum(
+        1
+        for tensor in tensors.values()
+        if torch.is_floating_point(tensor) and tensor.dtype != target_dtype
+    )
+    tmp_path = path.with_name(path.name + ".tmp")
+    save_file(converted, str(tmp_path), metadata=metadata)
+    tmp_path.replace(path)
+    out.update({
+        "applied": True,
+        "dtype": requested,
+        "tensor_count": len(tensors),
+        "converted_tensors": converted_count,
+        "before_bytes": before_bytes,
+        "after_bytes": path.stat().st_size,
+    })
+    return out
+
+
 def _finite_named_tensor_audit(
     named_tensors: Any,
     *,
@@ -1192,6 +1244,12 @@ def main() -> int:
     )
     parser.add_argument("--reward-timeout-s", type=float, default=60.0)
     parser.add_argument("--save-steps", type=int, default=25)
+    parser.add_argument(
+        "--save-adapter-dtype",
+        default="native",
+        choices=("native", "bfloat16", "float16", "float32"),
+        help="optional dtype cast for the saved final PEFT adapter checkpoint",
+    )
     parser.add_argument("--logging-steps", type=int, default=1)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--bf16", action="store_true")
@@ -1612,6 +1670,10 @@ def main() -> int:
     )
     final_adapter = out_dir / "final_adapter"
     trainer.save_model(str(final_adapter))
+    adapter_save = _cast_adapter_safetensors(
+        final_adapter,
+        str(args.save_adapter_dtype),
+    )
     removed_checkpoints = _remove_intermediate_checkpoints(out_dir)
     global_step = int(getattr(trainer.state, "global_step", 0) or 0)
     n_rl_datums = 0
@@ -1642,6 +1704,7 @@ def main() -> int:
         "save_strategy": "no",
         "removed_intermediate_checkpoints": removed_checkpoints,
     }
+    manifest["adapter_save"] = adapter_save
     manifest["adapter_updates"] = adapter_updates
     manifest["trainer_global_step"] = global_step
     manifest["trained_tokens"] = trained_tokens
@@ -1656,6 +1719,7 @@ def main() -> int:
         "kind": "final_sampler",
         "name": final_adapter.name,
         "path": str(final_adapter),
+        "adapter_save": adapter_save,
         "step": global_step,
         "adapter_updates": adapter_updates,
         "trainer_global_step": global_step,

@@ -793,6 +793,7 @@ def test_ttrl_runner_passes_lightweight_kbit_prepare_mode(
         max_tokens=128,
         timeout=30.0,
         ttrl_lora_rank=16,
+        ttrl_save_adapter_dtype="bfloat16",
         ttrl_load_in_4bit=True,
         ttrl_load_in_8bit=False,
         ttrl_kbit_prepare_mode="lightweight",
@@ -839,6 +840,8 @@ def test_ttrl_runner_passes_lightweight_kbit_prepare_mode(
     assert cmd[cmd.index("--per-device-train-batch-size") + 1] == "1"
     assert "--max-grad-norm" in cmd
     assert cmd[cmd.index("--max-grad-norm") + 1] == "1.0"
+    assert "--save-adapter-dtype" in cmd
+    assert cmd[cmd.index("--save-adapter-dtype") + 1] == "bfloat16"
     assert "--bf16" in cmd
     assert "--fp16" not in cmd
 
@@ -894,6 +897,7 @@ def test_ttrl_runner_preserves_physics_method_and_reward_channel(
         max_tokens=128,
         timeout=30.0,
         ttrl_lora_rank=16,
+        ttrl_save_adapter_dtype="native",
         ttrl_load_in_4bit=False,
         ttrl_load_in_8bit=False,
         ttrl_kbit_prepare_mode="none",
@@ -993,6 +997,7 @@ def test_ttrl_runner_rejects_reward_log_over_budget(
         max_tokens=128,
         timeout=30.0,
         ttrl_lora_rank=16,
+        ttrl_save_adapter_dtype="native",
         ttrl_load_in_4bit=False,
         ttrl_load_in_8bit=False,
         ttrl_kbit_prepare_mode="none",
@@ -1100,6 +1105,7 @@ def test_ttrl_resume_discards_partial_zero_update_manifest(
         max_tokens=128,
         timeout=30.0,
         ttrl_lora_rank=16,
+        ttrl_save_adapter_dtype="native",
         ttrl_load_in_4bit=False,
         ttrl_load_in_8bit=False,
         ttrl_kbit_prepare_mode="none",

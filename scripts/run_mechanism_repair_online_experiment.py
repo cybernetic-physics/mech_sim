@@ -187,6 +187,12 @@ def main() -> int:
     parser.add_argument("--ttrl-max-grad-norm", type=float, default=0.0)
     parser.add_argument("--ttrl-lora-rank", type=int, default=16)
     parser.add_argument(
+        "--ttrl-save-adapter-dtype",
+        default="native",
+        choices=("native", "bfloat16", "float16", "float32"),
+        help="optional dtype cast for saved TTRL adapter checkpoints",
+    )
+    parser.add_argument(
         "--ttrl-reward-channel",
         default="artifact_progress",
         choices=("verified_score", "score", "artifact_progress"),
@@ -1000,6 +1006,8 @@ def run_or_load_ttrl_cell(
                 ),
                 "--lora-rank",
                 str(args.ttrl_lora_rank),
+                "--save-adapter-dtype",
+                str(args.ttrl_save_adapter_dtype),
                 "--seed",
                 str(seed),
             ]

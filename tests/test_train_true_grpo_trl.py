@@ -10,6 +10,7 @@ from rl.mech_bench_reward import RewardResult
 from rl.train_true_grpo_trl import (
     STRICT_FENCED_OUTPUT_INSTRUCTION,
     _chat_prompt_rows,
+    _cast_adapter_safetensors,
     _disable_intermediate_checkpoint_config,
     _estimate_prompt_tokens,
     _finite_named_tensor_audit,
@@ -141,6 +142,26 @@ def test_remove_intermediate_checkpoints_preserves_final_adapter(tmp_path: Path)
     assert not checkpoint.exists()
     assert checkpoint_file.exists()
     assert final_adapter.exists()
+
+
+def test_cast_adapter_safetensors_to_bfloat16(tmp_path: Path) -> None:
+    pytest.importorskip("safetensors")
+    from safetensors.torch import load_file, save_file
+
+    adapter = tmp_path / "final_adapter"
+    adapter.mkdir()
+    path = adapter / "adapter_model.safetensors"
+    save_file({"w": torch.ones((8, 8), dtype=torch.float32)}, str(path))
+    before = path.stat().st_size
+
+    manifest = _cast_adapter_safetensors(adapter, "bfloat16")
+    tensors = load_file(str(path), device="cpu")
+
+    assert manifest["applied"] is True
+    assert manifest["requested_dtype"] == "bfloat16"
+    assert manifest["before_bytes"] == before
+    assert manifest["after_bytes"] < before
+    assert tensors["w"].dtype == torch.bfloat16
 
 
 def test_estimate_prompt_tokens_counts_processor_input_ids() -> None:

@@ -23,6 +23,7 @@ SGLANG_MODEL="${SGLANG_MODEL:-$BASE_MODEL}"
 SGLANG_PORT="${SGLANG_PORT:-30000}"
 SGLANG_PIP_SPEC="${SGLANG_PIP_SPEC:-sglang==0.5.9}"
 SGLANG_PIP_EXTRA="${SGLANG_PIP_EXTRA:-ninja}"
+SGLANG_VENV="${SGLANG_VENV:-$REMOTE_ROOT/sglang_venv}"
 SGLANG_TP="${SGLANG_TP:-1}"
 SGLANG_MEM_FRAC="${SGLANG_MEM_FRAC:-0.82}"
 SGLANG_CTX="${SGLANG_CTX:-16384}"
@@ -46,6 +47,8 @@ TTRL_ATTN_IMPLEMENTATION="${TTRL_ATTN_IMPLEMENTATION:-eager}"
 TTRL_KBIT_PREPARE_MODE="${TTRL_KBIT_PREPARE_MODE:-none}"
 TTRL_LEARNING_RATE="${TTRL_LEARNING_RATE:-1.0e-6}"
 TTRL_MAX_GRAD_NORM="${TTRL_MAX_GRAD_NORM:-0.0}"
+TTRL_LORA_RANK="${TTRL_LORA_RANK:-8}"
+TTRL_SAVE_ADAPTER_DTYPE="${TTRL_SAVE_ADAPTER_DTYPE:-bfloat16}"
 TTRL_GRADIENT_CHECKPOINTING="${TTRL_GRADIENT_CHECKPOINTING:-1}"
 TTRL_BF16="${TTRL_BF16:-1}"
 AUDIT_RETRIES="${AUDIT_RETRIES:-1}"
@@ -76,6 +79,7 @@ Useful overrides:
   GRES=$GRES
   BASE_MODEL=$BASE_MODEL
   SGLANG_MODEL=$SGLANG_MODEL
+  SGLANG_VENV=$SGLANG_VENV
   RESUME_EXISTING=$RESUME_EXISTING
   DRY_RUN=$DRY_RUN
   CHRONO_PYTHON_VERSION=$CHRONO_PYTHON_VERSION
@@ -232,7 +236,7 @@ sglang_cuda_visible_devices="\${sglang_cuda_visible_devices:-0}"
 train_cuda_visible_devices="\${train_cuda_visible_devices:-0}"
 echo "CUDA split: sglang=\$sglang_cuda_visible_devices train=\$train_cuda_visible_devices"
 
-sglang_venv="$REMOTE_ROOT/sglang_venv"
+sglang_venv="$SGLANG_VENV"
 (
   flock 9
   if [[ ! -x "\$sglang_venv/bin/python" ]]; then
@@ -347,6 +351,8 @@ exec env CUDA_VISIBLE_DEVICES="\$train_cuda_visible_devices" \\
   --ttrl-torch-dtype "$TTRL_TORCH_DTYPE" \\
   --ttrl-attn-implementation "$TTRL_ATTN_IMPLEMENTATION" \\
   "\${ttrl_precision_args[@]}" \\
+  --ttrl-lora-rank "$TTRL_LORA_RANK" \\
+  --ttrl-save-adapter-dtype "$TTRL_SAVE_ADAPTER_DTYPE" \\
   --ttrl-learning-rate "$TTRL_LEARNING_RATE" \\
   --ttrl-max-grad-norm "$TTRL_MAX_GRAD_NORM" \\
   --ttrl-kbit-prepare-mode "$TTRL_KBIT_PREPARE_MODE" \\
