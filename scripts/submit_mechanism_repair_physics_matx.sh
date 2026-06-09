@@ -61,6 +61,7 @@ TTRL_GRADIENT_CHECKPOINTING="${TTRL_GRADIENT_CHECKPOINTING:-1}"
 TTRL_BF16="${TTRL_BF16:-1}"
 AUDIT_RETRIES="${AUDIT_RETRIES:-1}"
 EVIDENCE_LAYOUT="${EVIDENCE_LAYOUT:-bundled}"
+LIMIT_TASKS="${LIMIT_TASKS:-0}"
 RESUME_EXISTING="${RESUME_EXISTING:-1}"
 DRY_RUN="${DRY_RUN:-0}"
 ENABLE_CHRONO_ENV="${ENABLE_CHRONO_ENV:-1}"
@@ -100,6 +101,7 @@ Useful overrides:
   SHARED_SFT_ROOT=$SHARED_SFT_ROOT
   TTRL_ADAPTER_RETENTION=$TTRL_ADAPTER_RETENTION
   EVIDENCE_LAYOUT=$EVIDENCE_LAYOUT
+  LIMIT_TASKS=$LIMIT_TASKS
   RESUME_EXISTING=$RESUME_EXISTING
   DRY_RUN=$DRY_RUN
   CHRONO_PYTHON_VERSION=$CHRONO_PYTHON_VERSION
@@ -360,11 +362,16 @@ shard_index="\${SLURM_ARRAY_TASK_ID:-0}"
 shard_name="\$(printf 'shard_%04d' "\$shard_index")"
 shard_file="$OUT_DIR/experiment_shards/\$shard_name.json"
 shard_out="$OUT_DIR/shard_runs/\$shard_name"
+limit_task_args=()
+if [[ "$LIMIT_TASKS" != "0" ]]; then
+  limit_task_args=(--limit-tasks "$LIMIT_TASKS")
+fi
 if [[ ! -f "\$shard_file" ]]; then
   uv run python scripts/run_mechanism_repair_physics_experiment.py \\
     --benchmark-dir "$OUT_DIR" \\
     --out-dir "$OUT_DIR" \\
     --write-shard-files "$NUM_SHARDS" \\
+    "\${limit_task_args[@]}" \\
     --dry-run
 fi
 if [[ ! -f "\$shard_file" ]]; then
@@ -409,6 +416,7 @@ exec env CUDA_VISIBLE_DEVICES="\$train_cuda_visible_devices" \\
   --evidence-layout "$EVIDENCE_LAYOUT" \\
   --skip-analysis \\
   "\${resume_args[@]}" \\
+  "\${limit_task_args[@]}" \\
   "\${sft_quant_args[@]}" \\
   --sft-max-steps "$SFT_MAX_STEPS" \\
   --shared-sft-root "$SHARED_SFT_ROOT" \\
