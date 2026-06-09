@@ -199,7 +199,11 @@ def test_openai_chat_post_retries_without_seed_and_optional_sglang_fields() -> N
         timeout_s=1.0,
     )
 
-    assert result == {"ok": True}
+    assert result["ok"] is True
+    assert result["_sglang_retry_stats"]["sampler_http_400_count"] == 2
+    assert result["_sglang_retry_stats"]["sampler_retry_count"] == 2
+    assert result["_sglang_retry_stats"]["seed_retry_count"] == 1
+    assert result["_sglang_retry_stats"]["optional_chat_field_retry_count"] == 1
     assert FakeOpenAIRequests.calls[0]["seed"] == 123
     assert "seed" not in FakeOpenAIRequests.calls[1]
     assert "continue_final_message" not in FakeOpenAIRequests.calls[2]
@@ -226,7 +230,10 @@ def test_openai_chat_post_retries_transient_bad_request(monkeypatch) -> None:
         timeout_s=1.0,
     )
 
-    assert result == {"ok": True}
+    assert result["ok"] is True
+    assert result["_sglang_retry_stats"]["sampler_http_400_count"] == 1
+    assert result["_sglang_retry_stats"]["sampler_retry_count"] == 1
+    assert result["_sglang_retry_stats"]["transient_bad_request_retry_count"] == 1
     assert len(FakeTransientOpenAIRequests.calls) == 2
 
 

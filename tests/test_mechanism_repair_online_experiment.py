@@ -322,6 +322,8 @@ def test_rows_from_sample_summary_materializes_cad_chrono_evidence(
                 "verifier_calls": 1,
                 "cad_audits": 1,
                 "chrono_audits": 1,
+                "sampler_http_400_count": 2,
+                "sampler_retry_count": 2,
                 "physical_metrics": {"contact_force_rms_N": 3.0},
             },
         ],
@@ -342,6 +344,8 @@ def test_rows_from_sample_summary_materializes_cad_chrono_evidence(
     assert row["actual_verifier_calls"] == 1
     assert row["actual_cad_calls"] == 1
     assert row["actual_chrono_calls"] == 1
+    assert row["sampler_http_400_count"] == 2
+    assert row["sampler_retry_count"] == 2
     assert len(row["cad_artifact_paths"]) == 1
     assert len(row["chrono_output_paths"]) == 1
     cad = json.loads(Path(row["cad_artifact_paths"][0]).read_text())

@@ -1238,6 +1238,14 @@ def rows_from_sample_summary(
             "best_max_penetration_mm": best_metrics.get("max_penetration_mm"),
             "best_contact_force_rms_N": best_metrics.get("contact_force_rms_N"),
             "sampler_error_count": failure_count(samples, "sampler_error"),
+            "sampler_http_400_count": sum(
+                int(item.get("sampler_http_400_count", 0) or 0)
+                for item in samples
+            ),
+            "sampler_retry_count": sum(
+                int(item.get("sampler_retry_count", 0) or 0)
+                for item in samples
+            ),
             "invalid_artifact_count": invalid_artifact_count(samples),
             "timeout_count": failure_count(samples, "timeout"),
             "audit_retry_count": sum(
@@ -1353,6 +1361,14 @@ def row_from_ttrl_reward_log(
         "best_max_penetration_mm": best_metrics.get("max_penetration_mm"),
         "best_contact_force_rms_N": best_metrics.get("contact_force_rms_N"),
         "sampler_error_count": failure_count(matching, "sampler_error"),
+        "sampler_http_400_count": sum(
+            int(item.get("sampler_http_400_count", 0) or 0)
+            for item in matching
+        ) + int(training.get("sampler_http_400_count", 0) or 0),
+        "sampler_retry_count": sum(
+            int(item.get("sampler_retry_count", 0) or 0)
+            for item in matching
+        ) + int(training.get("sampler_retry_count", 0) or 0),
         "invalid_artifact_count": invalid_artifact_count(matching),
         "timeout_count": failure_count(matching, "timeout"),
         "audit_retry_count": sum(
@@ -1767,6 +1783,18 @@ def training_metadata_from_manifest(path: Path) -> dict[str, Any]:
         "rl_trained_tokens": int(payload.get("rl_trained_tokens", 0) or 0),
         "n_rl_datums": int(payload.get("n_rl_datums", 0) or 0),
         "adapter_path": str(payload.get("final_adapter") or ""),
+        "sampler_http_400_count": int(
+            (payload.get("rollout_retry_stats") or {}).get(
+                "sampler_http_400_count", 0
+            )
+            or 0
+        ),
+        "sampler_retry_count": int(
+            (payload.get("rollout_retry_stats") or {}).get(
+                "sampler_retry_count", 0
+            )
+            or 0
+        ),
     }
 
 
@@ -1777,6 +1805,8 @@ def empty_training_metadata() -> dict[str, Any]:
         "rl_trained_tokens": 0,
         "n_rl_datums": 0,
         "adapter_path": "",
+        "sampler_http_400_count": 0,
+        "sampler_retry_count": 0,
     }
 
 

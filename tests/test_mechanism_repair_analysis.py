@@ -111,11 +111,18 @@ def test_mechanism_repair_analysis_rejects_unmatched_budget(
     for row in raw_rows:
         if row["method"] == "mechanical_evolve_ttrl":
             row["verifier_calls"] = 64
+            row["sampler_http_400_count"] = 3
+            row["sampler_retry_count"] = 3
     rows = normalize_rows(raw_rows)
     stats = analyze_rows(rows, bootstrap_samples=200, seed=7)
     audit = build_claim_audit(stats)
 
     assert stats["budget_audit"]["budget_matched"] is False
+    assert (
+        stats["budget_audit"]["sampler_accounting_by_method"]
+        ["mechanical_evolve_ttrl"]["sampler_http_400_count"]
+        == 24
+    )
     assert audit["claim_status"] == "does_not_support_primary_hypothesis"
     assert any("budgets are not matched" in item for item in audit["blockers"])
 

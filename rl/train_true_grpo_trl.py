@@ -818,10 +818,25 @@ def _post_openai_chat_completion(
     url = base_url.rstrip("/") + "/v1/chat/completions"
     headers = {"Authorization": f"Bearer {api_key}"}
     request_body = dict(body)
+    retry_stats = {
+        "sampler_http_400_count": 0,
+        "sampler_retry_count": 0,
+        "seed_retry_count": 0,
+        "lora_load_retry_count": 0,
+        "optional_chat_field_retry_count": 0,
+        "transient_bad_request_retry_count": 0,
+    }
+
+    def note_bad_request_retry(kind: str) -> None:
+        retry_stats["sampler_http_400_count"] += 1
+        retry_stats["sampler_retry_count"] += 1
+        retry_stats[kind] += 1
+
     response = requests_mod.post(
         url, json=request_body, timeout=timeout_s, headers=headers
     )
     if response.status_code == 400 and "seed" in request_body:
+        note_bad_request_retry("seed_retry_count")
         request_body.pop("seed", None)
         response = requests_mod.post(
             url, json=request_body, timeout=timeout_s, headers=headers
@@ -834,12 +849,14 @@ def _post_openai_chat_completion(
             k: v for k, v in request_body.items()
             if k not in SGLANG_OPTIONAL_CHAT_KEYS
         }
+        note_bad_request_retry("optional_chat_field_retry_count")
         response = requests_mod.post(
             url, json=request_body, timeout=timeout_s, headers=headers
         )
     for _ in range(SGLANG_TRANSIENT_BAD_REQUEST_RETRIES):
         if response.status_code != 400:
             break
+        note_bad_request_retry("transient_bad_request_retry_count")
         time.sleep(SGLANG_TRANSIENT_RETRY_SLEEP_S)
         response = requests_mod.post(
             url, json=request_body, timeout=timeout_s, headers=headers
@@ -853,7 +870,10 @@ def _post_openai_chat_completion(
         except Exception:
             pass
         raise RuntimeError(f"{exc}{preview}") from exc
-    return response.json()
+    payload = response.json()
+    if isinstance(payload, dict):
+        payload["_sglang_retry_stats"] = retry_stats
+    return payload
 
 
 def _chat_prompt_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -1007,6 +1027,7 @@ def _make_openai_chat_rollout_func(
     top_p: float,
     timeout_s: float,
     lora_path: str | None,
+    retry_telemetry_path: Path | None = None,
 ):
     try:
         import requests  # type: ignore[import-untyped]
@@ -1021,6 +1042,7 @@ def _make_openai_chat_rollout_func(
         prompt_ids: list[list[int]] = []
         completion_ids: list[list[int]] = []
         reward_texts: list[str] = []
+        retry_rows: list[dict[str, Any]] = []
         for idx, prompt in enumerate(prompts):
             prompt_text = _prompt_text_for_rollout(
                 tokenizer,
@@ -1049,6 +1071,11 @@ def _make_openai_chat_rollout_func(
                 body["lora_path"] = filtered_lora_path
             seed = int(getattr(trainer.args, "seed", 0) or 0)
             body["seed"] = seed + int(getattr(trainer.state, "global_step", 0) or 0) + idx
+            lora_retry_stats = {
+                "sampler_http_400_count": 0,
+                "sampler_retry_count": 0,
+                "lora_load_retry_count": 0,
+            }
             try:
                 response = _post_openai_chat_completion(
                     requests_mod=requests,
@@ -1062,6 +1089,11 @@ def _make_openai_chat_rollout_func(
                     filtered_lora_path
                     and "never been loaded" in str(exc)
                 ):
+                    lora_retry_stats = {
+                        "sampler_http_400_count": 1,
+                        "sampler_retry_count": 1,
+                        "lora_load_retry_count": 1,
+                    }
                     _load_sglang_lora_adapter(
                         base_url=base_url,
                         lora_path=filtered_lora_path,
@@ -1076,6 +1108,18 @@ def _make_openai_chat_rollout_func(
                     )
                 else:
                     raise
+            retry_stats = dict(response.get("_sglang_retry_stats") or {})
+            for key, value in lora_retry_stats.items():
+                retry_stats[key] = int(retry_stats.get(key, 0) or 0) + int(value)
+            if retry_stats and any(int(v or 0) for v in retry_stats.values()):
+                retry_rows.append({
+                    "ts": time.time(),
+                    "global_step": int(
+                        getattr(trainer.state, "global_step", 0) or 0
+                    ),
+                    "prompt_index": idx,
+                    **retry_stats,
+                })
             choice = (response.get("choices") or [{}])[0]
             message = choice.get("message") or {}
             text = str(message.get("content") or "")
@@ -1107,6 +1151,11 @@ def _make_openai_chat_rollout_func(
             )
             eos_token_id = int(getattr(tokenizer, "eos_token_id", 0) or 0)
             completion_ids.append(ids or [eos_token_id])
+        if retry_rows and retry_telemetry_path is not None:
+            retry_telemetry_path.parent.mkdir(parents=True, exist_ok=True)
+            with retry_telemetry_path.open("a", encoding="utf-8") as f:
+                for row in retry_rows:
+                    f.write(json.dumps(row, sort_keys=True, default=str) + "\n")
         return {
             "prompt_ids": prompt_ids,
             "completion_ids": completion_ids,
@@ -1152,6 +1201,31 @@ def _prompt_token_lengths(tokenizer: Any, rows: list[dict[str, Any]]) -> list[in
         encoded = tokenizer(str(row["prompt"]), add_special_tokens=False)
         lengths.append(len(_extract_input_ids(encoded)))
     return lengths
+
+
+def _aggregate_rollout_retry_telemetry(path: Path) -> dict[str, Any]:
+    totals = {
+        "sampler_http_400_count": 0,
+        "sampler_retry_count": 0,
+        "seed_retry_count": 0,
+        "lora_load_retry_count": 0,
+        "optional_chat_field_retry_count": 0,
+        "transient_bad_request_retry_count": 0,
+    }
+    if not path.is_file():
+        return {**totals, "telemetry_path": str(path), "rows": 0}
+    rows = 0
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            item = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        rows += 1
+        for key in totals:
+            totals[key] += int(item.get(key, 0) or 0)
+    return {**totals, "telemetry_path": str(path), "rows": rows}
 
 
 def _truncate_prompt_rows(
@@ -1647,6 +1721,7 @@ def main() -> int:
         reward_channel=str(args.reward_channel),
     )
     rollout_func = None
+    rollout_retry_telemetry_path = out_dir / "rollout_retry_telemetry.jsonl"
     if args.rollout_openai_base_url:
         rollout_func = _make_openai_chat_rollout_func(
             tokenizer=tokenizer,
@@ -1658,6 +1733,7 @@ def main() -> int:
             top_p=float(args.top_p),
             timeout_s=float(args.rollout_openai_timeout_s),
             lora_path=args.rollout_openai_lora_path,
+            retry_telemetry_path=rollout_retry_telemetry_path,
         )
     trainer = GRPOTrainer(
         model=model,
@@ -1743,6 +1819,9 @@ def main() -> int:
     manifest["trained_tokens"] = trained_tokens
     manifest["rl_trained_tokens"] = trained_tokens
     manifest["n_rl_datums"] = n_rl_datums
+    manifest["rollout_retry_stats"] = _aggregate_rollout_retry_telemetry(
+        rollout_retry_telemetry_path
+    )
     manifest["optimizer_guard"] = optimizer_guard
     (out_dir / "run_manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True, default=str) + "\n"
@@ -1770,6 +1849,7 @@ def main() -> int:
         "algorithm": "trl.GRPOTrainer",
         "uses_policy_ratio_clipping": True,
         "ttrl_exact_grpo": True,
+        "rollout_retry_stats": manifest["rollout_retry_stats"],
     }
     (out_dir / "sampler_manifest.json").write_text(
         json.dumps(sampler_manifest, indent=2, sort_keys=True, default=str)

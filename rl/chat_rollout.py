@@ -72,6 +72,8 @@ class TurnTrace:
     chrono_audits: int = 0
     physical_metrics: dict[str, float] = field(default_factory=dict)
     no_procedural_fallback: bool | None = None
+    sampler_http_400_count: int = 0
+    sampler_retry_count: int = 0
 
 
 @dataclass
@@ -296,6 +298,20 @@ def _chat_completion(
     if requests is None:
         raise RuntimeError("`requests` is not installed in this venv")
     url = base_url.rstrip("/") + "/v1/chat/completions"
+    retry_stats = {
+        "sampler_http_400_count": 0,
+        "sampler_retry_count": 0,
+        "seed_retry_count": 0,
+        "lora_load_retry_count": 0,
+        "optional_chat_field_retry_count": 0,
+        "transient_bad_request_retry_count": 0,
+    }
+
+    def note_bad_request_retry(kind: str) -> None:
+        retry_stats["sampler_http_400_count"] += 1
+        retry_stats["sampler_retry_count"] += 1
+        retry_stats[kind] += 1
+
     body = {
         "model": model,
         "messages": messages,
@@ -316,6 +332,7 @@ def _chat_completion(
     r = requests.post(url, json=body, timeout=timeout_s,
                       headers={"Authorization": "Bearer dummy"})
     if r.status_code == 400 and seed is not None:
+        note_bad_request_retry("seed_retry_count")
         retry_body = dict(body)
         retry_body.pop("seed", None)
         r = requests.post(url, json=retry_body, timeout=timeout_s,
@@ -326,6 +343,7 @@ def _chat_completion(
         and lora_path
         and "never been loaded" in getattr(r, "text", "")
     ):
+        note_bad_request_retry("lora_load_retry_count")
         _load_sglang_lora_adapter(
             base_url=base_url,
             lora_path=lora_path,
@@ -338,6 +356,7 @@ def _chat_completion(
             k: v for k, v in body.items()
             if k not in _SGLANG_OPTIONAL_CHAT_KEYS
         }
+        note_bad_request_retry("optional_chat_field_retry_count")
         r = requests.post(url, json=retry_body, timeout=timeout_s,
                           headers={"Authorization": "Bearer dummy"})
         body = retry_body
@@ -346,6 +365,7 @@ def _chat_completion(
             and lora_path
             and "never been loaded" in getattr(r, "text", "")
         ):
+            note_bad_request_retry("lora_load_retry_count")
             _load_sglang_lora_adapter(
                 base_url=base_url,
                 lora_path=lora_path,
@@ -356,6 +376,7 @@ def _chat_completion(
     for _ in range(_SGLANG_TRANSIENT_BAD_REQUEST_RETRIES):
         if r.status_code != 400:
             break
+        note_bad_request_retry("transient_bad_request_retry_count")
         time.sleep(_SGLANG_TRANSIENT_RETRY_SLEEP_S)
         r = requests.post(url, json=body, timeout=timeout_s,
                           headers={"Authorization": "Bearer dummy"})
@@ -368,7 +389,10 @@ def _chat_completion(
         except Exception:
             pass
         raise RuntimeError(f"{exc}{body_preview}") from exc
-    return r.json()
+    payload = r.json()
+    if isinstance(payload, dict):
+        payload["_sglang_retry_stats"] = retry_stats
+    return payload
 
 
 def _load_sglang_lora_adapter(
@@ -498,6 +522,7 @@ def run_rollout(
 
         choice = (resp.get("choices") or [{}])[0]
         msg = choice.get("message") or {}
+        retry_stats = resp.get("_sglang_retry_stats") or {}
         continuation = str(msg.get("content") or "")
         assistant_text = (
             continuation
@@ -529,6 +554,12 @@ def run_rollout(
             no_procedural_fallback=ep.no_procedural_fallback,
             completion_tokens=ep.completion_tokens,
             stop_reason=stop_reason,
+            sampler_http_400_count=int(
+                retry_stats.get("sampler_http_400_count", 0) or 0
+            ),
+            sampler_retry_count=int(
+                retry_stats.get("sampler_retry_count", 0) or 0
+            ),
         )
         rollout.turns.append(turn)
         if ep.score > rollout.best_score:

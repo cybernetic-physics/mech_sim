@@ -49,6 +49,8 @@ SECONDARY_METRIC_FIELDS = (
     "rl_trained_tokens",
     "n_rl_datums",
     "sampler_error_count",
+    "sampler_http_400_count",
+    "sampler_retry_count",
     "invalid_artifact_count",
     "timeout_count",
     "audit_retry_count",
@@ -542,10 +544,32 @@ def audit_budget(
         by_cell[(split, family, task_id, seed)].append(row)
     mismatches: list[dict[str, Any]] = []
     wrong_primary_budget: list[dict[str, Any]] = []
+    sampler_accounting: dict[str, dict[str, int]] = defaultdict(
+        lambda: {
+            "sampler_error_count": 0,
+            "sampler_http_400_count": 0,
+            "sampler_retry_count": 0,
+            "audit_retry_count": 0,
+        }
+    )
     for key, cell_rows in sorted(by_cell.items()):
         verifier = {row["method"]: int(row["verifier_calls"]) for row in cell_rows}
         cad = {row["method"]: int(row["cad_audits"]) for row in cell_rows}
         chrono = {row["method"]: int(row["chrono_audits"]) for row in cell_rows}
+        for row in cell_rows:
+            method = str(row["method"])
+            sampler_accounting[method]["sampler_error_count"] += int(
+                row.get("sampler_error_count", 0) or 0
+            )
+            sampler_accounting[method]["sampler_http_400_count"] += int(
+                row.get("sampler_http_400_count", 0) or 0
+            )
+            sampler_accounting[method]["sampler_retry_count"] += int(
+                row.get("sampler_retry_count", 0) or 0
+            )
+            sampler_accounting[method]["audit_retry_count"] += int(
+                row.get("audit_retry_count", 0) or 0
+            )
         for method, calls in verifier.items():
             if calls != contract.primary_budget:
                 wrong_primary_budget.append({
@@ -568,6 +592,7 @@ def audit_budget(
         "n_mismatches": len(mismatches),
         "wrong_primary_budget": wrong_primary_budget[:100],
         "n_wrong_primary_budget": len(wrong_primary_budget),
+        "sampler_accounting_by_method": dict(sorted(sampler_accounting.items())),
     }
 
 

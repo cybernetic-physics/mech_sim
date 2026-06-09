@@ -512,6 +512,8 @@ class SampleOutcome:
     cad_audits: int = 0
     chrono_audits: int = 0
     audit_retry_count: int = 0
+    sampler_http_400_count: int = 0
+    sampler_retry_count: int = 0
     pass_threshold: float = 1.0
     error: str = ""
     turn_traces: list[dict[str, Any]] = field(default_factory=list)
@@ -550,6 +552,8 @@ class SampleOutcome:
             "cad_audits": self.cad_audits,
             "chrono_audits": self.chrono_audits,
             "audit_retry_count": self.audit_retry_count,
+            "sampler_http_400_count": self.sampler_http_400_count,
+            "sampler_retry_count": self.sampler_retry_count,
             "strict_pass_threshold": self.pass_threshold,
             "strict_passed": self.passed(),
             "verifier_valid_passed": self.verifier_valid_passed(),
@@ -593,6 +597,8 @@ def run_one(
     verifier_calls_before_final = 0
     rollout_reward: RewardResult | None = None
     turn_traces: list[dict[str, Any]] = []
+    sampler_http_400_count = 0
+    sampler_retry_count = 0
     try:
         if rollout_backend == "sglang_chat":
             if model_path and not sglang_lora_path:
@@ -623,6 +629,13 @@ def run_one(
                             "thinking": False,
                         },
                     },
+                )
+                retry_stats = resp.get("_sglang_retry_stats") or {}
+                sampler_http_400_count = int(
+                    retry_stats.get("sampler_http_400_count", 0) or 0
+                )
+                sampler_retry_count = int(
+                    retry_stats.get("sampler_retry_count", 0) or 0
                 )
                 choice = (resp.get("choices") or [{}])[0]
                 msg = choice.get("message") or {}
@@ -673,6 +686,14 @@ def run_one(
                 turn_traces = _rollout_turn_trace_dicts(rollout)
                 if rollout_reward is not None:
                     _apply_rollout_audit_totals(rollout_reward, rollout)
+                sampler_http_400_count = sum(
+                    int(getattr(turn, "sampler_http_400_count", 0) or 0)
+                    for turn in getattr(rollout, "turns", []) or []
+                )
+                sampler_retry_count = sum(
+                    int(getattr(turn, "sampler_retry_count", 0) or 0)
+                    for turn in getattr(rollout, "turns", []) or []
+                )
                 usage = {
                     "input_tokens": rollout.total_tokens_in,
                     "output_tokens": rollout.total_tokens_out,
@@ -740,6 +761,8 @@ def run_one(
             chrono_audits=0,
             pass_threshold=pass_threshold,
             error=f"{type(e).__name__}: {e}"[:400],
+            sampler_http_400_count=sampler_http_400_count,
+            sampler_retry_count=sampler_retry_count,
         )
     dur = time.perf_counter() - t0
 
@@ -758,6 +781,8 @@ def run_one(
             pass_threshold=pass_threshold,
             error=text[:400],
             turn_traces=turn_traces,
+            sampler_http_400_count=sampler_http_400_count,
+            sampler_retry_count=sampler_retry_count,
         )
 
     per_task = out_root / task_dir.name
@@ -785,6 +810,8 @@ def run_one(
         chrono_audits=chrono_audits,
         pass_threshold=pass_threshold,
         turn_traces=turn_traces,
+        sampler_http_400_count=sampler_http_400_count,
+        sampler_retry_count=sampler_retry_count,
     )
 
 
@@ -1130,6 +1157,8 @@ def main(argv: list[str] | None = None) -> int:
             actual_verifier_calls = 0
             actual_cad_audits = 0
             actual_chrono_audits = 0
+            actual_sampler_http_400_count = 0
+            actual_sampler_retry_count = 0
             actual_turn_traces: list[dict[str, Any]] = []
             for audit_attempt in range(args.audit_retries + 1):
                 if audit_attempt == 0:
@@ -1185,6 +1214,12 @@ def main(argv: list[str] | None = None) -> int:
                     actual_verifier_calls += int(o.verifier_calls or 0)
                     actual_cad_audits += int(o.cad_audits or 0)
                     actual_chrono_audits += int(o.chrono_audits or 0)
+                    actual_sampler_http_400_count += int(
+                        o.sampler_http_400_count or 0
+                    )
+                    actual_sampler_retry_count += int(
+                        o.sampler_retry_count or 0
+                    )
                     retryable_sampler_error = _is_retryable_sampler_error(o)
                     _append_attempt_turn_traces(
                         actual_turn_traces,
@@ -1248,6 +1283,8 @@ def main(argv: list[str] | None = None) -> int:
             o.verifier_calls = actual_verifier_calls
             o.cad_audits = actual_cad_audits
             o.chrono_audits = actual_chrono_audits
+            o.sampler_http_400_count = actual_sampler_http_400_count
+            o.sampler_retry_count = actual_sampler_retry_count
             o.turn_traces = actual_turn_traces
             if audit_retry_count:
                 o.audit_retry_count = audit_retry_count
