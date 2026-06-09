@@ -24,6 +24,10 @@ ANALYSIS_TIME="${ANALYSIS_TIME:-04:00:00}"
 NUM_SHARDS="${NUM_SHARDS:-24}"
 ARRAY_CONCURRENCY="${ARRAY_CONCURRENCY:-4}"
 OUT_DIR="${OUT_DIR:-runs/mechanism_repair_physics_final}"
+METHODS="${METHODS-}"
+SPLITS="${SPLITS-}"
+ANTI_SHORTCUT_SPLITS="${ANTI_SHORTCUT_SPLITS-__default__}"
+EVAL_SEEDS="${EVAL_SEEDS-}"
 BASE_MODEL="${BASE_MODEL:-Qwen/Qwen2.5-Coder-1.5B-Instruct}"
 SGLANG_MODEL="${SGLANG_MODEL:-$BASE_MODEL}"
 SGLANG_PORT="${SGLANG_PORT:-30000}"
@@ -92,6 +96,10 @@ Useful overrides:
   JOB_RUNTIME_ROOT=$JOB_RUNTIME_ROOT
   SOURCE_REF=HEAD
   OUT_DIR=$OUT_DIR
+  METHODS=$METHODS
+  SPLITS=$SPLITS
+  ANTI_SHORTCUT_SPLITS=$ANTI_SHORTCUT_SPLITS
+  EVAL_SEEDS=$EVAL_SEEDS
   NUM_SHARDS=$NUM_SHARDS
   ARRAY_CONCURRENCY=$ARRAY_CONCURRENCY
   GRES=$GRES
@@ -366,12 +374,32 @@ limit_task_args=()
 if [[ "$LIMIT_TASKS" != "0" ]]; then
   limit_task_args=(--limit-tasks "$LIMIT_TASKS")
 fi
+method_args=()
+if [[ -n "$METHODS" ]]; then
+  method_args=(--methods "$METHODS")
+fi
+split_args=()
+if [[ -n "$SPLITS" ]]; then
+  split_args=(--splits "$SPLITS")
+fi
+anti_shortcut_args=()
+if [[ "$ANTI_SHORTCUT_SPLITS" != "__default__" ]]; then
+  anti_shortcut_args=(--anti-shortcut-splits "$ANTI_SHORTCUT_SPLITS")
+fi
+seed_args=()
+if [[ -n "$EVAL_SEEDS" ]]; then
+  seed_args=(--eval-seeds "$EVAL_SEEDS")
+fi
 if [[ ! -f "\$shard_file" ]]; then
   uv run python scripts/run_mechanism_repair_physics_experiment.py \\
     --benchmark-dir "$OUT_DIR" \\
     --out-dir "$OUT_DIR" \\
     --write-shard-files "$NUM_SHARDS" \\
     "\${limit_task_args[@]}" \\
+    "\${method_args[@]}" \\
+    "\${split_args[@]}" \\
+    "\${anti_shortcut_args[@]}" \\
+    "\${seed_args[@]}" \\
     --dry-run
 fi
 if [[ ! -f "\$shard_file" ]]; then
@@ -417,6 +445,9 @@ exec env CUDA_VISIBLE_DEVICES="\$train_cuda_visible_devices" \\
   --skip-analysis \\
   "\${resume_args[@]}" \\
   "\${limit_task_args[@]}" \\
+  "\${method_args[@]}" \\
+  "\${split_args[@]}" \\
+  "\${seed_args[@]}" \\
   "\${sft_quant_args[@]}" \\
   --sft-max-steps "$SFT_MAX_STEPS" \\
   --shared-sft-root "$SHARED_SFT_ROOT" \\
