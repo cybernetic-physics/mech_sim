@@ -6,6 +6,7 @@ REMOTE_USER="${REMOTE_USER:-knatalia}"
 REMOTE_ROOT="${REMOTE_ROOT:-/matx/u/knatalia/corl_mechanism_repair_physics}"
 JOB_NAME="${JOB_NAME:-corl_mech_phys}"
 MERGE_JOB_NAME="${MERGE_JOB_NAME:-corl_mech_phys_merge}"
+ANALYSIS_JOB_NAME="${ANALYSIS_JOB_NAME:-corl_mech_phys_analysis}"
 JOB_RUNTIME_ROOT="${JOB_RUNTIME_ROOT:-auto}"
 ACCOUNT="${ACCOUNT:-matx}"
 PARTITION="${PARTITION:-matx}"
@@ -17,6 +18,9 @@ TIME="${TIME:-4-00:00:00}"
 MERGE_CPUS_PER_TASK="${MERGE_CPUS_PER_TASK:-8}"
 MERGE_MEM="${MERGE_MEM:-48G}"
 MERGE_TIME="${MERGE_TIME:-04:00:00}"
+ANALYSIS_CPUS_PER_TASK="${ANALYSIS_CPUS_PER_TASK:-8}"
+ANALYSIS_MEM="${ANALYSIS_MEM:-48G}"
+ANALYSIS_TIME="${ANALYSIS_TIME:-04:00:00}"
 NUM_SHARDS="${NUM_SHARDS:-24}"
 ARRAY_CONCURRENCY="${ARRAY_CONCURRENCY:-4}"
 OUT_DIR="${OUT_DIR:-runs/mechanism_repair_physics_final}"
@@ -69,6 +73,8 @@ SLURM_OUTPUT="${SLURM_OUTPUT:-auto}"
 SLURM_ERROR="${SLURM_ERROR:-auto}"
 MERGE_SLURM_OUTPUT="${MERGE_SLURM_OUTPUT:-auto}"
 MERGE_SLURM_ERROR="${MERGE_SLURM_ERROR:-auto}"
+ANALYSIS_SLURM_OUTPUT="${ANALYSIS_SLURM_OUTPUT:-auto}"
+ANALYSIS_SLURM_ERROR="${ANALYSIS_SLURM_ERROR:-auto}"
 
 usage() {
   cat <<EOF
@@ -103,6 +109,8 @@ Useful overrides:
   SLURM_ERROR=$SLURM_ERROR
   MERGE_SLURM_OUTPUT=$MERGE_SLURM_OUTPUT
   MERGE_SLURM_ERROR=$MERGE_SLURM_ERROR
+  ANALYSIS_SLURM_OUTPUT=$ANALYSIS_SLURM_OUTPUT
+  ANALYSIS_SLURM_ERROR=$ANALYSIS_SLURM_ERROR
 EOF
 }
 
@@ -128,6 +136,7 @@ remote_repo="$REMOTE_ROOT/repo"
 remote_logs="$REMOTE_ROOT/logs"
 remote_sbatch="$REMOTE_ROOT/run_mechanism_repair_physics_array.sbatch"
 remote_merge_sbatch="$REMOTE_ROOT/run_mechanism_repair_physics_merge.sbatch"
+remote_analysis_sbatch="$REMOTE_ROOT/run_mechanism_repair_physics_analysis.sbatch"
 source_ref="${SOURCE_REF:-HEAD}"
 source_commit="$(git -C "$repo_root" rev-parse "$source_ref")"
 source_commit_short="${source_commit:0:8}"
@@ -151,6 +160,12 @@ if [[ "$MERGE_SLURM_OUTPUT" == "auto" ]]; then
 fi
 if [[ "$MERGE_SLURM_ERROR" == "auto" ]]; then
   MERGE_SLURM_ERROR="$remote_logs/%x-%j.err"
+fi
+if [[ "$ANALYSIS_SLURM_OUTPUT" == "auto" ]]; then
+  ANALYSIS_SLURM_OUTPUT="$remote_logs/%x-%j.out"
+fi
+if [[ "$ANALYSIS_SLURM_ERROR" == "auto" ]]; then
+  ANALYSIS_SLURM_ERROR="$remote_logs/%x-%j.err"
 fi
 array_end=$((NUM_SHARDS - 1))
 if (( NUM_SHARDS < 1 )); then
@@ -470,17 +485,77 @@ EOF
 scp "$tmp_merge" "$REMOTE_HOST:$remote_merge_sbatch"
 rm -f "$tmp_merge"
 
+tmp_analysis="$(mktemp)"
+cat >"$tmp_analysis" <<EOF
+#!/usr/bin/env bash
+#SBATCH --job-name=$ANALYSIS_JOB_NAME
+#SBATCH --account=$ACCOUNT
+#SBATCH --partition=$PARTITION
+#SBATCH --qos=$QOS
+#SBATCH --cpus-per-task=$ANALYSIS_CPUS_PER_TASK
+#SBATCH --mem=$ANALYSIS_MEM
+#SBATCH --time=$ANALYSIS_TIME
+#SBATCH --output=$ANALYSIS_SLURM_OUTPUT
+#SBATCH --error=$ANALYSIS_SLURM_ERROR
+
+set -euo pipefail
+cd "$remote_repo"
+export PYTHONPATH="$remote_repo:\${PYTHONPATH:-}"
+export UV_CACHE_DIR="\${UV_CACHE_DIR:-$JOB_RUNTIME_ROOT/uv_cache}"
+export UV_PROJECT_ENVIRONMENT="\${UV_PROJECT_ENVIRONMENT:-$JOB_RUNTIME_ROOT/venvs/mechanism_repair_$source_commit}"
+export XDG_CACHE_HOME="\${XDG_CACHE_HOME:-$JOB_RUNTIME_ROOT/xdg_cache}"
+export HOME="\${JOB_HOME:-$JOB_RUNTIME_ROOT/home}"
+mkdir -p "$REMOTE_ROOT/locks" "$REMOTE_ROOT/venvs" "$JOB_RUNTIME_ROOT/venvs" "\$UV_CACHE_DIR" "\$XDG_CACHE_HOME" "\$HOME"
+if ! command -v uv >/dev/null 2>&1; then
+  (
+    flock 9
+    if [[ ! -x "$REMOTE_ROOT/uv_bootstrap/bin/uv" ]]; then
+      rm -rf "$REMOTE_ROOT/uv_bootstrap"
+      python3 -m venv "$REMOTE_ROOT/uv_bootstrap"
+      "$REMOTE_ROOT/uv_bootstrap/bin/python" -m pip install --upgrade pip uv
+    fi
+  ) 9>"$REMOTE_ROOT/locks/uv_bootstrap.lock"
+  export PATH="$REMOTE_ROOT/uv_bootstrap/bin:\$PATH"
+fi
+(
+  flock 9
+  uv sync --extra training-grpo
+) 9>"$REMOTE_ROOT/locks/uv_sync_$source_commit.lock"
+
+analysis_rc=0
+uv run python scripts/analyze_mechanism_repair_results.py \\
+  --results "$OUT_DIR/cell_results.jsonl" \\
+  --out-dir "$OUT_DIR" \\
+  --benchmark-dir "$OUT_DIR" \\
+  --bootstrap-samples 5000 \\
+  --seed 20260607 || analysis_rc=\$?
+echo "\$analysis_rc" > "$OUT_DIR/analysis_exit_code.txt"
+uv run python scripts/run_mechanism_repair_physics_experiment.py \\
+  --benchmark-dir "$OUT_DIR" \\
+  --out-dir "$OUT_DIR" \\
+  --require-complete
+echo "analysis_exit_code=\$analysis_rc"
+EOF
+
+scp "$tmp_analysis" "$REMOTE_HOST:$remote_analysis_sbatch"
+rm -f "$tmp_analysis"
+
 echo "Staged $source_ref ($source_commit) at $REMOTE_HOST:$remote_repo"
 echo "Wrote array Slurm script at $REMOTE_HOST:$remote_sbatch"
 echo "Wrote merge Slurm script at $REMOTE_HOST:$remote_merge_sbatch"
+echo "Wrote analysis Slurm script at $REMOTE_HOST:$remote_analysis_sbatch"
 if (( submit )); then
   array_job_raw="$(ssh "$REMOTE_HOST" "sbatch --parsable '$remote_sbatch'")"
   array_job="${array_job_raw%%;*}"
   echo "Submitted array job: $array_job_raw"
   merge_job_raw="$(ssh "$REMOTE_HOST" "sbatch --parsable --dependency=afterok:$array_job '$remote_merge_sbatch'")"
+  merge_job="${merge_job_raw%%;*}"
   echo "Submitted dependent merge job: $merge_job_raw"
+  analysis_job_raw="$(ssh "$REMOTE_HOST" "sbatch --parsable --dependency=afterok:$merge_job '$remote_analysis_sbatch'")"
+  echo "Submitted dependent analysis/audit job: $analysis_job_raw"
 else
   echo "Submit with:"
   echo "  array_job=\\\$(ssh $REMOTE_HOST sbatch --parsable '$remote_sbatch')"
-  echo "  ssh $REMOTE_HOST sbatch --dependency=afterok:\\\${array_job%%;*} '$remote_merge_sbatch'"
+  echo "  merge_job=\\\$(ssh $REMOTE_HOST sbatch --parsable --dependency=afterok:\\\${array_job%%;*} '$remote_merge_sbatch')"
+  echo "  ssh $REMOTE_HOST sbatch --dependency=afterok:\\\${merge_job%%;*} '$remote_analysis_sbatch'"
 fi
