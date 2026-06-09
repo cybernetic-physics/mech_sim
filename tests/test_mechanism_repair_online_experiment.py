@@ -1060,6 +1060,7 @@ def test_run_analysis_allows_negative_claim_when_artifacts_exist(
             "stats.json",
             "failure_analysis.json",
             "trace_pairs.json",
+            "repair_taxonomy.json",
             "claim_audit.json",
         ]:
             (tmp_path / name).write_text("{}\n")

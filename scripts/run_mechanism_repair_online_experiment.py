@@ -1738,6 +1738,7 @@ def run_analysis(*, out_dir: Path, benchmark_dir: Path) -> None:
         out_dir / "stats.json",
         out_dir / "failure_analysis.json",
         out_dir / "trace_pairs.json",
+        out_dir / "repair_taxonomy.json",
         out_dir / "claim_audit.json",
     ]
     missing = [str(path) for path in required_outputs if not path.is_file()]

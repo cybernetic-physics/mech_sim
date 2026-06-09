@@ -127,16 +127,19 @@ def main() -> int:
     )
     failure_analysis = build_failure_analysis(rows, contract=contract)
     trace_pairs = build_trace_pairs(rows, contract=contract)
+    repair_taxonomy = build_repair_taxonomy(rows)
     claim_audit = build_claim_audit(stats)
 
     write_json(out_dir / "stats.json", stats)
     write_json(out_dir / "failure_analysis.json", failure_analysis)
     write_json(out_dir / "trace_pairs.json", {"pairs": trace_pairs})
+    write_json(out_dir / "repair_taxonomy.json", repair_taxonomy)
     write_json(out_dir / "claim_audit.json", claim_audit)
     print(json.dumps({
         "stats": str(out_dir / "stats.json"),
         "failure_analysis": str(out_dir / "failure_analysis.json"),
         "trace_pairs": str(out_dir / "trace_pairs.json"),
+        "repair_taxonomy": str(out_dir / "repair_taxonomy.json"),
         "claim_audit": str(out_dir / "claim_audit.json"),
         "claim_status": claim_audit["claim_status"],
         "blockers": claim_audit["blockers"],
@@ -837,6 +840,117 @@ def build_trace_pairs(
             "repair_dimension_delta": repair_dimension_delta(primary, baseline),
         })
     return pairs
+
+
+def build_repair_taxonomy(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    by_method_family_dimension: Counter[tuple[str, str, str]] = Counter()
+    by_dimension: Counter[str] = Counter()
+    resolved_by_dimension: Counter[str] = Counter()
+    for row in rows:
+        method = str(row.get("method") or "")
+        family = str(row.get("family") or "")
+        for code in parse_codes(row.get("failure_codes", "")):
+            dimension = repair_dimension_for_failure_code(code)
+            by_dimension[dimension] += 1
+            by_method_family_dimension[(method, family, dimension)] += 1
+        paths = parse_paths(row.get("verifier_output_paths", []))
+        if len(paths) < 2:
+            continue
+        first = load_json_path(paths[0])
+        final = load_json_path(paths[-1])
+        if first is None or final is None:
+            continue
+        first_codes = set(parse_codes(first.get("failure_codes", [])))
+        final_codes = set(parse_codes(final.get("failure_codes", [])))
+        for code in sorted(first_codes - final_codes):
+            resolved_by_dimension[repair_dimension_for_failure_code(code)] += 1
+    return {
+        "schema": "mechanism_repair_ttrl.repair_taxonomy.v1",
+        "dimension_counts": [
+            {"dimension": dimension, "n": n}
+            for dimension, n in sorted(by_dimension.items())
+        ],
+        "resolved_dimension_counts": [
+            {"dimension": dimension, "n": n}
+            for dimension, n in sorted(resolved_by_dimension.items())
+        ],
+        "method_family_dimension_counts": [
+            {
+                "method": method,
+                "family": family,
+                "dimension": dimension,
+                "n": n,
+            }
+            for (method, family, dimension), n in sorted(
+                by_method_family_dimension.items()
+            )
+        ],
+        "dimension_map": {
+            "topology_mobility": [
+                "mobility",
+                "topology",
+                "ground",
+                "joint",
+                "dof",
+            ],
+            "interface": ["port", "interface", "io"],
+            "functional_behavior": [
+                "ratio",
+                "stroke",
+                "path",
+                "timing",
+                "travel",
+                "index",
+            ],
+            "cad_artifact": [
+                "cad",
+                "artifact",
+                "geometry",
+                "mass",
+                "material",
+                "watertight",
+                "manifold",
+            ],
+            "physics_contact": [
+                "chrono",
+                "contact",
+                "penetration",
+                "lockup",
+                "force",
+                "torque",
+                "power",
+            ],
+            "runtime_or_sampling": ["timeout", "sampler", "parse", "execution"],
+        },
+    }
+
+
+def repair_dimension_for_failure_code(code: str) -> str:
+    text = code.lower()
+    buckets = [
+        (
+            "physics_contact",
+            ("chrono", "contact", "penetration", "lockup", "force", "torque", "power"),
+        ),
+        (
+            "cad_artifact",
+            ("cad", "artifact", "geometry", "mass", "material", "watertight", "manifold"),
+        ),
+        (
+            "topology_mobility",
+            ("mobility", "topology", "ground", "joint", "dof"),
+        ),
+        ("interface", ("port", "interface", "io")),
+        (
+            "functional_behavior",
+            ("ratio", "stroke", "path", "timing", "travel", "index"),
+        ),
+        ("runtime_or_sampling", ("timeout", "sampler", "parse", "execution")),
+    ]
+    for dimension, needles in buckets:
+        if any(needle in text for needle in needles):
+            return dimension
+    return "other"
 
 
 def first_to_final_attempt_changes(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
