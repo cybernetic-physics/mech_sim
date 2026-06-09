@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -80,7 +81,9 @@ def _candidate_chrono_pythons() -> list[Path]:
     candidates: list[Path] = []
     if prefix:
         candidates.extend(_python_bins(Path(prefix).expanduser()))
+    py_tag = f"py{sys.version_info.major}{sys.version_info.minor}"
     for root in _candidate_roots():
+        candidates.extend(_python_bins(root / ".external" / f"chrono_env_{py_tag}"))
         candidates.extend(_python_bins(root / ".external" / "chrono_env"))
         candidates.extend(
             _python_bins(root / ".external" / "micromamba" / "envs" / "mech-chrono")

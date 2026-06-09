@@ -53,6 +53,94 @@ def test_build_plan_records_ttrl_reward_channel(monkeypatch, tmp_path: Path) -> 
     assert plan["planned_cells"] == 1
 
 
+def test_build_plan_filters_to_shard_cells_and_normalizes_paths(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    split_dir = tmp_path / "splits_A"
+    split_dir.mkdir()
+    task_a = tmp_path / "tasks" / "task_a"
+    task_b = tmp_path / "tasks" / "task_b"
+    task_a.mkdir(parents=True)
+    task_b.mkdir()
+    split_dir.joinpath("test.txt").write_text(f"{task_a}\n{task_b}\n")
+    monkeypatch.setattr(
+        online,
+        "build_expected_coverage",
+        lambda _benchmark_dir: {"expected_cells": ["cell"] * 8},
+    )
+    shard_path = tmp_path / "shard_0000.json"
+    shard_cells = [
+        {
+            "split": "A",
+            "task_id": "task_b",
+            "seed": 20260610,
+            "method": "mechanical_evolve_ttrl_tool_verified",
+            "budget": 32,
+            "_shard_file": str(shard_path),
+        }
+    ]
+
+    plan = build_plan(
+        benchmark_dir=tmp_path,
+        out_dir=tmp_path,
+        splits=["A"],
+        seeds=[20260610, 20260611],
+        methods=["frozen_model", "mechanical_evolve_ttrl_tool_verified"],
+        budget=32,
+        feedback_turns=4,
+        audit_retries=0,
+        limit_tasks=0,
+        init_online_from_sft=True,
+        ttrl_steps=32,
+        ttrl_generations=4,
+        ttrl_reward_channel="artifact_progress",
+        shard_cells=shard_cells,
+    )
+
+    assert plan["split_tasks"] == {"A": ["task_b"]}
+    assert plan["planned_cells"] == 1
+    assert plan["sharded_execution"] is True
+    assert plan["cell_shard_file"] == str(shard_path.resolve())
+
+
+def test_physics_method_specs_and_reward_channels() -> None:
+    gated = online.method_spec(
+        "verifier_gated_search",
+        budget=32,
+        feedback_turns=4,
+        sft_adapter=None,
+        init_online_from_sft=False,
+    )
+    adaptive = online.method_spec(
+        "adaptive_evolution",
+        budget=32,
+        feedback_turns=4,
+        sft_adapter=None,
+        init_online_from_sft=False,
+    )
+    sft = online.method_spec(
+        "sft_seen_family",
+        budget=32,
+        feedback_turns=4,
+        sft_adapter="/tmp/adapter",
+        init_online_from_sft=False,
+    )
+
+    assert gated.samples_per_task == 32
+    assert gated.max_turns == 1
+    assert adaptive.max_turns == 4
+    assert adaptive.temperature == 0.9
+    assert sft.adapter_kind == "sft"
+    assert (
+        online.reward_channel_for_method(
+            "mechanical_evolve_ttrl_confidence",
+            default="artifact_progress",
+        )
+        == "verified_score"
+    )
+
+
 def test_rows_from_sample_summary_uses_total_budget_and_canonical_family(
     tmp_path: Path,
 ) -> None:
@@ -693,6 +781,105 @@ def test_ttrl_runner_passes_lightweight_kbit_prepare_mode(
     assert cmd[cmd.index("--max-grad-norm") + 1] == "1.0"
     assert "--bf16" in cmd
     assert "--fp16" not in cmd
+
+
+def test_ttrl_runner_preserves_physics_method_and_reward_channel(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    captured: dict[str, list[str]] = {}
+    run_dir = tmp_path / "ttrl_confidence"
+
+    def fake_run(cmd: list[str], *, timeout: float) -> None:
+        captured["cmd"] = cmd
+        run_dir.mkdir(parents=True)
+        rows = [
+            {
+                "task_id": "task",
+                "verified_score": 1.0,
+                "evaluation_valid": True,
+                "hard_gate_passed": True,
+                "failure_codes": [],
+                "cad_audits": 0,
+                "chrono_audits": 0,
+                "design_py_extracted": True,
+            }
+            for _ in range(4)
+        ]
+        (run_dir / "reward_log.jsonl").write_text(
+            "\n".join(json.dumps(row) for row in rows) + "\n"
+        )
+        (run_dir / "run_manifest.json").write_text(
+            json.dumps({
+                "adapter_updates": 1,
+                "trained_tokens": 16,
+                "rl_trained_tokens": 16,
+                "n_rl_datums": 4,
+                "optimizer_guard": {
+                    "attempted_steps": 1,
+                    "successful_steps": 1,
+                },
+            })
+        )
+
+    monkeypatch.setattr(online, "run", fake_run)
+
+    args = Namespace(
+        ttrl_runner="python",
+        ttrl_model=None,
+        base_model="base",
+        ttrl_learning_rate=5e-6,
+        ttrl_max_grad_norm=1.0,
+        max_context_tokens=512,
+        max_tokens=128,
+        timeout=30.0,
+        ttrl_lora_rank=16,
+        ttrl_load_in_4bit=False,
+        ttrl_load_in_8bit=False,
+        ttrl_kbit_prepare_mode="none",
+        ttrl_gradient_checkpointing=False,
+        ttrl_trust_remote_code=True,
+        ttrl_bf16=False,
+        ttrl_fp16=False,
+        ttrl_torch_dtype=None,
+        ttrl_attn_implementation=None,
+        ttrl_device_map=None,
+        ttrl_max_memory=None,
+        ttrl_rollout_openai=False,
+        sglang_base_url="http://127.0.0.1:30000",
+        base_url="http://127.0.0.1:30000",
+        api_key="dummy",
+        train_timeout_s=60.0,
+    )
+    method = "mechanical_evolve_ttrl_confidence"
+
+    row = run_or_load_ttrl_cell(
+        args=args,
+        run_dir=run_dir,
+        benchmark_dir=tmp_path,
+        split_file=tmp_path / "one.txt",
+        split="A",
+        task_id="task",
+        seed=20260610,
+        budget=4,
+        ttrl_steps=1,
+        ttrl_generations=4,
+        family_by_task={"task": "cycloidal"},
+        evidence_root=None,
+        init_adapter=None,
+        resume_existing=False,
+        method=method,
+        reward_channel=online.reward_channel_for_method(
+            method,
+            default="artifact_progress",
+        ),
+    )
+
+    cmd = captured["cmd"]
+    assert row["method"] == method
+    assert row["method_variant"] == method
+    assert "--reward-channel" in cmd
+    assert cmd[cmd.index("--reward-channel") + 1] == "verified_score"
 
 
 def test_ttrl_resume_discards_partial_zero_update_manifest(

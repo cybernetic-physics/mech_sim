@@ -90,6 +90,21 @@ def test_chrono_python_probe_accepts_project_chrono_subprocess(tmp_path, monkeyp
     assert "pychrono + _chrono_impl available" in reason
 
 
+def test_chrono_python_candidates_include_abi_specific_env(tmp_path, monkeypatch):
+    import mech_bench.adapters.chrono_env as chrono_env
+
+    root = tmp_path / "repo"
+    root.mkdir()
+    monkeypatch.setattr(chrono_env, "REPO_ROOT", root)
+    monkeypatch.chdir(root)
+    monkeypatch.delenv("MECH_BENCH_CHRONO_ENV", raising=False)
+
+    py_tag = f"py{sys.version_info.major}{sys.version_info.minor}"
+    expected = root / ".external" / f"chrono_env_{py_tag}" / "bin" / "python"
+
+    assert expected in chrono_env._candidate_chrono_pythons()
+
+
 def test_chrono_unavailable_yields_capability_unavailable(tmp_path):
     """Tasks requiring contact_forces must surface capability_unavailable
     when neither the real chrono nor the fake oracle is registered."""

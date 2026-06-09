@@ -31,16 +31,37 @@ from scripts.analyze_mechanism_repair_results import (
     build_expected_coverage,
 )
 from scripts.prepare_mechanism_repair_benchmark import (
-    EVAL_SEEDS,
-    PRIMARY_BUDGET,
-    PRIMARY_METHOD,
-    REQUIRED_METHODS,
+    EVAL_SEEDS as LEGACY_EVAL_SEEDS,
+    PRIMARY_BASELINE as LEGACY_PRIMARY_BASELINE,
+    PRIMARY_BUDGET as LEGACY_PRIMARY_BUDGET,
+    PRIMARY_METHOD as LEGACY_PRIMARY_METHOD,
+    REQUIRED_METHODS as LEGACY_REQUIRED_METHODS,
+)
+from scripts.prepare_mechanism_repair_physics_benchmark import (
+    EVAL_SEEDS as PHYSICS_EVAL_SEEDS,
+    PRIMARY_BASELINE as PHYSICS_PRIMARY_BASELINE,
+    PRIMARY_BUDGET as PHYSICS_PRIMARY_BUDGET,
+    PRIMARY_METHOD as PHYSICS_PRIMARY_METHOD,
+    REQUIRED_METHODS as PHYSICS_REQUIRED_METHODS,
 )
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parent
 DEFAULT_BASE_MODEL = "Qwen/Qwen2.5-Coder-1.5B-Instruct"
+REQUIRED_METHODS = tuple(
+    dict.fromkeys([*LEGACY_REQUIRED_METHODS, *PHYSICS_REQUIRED_METHODS])
+)
+PRIMARY_METHOD = LEGACY_PRIMARY_METHOD
+PRIMARY_BUDGET = LEGACY_PRIMARY_BUDGET
+TTRL_METHODS = {
+    LEGACY_PRIMARY_METHOD,
+    "mechanical_evolve_ttrl",
+    "mechanical_evolve_ttrl_tool_verified",
+    "mechanical_evolve_ttrl_confidence",
+}
+SFT_METHODS = {"sft_model", "sft_seen_family"}
+BASELINE_FEEDBACK_METHODS = {"llm_evolve_no_update"}
 
 
 @dataclass(frozen=True)
@@ -74,13 +95,31 @@ def main() -> int:
         default="sglang_chat",
         choices=["sglang_chat", "worldlines_sampling"],
     )
-    parser.add_argument("--methods", default=",".join(REQUIRED_METHODS))
-    parser.add_argument("--splits", default="A,B")
+    parser.add_argument(
+        "--methods",
+        default=None,
+        help="comma-separated methods; defaults to method_manifest.required_methods",
+    )
+    parser.add_argument(
+        "--splits",
+        default=None,
+        help="comma-separated splits; defaults to A,B or shard contents",
+    )
     parser.add_argument(
         "--eval-seeds",
-        default=",".join(str(seed) for seed in EVAL_SEEDS),
+        default=None,
+        help="comma-separated evaluation seeds; defaults to method_manifest.eval_seeds",
     )
-    parser.add_argument("--budget", type=int, default=PRIMARY_BUDGET)
+    parser.add_argument("--budget", type=int, default=None)
+    parser.add_argument(
+        "--cell-shard-file",
+        default=None,
+        help=(
+            "optional experiment_shards/shard_XXXX.json from "
+            "run_mechanism_repair_physics_experiment.py; restricts execution "
+            "to the exact cells listed there"
+        ),
+    )
     parser.add_argument("--feedback-turns", type=int, default=4)
     parser.add_argument("--max-tokens", type=int, default=1536)
     parser.add_argument("--max-context-tokens", type=int, default=4096)
@@ -181,15 +220,37 @@ def main() -> int:
     run_root.mkdir(parents=True, exist_ok=True)
     ensure_required_artifact_dirs(out_dir)
 
-    requested_methods = parse_csv(args.methods)
-    unknown = sorted(set(requested_methods) - set(REQUIRED_METHODS))
+    method_contract = load_method_contract(benchmark_dir)
+    shard_cells = load_shard_cells(args.cell_shard_file)
+    requested_methods = (
+        sorted({str(cell["method"]) for cell in shard_cells})
+        if shard_cells and args.methods is None
+        else parse_csv(args.methods)
+        if args.methods
+        else list(method_contract["required_methods"])
+    )
+    allowed_methods = set(REQUIRED_METHODS) | set(method_contract["required_methods"])
+    unknown = sorted(set(requested_methods) - allowed_methods)
     if unknown:
         raise SystemExit(f"unknown methods requested: {unknown}")
-    splits = parse_csv(args.splits)
-    seeds = [int(item) for item in parse_csv(args.eval_seeds)]
+    splits = (
+        sorted({str(cell["split"]) for cell in shard_cells})
+        if shard_cells and args.splits is None
+        else parse_csv(args.splits)
+        if args.splits
+        else ["A", "B"]
+    )
+    seeds = (
+        sorted({int(cell["seed"]) for cell in shard_cells})
+        if shard_cells and args.eval_seeds is None
+        else [int(item) for item in parse_csv(args.eval_seeds)]
+        if args.eval_seeds
+        else list(method_contract["eval_seeds"])
+    )
     validate_benchmark(benchmark_dir)
     family_by_task = canonical_family_by_task(benchmark_dir)
-    budget = int(args.budget)
+    budget = int(args.budget or method_contract["primary_budget"])
+    shard_filter = cell_filter_from_shard(shard_cells, budget=budget)
     feedback_turns = max(1, int(args.feedback_turns))
     if budget % feedback_turns:
         raise SystemExit(
@@ -232,6 +293,7 @@ def main() -> int:
         ttrl_steps=ttrl_steps,
         ttrl_generations=ttrl_generations,
         ttrl_reward_channel=str(args.ttrl_reward_channel),
+        shard_cells=shard_cells,
     )
     write_json(out_dir / "online_experiment_plan.json", plan)
     if args.dry_run:
@@ -259,12 +321,12 @@ def main() -> int:
         for seed in seeds:
             sft_adapter = None
             needs_sft = (
-                "sft_model" in requested_methods
+                bool(set(requested_methods) & SFT_METHODS)
                 or (
                     bool(args.init_online_from_sft)
-                    and (
-                        "llm_evolve_no_update" in requested_methods
-                        or PRIMARY_METHOD in requested_methods
+                    and bool(
+                        set(requested_methods)
+                        & (BASELINE_FEEDBACK_METHODS | TTRL_METHODS)
                     )
                 )
             )
@@ -279,8 +341,17 @@ def main() -> int:
                     resume_existing=bool(args.resume_existing),
                 )
             for method in requested_methods:
-                if method == PRIMARY_METHOD:
+                if method in TTRL_METHODS:
                     for task_id in task_ids:
+                        if not cell_wanted(
+                            shard_filter,
+                            split=split,
+                            task_id=task_id,
+                            seed=seed,
+                            method=method,
+                            budget=budget,
+                        ):
+                            continue
                         key = (split, task_id, seed, method)
                         if key in seen_keys:
                             continue
@@ -301,6 +372,11 @@ def main() -> int:
                             budget=budget,
                             ttrl_steps=ttrl_steps,
                             ttrl_generations=ttrl_generations,
+                            method=method,
+                            reward_channel=reward_channel_for_method(
+                                method,
+                                default=str(args.ttrl_reward_channel),
+                            ),
                             family_by_task=family_by_task,
                             evidence_root=out_dir,
                             init_adapter=sft_adapter
@@ -317,6 +393,14 @@ def main() -> int:
                 missing = [
                     task_id for task_id in task_ids
                     if (split, task_id, seed, method) not in seen_keys
+                    and cell_wanted(
+                        shard_filter,
+                        split=split,
+                        task_id=task_id,
+                        seed=seed,
+                        method=method,
+                        budget=budget,
+                    )
                 ]
                 if not missing:
                     continue
@@ -327,12 +411,23 @@ def main() -> int:
                     sft_adapter=sft_adapter,
                     init_online_from_sft=bool(args.init_online_from_sft),
                 )
+                method_test_file = (
+                    write_task_subset_split(
+                        run_root=run_root,
+                        split=split,
+                        seed=seed,
+                        method=method,
+                        task_ids=missing,
+                    )
+                    if shard_filter is not None
+                    else test_file
+                )
                 summary = run_or_load_eval_summary(
                     args=args,
                     method=spec,
                     report_dir=report_dir,
                     tasks_root=benchmark_dir / "tasks",
-                    test_file=test_file,
+                    test_file=method_test_file,
                     seed=seed,
                     resume_existing=bool(args.resume_existing),
                 )
@@ -386,6 +481,103 @@ def validate_benchmark(benchmark_dir: Path) -> None:
         raise SystemExit("benchmark_manifest.json does not mark experiment_ready=true")
 
 
+def load_method_contract(benchmark_dir: Path) -> dict[str, Any]:
+    """Read method/seeds/budget from benchmark manifests.
+
+    Older MechanismRepair-TTRL runs and the current MechanismRepair-Physics
+    contract use different method names. The execution layer follows the
+    benchmark's manifest instead of hard-coding one contract.
+    """
+    path = benchmark_dir / "method_manifest.json"
+    if path.is_file():
+        manifest = json.loads(path.read_text())
+    else:
+        manifest = {}
+    required = [
+        str(method)
+        for method in manifest.get("required_methods", LEGACY_REQUIRED_METHODS)
+    ]
+    seeds = [int(seed) for seed in manifest.get("eval_seeds", LEGACY_EVAL_SEEDS)]
+    return {
+        "required_methods": required,
+        "primary_method": str(
+            manifest.get("primary_method")
+            or (
+                PHYSICS_PRIMARY_METHOD
+                if required == list(PHYSICS_REQUIRED_METHODS)
+                else LEGACY_PRIMARY_METHOD
+            )
+        ),
+        "primary_baseline": str(
+            manifest.get("primary_baseline")
+            or (
+                PHYSICS_PRIMARY_BASELINE
+                if required == list(PHYSICS_REQUIRED_METHODS)
+                else LEGACY_PRIMARY_BASELINE
+            )
+        ),
+        "primary_budget": int(
+            manifest.get("primary_budget_expensive_verifier_calls")
+            or manifest.get("primary_budget_verifier_calls")
+            or (
+                PHYSICS_PRIMARY_BUDGET
+                if required == list(PHYSICS_REQUIRED_METHODS)
+                else LEGACY_PRIMARY_BUDGET
+            )
+        ),
+        "eval_seeds": seeds,
+    }
+
+
+def load_shard_cells(path_value: str | None) -> list[dict[str, Any]]:
+    if not path_value:
+        return []
+    path = Path(path_value).expanduser().resolve()
+    payload = json.loads(path.read_text())
+    cells = payload.get("cells") or []
+    if not isinstance(cells, list):
+        raise SystemExit(f"shard file has no cells list: {path}")
+    out: list[dict[str, Any]] = []
+    for cell in cells:
+        item = dict(cell)
+        item["_shard_file"] = str(path)
+        out.append(item)
+    return out
+
+
+def cell_filter_from_shard(
+    cells: list[dict[str, Any]],
+    *,
+    budget: int,
+) -> set[tuple[str, str, int, str, int]] | None:
+    if not cells:
+        return None
+    return {
+        (
+            str(cell["split"]),
+            str(cell["task_id"]),
+            int(cell["seed"]),
+            str(cell["method"]),
+            int(cell.get("budget", budget)),
+        )
+        for cell in cells
+    }
+
+
+def cell_wanted(
+    shard_filter: set[tuple[str, str, int, str, int]] | None,
+    *,
+    split: str,
+    task_id: str,
+    seed: int,
+    method: str,
+    budget: int,
+) -> bool:
+    if shard_filter is None:
+        return True
+    return (split, task_id, int(seed), method, int(budget)) in shard_filter
+
+
 def build_plan(
     *,
     benchmark_dir: Path,
@@ -401,15 +593,28 @@ def build_plan(
     ttrl_steps: int,
     ttrl_generations: int,
     ttrl_reward_channel: str,
+    shard_cells: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
+    shard_cells = shard_cells or []
+    shard_task_ids_by_split: dict[str, set[str]] = defaultdict(set)
+    for cell in shard_cells:
+        shard_task_ids_by_split[str(cell["split"])].add(str(cell["task_id"]))
     split_tasks = {}
     for split in splits:
         task_ids = read_ids(benchmark_dir / f"splits_{split}" / "test.txt")
+        if shard_task_ids_by_split:
+            wanted = shard_task_ids_by_split.get(split, set())
+            task_ids = [task_id for task_id in task_ids if task_id in wanted]
         if limit_tasks:
             task_ids = task_ids[:limit_tasks]
         split_tasks[split] = task_ids
-    total_cells = sum(len(task_ids) for task_ids in split_tasks.values())
-    total_cells *= len(seeds) * len(methods)
+    total_cells = (
+        len(shard_cells)
+        if shard_cells
+        else sum(len(task_ids) for task_ids in split_tasks.values())
+        * len(seeds)
+        * len(methods)
+    )
     expected = build_expected_coverage(benchmark_dir)
     return {
         "schema": "mechanism_repair_ttrl.online_plan.v1",
@@ -435,6 +640,12 @@ def build_plan(
         "ttrl_rollout_evaluations_per_cell": ttrl_steps,
         "init_online_from_sft": init_online_from_sft,
         "planned_cells": total_cells,
+        "cell_shard_file": (
+            str(Path(shard_cells[0]["_shard_file"]).resolve())
+            if shard_cells and shard_cells[0].get("_shard_file")
+            else None
+        ),
+        "sharded_execution": bool(shard_cells),
         "full_expected_cells_from_manifest": len(expected["expected_cells"]),
         "limit_tasks": limit_tasks,
     }
@@ -450,10 +661,12 @@ def method_spec(
 ) -> EvalMethod:
     if method == "frozen_model":
         return EvalMethod(method, budget, 1, 0.2, 0.95)
-    if method == "verifier_gated":
+    if method in {"verifier_gated", "verifier_gated_search"}:
         return EvalMethod(method, budget, 1, 0.0, 1.0)
     if method == "no_update_search":
         return EvalMethod(method, budget, 1, 0.9, 0.95)
+    if method == "adaptive_evolution":
+        return EvalMethod(method, budget, feedback_turns, 0.9, 0.95)
     if method == "llm_evolve_no_update":
         return EvalMethod(
             method,
@@ -463,11 +676,19 @@ def method_spec(
             0.95,
             adapter_kind="sft" if init_online_from_sft and sft_adapter else "none",
         )
-    if method == "sft_model":
+    if method in SFT_METHODS:
         if not sft_adapter:
-            raise SystemExit("sft_model requested but SFT adapter is unavailable")
+            raise SystemExit(f"{method} requested but SFT adapter is unavailable")
         return EvalMethod(method, budget, 1, 0.2, 0.95, adapter_kind="sft")
     raise SystemExit(f"sample evaluator cannot run method {method}")
+
+
+def reward_channel_for_method(method: str, *, default: str) -> str:
+    if method == "mechanical_evolve_ttrl_confidence":
+        return "verified_score"
+    if method == "mechanical_evolve_ttrl_tool_verified":
+        return "artifact_progress"
+    return default
 
 
 def reset_non_resume_outputs(*, out_dir: Path, run_root: Path) -> None:
@@ -659,6 +880,8 @@ def run_or_load_ttrl_cell(
     evidence_root: Path,
     init_adapter: str | None,
     resume_existing: bool,
+    method: str = PRIMARY_METHOD,
+    reward_channel: str | None = None,
 ) -> dict[str, Any]:
     reward_log = run_dir / "reward_log.jsonl"
     if not resume_existing and run_dir.exists():
@@ -700,7 +923,10 @@ def run_or_load_ttrl_cell(
                 "--reward-timeout-s",
                 str(args.timeout),
                 "--reward-channel",
-                str(getattr(args, "ttrl_reward_channel", "artifact_progress")),
+                str(
+                    reward_channel
+                    or getattr(args, "ttrl_reward_channel", "artifact_progress")
+                ),
                 "--lora-rank",
                 str(args.ttrl_lora_rank),
                 "--seed",
@@ -771,6 +997,7 @@ def run_or_load_ttrl_cell(
         task_id=task_id,
         seed=seed,
         budget=budget,
+        method=method,
         run_dir=run_dir,
         family_by_task=family_by_task,
         evidence_root=evidence_root,
@@ -876,6 +1103,7 @@ def rows_from_sample_summary(
         training = training_metadata_for_method(method, trace_root)
         out.append({
             "method": method,
+            "method_variant": method,
             "split": split,
             "task_id": task_id,
             "family": family_by_task.get(task_id, str(best.get("family") or "")),
@@ -954,6 +1182,7 @@ def row_from_ttrl_reward_log(
     run_dir: Path,
     family_by_task: dict[str, str],
     evidence_root: Path | None = None,
+    method: str = PRIMARY_METHOD,
 ) -> dict[str, Any]:
     if not reward_log.is_file():
         raise SystemExit(f"TTRL reward log missing: {reward_log}")
@@ -976,7 +1205,7 @@ def row_from_ttrl_reward_log(
         evidence_root=evidence_root,
         split=split,
         seed=seed,
-        method=PRIMARY_METHOD,
+        method=method,
         task_id=task_id,
         rows=matching,
     )
@@ -984,14 +1213,15 @@ def row_from_ttrl_reward_log(
         evidence_root=evidence_root,
         split=split,
         seed=seed,
-        method=PRIMARY_METHOD,
+        method=method,
         task_id=task_id,
         rows=matching,
     )
     best_metrics = dict(best.get("physical_metrics") or {})
     training = training_metadata_from_manifest(run_dir / "run_manifest.json")
     return {
-        "method": PRIMARY_METHOD,
+        "method": method,
+        "method_variant": method,
         "split": split,
         "task_id": task_id,
         "family": family,
@@ -1432,7 +1662,7 @@ def no_procedural_fallback_rate(rows: list[dict[str, Any]]) -> float:
 
 
 def training_metadata_for_method(method: str, trace_root: Path) -> dict[str, Any]:
-    if method == "sft_model":
+    if method in SFT_METHODS:
         return training_metadata_from_manifest(
             trace_root.parent / "sft_train" / "run_manifest.json"
         )
@@ -1481,7 +1711,12 @@ def canonical_family_by_task(benchmark_dir: Path) -> dict[str, str]:
     out: dict[str, str] = {}
     for row in manifest.get("tasks", []) or []:
         task_id = str(row.get("task_id") or "")
-        family = str(row.get("canonical_family") or row.get("raw_family") or "")
+        family = str(
+            row.get("canonical_family")
+            or row.get("raw_family")
+            or row.get("family")
+            or ""
+        )
         if task_id and family:
             out[task_id] = family
     return out
@@ -1542,9 +1777,29 @@ def write_one_task_split(
     return path
 
 
+def write_task_subset_split(
+    *,
+    run_root: Path,
+    split: str,
+    seed: int,
+    method: str,
+    task_ids: list[str],
+) -> Path:
+    path = (
+        run_root
+        / split
+        / str(seed)
+        / "method_task_splits"
+        / f"{method}.txt"
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(task_ids) + "\n")
+    return path
+
+
 def read_ids(path: Path) -> list[str]:
     return [
-        line.strip()
+        Path(line.strip()).name
         for line in path.read_text().splitlines()
         if line.strip() and not line.strip().startswith("#")
     ]
