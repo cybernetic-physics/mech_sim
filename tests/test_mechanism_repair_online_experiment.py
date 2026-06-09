@@ -305,6 +305,79 @@ def test_rows_from_sample_summary_materializes_multiturn_evidence(
     assert verifier["hard_gate_passed"] is True
 
 
+def test_rows_from_sample_summary_materializes_bundled_evidence(
+    tmp_path: Path,
+) -> None:
+    summary = {
+        "max_turns": 2,
+        "all_samples": [
+            {
+                "task_id": "cycloidal_task",
+                "sample_idx": 0,
+                "verified_score": 0.0,
+                "evaluation_valid": True,
+                "hard_gate_passed": False,
+                "failure_codes": ["wrong_ratio"],
+                "verifier_calls": 2,
+                "cad_audits": 1,
+                "chrono_audits": 1,
+                "turn_traces": [
+                    {
+                        "turn_idx": 0,
+                        "assistant_text": "turn 0 code",
+                        "dense_pct": 10.0,
+                        "score": 10.0,
+                        "passed": False,
+                        "parsed_ok": True,
+                        "evaluation_valid": True,
+                        "failure_codes": ["wrong_ratio"],
+                        "cad_audits": 1,
+                        "chrono_audits": 1,
+                    },
+                    {
+                        "turn_idx": 1,
+                        "assistant_text": "turn 1 code",
+                        "dense_pct": 20.0,
+                        "score": 20.0,
+                        "passed": False,
+                        "parsed_ok": True,
+                        "evaluation_valid": True,
+                        "failure_codes": ["wrong_ratio"],
+                    },
+                ],
+            }
+        ],
+    }
+
+    rows = rows_from_sample_summary(
+        summary=summary,
+        method="adaptive_evolution",
+        split="A",
+        seed=20260607,
+        budget=2,
+        trace_root=tmp_path / "trace",
+        family_by_task={"cycloidal_task": "cycloidal"},
+        evidence_root=tmp_path / "evidence",
+        evidence_layout="bundled",
+    )
+
+    row = rows[0]
+    assert len(row["raw_completion_paths"]) == 2
+    assert len(row["verifier_output_paths"]) == 2
+    assert len(set(row["raw_completion_paths"])) == 1
+    assert len(set(row["verifier_output_paths"])) == 1
+    raw_bundle = Path(row["raw_completion_paths"][0])
+    verifier_bundle = Path(row["verifier_output_paths"][0])
+    assert raw_bundle.is_file()
+    assert verifier_bundle.is_file()
+    assert len(raw_bundle.read_text().splitlines()) == 2
+    assert len(verifier_bundle.read_text().splitlines()) == 2
+    assert row["cad_artifact_paths"]
+    assert row["chrono_output_paths"]
+    assert Path(row["cad_artifact_paths"][0]).name == "cad_audits.jsonl"
+    assert Path(row["chrono_output_paths"][0]).name == "chrono_audits.jsonl"
+
+
 def test_rows_from_sample_summary_materializes_cad_chrono_evidence(
     tmp_path: Path,
 ) -> None:

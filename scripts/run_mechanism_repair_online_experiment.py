@@ -174,6 +174,16 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--skip-analysis", action="store_true")
     parser.add_argument(
+        "--evidence-layout",
+        default="files",
+        choices=("files", "bundled"),
+        help=(
+            "files writes one evidence file per call. bundled writes one "
+            "JSONL bundle per split/seed/method/task and repeats that bundle "
+            "path in row accounting where per-call cardinality is audited."
+        ),
+    )
+    parser.add_argument(
         "--init-online-from-sft",
         action=argparse.BooleanOptionalAction,
         default=True,
@@ -482,6 +492,7 @@ def main() -> int:
                             ),
                             family_by_task=family_by_task,
                             evidence_root=out_dir,
+                            evidence_layout=str(args.evidence_layout),
                             init_adapter=sft_adapter
                             if bool(args.init_online_from_sft)
                             else None,
@@ -543,6 +554,7 @@ def main() -> int:
                     trace_root=report_dir,
                     family_by_task=family_by_task,
                     evidence_root=out_dir,
+                    evidence_layout=str(args.evidence_layout),
                 )
                 for row in new_rows:
                     key = row_key(row)
@@ -1017,6 +1029,7 @@ def run_or_load_ttrl_cell(
     resume_existing: bool,
     method: str = PRIMARY_METHOD,
     reward_channel: str | None = None,
+    evidence_layout: str = "files",
 ) -> dict[str, Any]:
     reward_log = run_dir / "reward_log.jsonl"
     if not resume_existing and run_dir.exists():
@@ -1157,6 +1170,7 @@ def run_or_load_ttrl_cell(
         run_dir=run_dir,
         family_by_task=family_by_task,
         evidence_root=evidence_root,
+        evidence_layout=evidence_layout,
     )
     if int(row.get("actual_verifier_calls", 0) or 0) != int(budget):
         raise SystemExit(
@@ -1362,6 +1376,7 @@ def rows_from_sample_summary(
     trace_root: Path,
     family_by_task: dict[str, str],
     evidence_root: Path | None = None,
+    evidence_layout: str = "files",
 ) -> list[dict[str, Any]]:
     by_task: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in summary.get("all_samples", []) or []:
@@ -1383,6 +1398,7 @@ def rows_from_sample_summary(
             method=method,
             task_id=task_id,
             samples=samples,
+            layout=evidence_layout,
         )
         cad_paths, chrono_paths = materialize_audit_evidence(
             evidence_root=evidence_root,
@@ -1391,6 +1407,7 @@ def rows_from_sample_summary(
             method=method,
             task_id=task_id,
             rows=samples,
+            layout=evidence_layout,
         )
         sampler_error_attempts = sampler_error_attempt_count(samples)
         first_valid = first_valid_call(samples)
@@ -1487,6 +1504,7 @@ def row_from_ttrl_reward_log(
     family_by_task: dict[str, str],
     evidence_root: Path | None = None,
     method: str = PRIMARY_METHOD,
+    evidence_layout: str = "files",
 ) -> dict[str, Any]:
     if not reward_log.is_file():
         raise SystemExit(f"TTRL reward log missing: {reward_log}")
@@ -1512,6 +1530,7 @@ def row_from_ttrl_reward_log(
         method=method,
         task_id=task_id,
         rows=matching,
+        layout=evidence_layout,
     )
     cad_paths, chrono_paths = materialize_audit_evidence(
         evidence_root=evidence_root,
@@ -1520,6 +1539,7 @@ def row_from_ttrl_reward_log(
         method=method,
         task_id=task_id,
         rows=matching,
+        layout=evidence_layout,
     )
     best_metrics = dict(best.get("physical_metrics") or {})
     training = training_metadata_from_manifest(run_dir / "run_manifest.json")
@@ -1623,6 +1643,7 @@ def materialize_sample_evidence(
     method: str,
     task_id: str,
     samples: list[dict[str, Any]],
+    layout: str = "files",
 ) -> tuple[list[str], list[str]]:
     raw_paths: list[str] = []
     verifier_paths: list[str] = []
@@ -1634,6 +1655,16 @@ def materialize_sample_evidence(
     )
     raw_dir.mkdir(parents=True, exist_ok=True)
     verifier_dir.mkdir(parents=True, exist_ok=True)
+    if layout == "bundled":
+        return materialize_sample_evidence_bundle(
+            raw_dir=raw_dir,
+            verifier_dir=verifier_dir,
+            trace_root=trace_root,
+            task_id=task_id,
+            samples=samples,
+        )
+    if layout != "files":
+        raise SystemExit(f"unknown evidence layout: {layout}")
     for item in sorted(samples, key=lambda row: int(row.get("sample_idx", 0) or 0)):
         idx = int(item.get("sample_idx", 0) or 0)
         turn_traces = item.get("turn_traces") or []
@@ -1763,6 +1794,174 @@ def materialize_sample_evidence(
     return raw_paths, verifier_paths
 
 
+def materialize_sample_evidence_bundle(
+    *,
+    raw_dir: Path,
+    verifier_dir: Path,
+    trace_root: Path,
+    task_id: str,
+    samples: list[dict[str, Any]],
+) -> tuple[list[str], list[str]]:
+    raw_bundle = raw_dir / "raw_completions.jsonl"
+    verifier_bundle = verifier_dir / "verifier_outputs.jsonl"
+    raw_paths: list[str] = []
+    verifier_paths: list[str] = []
+    with raw_bundle.open("w") as raw_f, verifier_bundle.open("w") as verifier_f:
+        for item in sorted(samples, key=lambda row: int(row.get("sample_idx", 0) or 0)):
+            idx = int(item.get("sample_idx", 0) or 0)
+            turn_traces = item.get("turn_traces") or []
+            if turn_traces:
+                written_for_sample = 0
+                for turn in turn_traces:
+                    turn_idx = int(turn.get("turn_idx", 0) or 0)
+                    call_idx = int(
+                        turn.get("verifier_call_idx_within_sample", written_for_sample)
+                        or 0
+                    )
+                    audit_attempt = int(turn.get("audit_attempt", 0) or 0)
+                    sampler_attempt = int(turn.get("sampler_attempt", 0) or 0)
+                    raw_record = {
+                        "sample_idx": idx,
+                        "turn_idx": turn_idx,
+                        "verifier_call_idx_within_sample": call_idx,
+                        "audit_attempt": audit_attempt,
+                        "sampler_attempt": sampler_attempt,
+                        "trace_kind": turn.get("trace_kind"),
+                        "assistant_text": str(turn.get("assistant_text") or ""),
+                    }
+                    raw_f.write(json.dumps(raw_record, sort_keys=True, default=str) + "\n")
+                    raw_paths.append(str(raw_bundle))
+                    if str(turn.get("trace_kind") or "") == "sampler_error_retry":
+                        continue
+                    verifier_record = verifier_record_from_turn(
+                        item=item,
+                        turn=turn,
+                        idx=idx,
+                        turn_idx=turn_idx,
+                        call_idx=call_idx,
+                        audit_attempt=audit_attempt,
+                        sampler_attempt=sampler_attempt,
+                    )
+                    verifier_f.write(
+                        json.dumps(verifier_record, sort_keys=True, default=str) + "\n"
+                    )
+                    verifier_paths.append(str(verifier_bundle))
+                    written_for_sample += 1
+                expected_calls = int(item.get("verifier_calls", 0) or 0)
+                source = trace_root / f"sample_{idx}" / task_id / "completion.txt"
+                terminal_text = (
+                    source.read_text()
+                    if source.is_file()
+                    else str(item.get("error") or "")
+                )
+                while written_for_sample < expected_calls:
+                    call_idx = written_for_sample
+                    turn_idx = written_for_sample
+                    raw_record = {
+                        "sample_idx": idx,
+                        "turn_idx": turn_idx,
+                        "verifier_call_idx_within_sample": call_idx,
+                        "audit_attempt": 0,
+                        "sampler_attempt": 0,
+                        "trace_kind": "terminal_sample_evidence",
+                        "assistant_text": terminal_text,
+                    }
+                    raw_f.write(json.dumps(raw_record, sort_keys=True, default=str) + "\n")
+                    raw_paths.append(str(raw_bundle))
+                    verifier_record = verifier_record_from_sample(
+                        item=item,
+                        idx=idx,
+                        turn_idx=turn_idx,
+                        call_idx=call_idx,
+                    )
+                    verifier_f.write(
+                        json.dumps(verifier_record, sort_keys=True, default=str) + "\n"
+                    )
+                    verifier_paths.append(str(verifier_bundle))
+                    written_for_sample += 1
+                continue
+            source = trace_root / f"sample_{idx}" / task_id / "completion.txt"
+            text = source.read_text() if source.is_file() else ""
+            raw_record = {"sample_idx": idx, "assistant_text": text}
+            raw_f.write(json.dumps(raw_record, sort_keys=True, default=str) + "\n")
+            raw_paths.append(str(raw_bundle))
+            verifier_record = dict(item)
+            verifier_f.write(
+                json.dumps(verifier_record, sort_keys=True, default=str) + "\n"
+            )
+            verifier_paths.append(str(verifier_bundle))
+    return raw_paths, verifier_paths
+
+
+def verifier_record_from_turn(
+    *,
+    item: dict[str, Any],
+    turn: dict[str, Any],
+    idx: int,
+    turn_idx: int,
+    call_idx: int,
+    audit_attempt: int,
+    sampler_attempt: int,
+) -> dict[str, Any]:
+    return {
+        "task_id": item.get("task_id"),
+        "family": item.get("family"),
+        "sample_idx": idx,
+        "turn_idx": turn_idx,
+        "audit_attempt": audit_attempt,
+        "sampler_attempt": sampler_attempt,
+        "verifier_call_idx_within_sample": call_idx,
+        "retry_trace_idx": turn.get("retry_trace_idx"),
+        "trace_kind": turn.get("trace_kind"),
+        "score": turn.get("dense_pct"),
+        "verified_score": turn.get("score"),
+        "hard_gate_passed": turn.get("passed"),
+        "evaluation_valid": turn.get("evaluation_valid"),
+        "design_py_extracted": turn.get("parsed_ok"),
+        "failure_codes": turn.get("failure_codes", []),
+        "feedback": turn.get("feedback", []),
+        "cad_audits": turn.get("cad_audits", 0),
+        "chrono_audits": turn.get("chrono_audits", 0),
+        "physical_metrics": turn.get("physical_metrics", {}),
+        "no_procedural_fallback": turn.get("no_procedural_fallback"),
+        "completion_tokens": turn.get("completion_tokens", 0),
+        "stop_reason": turn.get("stop_reason", ""),
+    }
+
+
+def verifier_record_from_sample(
+    *,
+    item: dict[str, Any],
+    idx: int,
+    turn_idx: int,
+    call_idx: int,
+) -> dict[str, Any]:
+    return {
+        "task_id": item.get("task_id"),
+        "family": item.get("family"),
+        "sample_idx": idx,
+        "turn_idx": turn_idx,
+        "audit_attempt": 0,
+        "sampler_attempt": 0,
+        "verifier_call_idx_within_sample": call_idx,
+        "retry_trace_idx": None,
+        "trace_kind": "terminal_sample_evidence",
+        "score": item.get("score"),
+        "verified_score": item.get("verified_score"),
+        "hard_gate_passed": item.get("hard_gate_passed"),
+        "evaluation_valid": item.get("evaluation_valid"),
+        "design_py_extracted": item.get("design_py_extracted"),
+        "failure_codes": item.get("failure_codes", []),
+        "feedback": item.get("feedback", []),
+        "cad_audits": item.get("cad_audits", 0),
+        "chrono_audits": item.get("chrono_audits", 0),
+        "physical_metrics": item.get("physical_metrics", {}),
+        "no_procedural_fallback": item.get("no_procedural_fallback"),
+        "completion_tokens": item.get("sample_tokens_out", 0),
+        "stop_reason": "terminal_sample_evidence",
+    }
+
+
 def materialize_ttrl_evidence(
     *,
     evidence_root: Path | None,
@@ -1771,6 +1970,7 @@ def materialize_ttrl_evidence(
     method: str,
     task_id: str,
     rows: list[dict[str, Any]],
+    layout: str = "files",
 ) -> tuple[list[str], list[str]]:
     raw_paths: list[str] = []
     verifier_paths: list[str] = []
@@ -1782,6 +1982,29 @@ def materialize_ttrl_evidence(
     )
     raw_dir.mkdir(parents=True, exist_ok=True)
     verifier_dir.mkdir(parents=True, exist_ok=True)
+    if layout == "bundled":
+        raw_bundle = raw_dir / "raw_completions.jsonl"
+        verifier_bundle = verifier_dir / "verifier_outputs.jsonl"
+        with raw_bundle.open("w") as raw_f, verifier_bundle.open("w") as verifier_f:
+            for idx, row in enumerate(rows):
+                text = str(row.get("completion_text") or row.get("completion_preview") or "")
+                raw_f.write(
+                    json.dumps(
+                        {"candidate_idx": idx, "completion_text": text},
+                        sort_keys=True,
+                        default=str,
+                    ) + "\n"
+                )
+                raw_paths.append(str(raw_bundle))
+                verifier_row = dict(row)
+                verifier_row.pop("completion_text", None)
+                verifier_f.write(
+                    json.dumps(verifier_row, sort_keys=True, default=str) + "\n"
+                )
+                verifier_paths.append(str(verifier_bundle))
+        return raw_paths, verifier_paths
+    if layout != "files":
+        raise SystemExit(f"unknown evidence layout: {layout}")
     for idx, row in enumerate(rows):
         text = str(row.get("completion_text") or row.get("completion_preview") or "")
         raw_dest = raw_dir / f"candidate_{idx:04d}.txt"
@@ -1805,6 +2028,7 @@ def materialize_audit_evidence(
     method: str,
     task_id: str,
     rows: list[dict[str, Any]],
+    layout: str = "files",
 ) -> tuple[list[str], list[str]]:
     cad_paths: list[str] = []
     chrono_paths: list[str] = []
@@ -1816,6 +2040,14 @@ def materialize_audit_evidence(
     )
     cad_dir.mkdir(parents=True, exist_ok=True)
     chrono_dir.mkdir(parents=True, exist_ok=True)
+    if layout == "bundled":
+        return materialize_audit_evidence_bundle(
+            cad_dir=cad_dir,
+            chrono_dir=chrono_dir,
+            rows=rows,
+        )
+    if layout != "files":
+        raise SystemExit(f"unknown evidence layout: {layout}")
     for item_idx, item in enumerate(rows):
         traces = item.get("turn_traces") or []
         if traces:
@@ -1862,6 +2094,36 @@ def materialize_audit_evidence(
     return cad_paths, chrono_paths
 
 
+def materialize_audit_evidence_bundle(
+    *,
+    cad_dir: Path,
+    chrono_dir: Path,
+    rows: list[dict[str, Any]],
+) -> tuple[list[str], list[str]]:
+    cad_bundle = cad_dir / "cad_audits.jsonl"
+    chrono_bundle = chrono_dir / "chrono_audits.jsonl"
+    cad_paths: list[str] = []
+    chrono_paths: list[str] = []
+    with cad_bundle.open("w") as cad_f, chrono_bundle.open("w") as chrono_f:
+        for item_idx, item in enumerate(rows):
+            traces = item.get("turn_traces") or []
+            candidates = traces if traces else [item]
+            for trace_idx, row in enumerate(candidates):
+                suffix = f"turn_{trace_idx:04d}" if traces else ""
+                stem = evidence_stem(item=row, fallback_idx=item_idx, suffix=suffix)
+                cad_record = audit_record_if_present(stem=stem, kind="cad", row=row)
+                if cad_record:
+                    cad_f.write(json.dumps(cad_record, sort_keys=True, default=str) + "\n")
+                    cad_paths.append(str(cad_bundle))
+                chrono_record = audit_record_if_present(stem=stem, kind="chrono", row=row)
+                if chrono_record:
+                    chrono_f.write(
+                        json.dumps(chrono_record, sort_keys=True, default=str) + "\n"
+                    )
+                    chrono_paths.append(str(chrono_bundle))
+    return sorted(set(cad_paths)), sorted(set(chrono_paths))
+
+
 def evidence_stem(
     *,
     item: dict[str, Any],
@@ -1888,12 +2150,27 @@ def write_audit_json_if_present(
     kind: str,
     row: dict[str, Any],
 ) -> list[str]:
+    payload = audit_record_if_present(stem=stem, kind=kind, row=row)
+    if not payload:
+        return []
+    dest = out_dir / f"{stem}.json"
+    dest.write_text(json.dumps(payload, indent=2, sort_keys=True, default=str) + "\n")
+    return [str(dest)]
+
+
+def audit_record_if_present(
+    *,
+    stem: str,
+    kind: str,
+    row: dict[str, Any],
+) -> dict[str, Any] | None:
     field = "cad_audits" if kind == "cad" else "chrono_audits"
     if int(row.get(field, 0) or 0) <= 0:
-        return []
-    payload = {
+        return None
+    return {
         "schema": f"mechanism_repair_ttrl.{kind}_artifact_evidence.v1",
         "kind": kind,
+        "stem": stem,
         "audit_count": int(row.get(field, 0) or 0),
         "task_id": row.get("task_id"),
         "family": row.get("family"),
@@ -1905,9 +2182,6 @@ def write_audit_json_if_present(
         "physical_metrics": row.get("physical_metrics", {}),
         "feedback": row.get("feedback", []),
     }
-    dest = out_dir / f"{stem}.json"
-    dest.write_text(json.dumps(payload, indent=2, sort_keys=True, default=str) + "\n")
-    return [str(dest)]
 
 
 def first_valid_call(rows: list[dict[str, Any]]) -> int | None:
