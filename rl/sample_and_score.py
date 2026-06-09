@@ -29,6 +29,7 @@ import re
 import sys
 import threading
 import time
+import tomllib
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from types import SimpleNamespace
@@ -68,11 +69,13 @@ ASSISTANT_CODE_PREFILL = (
     "STEP='ISO-10303-21;END-ISO-10303-21;\\n'\n"
     "def cad(out_dir,n): (out_dir/n).write_text(STEP); return n\n"
     "I=((1e-4,0.0,0.0),(0.0,1e-4,0.0),(0.0,0.0,1e-4))\n"
-    "def mp(m,c): return {'cad_mass_properties':{'mass_kg':m,'com_local_mm':c,'inertia_kg_m2':I}}\n\n"
+    "def mp(m,c,s=None):\n"
+    "    p={'cad_mass_properties':{'mass_kg':m,'com_local_mm':c,'inertia_kg_m2':I}}\n"
+    "    if s is not None: p['chrono_collision']=s\n"
+    "    return p\n\n"
     "def cyl(r,l): return {'shape':'cylinder','radius_mm':r,'length_mm':l}\n"
     "def box(x,y,z): return {'shape':'box','size_mm':(x,y,z)}\n"
-    "def cm(m,c,s):\n"
-    "    p=mp(m,c); p['chrono_collision']=s; return p\n\n"
+    "def cm(m,c,s): return mp(m,c,s)\n\n"
     "M={'steel':{'density_kg_m3':7850.0,'provenance':'datasheet'},'aluminum':{'density_kg_m3':2700.0,'provenance':'datasheet'},'rubber':{'density_kg_m3':1100.0,'provenance':'datasheet'}}\n\n"
     "def frame(out_dir): return {'id':'frame','role':'ground','mass_kg':0.001,'fixed':True,'com_local_mm':(0.0,0.0,0.0),'geometry':{'cad':cad(out_dir,'frame.step')},'material':'steel','params':cm(0.001,(0.0,0.0,0.0),box(20,20,5))}\n\n"
     "def build_design(out_dir: Path) -> dict:\n"
@@ -982,6 +985,35 @@ def _needs_audit_retry(
     )
 
 
+def _task_required_audits(task_dir: Path, *, max_turns: int) -> tuple[int, int]:
+    """Return per-sample CAD/Chrono audit targets implied by eval_config.toml."""
+    required = max(1, int(max_turns or 1))
+    cfg_path = task_dir / "eval_config.toml"
+    if not cfg_path.is_file():
+        return 0, 0
+    try:
+        cfg = tomllib.loads(cfg_path.read_text())
+    except (OSError, tomllib.TOMLDecodeError):
+        return 0, 0
+
+    probes = cfg.get("probes") or []
+    adapters = cfg.get("adapters") or {}
+    needs_cad = any(
+        isinstance(probe, dict)
+        and str(probe.get("type") or "") == "trusted_asset_preflight"
+        for probe in probes
+    )
+    needs_chrono = (
+        isinstance(adapters, dict)
+        and isinstance(adapters.get("chrono_contact"), dict)
+    ) or any(
+        isinstance(probe, dict)
+        and str(probe.get("adapter") or "") == "chrono_contact"
+        for probe in probes
+    )
+    return (required if needs_cad else 0, required if needs_chrono else 0)
+
+
 def actual_verifier_calls_total(outcomes: list[SampleOutcome]) -> int:
     return sum(int(item.verifier_calls or 0) for item in outcomes)
 
@@ -1086,10 +1118,13 @@ def main(argv: list[str] | None = None) -> int:
     def _go(td: Path, task_idx: int) -> list[SampleOutcome]:
         outs: list[SampleOutcome] = []
         verifier_call_cap = max(0, int(args.max_verifier_calls_per_task or 0))
+        required_cad_audits, required_chrono_audits = _task_required_audits(
+            td,
+            max_turns=int(args.max_turns or 1),
+        )
         for k in range(args.samples_per_task):
             if verifier_call_cap and actual_verifier_calls_total(outs) >= verifier_call_cap:
                 break
-            required_audits = max(1, int(args.max_turns or 1))
             o = None
             audit_retry_count = 0
             actual_verifier_calls = 0
@@ -1194,8 +1229,8 @@ def main(argv: list[str] | None = None) -> int:
                     break
                 if not _needs_audit_retry(
                     o,
-                    required_cad_audits=required_audits,
-                    required_chrono_audits=required_audits,
+                    required_cad_audits=required_cad_audits,
+                    required_chrono_audits=required_chrono_audits,
                 ):
                     break
                 if audit_attempt >= args.audit_retries:
@@ -1204,8 +1239,8 @@ def main(argv: list[str] | None = None) -> int:
                 print(
                     f"[AUDIT_RETRY] {td.name:48} k={k} "
                     f"attempt={audit_attempt + 1} "
-                    f"cad={o.cad_audits}/{required_audits} "
-                    f"chrono={o.chrono_audits}/{required_audits} "
+                    f"cad={o.cad_audits}/{required_cad_audits} "
+                    f"chrono={o.chrono_audits}/{required_chrono_audits} "
                     f"err={o.error[:60]}",
                     file=sys.stderr,
                 )

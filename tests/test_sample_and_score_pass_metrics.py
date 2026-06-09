@@ -18,7 +18,9 @@ from rl.sample_and_score import (
     _rollout_audit_totals,
     _rollout_verifier_calls,
     _sglang_one_turn_messages,
+    _task_required_audits,
 )
+from rl.train_true_grpo_trl import ASSISTANT_CODE_PREFILL as TRAIN_ASSISTANT_CODE_PREFILL
 from rl.verifier_audits import cad_audit_count, chrono_audit_count
 
 
@@ -68,6 +70,26 @@ def test_sglang_one_turn_messages_continue_code_prefill() -> None:
         },
         {"role": "assistant", "content": ASSISTANT_CODE_PREFILL},
     ]
+
+
+def test_prefill_mass_properties_accept_optional_chrono_shape() -> None:
+    for prefill in (ASSISTANT_CODE_PREFILL, TRAIN_ASSISTANT_CODE_PREFILL):
+        namespace: dict[str, object] = {}
+        helper_source = prefill.removeprefix("```python\n").split(
+            "def build_design", 1
+        )[0]
+        exec(helper_source, namespace)
+
+        mp = namespace["mp"]
+        cyl = namespace["cyl"]
+
+        mass_only = mp(0.1, (1.0, 2.0, 3.0))
+        collision = mp(0.1, (1.0, 2.0, 3.0), cyl(4, 5))
+
+        assert "cad_mass_properties" in mass_only
+        assert "chrono_collision" not in mass_only
+        assert collision["cad_mass_properties"]["mass_kg"] == 0.1
+        assert collision["chrono_collision"]["shape"] == "cylinder"
 
 
 def test_verifier_valid_pass_rejects_failures_even_with_score() -> None:
@@ -154,6 +176,21 @@ def test_audit_retries_count_actual_budget(monkeypatch, tmp_path) -> None:
     task_dir = tasks / "task_a"
     task_dir.mkdir(parents=True)
     (task_dir / "task.toml").write_text("[task]\n")
+    (task_dir / "eval_config.toml").write_text(
+        """
+[adapters.chrono_contact]
+procedural_cycloidal_fallback = false
+
+[[probes]]
+id = "trusted_asset_preflight"
+type = "trusted_asset_preflight"
+
+[[probes]]
+id = "contact"
+type = "contact_engagement"
+adapter = "chrono_contact"
+"""
+    )
     system_prompt = tmp_path / "system.md"
     system_prompt.write_text("system")
     report_dir = tmp_path / "report"
@@ -518,6 +555,43 @@ def test_needs_audit_retry_requires_planned_cad_and_chrono_budget() -> None:
         required_cad_audits=2,
         required_chrono_audits=2,
     )
+
+
+def test_task_required_audits_are_level_specific(tmp_path) -> None:
+    level2 = tmp_path / "level2"
+    level2.mkdir()
+    (level2 / "eval_config.toml").write_text(
+        """
+[[probes]]
+id = "trusted_asset_preflight"
+type = "trusted_asset_preflight"
+"""
+    )
+
+    level3 = tmp_path / "level3"
+    level3.mkdir()
+    (level3 / "eval_config.toml").write_text(
+        """
+[adapters.chrono_contact]
+procedural_cycloidal_fallback = false
+
+[[probes]]
+id = "trusted_asset_preflight"
+type = "trusted_asset_preflight"
+
+[[probes]]
+id = "contact"
+type = "contact_engagement"
+adapter = "chrono_contact"
+"""
+    )
+
+    plain = tmp_path / "plain"
+    plain.mkdir()
+
+    assert _task_required_audits(level2, max_turns=4) == (4, 0)
+    assert _task_required_audits(level3, max_turns=4) == (4, 4)
+    assert _task_required_audits(plain, max_turns=4) == (0, 0)
 
 
 def test_reward_from_rollout_final_ignores_sampler_error() -> None:
