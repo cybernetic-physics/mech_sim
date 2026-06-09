@@ -326,6 +326,9 @@ def test_frozen_physics_benchmark_prompts_are_family_specific() -> None:
         prompt = Path(by_family[family]["task_dir"], "prompt.md").read_text()
         assert f"Canonical mechanism family: `{family}`" in prompt
         assert "DesignIR deliverable:" in prompt
+        assert "Minimal trusted CAD/material evidence pattern:" in prompt
+        assert "'geometry': {'cad': _write_step" in prompt
+        assert "'cad_mass_properties': _mass_props" in prompt
         assert "fake_contact_oracle" in prompt
 
     geneva_prompt = Path(
@@ -333,6 +336,8 @@ def test_frozen_physics_benchmark_prompts_are_family_specific() -> None:
     ).read_text()
     assert "Geneva indexing mechanism" in geneva_prompt
     assert "Required contact pairs: `driver:geneva`" in geneva_prompt
+    assert "Minimal Level-3 contact evidence pattern:" in geneva_prompt
+    assert "'chrono_collision'" in geneva_prompt
     assert "plain spur gear train" in geneva_prompt
 
     rack_prompt = Path(
