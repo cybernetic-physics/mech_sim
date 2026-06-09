@@ -1263,6 +1263,7 @@ def test_ttrl_metadata_retention_keeps_checkpoint_provenance(
         adapter.mkdir()
         (adapter / "adapter_config.json").write_text('{"r": 8}\n')
         (adapter / "adapter_model.safetensors").write_bytes(b"weight-bytes")
+        (adapter / "tokenizer.json").write_text('{"large": "shared tokenizer"}\n')
         (run_dir / "run_manifest.json").write_text(
             json.dumps({
                 "adapter_updates": 1,
@@ -1332,9 +1333,12 @@ def test_ttrl_metadata_retention_keeps_checkpoint_provenance(
     source_files = {item["path"]: item for item in manifest["source_files"]}
     assert adapter_path.is_dir()
     assert (adapter_path / "adapter_config.json").is_file()
+    assert not (adapter_path / "tokenizer.json").exists()
     assert (adapter_path / "training_run_manifest.json").is_file()
     assert source_files["adapter_model.safetensors"]["weight_file"] is True
     assert source_files["adapter_model.safetensors"]["bytes"] == len(b"weight-bytes")
+    assert source_files["tokenizer.json"]["weight_file"] is False
+    assert manifest["omitted_redundant_non_weight_files"] == ["tokenizer.json"]
     assert not (run_dir / "final_adapter").exists()
     assert row["adapter_checkpoint_paths"] == [str(adapter_path)]
     assert row["training_log_paths"] == [str(run_dir / "reward_log.jsonl")]

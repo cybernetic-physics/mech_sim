@@ -1240,11 +1240,15 @@ def retain_ttrl_adapter_checkpoint(
 
     files = adapter_file_manifest(adapter_path)
     copied_files: list[str] = []
+    omitted_redundant_files: list[str] = []
     if adapter_path.is_dir():
         for source in sorted(path for path in adapter_path.rglob("*") if path.is_file()):
             if is_adapter_weight_file(source):
                 continue
             rel = source.relative_to(adapter_path)
+            if rel.name == "tokenizer.json":
+                omitted_redundant_files.append(str(rel))
+                continue
             dest = checkpoint_dir / rel
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, dest)
@@ -1263,13 +1267,15 @@ def retain_ttrl_adapter_checkpoint(
         "source_adapter_path": str(adapter_path),
         "source_run_manifest": str(manifest_path),
         "copied_non_weight_files": copied_files,
+        "omitted_redundant_non_weight_files": omitted_redundant_files,
         "source_files": files,
         "weights_retained": False,
         "rationale": (
             "Per-cell TTRL adapter weights are omitted to keep the full "
             "paper-scale shard run within shared-storage limits; the reward "
             "log, trainer manifest, adapter config, file sizes, and hashes "
-            "are retained for audit."
+            "are retained for audit. Redundant tokenizer files are recorded "
+            "in source_files but not copied into every per-cell checkpoint."
         ),
     }
     (checkpoint_dir / "checkpoint_manifest.json").write_text(
