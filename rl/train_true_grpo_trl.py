@@ -1196,7 +1196,12 @@ def main() -> int:
     with dataset_jsonl.open("w") as f:
         for row in rows:
             f.write(json.dumps(row, sort_keys=True) + "\n")
-    generation_batch_size = int(args.num_generations)
+    generation_batch_size = (
+        max(1, int(args.per_device_train_batch_size))
+        * int(args.steps_per_generation)
+        if args.steps_per_generation is not None
+        else int(args.num_generations)
+    )
     effective_steps_per_generation = (
         int(args.steps_per_generation)
         if args.steps_per_generation is not None
@@ -1207,9 +1212,13 @@ def main() -> int:
         )
     )
     expected_verifier_calls = (
-        int(args.max_steps)
-        * max(1, int(args.per_device_train_batch_size))
-        * int(args.num_generations)
+        (
+            int(args.max_steps)
+            + effective_steps_per_generation
+            - 1
+        )
+        // effective_steps_per_generation
+        * generation_batch_size
     )
     manifest = {
         "schema": SCHEMA,

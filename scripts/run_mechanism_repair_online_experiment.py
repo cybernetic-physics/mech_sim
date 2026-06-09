@@ -174,6 +174,15 @@ def main() -> int:
     parser.add_argument("--ttrl-model", default=None)
     parser.add_argument("--ttrl-max-steps", type=int, default=None)
     parser.add_argument("--ttrl-num-generations", type=int, default=4)
+    parser.add_argument(
+        "--ttrl-steps-per-generation",
+        type=int,
+        default=None,
+        help=(
+            "TRL GRPO reuse window. Defaults to the verifier budget so each "
+            "TTRL cell draws exactly one matched-budget generation batch."
+        ),
+    )
     parser.add_argument("--ttrl-learning-rate", type=float, default=5.0e-6)
     parser.add_argument("--ttrl-max-grad-norm", type=float, default=0.0)
     parser.add_argument("--ttrl-lora-rank", type=int, default=16)
@@ -261,25 +270,39 @@ def main() -> int:
     ttrl_steps = (
         int(args.ttrl_max_steps)
         if args.ttrl_max_steps is not None
-        else ttrl_optimizer_steps_for_budget(
-            budget=budget,
-            num_generations=ttrl_generations,
-        )
+        else budget
     )
     if int(args.ttrl_max_steps or 0) < 0:
         raise SystemExit("--ttrl-max-steps must be non-negative")
     if ttrl_steps <= 0:
         raise SystemExit("TTRL max steps must be positive")
-    if budget % ttrl_generations:
+    ttrl_steps_per_generation = (
+        int(args.ttrl_steps_per_generation)
+        if args.ttrl_steps_per_generation is not None
+        else ttrl_steps_per_generation_for_budget(
+            budget=budget,
+            num_generations=ttrl_generations,
+        )
+    )
+    if ttrl_steps_per_generation <= 0:
+        raise SystemExit("TTRL steps_per_generation must be positive")
+    if ttrl_steps_per_generation % ttrl_generations:
         raise SystemExit(
-            f"TTRL budget mismatch: budget={budget} must divide evenly by "
+            "TTRL budget mismatch: steps_per_generation="
+            f"{ttrl_steps_per_generation} must divide evenly by "
             f"num_generations={ttrl_generations}"
         )
-    expected_ttrl_verifier_calls = ttrl_steps * ttrl_generations
+    generation_batches = (
+        (ttrl_steps + ttrl_steps_per_generation - 1)
+        // ttrl_steps_per_generation
+    )
+    expected_ttrl_verifier_calls = generation_batches * ttrl_steps_per_generation
     if expected_ttrl_verifier_calls != budget:
         raise SystemExit(
             "TTRL budget mismatch: "
-            f"max_steps={ttrl_steps} with num_generations={ttrl_generations} "
+            f"max_steps={ttrl_steps}, "
+            f"steps_per_generation={ttrl_steps_per_generation}, "
+            f"num_generations={ttrl_generations} "
             f"expects {expected_ttrl_verifier_calls} verifier calls, "
             f"not budget={budget}"
         )
@@ -297,6 +320,7 @@ def main() -> int:
         init_online_from_sft=bool(args.init_online_from_sft),
         ttrl_steps=ttrl_steps,
         ttrl_generations=ttrl_generations,
+        ttrl_steps_per_generation=ttrl_steps_per_generation,
         ttrl_reward_channel=str(args.ttrl_reward_channel),
         shard_cells=shard_cells,
     )
@@ -377,6 +401,7 @@ def main() -> int:
                             budget=budget,
                             ttrl_steps=ttrl_steps,
                             ttrl_generations=ttrl_generations,
+                            ttrl_steps_per_generation=ttrl_steps_per_generation,
                             method=method,
                             reward_channel=reward_channel_for_method(
                                 method,
@@ -597,6 +622,7 @@ def build_plan(
     init_online_from_sft: bool,
     ttrl_steps: int,
     ttrl_generations: int,
+    ttrl_steps_per_generation: int,
     ttrl_reward_channel: str,
     shard_cells: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
@@ -641,9 +667,14 @@ def build_plan(
         "llm_evolve_max_verifier_calls_per_task": budget,
         "ttrl_max_steps": ttrl_steps,
         "ttrl_optimizer_steps": ttrl_steps,
+        "ttrl_steps_per_generation": ttrl_steps_per_generation,
         "ttrl_num_generations": ttrl_generations,
         "ttrl_reward_channel": str(ttrl_reward_channel),
-        "ttrl_rollout_evaluations_per_cell": ttrl_steps * ttrl_generations,
+        "ttrl_rollout_evaluations_per_cell": (
+            ((ttrl_steps + ttrl_steps_per_generation - 1)
+             // ttrl_steps_per_generation)
+            * ttrl_steps_per_generation
+        ),
         "init_online_from_sft": init_online_from_sft,
         "planned_cells": total_cells,
         "cell_shard_file": (
@@ -697,7 +728,11 @@ def reward_channel_for_method(method: str, *, default: str) -> str:
     return default
 
 
-def ttrl_optimizer_steps_for_budget(*, budget: int, num_generations: int) -> int:
+def ttrl_steps_per_generation_for_budget(
+    *,
+    budget: int,
+    num_generations: int,
+) -> int:
     budget = int(budget)
     num_generations = int(num_generations)
     if num_generations <= 0:
@@ -707,7 +742,7 @@ def ttrl_optimizer_steps_for_budget(*, budget: int, num_generations: int) -> int
             f"TTRL budget mismatch: budget={budget} must divide evenly by "
             f"num_generations={num_generations}"
         )
-    return budget // num_generations
+    return budget
 
 
 def reset_non_resume_outputs(*, out_dir: Path, run_root: Path) -> None:
@@ -902,6 +937,7 @@ def run_or_load_ttrl_cell(
     budget: int,
     ttrl_steps: int,
     ttrl_generations: int,
+    ttrl_steps_per_generation: int | None,
     family_by_task: dict[str, str],
     evidence_root: Path,
     init_adapter: str | None,
@@ -938,6 +974,15 @@ def run_or_load_ttrl_cell(
                 "1",
                 "--num-generations",
                 str(ttrl_generations),
+                "--steps-per-generation",
+                str(
+                    ttrl_steps_per_generation
+                    if ttrl_steps_per_generation is not None
+                    else ttrl_steps_per_generation_for_budget(
+                        budget=budget,
+                        num_generations=ttrl_generations,
+                    )
+                ),
                 "--max-prompt-length",
                 str(args.max_context_tokens),
                 "--max-completion-length",

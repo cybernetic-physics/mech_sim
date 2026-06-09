@@ -18,7 +18,7 @@ from scripts.run_mechanism_repair_online_experiment import (
     run_or_load_eval_summary,
     run_or_load_sft,
     rows_from_sample_summary,
-    ttrl_optimizer_steps_for_budget,
+    ttrl_steps_per_generation_for_budget,
 )
 
 
@@ -43,22 +43,24 @@ def test_build_plan_records_ttrl_reward_channel(monkeypatch, tmp_path: Path) -> 
         audit_retries=0,
         limit_tasks=1,
         init_online_from_sft=True,
-        ttrl_steps=8,
+        ttrl_steps=32,
         ttrl_generations=4,
+        ttrl_steps_per_generation=32,
         ttrl_reward_channel="artifact_progress",
     )
 
     assert plan["ttrl_reward_channel"] == "artifact_progress"
     assert plan["ttrl_rollout_evaluations_per_cell"] == 32
-    assert plan["ttrl_optimizer_steps"] == 8
+    assert plan["ttrl_optimizer_steps"] == 32
+    assert plan["ttrl_steps_per_generation"] == 32
     assert plan["split_tasks"] == {"A": ["task_a"]}
     assert plan["planned_cells"] == 1
 
 
-def test_ttrl_optimizer_steps_for_budget_enforces_matched_rollouts() -> None:
-    assert ttrl_optimizer_steps_for_budget(budget=32, num_generations=4) == 8
+def test_ttrl_steps_per_generation_for_budget_enforces_matched_rollouts() -> None:
+    assert ttrl_steps_per_generation_for_budget(budget=32, num_generations=4) == 32
     with pytest.raises(SystemExit, match="must divide evenly"):
-        ttrl_optimizer_steps_for_budget(budget=30, num_generations=4)
+        ttrl_steps_per_generation_for_budget(budget=30, num_generations=4)
 
 
 def test_build_plan_filters_to_shard_cells_and_normalizes_paths(
@@ -102,6 +104,7 @@ def test_build_plan_filters_to_shard_cells_and_normalizes_paths(
         init_online_from_sft=True,
         ttrl_steps=32,
         ttrl_generations=4,
+        ttrl_steps_per_generation=32,
         ttrl_reward_channel="artifact_progress",
         shard_cells=shard_cells,
     )
@@ -819,6 +822,7 @@ def test_ttrl_runner_passes_lightweight_kbit_prepare_mode(
         budget=4,
         ttrl_steps=1,
         ttrl_generations=4,
+        ttrl_steps_per_generation=4,
         family_by_task={"task": "cycloidal"},
         evidence_root=None,
         init_adapter=None,
@@ -829,6 +833,8 @@ def test_ttrl_runner_passes_lightweight_kbit_prepare_mode(
     assert row["actual_budget_matches_primary"] is True
     assert "--kbit-prepare-mode" in cmd
     assert cmd[cmd.index("--kbit-prepare-mode") + 1] == "lightweight"
+    assert "--steps-per-generation" in cmd
+    assert cmd[cmd.index("--steps-per-generation") + 1] == "4"
     assert "--per-device-train-batch-size" in cmd
     assert cmd[cmd.index("--per-device-train-batch-size") + 1] == "1"
     assert "--max-grad-norm" in cmd
@@ -918,6 +924,7 @@ def test_ttrl_runner_preserves_physics_method_and_reward_channel(
         budget=4,
         ttrl_steps=1,
         ttrl_generations=4,
+        ttrl_steps_per_generation=4,
         family_by_task={"task": "cycloidal"},
         evidence_root=None,
         init_adapter=None,
@@ -1016,6 +1023,7 @@ def test_ttrl_runner_rejects_reward_log_over_budget(
             budget=4,
             ttrl_steps=1,
             ttrl_generations=4,
+            ttrl_steps_per_generation=4,
             family_by_task={"task": "cycloidal"},
             evidence_root=None,
             init_adapter=None,
@@ -1121,6 +1129,7 @@ def test_ttrl_resume_discards_partial_zero_update_manifest(
         budget=4,
         ttrl_steps=1,
         ttrl_generations=4,
+        ttrl_steps_per_generation=4,
         family_by_task={"task": "cycloidal"},
         evidence_root=None,
         init_adapter=None,
