@@ -250,6 +250,7 @@ def main() -> int:
     validate_benchmark(benchmark_dir)
     family_by_task = canonical_family_by_task(benchmark_dir)
     budget = int(args.budget or method_contract["primary_budget"])
+    args.budget = budget
     shard_filter = cell_filter_from_shard(shard_cells, budget=budget)
     feedback_turns = max(1, int(args.feedback_turns))
     if budget % feedback_turns:
@@ -816,6 +817,13 @@ def run_or_load_eval_summary(
         return json.loads(summary_path.read_text())
     if not resume_existing and report_dir.exists():
         shutil.rmtree(report_dir)
+    max_verifier_calls = (
+        method.samples_per_task
+        if method.max_turns <= 1
+        else getattr(args, "budget", method.samples_per_task)
+    )
+    if max_verifier_calls is None:
+        max_verifier_calls = method.samples_per_task
     cmd = [
         str(args.runner_python),
         str(REPO_ROOT / "rl" / "sample_and_score.py"),
@@ -850,7 +858,7 @@ def run_or_load_eval_summary(
         "--audit-retries",
         str(args.audit_retries),
         "--max-verifier-calls-per-task",
-        str(method.samples_per_task if method.max_turns <= 1 else args.budget),
+        str(int(max_verifier_calls)),
         "--split-file",
         str(test_file),
     ]

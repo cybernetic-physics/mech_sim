@@ -598,6 +598,52 @@ def test_eval_summary_runner_caps_actual_verifier_calls_for_feedback_loop(
     assert cmd[cmd.index("--max-verifier-calls-per-task") + 1] == "32"
 
 
+def test_eval_summary_runner_does_not_emit_none_budget(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    captured: dict[str, list[str]] = {}
+    report_dir = tmp_path / "report"
+
+    def fake_run(cmd: list[str], *, timeout: float) -> None:
+        captured["cmd"] = cmd
+        report_dir.mkdir(parents=True)
+        (report_dir / "smoke_summary.json").write_text(
+            json.dumps({"all_samples": []})
+        )
+
+    monkeypatch.setattr(online, "run", fake_run)
+
+    args = Namespace(
+        runner_python="python",
+        sglang_base_url="http://127.0.0.1:30000",
+        api_key="dummy",
+        base_model="base",
+        rollout_backend="sglang_chat",
+        max_tokens=512,
+        timeout=180.0,
+        concurrency=2,
+        audit_retries=0,
+        eval_timeout_s=60.0,
+        budget=None,
+    )
+
+    run_or_load_eval_summary(
+        args=args,
+        method=EvalMethod("adaptive_evolution", 32, 4, 0.9, 0.95),
+        report_dir=report_dir,
+        tasks_root=tmp_path / "tasks",
+        test_file=tmp_path / "split.txt",
+        seed=20260607,
+        resume_existing=False,
+    )
+
+    cmd = captured["cmd"]
+    assert "--max-verifier-calls-per-task" in cmd
+    assert cmd[cmd.index("--max-verifier-calls-per-task") + 1] == "32"
+    assert "None" not in cmd
+
+
 def test_sft_runner_passes_kbit_preparation_flags(
     monkeypatch,
     tmp_path: Path,
