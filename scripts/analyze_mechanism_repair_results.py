@@ -56,6 +56,10 @@ SECONDARY_METRIC_FIELDS = (
     "audit_retry_count",
 )
 
+PHYSICS_HIDDEN_VARIANT_SPLIT = "hidden_perturbation"
+PHYSICS_ANTI_SHORTCUT_SPLITS = ("hidden_perturbation", "external_style")
+PHYSICS_MIN_POSITIVE_FAMILIES = 8
+
 
 @dataclass(frozen=True)
 class AnalysisContract:
@@ -131,6 +135,8 @@ def main() -> int:
     trace_pairs = build_trace_pairs(rows, contract=contract)
     repair_taxonomy = build_repair_taxonomy(rows)
     claim_audit = build_claim_audit(stats)
+    stats["claim_status"] = claim_audit["claim_status"]
+    stats["analysis_claim_audit"] = claim_audit
 
     write_json(out_dir / "stats.json", stats)
     write_json(out_dir / "failure_analysis.json", failure_analysis)
@@ -310,11 +316,15 @@ def analyze_rows(
     sign_p = one_sided_sign_test(success_deltas)
     family_rows = family_delta_rows(paired)
     leave_one = leave_one_family_out(paired)
+    split_rows = split_delta_rows(paired)
+    anti_shortcut = anti_shortcut_comparison(paired)
+    method_comparisons = paired_method_comparisons(rows, contract=contract)
     budget_audit = audit_budget(rows, contract=contract)
     evidence_audit = audit_evidence(rows, contract=contract)
     learning_audit = audit_ttrl_learning(rows, contract=contract)
     coverage_audit = audit_expected_coverage(rows, expected_coverage)
     family_method_summary = summarize_family_methods(rows)
+    primary_result_table = build_primary_result_table(rows, contract=contract)
     required_present = all(
         method in by_method for method in contract.required_methods
     )
@@ -346,6 +356,7 @@ def analyze_rows(
         "n_paired_cells": len(paired),
         "method_summary": method_summary,
         "family_method_summary": family_method_summary,
+        "primary_result_table": primary_result_table,
         "primary_comparison": {
             "success_delta_mean": success_mean,
             "success_delta_pct": success_mean * 100.0,
@@ -357,6 +368,9 @@ def analyze_rows(
         },
         "family_deltas": family_rows,
         "leave_one_family_out": leave_one,
+        "split_deltas": split_rows,
+        "anti_shortcut_comparison": anti_shortcut,
+        "paired_method_comparisons": method_comparisons,
         "budget_audit": budget_audit,
         "evidence_audit": evidence_audit,
         "learning_audit": learning_audit,
@@ -500,6 +514,10 @@ def leave_one_family_out(paired: list[dict[str, Any]]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for family in families:
         kept = [row for row in paired if row["family"] != family]
+        success_delta = mean([
+            float(row["primary_success"]) - float(row["baseline_success"])
+            for row in kept
+        ])
         reward_delta = mean([
             float(row["primary_reward"]) - float(row["baseline_reward"])
             for row in kept
@@ -507,10 +525,155 @@ def leave_one_family_out(paired: list[dict[str, Any]]) -> list[dict[str, Any]]:
         out.append({
             "removed_family": family,
             "n": len(kept),
+            "success_delta": success_delta,
+            "success_delta_pct": success_delta * 100.0,
+            "keeps_positive_success_delta": success_delta > 0,
             "reward_delta": reward_delta,
             "keeps_positive_sign": reward_delta > 0,
         })
     return out
+
+
+def split_delta_rows(paired: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by_split: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in paired:
+        by_split[str(row["split"])].append(row)
+    out: list[dict[str, Any]] = []
+    for split, rows in sorted(by_split.items()):
+        success_delta = mean([
+            float(row["primary_success"]) - float(row["baseline_success"])
+            for row in rows
+        ])
+        reward_delta = mean([
+            float(row["primary_reward"]) - float(row["baseline_reward"])
+            for row in rows
+        ])
+        out.append({
+            "split": split,
+            "n": len(rows),
+            "success_delta": success_delta,
+            "success_delta_pct": success_delta * 100.0,
+            "reward_delta": reward_delta,
+        })
+    return out
+
+
+def anti_shortcut_comparison(paired: list[dict[str, Any]]) -> dict[str, Any]:
+    anti_splits = set(PHYSICS_ANTI_SHORTCUT_SPLITS)
+    rows = [row for row in paired if str(row["split"]) in anti_splits]
+    success_delta = mean([
+        float(row["primary_success"]) - float(row["baseline_success"])
+        for row in rows
+    ])
+    reward_delta = mean([
+        float(row["primary_reward"]) - float(row["baseline_reward"])
+        for row in rows
+    ])
+    return {
+        "splits": sorted(anti_splits),
+        "n_paired_cells": len(rows),
+        "anti_shortcut_pass_rate_delta": success_delta,
+        "anti_shortcut_pass_rate_delta_pct": success_delta * 100.0,
+        "reward_delta_mean": reward_delta,
+    }
+
+
+def split_delta(split_deltas: list[dict[str, Any]], split: str) -> float | None:
+    for row in split_deltas:
+        if str(row.get("split") or "") == split:
+            return float(row.get("success_delta", 0.0) or 0.0)
+    return None
+
+
+def paired_method_comparisons(
+    rows: list[dict[str, Any]],
+    *,
+    contract: AnalysisContract = DEFAULT_CONTRACT,
+) -> dict[str, dict[str, Any]]:
+    by_key_method: dict[tuple[Any, ...], dict[str, dict[str, Any]]] = defaultdict(dict)
+    for row in rows:
+        by_key_method[row["_pair_key"]][row["method"]] = row
+    comparisons: dict[str, dict[str, Any]] = {}
+    for method in contract.required_methods:
+        if method == contract.primary_method:
+            continue
+        success_deltas: list[float] = []
+        reward_deltas: list[float] = []
+        for methods in by_key_method.values():
+            primary = methods.get(contract.primary_method)
+            baseline = methods.get(method)
+            if primary is None or baseline is None:
+                continue
+            success_deltas.append(
+                float(primary["verified_repair_success_at_32"])
+                - float(baseline["verified_repair_success_at_32"])
+            )
+            reward_deltas.append(
+                float(primary["best_verified_reward_at_32"])
+                - float(baseline["best_verified_reward_at_32"])
+            )
+        success_delta = mean(success_deltas)
+        reward_delta = mean(reward_deltas)
+        comparisons[method] = {
+            "n_paired_cells": len(success_deltas),
+            "success_delta_mean": success_delta,
+            "success_delta_pct": success_delta * 100.0,
+            "reward_delta_mean": reward_delta,
+            "primary_beats_on_success": bool(success_deltas) and success_delta > 0,
+            "primary_beats_on_reward": bool(reward_deltas) and reward_delta > 0,
+        }
+    return comparisons
+
+
+def build_primary_result_table(
+    rows: list[dict[str, Any]],
+    *,
+    contract: AnalysisContract = DEFAULT_CONTRACT,
+) -> list[dict[str, Any]]:
+    by_method: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        by_method[str(row["method"])].append(row)
+    anti_splits = set(PHYSICS_ANTI_SHORTCUT_SPLITS)
+    table: list[dict[str, Any]] = []
+    for method, method_rows in sorted(by_method.items()):
+        hidden_rows = [
+            row for row in method_rows
+            if str(row["split"]) == PHYSICS_HIDDEN_VARIANT_SPLIT
+        ]
+        anti_rows = [
+            row for row in method_rows if str(row["split"]) in anti_splits
+        ]
+        table.append({
+            "method": method,
+            "n": len(method_rows),
+            "is_primary_method": method == contract.primary_method,
+            "level23_verified_repair_success_at_32": mean([
+                float(row["verified_repair_success_at_32"])
+                for row in method_rows
+            ]),
+            "hidden_variant_success_at_32": mean_or_none([
+                float(row["verified_repair_success_at_32"])
+                for row in hidden_rows
+            ]),
+            "anti_shortcut_pass_rate_at_32": mean_or_none([
+                float(row["verified_repair_success_at_32"])
+                for row in anti_rows
+            ]),
+            "best_verified_reward_at_32": mean([
+                float(row["best_verified_reward_at_32"])
+                for row in method_rows
+            ]),
+            "actual_verifier_calls": mean([
+                float(row["verifier_calls"]) for row in method_rows
+            ]),
+            "actual_cad_calls": mean([
+                float(row["cad_audits"]) for row in method_rows
+            ]),
+            "actual_chrono_calls": mean([
+                float(row["chrono_audits"]) for row in method_rows
+            ]),
+        })
+    return table
 
 
 def reward_beats_all_required(
@@ -1158,6 +1321,9 @@ def build_claim_audit(stats: dict[str, Any]) -> dict[str, Any]:
     comparison = stats["primary_comparison"]
     family_deltas = stats["family_deltas"]
     leave_one = stats["leave_one_family_out"]
+    split_deltas = stats.get("split_deltas") or []
+    anti_shortcut = stats.get("anti_shortcut_comparison") or {}
+    method_comparisons = stats.get("paired_method_comparisons") or {}
     primary_method = str(stats.get("primary_method") or DEFAULT_CONTRACT.primary_method)
     primary_baseline = str(
         stats.get("primary_baseline") or DEFAULT_CONTRACT.primary_baseline
@@ -1168,6 +1334,10 @@ def build_claim_audit(stats: dict[str, Any]) -> dict[str, Any]:
     )
     success_delta_pct = float(
         comparison.get("success_threshold_pct", DEFAULT_CONTRACT.success_delta_pct)
+    )
+    contract = stats.get("analysis_contract") or {}
+    is_physics = str(contract.get("schema", "")).startswith(
+        "mechanism_repair_physics."
     )
     blockers: list[str] = []
     if not stats["required_methods_present"]:
@@ -1184,7 +1354,7 @@ def build_claim_audit(stats: dict[str, Any]) -> dict[str, Any]:
         )
     success_ci = comparison["success_delta_ci95"]
     sign_p = comparison["success_sign_test_p_one_sided"]
-    if not (success_ci["low"] > 0 or sign_p <= 0.05):
+    if not (success_ci["low"] > 0 and sign_p <= 0.05):
         blockers.append(
             "primary success delta lacks statistical support: "
             f"ci_low={success_ci['low']:.6f}, p={sign_p:.6f}"
@@ -1193,11 +1363,45 @@ def build_claim_audit(stats: dict[str, Any]) -> dict[str, Any]:
         blockers.append("paired reward delta is not positive")
     if not stats["reward_beats_all_required_baselines"]:
         blockers.append("TTRL does not beat every required baseline on reward")
-    wins = sum(1 for row in family_deltas if row["reward_delta"] > 0)
-    if family_deltas and wins <= len(family_deltas) / 2:
-        blockers.append("TTRL does not win in a majority of held-out families")
-    if any(not row["keeps_positive_sign"] for row in leave_one):
-        blockers.append("leave-one-family-out check flips reward delta sign")
+    if is_physics:
+        hidden_delta = split_delta(split_deltas, PHYSICS_HIDDEN_VARIANT_SPLIT)
+        if hidden_delta is None:
+            blockers.append("hidden variant success delta is missing")
+        elif hidden_delta <= 0:
+            blockers.append(
+                "hidden variant success delta is not positive: "
+                f"{hidden_delta:.6f}"
+            )
+        anti_delta = anti_shortcut.get("anti_shortcut_pass_rate_delta")
+        if anti_delta is None:
+            blockers.append("anti-shortcut pass-rate delta is missing")
+        elif float(anti_delta) <= 0:
+            blockers.append(
+                "anti-shortcut pass-rate delta is not positive: "
+                f"{float(anti_delta):.6f}"
+            )
+        for baseline in ("adaptive_evolution", "verifier_gated_search"):
+            comparison_row = method_comparisons.get(baseline) or {}
+            if not comparison_row.get("primary_beats_on_success", False):
+                blockers.append(
+                    f"TTRL does not beat {baseline} under equal verifier budget"
+                )
+        positive_family_success = sum(
+            1 for row in family_deltas if float(row.get("success_delta", 0.0)) > 0
+        )
+        if positive_family_success < PHYSICS_MIN_POSITIVE_FAMILIES:
+            blockers.append(
+                "TTRL success delta is positive in too few families: "
+                f"{positive_family_success} < {PHYSICS_MIN_POSITIVE_FAMILIES}"
+            )
+        if any(not row.get("keeps_positive_success_delta", False) for row in leave_one):
+            blockers.append("leave-one-family-out check flips success delta sign")
+    else:
+        wins = sum(1 for row in family_deltas if row["reward_delta"] > 0)
+        if family_deltas and wins <= len(family_deltas) / 2:
+            blockers.append("TTRL does not win in a majority of held-out families")
+        if any(not row["keeps_positive_sign"] for row in leave_one):
+            blockers.append("leave-one-family-out check flips reward delta sign")
     if not stats["budget_audit"]["budget_matched"]:
         blockers.append("actual verifier/CAD/Chrono budgets are not matched")
     if not stats["budget_audit"].get("primary_budget_spent", False):
@@ -1621,6 +1825,10 @@ def audit_expected_coverage(
 
 def mean(values: list[float]) -> float:
     return sum(values) / len(values) if values else 0.0
+
+
+def mean_or_none(values: list[float]) -> float | None:
+    return sum(values) / len(values) if values else None
 
 
 def mean_present(row: dict[str, Any], fields: list[str]) -> float | None:

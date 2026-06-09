@@ -25,6 +25,64 @@ def _write_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
 
 
+def _write_complete_negative_stats(out_dir: Path) -> None:
+    _write_json(
+        out_dir / "stats.json",
+        {
+            "primary_comparison": {
+                "success_delta_pct": 0.0,
+                "success_delta_ci95": {"low": 0.0, "high": 0.0},
+                "success_sign_test_p_one_sided": 1.0,
+                "reward_delta_mean": 0.0,
+            },
+            "primary_result_table": [
+                {
+                    "method": method,
+                    "level23_verified_repair_success_at_32": 0.0,
+                    "hidden_variant_success_at_32": 0.0,
+                    "anti_shortcut_pass_rate_at_32": 0.0,
+                    "best_verified_reward_at_32": 0.0,
+                    "actual_verifier_calls": PRIMARY_BUDGET,
+                    "actual_cad_calls": 0.0,
+                    "actual_chrono_calls": 0.0,
+                }
+                for method in REQUIRED_METHODS
+            ],
+            "split_deltas": [
+                {
+                    "split": "hidden_perturbation",
+                    "success_delta": 0.0,
+                    "success_delta_pct": 0.0,
+                    "reward_delta": 0.0,
+                }
+            ],
+            "anti_shortcut_comparison": {
+                "anti_shortcut_pass_rate_delta": 0.0,
+                "anti_shortcut_pass_rate_delta_pct": 0.0,
+            },
+            "paired_method_comparisons": {
+                "adaptive_evolution": {"primary_beats_on_success": False},
+                "verifier_gated_search": {"primary_beats_on_success": False},
+            },
+            "family_deltas": [
+                {"family": family, "success_delta": 0.0}
+                for family in REQUIRED_FAMILIES
+            ],
+            "leave_one_family_out": [
+                {
+                    "removed_family": family,
+                    "keeps_positive_success_delta": False,
+                }
+                for family in REQUIRED_FAMILIES
+            ],
+            "analysis_claim_audit": {
+                "claim_status": "does_not_support_primary_hypothesis",
+                "blockers": ["synthetic negative result"],
+            },
+        },
+    )
+
+
 def _write_fake_benchmark(root: Path) -> None:
     tasks = []
     audit_tasks = []
@@ -406,16 +464,7 @@ def test_complete_synthetic_evidence_gets_binary_claim_status(
     )
     for name in ("failure_analysis.json", "trace_pairs.json", "repair_taxonomy.json"):
         _write_json(out_dir / name, {"schema": "test"})
-    _write_json(
-        out_dir / "stats.json",
-        {
-            "primary_comparison": {
-                "success_delta_pct": 0.0,
-                "success_delta_ci95": [0.0, 0.0],
-                "success_sign_test_p_one_sided": 1.0,
-            }
-        },
-    )
+    _write_complete_negative_stats(out_dir)
 
     audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
 
@@ -511,6 +560,87 @@ def test_unreached_cad_chrono_obligation_evidence_is_not_budget_mismatch(
     )
     for name in ("failure_analysis.json", "trace_pairs.json", "repair_taxonomy.json"):
         _write_json(out_dir / name, {"schema": "test"})
+    _write_complete_negative_stats(out_dir)
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["budget_audit"]["budget_matched"] is True
+    assert audit["budget_audit"]["budget_mismatch_count"] == 0
+    assert audit["claim_audit"]["goal_complete"] is True
+
+
+def test_incomplete_stats_blocks_goal_completion(tmp_path: Path) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    for name in (
+        "raw_completions",
+        "verifier_outputs",
+        "cad_artifacts",
+        "chrono_outputs",
+        "training_logs",
+        "adapter_checkpoints",
+    ):
+        (out_dir / name).mkdir(parents=True)
+
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    rows = []
+    for cell in plan["expected_cells"]:
+        prefix = (
+            f"{cell['split']}_{cell['task_id']}_{cell['seed']}_"
+            f"{cell['method']}_{cell['budget']}"
+        )
+        raw = out_dir / "raw_completions" / f"{prefix}.txt"
+        verifier = out_dir / "verifier_outputs" / f"{prefix}.json"
+        cad = out_dir / "cad_artifacts" / f"{prefix}.step"
+        chrono = out_dir / "chrono_outputs" / f"{prefix}.json"
+        for path in (raw, verifier, cad, chrono):
+            path.write_text("{}\n")
+        row = {
+            "split": cell["split"],
+            "task_id": cell["task_id"],
+            "seed": cell["seed"],
+            "method": cell["method"],
+            "budget": cell["budget"],
+            "actual_verifier_calls": PRIMARY_BUDGET,
+            "actual_cad_calls": 1,
+            "actual_chrono_calls": 1,
+            "raw_completion_paths": [str(raw.relative_to(out_dir))],
+            "verifier_output_paths": [str(verifier.relative_to(out_dir))],
+            "cad_artifact_paths": [str(cad.relative_to(out_dir))],
+            "chrono_output_paths": [str(chrono.relative_to(out_dir))],
+        }
+        if cell["method"] in physics.LEARNING_METHODS:
+            log = out_dir / "training_logs" / f"{prefix}.log"
+            ckpt = out_dir / "adapter_checkpoints" / prefix
+            log.write_text("trained\n")
+            ckpt.mkdir()
+            (ckpt / "adapter_model.safetensors").write_bytes(b"weights")
+            row.update({
+                "training_log_paths": [str(log.relative_to(out_dir))],
+                "adapter_checkpoint_paths": [str(ckpt.relative_to(out_dir))],
+                "adapter_updates": 1,
+                "trained_tokens": 16,
+            })
+            if cell["method"] in physics.TTRL_METHODS:
+                row.update({"n_rl_datums": 4, "rl_trained_tokens": 16})
+        rows.append(row)
+    (out_dir / "cell_results.jsonl").write_text(
+        "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows)
+    )
+    for name in ("failure_analysis.json", "trace_pairs.json", "repair_taxonomy.json"):
+        _write_json(out_dir / name, {"schema": "test"})
     _write_json(
         out_dir / "stats.json",
         {
@@ -524,9 +654,12 @@ def test_unreached_cad_chrono_obligation_evidence_is_not_budget_mismatch(
 
     audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
 
-    assert audit["budget_audit"]["budget_matched"] is True
-    assert audit["budget_audit"]["budget_mismatch_count"] == 0
-    assert audit["claim_audit"]["goal_complete"] is True
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert audit["claim_audit"]["missing_analysis_requirements"]
+    assert any(
+        "compute required primary" in item
+        for item in audit["claim_audit"]["blockers"]
+    )
 
 
 def test_ttrl_learning_evidence_requires_adapter_weights(tmp_path: Path) -> None:

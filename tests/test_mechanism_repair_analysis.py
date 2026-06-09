@@ -209,49 +209,50 @@ def test_physics_analysis_uses_manifest_primary_and_learning_variants(
     }))
     contract = load_analysis_contract(benchmark_dir)
     rows = []
-    for idx in range(24):
-        family = f"family_{idx % 12:02d}"
-        task_id = f"task_{idx:02d}"
-        for method in methods:
-            evidence_dir = tmp_path / "evidence" / method / task_id
-            evidence_dir.mkdir(parents=True, exist_ok=True)
-            raw = evidence_dir / "completion.txt"
-            verifier = evidence_dir / "verifier.json"
-            raw.write_text("design\n")
-            verifier.write_text('{"verified_score": 1.0}\n')
-            success = method == "mechanical_evolve_ttrl_tool_verified"
-            reward = 1.0 if success else 0.1
-            if method == "llm_evolve_no_update":
-                reward = 0.25
-            row = {
-                "split": "A",
-                "family": family,
-                "task_id": task_id,
-                "seed": 20260610,
-                "method": method,
-                "verified_repair_success": success,
-                "verified_score": reward,
-                "actual_verifier_calls": 32,
-                "actual_cad_calls": 1,
-                "actual_chrono_calls": 1,
-                "raw_completion_paths": [str(raw)] * 32,
-                "verifier_output_paths": [str(verifier)] * 32,
-                "failure_codes": "" if success else "wrong_ratio",
-            }
-            if method.startswith("mechanical_evolve_ttrl"):
-                reward_log = evidence_dir / "reward_log.jsonl"
-                reward_log.write_text('{"verified_score": 1.0}\n')
-                adapter = evidence_dir / "final_adapter"
-                adapter.mkdir(exist_ok=True)
-                row.update({
-                    "trace_path": str(reward_log),
-                    "adapter_path": str(adapter),
-                    "adapter_updates": 32,
-                    "trained_tokens": 128,
-                    "rl_trained_tokens": 128,
-                    "n_rl_datums": 32,
-                })
-            rows.append(row)
+    for split in ["A", "B", "hidden_perturbation", "external_style"]:
+        for idx in range(12):
+            family = f"family_{idx:02d}"
+            task_id = f"{split}_task_{idx:02d}"
+            for method in methods:
+                evidence_dir = tmp_path / "evidence" / method / split / task_id
+                evidence_dir.mkdir(parents=True, exist_ok=True)
+                raw = evidence_dir / "completion.txt"
+                verifier = evidence_dir / "verifier.json"
+                raw.write_text("design\n")
+                verifier.write_text('{"verified_score": 1.0}\n')
+                success = method == "mechanical_evolve_ttrl_tool_verified"
+                reward = 1.0 if success else 0.1
+                if method == "llm_evolve_no_update":
+                    reward = 0.25
+                row = {
+                    "split": split,
+                    "family": family,
+                    "task_id": task_id,
+                    "seed": 20260610,
+                    "method": method,
+                    "verified_repair_success": success,
+                    "verified_score": reward,
+                    "actual_verifier_calls": 32,
+                    "actual_cad_calls": 1,
+                    "actual_chrono_calls": 1,
+                    "raw_completion_paths": [str(raw)] * 32,
+                    "verifier_output_paths": [str(verifier)] * 32,
+                    "failure_codes": "" if success else "wrong_ratio",
+                }
+                if method.startswith("mechanical_evolve_ttrl"):
+                    reward_log = evidence_dir / "reward_log.jsonl"
+                    reward_log.write_text('{"verified_score": 1.0}\n')
+                    adapter = evidence_dir / "final_adapter"
+                    adapter.mkdir(exist_ok=True)
+                    row.update({
+                        "trace_path": str(reward_log),
+                        "adapter_path": str(adapter),
+                        "adapter_updates": 32,
+                        "trained_tokens": 128,
+                        "rl_trained_tokens": 128,
+                        "n_rl_datums": 32,
+                    })
+                rows.append(row)
 
     stats = analyze_rows(
         normalize_rows(rows),
@@ -264,14 +265,28 @@ def test_physics_analysis_uses_manifest_primary_and_learning_variants(
     assert stats["primary_method"] == "mechanical_evolve_ttrl_tool_verified"
     assert stats["primary_baseline"] == "llm_evolve_no_update"
     assert stats["required_methods_present"] is True
-    assert stats["n_paired_cells"] == 24
+    assert stats["n_paired_cells"] == 48
     assert stats["evidence_audit"]["required_min_trace_pairs"] == 24
     assert (
         stats["evidence_audit"]["matched_ttrl_vs_no_update_trace_pairs_with_evidence"]
-        == 24
+        == 48
     )
-    assert stats["learning_audit"]["ttrl_rows"] == 72
+    assert stats["learning_audit"]["ttrl_rows"] == 144
     assert stats["learning_audit"]["ttrl_learning_evidence_complete"] is True
+    hidden_delta = next(
+        row for row in stats["split_deltas"]
+        if row["split"] == "hidden_perturbation"
+    )
+    assert hidden_delta["success_delta"] == 1.0
+    assert (
+        stats["anti_shortcut_comparison"]["anti_shortcut_pass_rate_delta"]
+        == 1.0
+    )
+    assert (
+        stats["paired_method_comparisons"]["adaptive_evolution"]
+        ["primary_beats_on_success"]
+        is True
+    )
     assert audit["primary_method"] == "mechanical_evolve_ttrl_tool_verified"
     assert audit["claim_status"] == "supports_primary_hypothesis"
 

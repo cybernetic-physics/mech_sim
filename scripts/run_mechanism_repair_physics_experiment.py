@@ -523,6 +523,7 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
     missing_analysis = [
         name for name in ANALYSIS_ARTIFACTS if not (out_dir / name).is_file()
     ]
+    missing_analysis_requirements = analysis_requirement_blockers(out_dir)
     anti_cells = [
         cell for cell in plan["expected_cells"]
         if cell["split"] in set(plan["anti_shortcut_splits"])
@@ -575,6 +576,7 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
         missing_evidence=missing_evidence,
         missing_learning=missing_learning,
         missing_analysis=missing_analysis,
+        missing_analysis_requirements=missing_analysis_requirements,
     )
     if plan.get("missing_required_methods"):
         blockers.insert(0, "execute all required methods, not a smoke subset")
@@ -594,6 +596,7 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
         "missing_evidence_count": len(missing_evidence),
         "missing_learning_count": len(missing_learning),
         "missing_analysis_artifacts": missing_analysis,
+        "missing_analysis_requirements": missing_analysis_requirements,
         "sample_missing_evidence": missing_evidence[:25],
         "sample_missing_learning": missing_learning[:25],
     }
@@ -686,6 +689,7 @@ def build_blockers(
     missing_evidence: list[dict[str, Any]],
     missing_learning: list[dict[str, Any]],
     missing_analysis: list[str],
+    missing_analysis_requirements: list[str],
 ) -> list[str]:
     blockers: list[str] = []
     if budget_audit["missing_cell_count"]:
@@ -707,6 +711,93 @@ def build_blockers(
             "write statistical, failure, trace-pair, repair-taxonomy, "
             "anti-shortcut, and budget analyses"
         )
+    if missing_analysis_requirements:
+        blockers.append(
+            "compute required primary, hidden, anti-shortcut, family, and "
+            "baseline statistical fields"
+        )
+    return blockers
+
+
+def analysis_requirement_blockers(out_dir: Path) -> list[str]:
+    stats_path = out_dir / "stats.json"
+    if not stats_path.is_file():
+        return []
+    stats = read_json(stats_path)
+    blockers: list[str] = []
+    comparison = stats.get("primary_comparison") or {}
+    for key in (
+        "success_delta_pct",
+        "success_delta_ci95",
+        "success_sign_test_p_one_sided",
+        "reward_delta_mean",
+    ):
+        if key not in comparison:
+            blockers.append(f"primary_comparison.{key}")
+    primary_table = stats.get("primary_result_table")
+    required_table_fields = (
+        "level23_verified_repair_success_at_32",
+        "hidden_variant_success_at_32",
+        "anti_shortcut_pass_rate_at_32",
+        "best_verified_reward_at_32",
+        "actual_verifier_calls",
+        "actual_cad_calls",
+        "actual_chrono_calls",
+    )
+    if not isinstance(primary_table, list) or not primary_table:
+        blockers.append("primary_result_table")
+    else:
+        missing_table_fields = sorted({
+            field
+            for row in primary_table
+            if isinstance(row, dict)
+            for field in required_table_fields
+            if field not in row
+        })
+        if missing_table_fields:
+            blockers.append(
+                "primary_result_table fields: " + ", ".join(missing_table_fields)
+            )
+    split_deltas = stats.get("split_deltas")
+    if not isinstance(split_deltas, list) or not any(
+        isinstance(row, dict)
+        and row.get("split") == "hidden_perturbation"
+        and "success_delta" in row
+        for row in split_deltas
+    ):
+        blockers.append("split_deltas.hidden_perturbation.success_delta")
+    anti = stats.get("anti_shortcut_comparison") or {}
+    if "anti_shortcut_pass_rate_delta" not in anti:
+        blockers.append("anti_shortcut_comparison.anti_shortcut_pass_rate_delta")
+    paired = stats.get("paired_method_comparisons") or {}
+    for method in ("adaptive_evolution", "verifier_gated_search"):
+        method_row = paired.get(method) or {}
+        if "primary_beats_on_success" not in method_row:
+            blockers.append(
+                f"paired_method_comparisons.{method}.primary_beats_on_success"
+            )
+    family_deltas = stats.get("family_deltas")
+    if not isinstance(family_deltas, list) or len(family_deltas) < 12:
+        blockers.append("family_deltas at least 12 families")
+    elif any(
+        not isinstance(row, dict) or "success_delta" not in row
+        for row in family_deltas
+    ):
+        blockers.append("family_deltas.success_delta")
+    leave_one = stats.get("leave_one_family_out")
+    if not isinstance(leave_one, list) or len(leave_one) < 12:
+        blockers.append("leave_one_family_out at least 12 families")
+    elif any(
+        not isinstance(row, dict) or "keeps_positive_success_delta" not in row
+        for row in leave_one
+    ):
+        blockers.append("leave_one_family_out.keeps_positive_success_delta")
+    claim = stats.get("analysis_claim_audit") or {}
+    if claim.get("claim_status") not in {
+        "supports_primary_hypothesis",
+        "does_not_support_primary_hypothesis",
+    }:
+        blockers.append("analysis_claim_audit.claim_status")
     return blockers
 
 
@@ -800,6 +891,13 @@ def is_adapter_weight_file(path: Path) -> bool:
 
 def infer_claim_status(out_dir: Path) -> str:
     stats = read_json(out_dir / "stats.json")
+    analysis_claim = stats.get("analysis_claim_audit") or {}
+    strict = analysis_claim.get("claim_status")
+    if strict in {
+        "supports_primary_hypothesis",
+        "does_not_support_primary_hypothesis",
+    }:
+        return str(strict)
     explicit = stats.get("claim_status")
     if explicit in {
         "supports_primary_hypothesis",
@@ -809,7 +907,11 @@ def infer_claim_status(out_dir: Path) -> str:
     comparison = stats.get("primary_comparison") or {}
     delta = float_value(comparison.get("success_delta_pct", 0.0))
     ci = comparison.get("success_delta_ci95") or [0.0, 0.0]
-    ci_low = float_value(ci[0] if isinstance(ci, list) and ci else 0.0)
+    ci_low = float_value(
+        ci.get("low", 0.0)
+        if isinstance(ci, dict)
+        else ci[0] if isinstance(ci, list) and ci else 0.0
+    )
     p_value = float_value(comparison.get("success_sign_test_p_one_sided", 1.0))
     if delta >= SUCCESS_DELTA_PCT and ci_low > 0.0 and p_value <= 0.05:
         return "supports_primary_hypothesis"
