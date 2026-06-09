@@ -136,11 +136,16 @@ def list_tasks(
     ts = set(tiers) if tiers else None
     split: set[str] | None = None
     if split_file is not None and Path(split_file).exists():
-        split = {
-            ln.strip()
-            for ln in Path(split_file).read_text().splitlines()
-            if ln.strip() and not ln.strip().startswith("#")
-        }
+        split = set()
+        for line in Path(split_file).read_text().splitlines():
+            entry = line.strip()
+            if not entry or entry.startswith("#"):
+                continue
+            split.add(entry)
+            # Frozen benchmark splits may contain absolute paths from the
+            # machine that materialized the benchmark.  Archives copied to a
+            # cluster must still match by stable task directory name.
+            split.add(Path(entry).name)
     out: list[TaskInfo] = []
     for child in sorted(Path(root).iterdir()):
         if not child.is_dir() or not (child / "task.toml").exists():
