@@ -390,6 +390,31 @@ seed_args=()
 if [[ -n "$EVAL_SEEDS" ]]; then
   seed_args=(--eval-seeds "$EVAL_SEEDS")
 fi
+shard_signature="num_shards=$NUM_SHARDS;limit_tasks=$LIMIT_TASKS;methods=$METHODS;splits=$SPLITS;anti_shortcut_splits=$ANTI_SHORTCUT_SPLITS;eval_seeds=$EVAL_SEEDS"
+shard_plan_marker="$OUT_DIR/experiment_shards/.submission_signature"
+(
+  flock 9
+  current_shard_signature=""
+  if [[ -f "\$shard_plan_marker" ]]; then
+    current_shard_signature="\$(<"\$shard_plan_marker")"
+  fi
+  if [[ "\$current_shard_signature" != "\$shard_signature" || ! -f "\$shard_file" ]]; then
+    rm -rf "$OUT_DIR/experiment_shards"
+    mkdir -p "$OUT_DIR/experiment_shards"
+    echo "Regenerating experiment shards for \$shard_signature"
+    "\$repo_python" scripts/run_mechanism_repair_physics_experiment.py \\
+      --benchmark-dir "$OUT_DIR" \\
+      --out-dir "$OUT_DIR" \\
+      --write-shard-files "$NUM_SHARDS" \\
+      "\${limit_task_args[@]}" \\
+      "\${method_args[@]}" \\
+      "\${split_args[@]}" \\
+      "\${anti_shortcut_args[@]}" \\
+      "\${seed_args[@]}" \\
+      --dry-run
+    printf '%s\n' "\$shard_signature" > "\$shard_plan_marker"
+  fi
+) 9>"$REMOTE_ROOT/locks/experiment_shards_$source_commit_short.lock"
 if [[ ! -f "\$shard_file" ]]; then
   "\$repo_python" scripts/run_mechanism_repair_physics_experiment.py \\
     --benchmark-dir "$OUT_DIR" \\
