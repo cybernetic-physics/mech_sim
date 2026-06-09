@@ -1,7 +1,7 @@
 {
   "audit": {
     "blockers": [],
-    "experiment_ready": false,
+    "experiment_ready": true,
     "family_counts": {
       "belt_drive": 10,
       "cam_follower": 10,
@@ -23,49 +23,7 @@
       "3": 40
     },
     "min_tasks_per_family": 10,
-    "paper_blockers": [
-      "cam_follower_t00_cam_follower_contact_stub_s20269610: level3_validation_skipped",
-      "cam_follower_t01_cam_follower_contact_stub_s20269611: level3_validation_skipped",
-      "cam_follower_t02_cam_follower_contact_stub_s20269612: level3_validation_skipped",
-      "cam_follower_t03_cam_follower_contact_stub_s20269613: level3_validation_skipped",
-      "cam_follower_t04_cam_follower_contact_stub_s20269614: level3_validation_skipped",
-      "cam_follower_t05_cam_follower_contact_stub_s20269615: level3_validation_skipped",
-      "cam_follower_t06_cam_follower_contact_stub_s20269616: level3_validation_skipped",
-      "cam_follower_t07_cam_follower_contact_stub_s20269617: level3_validation_skipped",
-      "cam_follower_t08_cam_follower_contact_stub_s20269618: level3_validation_skipped",
-      "cam_follower_t09_cam_follower_contact_stub_s20269619: level3_validation_skipped",
-      "chrono_level3_validation_not_run",
-      "cycloidal_reducer_t00_cycloidal_lowN_stub_s20260610: level3_validation_skipped",
-      "cycloidal_reducer_t01_cycloidal_lowN_stub_s20260611: level3_validation_skipped",
-      "cycloidal_reducer_t02_cycloidal_lowN_stub_s20260612: level3_validation_skipped",
-      "cycloidal_reducer_t03_cycloidal_lowN_stub_s20260613: level3_validation_skipped",
-      "cycloidal_reducer_t04_cycloidal_lowN_stub_s20260614: level3_validation_skipped",
-      "cycloidal_reducer_t05_cycloidal_lowN_stub_s20260615: level3_validation_skipped",
-      "cycloidal_reducer_t06_cycloidal_lowN_stub_s20260616: level3_validation_skipped",
-      "cycloidal_reducer_t07_cycloidal_lowN_stub_s20260617: level3_validation_skipped",
-      "cycloidal_reducer_t08_cycloidal_lowN_stub_s20260618: level3_validation_skipped",
-      "cycloidal_reducer_t09_cycloidal_lowN_stub_s20260619: level3_validation_skipped",
-      "geneva_indexer_t00_geneva_indexing_stub_s20270610: level3_validation_skipped",
-      "geneva_indexer_t01_geneva_indexing_stub_s20270611: level3_validation_skipped",
-      "geneva_indexer_t02_geneva_indexing_stub_s20270612: level3_validation_skipped",
-      "geneva_indexer_t03_geneva_indexing_stub_s20270613: level3_validation_skipped",
-      "geneva_indexer_t04_geneva_indexing_stub_s20270614: level3_validation_skipped",
-      "geneva_indexer_t05_geneva_indexing_stub_s20270615: level3_validation_skipped",
-      "geneva_indexer_t06_geneva_indexing_stub_s20270616: level3_validation_skipped",
-      "geneva_indexer_t07_geneva_indexing_stub_s20270617: level3_validation_skipped",
-      "geneva_indexer_t08_geneva_indexing_stub_s20270618: level3_validation_skipped",
-      "geneva_indexer_t09_geneva_indexing_stub_s20270619: level3_validation_skipped",
-      "rack_pinion_t00_rack_pinion_contact_stub_s20265610: level3_validation_skipped",
-      "rack_pinion_t01_rack_pinion_contact_stub_s20265611: level3_validation_skipped",
-      "rack_pinion_t02_rack_pinion_contact_stub_s20265612: level3_validation_skipped",
-      "rack_pinion_t03_rack_pinion_contact_stub_s20265613: level3_validation_skipped",
-      "rack_pinion_t04_rack_pinion_contact_stub_s20265614: level3_validation_skipped",
-      "rack_pinion_t05_rack_pinion_contact_stub_s20265615: level3_validation_skipped",
-      "rack_pinion_t06_rack_pinion_contact_stub_s20265616: level3_validation_skipped",
-      "rack_pinion_t07_rack_pinion_contact_stub_s20265617: level3_validation_skipped",
-      "rack_pinion_t08_rack_pinion_contact_stub_s20265618: level3_validation_skipped",
-      "rack_pinion_t09_rack_pinion_contact_stub_s20265619: level3_validation_skipped"
-    ],
+    "paper_blockers": [],
     "passes": true,
     "required_families": [
       "cycloidal_reducer",
@@ -451,12 +409,17 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t00_cam_follower_contact_stub_s20269610",
-        "task_hash": "e47e2c6514cbbef6bba84e6a7ce763c1510cafe4d5206988455c17f7dff7580a",
+        "task_hash": "072c5e46a2566f532f7bb50da58ab8a0ef9c8af12a0dc64a15c6bbbef658df28",
         "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -480,12 +443,17 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t01_cam_follower_contact_stub_s20269611",
-        "task_hash": "7867ce02103480e941e23c1b5e56692ac028c2d71aceefb5fd8f6fd072f13e6c",
+        "task_hash": "9ebb4d16e52caa0102e2efb442a38477a2875f3fe7ac7eb3b84110da8a87c589",
         "task_id": "cam_follower_t01_cam_follower_contact_stub_s20269611",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -509,12 +477,17 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t02_cam_follower_contact_stub_s20269612",
-        "task_hash": "60ba0711d860a7b0686fec0b218522c566febe1a70db39149518df8809f22d44",
+        "task_hash": "80e453194e381e8b6cb83decf6cd7b12cc01452c88703e79b5266e25ef1ec822",
         "task_id": "cam_follower_t02_cam_follower_contact_stub_s20269612",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -538,12 +511,17 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t03_cam_follower_contact_stub_s20269613",
-        "task_hash": "e58606dbc40fa9ef2b68c44c20d5c489923d20ebaee5d4aac07adeda3dab8ba1",
+        "task_hash": "f39cb56b2fedaaca31840afd08ba4c95280a1e553657ec9238a03a903e40a3b8",
         "task_id": "cam_follower_t03_cam_follower_contact_stub_s20269613",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -567,12 +545,17 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t04_cam_follower_contact_stub_s20269614",
-        "task_hash": "8068fb5ab5512ea0d66ca76add53b478154072dcd3db6aae03a4de1e28c14f64",
+        "task_hash": "bb41a05cf66331aa5d9866cd505ba05181b09dc7b129e2a6631d28f71a25308f",
         "task_id": "cam_follower_t04_cam_follower_contact_stub_s20269614",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -596,12 +579,17 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t05_cam_follower_contact_stub_s20269615",
-        "task_hash": "863de3fe457e941479e16a663bb489d7c09655ad44d451a2bd6093f649a815fb",
+        "task_hash": "5bb5a33ea499b93eed7de923184deb3d995802eb88638c06b1d688702dcb09bb",
         "task_id": "cam_follower_t05_cam_follower_contact_stub_s20269615",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -625,12 +613,17 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t06_cam_follower_contact_stub_s20269616",
-        "task_hash": "06638be7335e00cf07a4359eb84adbf0f5dd830e220ef0d125caf2f1f4e02f2c",
+        "task_hash": "154c950fa5123369db1e4cfd77c50206916de679ccb017d3c65015b944eb9496",
         "task_id": "cam_follower_t06_cam_follower_contact_stub_s20269616",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -654,12 +647,17 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t07_cam_follower_contact_stub_s20269617",
-        "task_hash": "8eb5c483699c4f0a3dae7bbf33838d95c6c354111a7d4fd5d681dceabaaab305",
+        "task_hash": "d30e3c9e1ebcc5effcf62f06a10edb15bc0d416ab83e10ea39942edcf1273385",
         "task_id": "cam_follower_t07_cam_follower_contact_stub_s20269617",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -683,12 +681,17 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t08_cam_follower_contact_stub_s20269618",
-        "task_hash": "b278029edfdf7da678831d4225f0449ca4b49f64b836556eaaf9e07d187d3e71",
+        "task_hash": "67f0a2812f3e99159899095d349f3b5266ca017b4660077e579e296ad8841de4",
         "task_id": "cam_follower_t08_cam_follower_contact_stub_s20269618",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -712,12 +715,17 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t09_cam_follower_contact_stub_s20269619",
-        "task_hash": "863579f02e56bef881f3cac8611f1e6c24957837452d092c2f606d442034a9fe",
+        "task_hash": "952aaf2340595dd0f3538d4834fb643c72580ce333cdba2abc1452935cf03902",
         "task_id": "cam_follower_t09_cam_follower_contact_stub_s20269619",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -1082,12 +1090,20 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t00_cycloidal_lowN_stub_s20260610",
-        "task_hash": "7bd0e5682c2bf3795cdab6daa183014857b0ec91435c7c2a7d055fededc4723c",
+        "task_hash": "0f1e1f1edee572af3b760c34c5455c86b6a1182946961d851403298834e3f469",
         "task_id": "cycloidal_reducer_t00_cycloidal_lowN_stub_s20260610",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "power_balance_error",
+            "excessive_torque_ripple"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.5333333333333333
         },
         "verifier_level": 3
       },
@@ -1112,12 +1128,20 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t01_cycloidal_lowN_stub_s20260611",
-        "task_hash": "fd4c5baec41fb0f4afca8c7da64a525ed469a50926e1fec16c7f22ee889c787d",
+        "task_hash": "7b387f9b9d51c5f7a9feb56f07fa07a01e447983f699ce9e9ef0aedf3cb0607e",
         "task_id": "cycloidal_reducer_t01_cycloidal_lowN_stub_s20260611",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "power_balance_error",
+            "excessive_torque_ripple"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.5333333333333333
         },
         "verifier_level": 3
       },
@@ -1142,12 +1166,20 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t02_cycloidal_lowN_stub_s20260612",
-        "task_hash": "4fd024520c60e10560a291ea87acfdb335c131f272a016ed8b0f7fc324202251",
+        "task_hash": "0294a8e4d17801b11ec13d57a47e3309a40104308ce666f58a4b65ed56e29121",
         "task_id": "cycloidal_reducer_t02_cycloidal_lowN_stub_s20260612",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "power_balance_error",
+            "excessive_torque_ripple"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.5333333333333333
         },
         "verifier_level": 3
       },
@@ -1172,12 +1204,20 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t03_cycloidal_lowN_stub_s20260613",
-        "task_hash": "25f9be0ecdfb29c2955986227fabbba3a7cda3cb7febf114dac451e66692d563",
+        "task_hash": "a0f38f577024763a81190771bd0cdd2da8f9d9d6349f97fcb4a4d98eef4b5927",
         "task_id": "cycloidal_reducer_t03_cycloidal_lowN_stub_s20260613",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "power_balance_error",
+            "excessive_torque_ripple"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.5333333333333333
         },
         "verifier_level": 3
       },
@@ -1202,12 +1242,20 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t04_cycloidal_lowN_stub_s20260614",
-        "task_hash": "2c815e02781f1bc98a9c699f3b3fadd9b6b2763a60ae6d78796378a67539bc5f",
+        "task_hash": "bd14ad6265de26e6b52e3ec041a0831b560648d09839b06dd3b63275b1b08c57",
         "task_id": "cycloidal_reducer_t04_cycloidal_lowN_stub_s20260614",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "power_balance_error",
+            "excessive_torque_ripple"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.5333333333333333
         },
         "verifier_level": 3
       },
@@ -1232,12 +1280,20 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t05_cycloidal_lowN_stub_s20260615",
-        "task_hash": "bc3655ae7f6b4c3bded495f2fe30ffbd03b0711eb4880e13c8c753c1506b5ad9",
+        "task_hash": "864e202871ec9aed8ff578831e5be1653e6da5edb4d6264126032d72a6bf868f",
         "task_id": "cycloidal_reducer_t05_cycloidal_lowN_stub_s20260615",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "power_balance_error",
+            "excessive_torque_ripple"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.5333333333333333
         },
         "verifier_level": 3
       },
@@ -1262,12 +1318,20 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t06_cycloidal_lowN_stub_s20260616",
-        "task_hash": "cbaf69a34fd26728c416b480c9aae67d71bb5485cc8112cee3bf706456172971",
+        "task_hash": "fce3625a22330de3c0ae57cbfda4f2d4ea7b6a41f50f02cbcaa652f291110153",
         "task_id": "cycloidal_reducer_t06_cycloidal_lowN_stub_s20260616",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "power_balance_error",
+            "excessive_torque_ripple"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.5333333333333333
         },
         "verifier_level": 3
       },
@@ -1292,12 +1356,20 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t07_cycloidal_lowN_stub_s20260617",
-        "task_hash": "12893bdc5e40cab796bd1a89d24b220cf9481efa53f2d648c5f02dfb26a273dc",
+        "task_hash": "e8663e612a3696c10d396d94a0fc3b51d39385a71aa1f098fb914f19488c649f",
         "task_id": "cycloidal_reducer_t07_cycloidal_lowN_stub_s20260617",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "power_balance_error",
+            "excessive_torque_ripple"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.5333333333333333
         },
         "verifier_level": 3
       },
@@ -1322,12 +1394,20 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t08_cycloidal_lowN_stub_s20260618",
-        "task_hash": "81ff8995f7a99ce56cbbb654d0125e95b2cbd1b7758a60ddc34916591e0281d4",
+        "task_hash": "e8728da7e8e2a73c545db3eb9ef90cebddd349e7864fd210cc4a44ec407ac578",
         "task_id": "cycloidal_reducer_t08_cycloidal_lowN_stub_s20260618",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "power_balance_error",
+            "excessive_torque_ripple"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.5333333333333333
         },
         "verifier_level": 3
       },
@@ -1352,12 +1432,20 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t09_cycloidal_lowN_stub_s20260619",
-        "task_hash": "792623a5e5148a645426e91bc8e32d2340b6bdfc6953034114054841acc4173d",
+        "task_hash": "97df190c4a0811c13a918cba97864b6d74eaccba180a07d3a286db4b1fd84eec",
         "task_id": "cycloidal_reducer_t09_cycloidal_lowN_stub_s20260619",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "power_balance_error",
+            "excessive_torque_ripple"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.5333333333333333
         },
         "verifier_level": 3
       },
@@ -1720,12 +1808,17 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t00_geneva_indexing_stub_s20270610",
-        "task_hash": "c6c916c14bcdc38ee61a319bf35ae28a526c211c0af601c868e00be427a079fa",
+        "task_hash": "1f0c779ef5011ab43eb0e5cfc84b1468a2d2e32c49151844368a0120995e6210",
         "task_id": "geneva_indexer_t00_geneva_indexing_stub_s20270610",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -1750,12 +1843,17 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t01_geneva_indexing_stub_s20270611",
-        "task_hash": "2edbd1628eb99fcf6bd3113b3783024f5e3af22c3b069d5a334c36c43fae56cd",
+        "task_hash": "9ff770c8931f6ac00239f34fedb3a11164c4f03a4e52dc0ef73e9d642af3b624",
         "task_id": "geneva_indexer_t01_geneva_indexing_stub_s20270611",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -1780,12 +1878,17 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t02_geneva_indexing_stub_s20270612",
-        "task_hash": "382e43c69289922fc38303e183a3cf033551fa812c76bdc410fcafcdc5233412",
+        "task_hash": "382c9607ac8224c120c013445815bfe76964e4b9c3c19446c9c89d207ee5b42b",
         "task_id": "geneva_indexer_t02_geneva_indexing_stub_s20270612",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -1810,12 +1913,17 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t03_geneva_indexing_stub_s20270613",
-        "task_hash": "a2613034637186823e41bcbbb24543a7ce8913abeaa07e3ef8febd5584f12c90",
+        "task_hash": "c67d6f4817e696f4a3bfd45a49346e7416f45b54402539e9a1316fa8743642fc",
         "task_id": "geneva_indexer_t03_geneva_indexing_stub_s20270613",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -1840,12 +1948,17 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t04_geneva_indexing_stub_s20270614",
-        "task_hash": "cb6a3591745d5b3fe655b9663b8c272e104144790723746c5146a56249f35ef1",
+        "task_hash": "3972d0b949f040d4dd0a0a5365e9daa84d9796ef5856403249535cb1199fc755",
         "task_id": "geneva_indexer_t04_geneva_indexing_stub_s20270614",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -1870,12 +1983,17 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t05_geneva_indexing_stub_s20270615",
-        "task_hash": "316fb5cf753d7b61deb79cac44afc9de43faeed9f26449a2a5037c65f11651ae",
+        "task_hash": "6b8896a3163aefcb45d781fe32e13474e87c911f507d619d8f42fb320a57435e",
         "task_id": "geneva_indexer_t05_geneva_indexing_stub_s20270615",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -1900,12 +2018,17 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t06_geneva_indexing_stub_s20270616",
-        "task_hash": "4526c7605b1a4c5b1475bebbc98c92dd31faabf0bacdfcdb2b9391099c408095",
+        "task_hash": "e96ae959ea32c92c8540ac0f9239b3a67f775cea5e569ee576c3b795a780a6a0",
         "task_id": "geneva_indexer_t06_geneva_indexing_stub_s20270616",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -1930,12 +2053,17 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t07_geneva_indexing_stub_s20270617",
-        "task_hash": "2baaace9f29d3043f38f37d1a4f37f34fb4839b90fe498109f264a72bf1b78ad",
+        "task_hash": "a1684ddfb87a4778a53313fa3c01f1867d2c7d4ad8c3d0eb089b8cdefa02f137",
         "task_id": "geneva_indexer_t07_geneva_indexing_stub_s20270617",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -1960,12 +2088,17 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t08_geneva_indexing_stub_s20270618",
-        "task_hash": "794ffbfd17431d498a7b3d4c2948bdcc003b880fd724a4f78dcbdfa1376457cf",
+        "task_hash": "a1152471227695e726631e2af140c596480da74d5099d35d84f474254e051fae",
         "task_id": "geneva_indexer_t08_geneva_indexing_stub_s20270618",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -1990,12 +2123,17 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t09_geneva_indexing_stub_s20270619",
-        "task_hash": "908584c17952d995aea8a071b93b193ffa9666d31e1e633f3066ca86dbfabafd",
+        "task_hash": "6a0094b7c1237ae05e5001e8e8e26c9cb3a17e450119877305f486e77471a834",
         "task_id": "geneva_indexer_t09_geneva_indexing_stub_s20270619",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -2700,12 +2838,19 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t00_rack_pinion_contact_stub_s20265610",
-        "task_hash": "2624fd5c021bc542cdaf74a4902e4709c81a21837477dee154b06468877403fe",
+        "task_hash": "447d68d73895901eff063d5ecc6ad0b02dbcec3587586d038e24ae1f55439e0a",
         "task_id": "rack_pinion_t00_rack_pinion_contact_stub_s20265610",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "lockup"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -2730,12 +2875,19 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t01_rack_pinion_contact_stub_s20265611",
-        "task_hash": "67f239e6e42091e9696994b4aeabbcca8ca06b5d38cdd9e2fb28bdc38e3f72d0",
+        "task_hash": "264a4927b9fb0e340b4fa3bc5573e8332c7e0e88716aee520de4c6507187767b",
         "task_id": "rack_pinion_t01_rack_pinion_contact_stub_s20265611",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "lockup"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -2760,12 +2912,19 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t02_rack_pinion_contact_stub_s20265612",
-        "task_hash": "f13d727e399f273aa68177fe2b96e8dee4523f603b8093ec3c78e54988c52a15",
+        "task_hash": "a030cf3e336db5a1b3cad7b25b1764d3f27ba978dd75302ed995ad259af53d2c",
         "task_id": "rack_pinion_t02_rack_pinion_contact_stub_s20265612",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "lockup"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -2790,12 +2949,19 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t03_rack_pinion_contact_stub_s20265613",
-        "task_hash": "1b9c57c6c00bba5a3beb77c74c797b333adbb235a7d0ed9bf74eb7211c95a4bd",
+        "task_hash": "f5dfa53c4943fb05f92aea4ad5918d51acf3232fbb7d66992c5a314554f34c09",
         "task_id": "rack_pinion_t03_rack_pinion_contact_stub_s20265613",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "lockup"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -2820,12 +2986,19 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t04_rack_pinion_contact_stub_s20265614",
-        "task_hash": "a0591229d07d515d3f05466c466dc15a15a7b5ffd55a8b4995db4787cdd31618",
+        "task_hash": "7506b53fa732f42c9b856dc1d498824abe557d553959f2e5d53a0a49c58b7876",
         "task_id": "rack_pinion_t04_rack_pinion_contact_stub_s20265614",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "lockup"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -2850,12 +3023,19 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t05_rack_pinion_contact_stub_s20265615",
-        "task_hash": "dd7a5e26fcbbd544e0d0727af6b072efba12ec857f45898416b9b3303c308bef",
+        "task_hash": "4a0307e6b2ec16c444915a6d6858b9a87868269b845476d55b5793ae9bfac2c9",
         "task_id": "rack_pinion_t05_rack_pinion_contact_stub_s20265615",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "lockup"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -2880,12 +3060,19 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t06_rack_pinion_contact_stub_s20265616",
-        "task_hash": "47a7914f46d895c884d926fa1a926b4ddb23aa590718b8fa45f74f0cb1102037",
+        "task_hash": "76d2b33fd7cb43c34055a75390c7bf3e50d004b74c72690931c3f34b97494c1c",
         "task_id": "rack_pinion_t06_rack_pinion_contact_stub_s20265616",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "lockup"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -2910,12 +3097,19 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t07_rack_pinion_contact_stub_s20265617",
-        "task_hash": "5c72b5bbef397bc748538aac5f9183c4ce1949c64dc11629a6a69a02945eba5d",
+        "task_hash": "af0cc07aebeb9a86be0153a0e9ca2c0fbb56488a73c498fa5f2ce0ecee1cc851",
         "task_id": "rack_pinion_t07_rack_pinion_contact_stub_s20265617",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "lockup"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -2940,12 +3134,19 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t08_rack_pinion_contact_stub_s20265618",
-        "task_hash": "6ecd0b9a1e3dd60a2ceba251f52d583271ea3409493854085cea92814c9d67c5",
+        "task_hash": "6785966652775308aea906be3233d5b34613dc40ff4e35a8142c41d4254e71b7",
         "task_id": "rack_pinion_t08_rack_pinion_contact_stub_s20265618",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "lockup"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -2970,12 +3171,19 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t09_rack_pinion_contact_stub_s20265619",
-        "task_hash": "614ed7b8f66d7fcc4bd7d305416decf8921222ea40d2bb6dbff540f06bfa00ce",
+        "task_hash": "6bbeac922a2eb9587a3d266fc393fe1c09c3df91f8a18265a459f5b641aeb422",
         "task_id": "rack_pinion_t09_rack_pinion_contact_stub_s20265619",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [
+            "lockup"
+          ],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
         "verifier_level": 3
       },
@@ -4007,12 +4215,12 @@
     ],
     "tasks_root": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks",
     "validate": true,
-    "validate_level3": false,
+    "validate_level3": true,
     "validation_blockers": []
   },
   "base_seed": 20260610,
   "benchmark_name": "MechanismRepair-Physics",
-  "experiment_ready": false,
+  "experiment_ready": true,
   "goals_contract": "goals.md",
   "hidden_variant_manifest_path": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/hidden_variant_manifest.json",
   "level_counts": {

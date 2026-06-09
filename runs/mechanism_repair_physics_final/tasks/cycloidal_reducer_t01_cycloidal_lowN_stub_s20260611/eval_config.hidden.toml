@@ -6,7 +6,7 @@ hidden_metrics = ["torque.torque_ripple_pct", "trusted_asset_preflight.trusted_m
 require = ["ports", "trusted_asset_preflight", "chrono_contact_smoke"]
 
 [adapters.chrono_contact]
-contact_model = "smc"
+contact_model = "nsc"
 procedural_cycloidal_fallback = false
 samples = 720
 duration_s = 1.0

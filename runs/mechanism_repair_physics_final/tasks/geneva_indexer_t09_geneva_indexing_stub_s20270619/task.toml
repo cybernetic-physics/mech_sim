@@ -30,7 +30,7 @@ requires_isomorphic_variant = true
 fake_contact_oracle_allowed = false
 
 [chrono_contact]
-contact_model = "smc"
+contact_model = "nsc"
 procedural_cycloidal_fallback = false
 samples = 720
 duration_s = 1.0

@@ -354,6 +354,21 @@ def test_swept_collision_allowed_pair_skipped():
     assert result.passed, result.failures
 
 
+def test_swept_collision_ignored_only_has_finite_worst_time():
+    probe = get_probe("swept_collision")
+    pen = {"crank:coupler": np.array([0.5, 0.6])}
+    result = probe.run(_ir_minimal(), {
+        "penetration": pen,
+        "time_s": np.array([0.1, 0.2]),
+    }, {
+        "max_penetration_mm": 0.05,
+        "ignored_pairs": ["crank:coupler"],
+    })
+    assert result.passed, result.failures
+    assert result.metrics["max_penetration_mm"] == pytest.approx(0.0)
+    assert result.metrics["worst_time_s"] == pytest.approx(0.0)
+
+
 # --------------------------------------------------------------------- #
 # contact_engagement                                                    #
 # --------------------------------------------------------------------- #

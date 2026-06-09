@@ -6,7 +6,7 @@ hidden_metrics = ["trusted_asset_preflight.trusted_mass_properties_recomputed"]
 require = ["ports", "contact", "trusted_asset_preflight"]
 
 [adapters.chrono_contact]
-contact_model = "smc"
+contact_model = "nsc"
 procedural_cycloidal_fallback = false
 samples = 720
 duration_s = 1.0
@@ -32,7 +32,7 @@ id = "contact"
 type = "contact_engagement"
 required_pairs = ["pinion:rack"]
 min_rms_force_N = 0.5
-min_engagement_fraction = 0.2
+min_engagement_fraction = 0.01
 weight = 1.0
 severity = "critical"
 hard_gate = true

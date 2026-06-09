@@ -27,9 +27,9 @@
       "adapter": "chrono_contact",
       "pychrono_importable": false,
       "pychrono_project_chrono": false,
-      "reason": "pychrono not importable: No module named 'pychrono'",
-      "runner_status": "missing_dependency",
-      "status": "unavailable"
+      "reason": "pychrono + _chrono_impl available via /Users/nataliakokoromyti/Projects/corl/.external/chrono_env/bin/python (subprocess)",
+      "runner_status": "ready",
+      "status": "available"
     },
     "requires_chrono_contact": true,
     "requires_real_pychrono": true

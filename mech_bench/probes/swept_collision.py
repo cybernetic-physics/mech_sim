@@ -130,7 +130,7 @@ class SweptCollision(Probe):
                 worst_pair = pair_key
                 worst_idx = idx
 
-        worst_time_s = float("nan")
+        worst_time_s = 0.0
         if (time_s is not None and worst_idx >= 0
                 and worst_idx < time_s.size):
             worst_time_s = float(time_s[worst_idx])

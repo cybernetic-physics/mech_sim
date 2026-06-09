@@ -97,6 +97,119 @@ def _physics_stub_step(part_id):
     )
 
 
+def _physics_contact_body_ids(ir):
+    bodies = set()
+    for joint in ir.get("joints", []) or []:
+        if not isinstance(joint, dict) or joint.get("type") != "contact_pair":
+            continue
+        parent = joint.get("parent")
+        child = joint.get("child")
+        if parent:
+            bodies.add(str(parent))
+        if child:
+            bodies.add(str(child))
+    for pair in []:
+        left, _, right = str(pair).partition(":")
+        if left:
+            bodies.add(left)
+        if right:
+            bodies.add(right)
+    declared_pair = (ir.get("params") or {}).get("declared_pair")
+    if declared_pair:
+        left, _, right = str(declared_pair).partition(":")
+        if left:
+            bodies.add(left)
+        if right:
+            bodies.add(right)
+    return bodies
+
+
+def _physics_default_chrono_collision(part, family):
+    part_id = str(part.get("id", ""))
+    role = str(part.get("role", ""))
+    center = tuple(part.get("com_local_mm", (0.0, 0.0, 0.0)))
+    if family == "cycloidal_reducer":
+        if part_id == "housing" or role == "ground":
+            return {
+                "shape": "cylinder",
+                "radius_mm": 31.0,
+                "height_mm": 12.0,
+                "center_mm": center,
+                "axis": (0.0, 0.0, 1.0),
+            }
+        if part_id == "disc" or role == "cycloidal_disc":
+            return {
+                "shape": "cylinder",
+                "radius_mm": 30.98,
+                "height_mm": 8.0,
+                "center_mm": center,
+                "axis": (0.0, 0.0, 1.0),
+            }
+    if family == "rack_pinion":
+        if part_id == "pinion":
+            return {
+                "shape": "cylinder",
+                "radius_mm": 14.9,
+                "height_mm": 8.0,
+                "center_mm": center,
+                "axis": (0.0, 0.0, 1.0),
+            }
+        if part_id == "rack":
+            return {
+                "shape": "box",
+                "size_mm": (80.0, 3.0, 8.0),
+                "center_mm": (0.0, 13.55, 0.0),
+            }
+    if family == "cam_follower":
+        if part_id == "cam":
+            return {
+                "shape": "cylinder",
+                "radius_mm": 20.0,
+                "height_mm": 8.0,
+                "center_mm": center,
+                "axis": (0.0, 0.0, 1.0),
+            }
+        if part_id == "follower":
+            return {
+                "shape": "cylinder",
+                "radius_mm": 20.0,
+                "height_mm": 8.0,
+                "center_mm": center,
+                "axis": (0.0, 0.0, 1.0),
+            }
+    if family == "geneva_indexer":
+        if part_id == "driver":
+            return {
+                "shape": "cylinder",
+                "radius_mm": 20.0,
+                "height_mm": 8.0,
+                "center_mm": center,
+                "axis": (0.0, 0.0, 1.0),
+            }
+        if part_id == "geneva":
+            return {
+                "shape": "cylinder",
+                "radius_mm": 20.05,
+                "height_mm": 8.0,
+                "center_mm": center,
+                "axis": (0.0, 0.0, 1.0),
+            }
+    return {
+        "shape": "box",
+        "size_mm": (20.0, 20.0, 8.0),
+        "center_mm": center,
+    }
+
+
+def _physics_default_initial_pose_mm(part, family):
+    part_id = str(part.get("id", ""))
+    if family == "cam_follower" and part_id == "follower":
+        return (40.04, 0.0, 0.0)
+    if family == "geneva_indexer" and part_id == "geneva":
+        return (39.98, 0.0, 0.0)
+    return None
+
+
 def _physics_enrich_design(ir, out_dir):
     from pathlib import Path
 
@@ -139,12 +252,35 @@ def _physics_enrich_design(ir, out_dir):
             ),
         },
     )
+    if 2 >= 3:
+        chrono_cfg = params.setdefault("chrono", {})
+        chrono_cfg.setdefault("collision_filter_named_pairs", True)
+        chrono_cfg.setdefault("contact_margin_m", 2.0e-5)
+        chrono_cfg.setdefault("contact_envelope_m", 2.0e-5)
+        chrono_cfg.setdefault("smc_use_material_properties", False)
+        chrono_cfg.setdefault("normal_stiffness_N_m", 25000.0)
+        chrono_cfg.setdefault("normal_damping_N_s_m", 250.0)
+        chrono_cfg.setdefault("friction_mu", 0.05)
+        chrono_cfg.setdefault("solver_max_iterations", 300)
+        chrono_cfg.setdefault("solver_tolerance", 1.0e-8)
+    contact_bodies = (
+        _physics_contact_body_ids(ir) if 2 >= 3 else set()
+    )
     for index, part in enumerate(ir.get("parts", []) or []):
         if not isinstance(part, dict):
             continue
         part_id = _physics_safe_id(part.get("id", f"part_{index}"))
         part.setdefault("material", "steel_1045")
         part.setdefault("com_local_mm", (0.0, 0.0, 0.0))
+        pparams = part.setdefault("params", {})
+        initial_pose = _physics_default_initial_pose_mm(part, 'spur_compound_gear_train')
+        if initial_pose is not None:
+            pparams.setdefault("initial_pose_mm", initial_pose)
+        if part_id in contact_bodies:
+            pparams.setdefault(
+                "chrono_collision",
+                _physics_default_chrono_collision(part, 'spur_compound_gear_train'),
+            )
         geom = part.setdefault("geometry", {})
         cad_name = geom.setdefault("cad", f"{part_id}.step")
         cad_path = out_path / cad_name
@@ -152,7 +288,6 @@ def _physics_enrich_design(ir, out_dir):
             cad_path.write_text(_physics_stub_step(part_id))
         mass = float(part.get("mass_kg", 0.0) or 0.0)
         if mass > 0.0:
-            pparams = part.setdefault("params", {})
             scale = max(mass, 1.0e-6)
             pparams.setdefault(
                 "cad_mass_properties",
