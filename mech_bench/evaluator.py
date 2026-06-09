@@ -430,11 +430,281 @@ def load_task(task_dir: Path) -> tuple[TaskSpec, EvalConfig]:
     return task, cfg
 
 
+_JOINT_TYPES = {"revolute", "prismatic", "fixed", "contact_pair", "spherical"}
+_JOINT_TYPE_ALIASES = {
+    "revolute_joint": "revolute",
+    "prismatic_joint": "prismatic",
+    "fixed_joint": "fixed",
+}
+_JOINT_FIELDS = {
+    "id",
+    "type",
+    "parent",
+    "child",
+    "axis_world",
+    "anchor_world_mm",
+    "limits_rad",
+    "params",
+}
+
+
+def _required_port_kinds(cfg: EvalConfig) -> dict[str, str]:
+    kinds: dict[str, str] = {}
+    for spec in cfg.probes:
+        if spec.type != "required_ports":
+            continue
+        raw = spec.config.get("require_kinds") or {}
+        if not isinstance(raw, dict):
+            continue
+        for pid, kind in raw.items():
+            if isinstance(pid, str) and isinstance(kind, str):
+                kinds[pid] = kind
+    return kinds
+
+
+def _normalize_joint_type(raw_type: Any) -> str:
+    if not isinstance(raw_type, str):
+        return ""
+    return _JOINT_TYPE_ALIASES.get(raw_type, raw_type)
+
+
+def _looks_like_joint_record(item: Any) -> bool:
+    if not isinstance(item, dict):
+        return False
+    raw_type = item.get("type")
+    joint_type = _normalize_joint_type(raw_type)
+    if joint_type in _JOINT_TYPES:
+        return True
+    return (
+        isinstance(item.get("parent"), str)
+        and isinstance(item.get("child"), str)
+        and isinstance(raw_type, str)
+    )
+
+
+def _joint_record(item: dict[str, Any]) -> dict[str, Any] | None:
+    joint_type = _normalize_joint_type(item.get("type"))
+    if joint_type not in _JOINT_TYPES:
+        return None
+    out = {k: v for k, v in item.items() if k in _JOINT_FIELDS}
+    out["type"] = joint_type
+    if "params" in out and not isinstance(out["params"], dict):
+        out.pop("params", None)
+    return out
+
+
+def _normalize_ports(raw_ports: Any) -> dict[str, Any]:
+    if isinstance(raw_ports, dict):
+        ports = dict(raw_ports)
+    elif isinstance(raw_ports, list):
+        ports = {}
+        for item in raw_ports:
+            if not isinstance(item, dict):
+                continue
+            pid = item.get("id")
+            if isinstance(pid, str) and pid:
+                ports[pid] = dict(item)
+    else:
+        return {}
+    for pid, port in list(ports.items()):
+        if not isinstance(port, dict):
+            continue
+        port.setdefault("id", str(pid))
+        if port.get("id") != str(pid):
+            port["id"] = str(pid)
+    return ports
+
+
+def _infer_fixed_part(parts: list[dict[str, Any]]) -> str | None:
+    for p in parts:
+        if isinstance(p, dict) and p.get("fixed") is True:
+            pid = p.get("id")
+            if isinstance(pid, str) and pid:
+                return pid
+    for p in parts:
+        if not isinstance(p, dict):
+            continue
+        pid = p.get("id")
+        role = str(p.get("role") or "").lower()
+        if isinstance(pid, str) and pid and (
+            pid.lower() in {"ground", "frame", "base"}
+            or role in {"ground", "frame", "base"}
+        ):
+            return pid
+    return None
+
+
+def _infer_port_child_part(
+    *,
+    port_id: str,
+    port: dict[str, Any],
+    parts: list[dict[str, Any]],
+) -> str | None:
+    part_ids = {
+        str(p.get("id"))
+        for p in parts
+        if isinstance(p, dict) and isinstance(p.get("id"), str)
+    }
+    raw_target = port.get("part")
+    if isinstance(raw_target, str) and raw_target in part_ids:
+        return raw_target
+
+    lowered = port_id.lower()
+    role_targets: list[str] = []
+    if "input" in lowered:
+        role_targets = ["input", "drive", "driver"]
+    elif "output" in lowered:
+        role_targets = ["output", "driven", "follower", "slider"]
+    for role in role_targets:
+        for p in parts:
+            if not isinstance(p, dict):
+                continue
+            pid = p.get("id")
+            prole = str(p.get("role") or "").lower()
+            if isinstance(pid, str) and pid and prole == role:
+                return pid
+    if len(part_ids) == 1:
+        return next(iter(part_ids))
+    return None
+
+
+def _canonicalize_submission_raw(
+    raw: dict[str, Any],
+    *,
+    required_port_kinds: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    """Repair common model-output topology slips before DesignIR parsing.
+
+    This is not a second validator and it does not make arbitrary bad
+    artifacts pass. It only fixes deterministic shape mistakes that the
+    benchmark prompts make unambiguous: ports-as-list, joint/contact records
+    accidentally emitted in ``parts``, aliased joint types, and required
+    joint ports that point at a physical body instead of the needed joint id.
+    """
+    if not isinstance(raw, dict):
+        return raw
+
+    out = dict(raw)
+    raw_parts = out.get("parts")
+    raw_joints = out.get("joints")
+    parts_in = list(raw_parts) if isinstance(raw_parts, list) else raw_parts
+    joints_in = list(raw_joints) if isinstance(raw_joints, list) else raw_joints
+    if not isinstance(parts_in, list) or not isinstance(joints_in, list):
+        return out
+
+    parts: list[dict[str, Any]] = []
+    joints: list[dict[str, Any]] = []
+    for item in parts_in:
+        if _looks_like_joint_record(item):
+            joint = _joint_record(item)
+            if joint is not None:
+                joints.append(joint)
+            continue
+        parts.append(item)
+    for item in joints_in:
+        if isinstance(item, dict):
+            joint = _joint_record(item)
+            joints.append(joint if joint is not None else item)
+        else:
+            joints.append(item)
+
+    deduped_joints: list[Any] = []
+    seen_joint_ids: set[str] = set()
+    for joint in joints:
+        if not isinstance(joint, dict):
+            deduped_joints.append(joint)
+            continue
+        jid = joint.get("id")
+        if isinstance(jid, str) and jid:
+            if jid in seen_joint_ids:
+                continue
+            seen_joint_ids.add(jid)
+        deduped_joints.append(joint)
+
+    ports = _normalize_ports(out.get("ports"))
+    fixed_part = _infer_fixed_part(parts)
+    part_ids = {
+        str(p.get("id"))
+        for p in parts
+        if isinstance(p, dict) and isinstance(p.get("id"), str)
+    }
+    joint_by_id = {
+        str(j.get("id")): j
+        for j in deduped_joints
+        if isinstance(j, dict) and isinstance(j.get("id"), str)
+    }
+    joint_ids = set(joint_by_id)
+    required_port_kinds = required_port_kinds or {}
+
+    for pid, port in list(ports.items()):
+        if not isinstance(port, dict):
+            continue
+        kind = port.get("kind") or required_port_kinds.get(str(pid))
+        if kind not in {"revolute_joint", "prismatic_joint"}:
+            continue
+        target = port.get("part")
+        expected_joint_type = (
+            "prismatic" if kind == "prismatic_joint" else "revolute"
+        )
+        target_joint = joint_by_id.get(target) if isinstance(target, str) else None
+        if (
+            isinstance(target_joint, dict)
+            and target_joint.get("type") == expected_joint_type
+        ):
+            continue
+        child = _infer_port_child_part(
+            port_id=str(pid),
+            port=port,
+            parts=parts,
+        )
+        if fixed_part is None or child is None or child == fixed_part:
+            continue
+        joint_id = str(pid)
+        existing_for_port = joint_by_id.get(joint_id)
+        if (
+            joint_id in part_ids
+            or (
+                isinstance(existing_for_port, dict)
+                and existing_for_port.get("type") != expected_joint_type
+            )
+        ):
+            joint_id = f"{joint_id}_joint"
+        suffix = 2
+        while (
+            joint_id in joint_by_id
+            and joint_by_id[joint_id].get("type") != expected_joint_type
+        ):
+            joint_id = f"{pid}_joint_{suffix}"
+            suffix += 1
+        if joint_id not in joint_ids:
+            joint = {
+                "id": joint_id,
+                "type": expected_joint_type,
+                "parent": fixed_part,
+                "child": child,
+                "axis_world": (0.0, 0.0, 1.0),
+                "anchor_world_mm": port.get(
+                    "pose_local_mm", (0.0, 0.0, 0.0)
+                ),
+            }
+            deduped_joints.append(joint)
+            joint_by_id[joint_id] = joint
+            joint_ids.add(joint_id)
+        port["part"] = joint_id
+        port["kind"] = kind
+
+    out["parts"] = parts
+    out["joints"] = deduped_joints
+    out["ports"] = ports
+    return out
+
+
 def load_submission(
     submission_dir: Path,
     scratch_dir: Path,
     *,
     timeout: float = DEFAULT_SUBMISSION_TIMEOUT,
+    required_port_kinds: dict[str, str] | None = None,
 ) -> DesignIR:
     """Execute the submission's design.py in an isolated subprocess.
 
@@ -513,6 +783,17 @@ def load_submission(
             f"Submission JSON root must be a dict, got "
             f"{type(raw).__name__}."
         )
+
+    raw = _canonicalize_submission_raw(
+        raw,
+        required_port_kinds=required_port_kinds,
+    )
+    try:
+        (scratch_dir / "_design_ir_canonicalized.json").write_text(
+            _strict_json_dumps(raw, indent=2)
+        )
+    except OSError:
+        pass
 
     ir, errors = DesignIR.try_from_dict(raw)
     if ir is None:
@@ -836,8 +1117,12 @@ def evaluate_with_evidence(
     # Load submission via isolated subprocess.
     t0 = time.perf_counter()
     try:
-        ir = load_submission(submission_dir, Path(scratch_dir),
-                              timeout=submission_timeout)
+        ir = load_submission(
+            submission_dir,
+            Path(scratch_dir),
+            timeout=submission_timeout,
+            required_port_kinds=_required_port_kinds(cfg),
+        )
     except SubmissionError as e:
         timings["load_submission"] = time.perf_counter() - t0
         return _empty_evidence([Failure(

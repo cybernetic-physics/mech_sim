@@ -137,6 +137,109 @@ def test_infinite_loop_design_surfaces_invalid_artifact(tmp_path: Path):
     assert report.evaluation_valid is False
 
 
+def test_load_submission_canonicalizes_model_topology_near_misses(
+    tmp_path: Path,
+):
+    sub = _write_design(tmp_path, '''
+        from pathlib import Path
+        def build_design(out_dir: Path) -> dict:
+            return {
+                "schema_version": "design_ir.v2",
+                "parts": [
+                    {"id": "frame", "role": "ground",
+                     "fixed": True, "mass_kg": 0.0},
+                    {"id": "cam", "role": "input", "mass_kg": 0.02},
+                    {"id": "follower", "role": "output", "mass_kg": 0.05},
+                    {"id": "cam_follower_contact",
+                     "type": "contact_pair",
+                     "parent": "cam", "child": "follower"},
+                ],
+                "joints": [],
+                "ports": {
+                    "input_port": {
+                        "id": "input_port",
+                        "part": "cam_follower_contact",
+                        "kind": "revolute_joint",
+                    },
+                },
+            }
+    ''')
+    ir = load_submission(
+        sub,
+        tmp_path / "scratch",
+        required_port_kinds={"input_port": "revolute_joint"},
+    )
+    assert {p.id for p in ir.parts} == {"frame", "cam", "follower"}
+    assert {j.id for j in ir.joints} == {
+        "cam_follower_contact", "input_port",
+    }
+    assert ir.ports["input_port"].part == "input_port"
+
+
+def test_evaluate_canonicalized_submission_reaches_required_ports_probe(
+    tmp_path: Path,
+):
+    task_dir = tmp_path / "task"
+    task_dir.mkdir()
+    (task_dir / "fixtures").mkdir()
+    (task_dir / "task.toml").write_text(textwrap.dedent('''
+        [task]
+        id = "canonicalized_cam"
+        family = "cam_follower"
+        difficulty = 1
+        units = "mm"
+
+        [requirements]
+        required_ports = ["input_port"]
+    ''').strip())
+    (task_dir / "eval_config.toml").write_text(textwrap.dedent('''
+        [hard_gate]
+        require = ["ports"]
+
+        [[probes]]
+        id = "ports"
+        type = "required_ports"
+        ports = ["input_port"]
+        require_grounded = ["input_port"]
+        hard_gate = true
+        severity = "critical"
+
+        [probes.require_kinds]
+        input_port = "revolute_joint"
+    ''').strip())
+    sub = _write_design(tmp_path, '''
+        from pathlib import Path
+        def build_design(out_dir: Path) -> dict:
+            return {
+                "schema_version": "design_ir.v2",
+                "parts": [
+                    {"id": "frame", "role": "ground",
+                     "fixed": True, "mass_kg": 0.0},
+                    {"id": "cam", "role": "input", "mass_kg": 0.02},
+                    {"id": "follower", "role": "output", "mass_kg": 0.05},
+                    {"id": "cam_follower_contact",
+                     "type": "contact_pair",
+                     "parent": "cam", "child": "follower"},
+                ],
+                "joints": [],
+                "ports": {
+                    "input_port": {
+                        "id": "input_port",
+                        "part": "cam",
+                        "kind": "revolute_joint",
+                    },
+                },
+            }
+    ''')
+    report = evaluate(task_dir, sub, scratch_dir=tmp_path / "scratch_eval")
+    codes = {f.code.value for f in report.feedback}
+    assert FailureCode.INVALID_ARTIFACT.value not in codes
+    assert FailureCode.MISSING_PORT.value not in codes
+    assert FailureCode.WRONG_TOPOLOGY.value not in codes
+    assert report.evaluation_valid is True
+    assert report.hard_gate_passed is True
+
+
 # --------------------------------------------------------------------- #
 # Non-JSON / malformed return value                                     #
 # --------------------------------------------------------------------- #
