@@ -6,7 +6,7 @@ import pytest
 import torch
 
 from rl.mech_env import TaskInfo
-from rl.mech_bench_reward import RewardResult
+from rl.mech_bench_reward import RewardResult, extract_design_py
 from rl import train_true_grpo_trl
 from rl.train_true_grpo_trl import (
     STRICT_FENCED_OUTPUT_INSTRUCTION,
@@ -30,6 +30,7 @@ from rl.train_true_grpo_trl import (
     _repeat_rows_for_grpo_sampler,
     _reward_base,
     _sanitize_token_ids,
+    _standalone_reward_text,
     _truncate_prompt_rows,
     _truncate_token_ids,
 )
@@ -382,6 +383,57 @@ def test_artifact_progress_reward_orders_syntax_and_schema_progress() -> None:
     assert truncated_features["syntax_ok"] is False
     assert complete_features["syntax_ok"] is True
     assert complete_features["closed_code_fence"] is True
+
+
+def test_standalone_reward_text_injects_prefill_helpers() -> None:
+    completion = (
+        "```python\n"
+        "from pathlib import Path\n"
+        "def build_design(out_dir: Path) -> dict:\n"
+        "    return {'schema_version': 'design_ir.v2', 'parts': ["
+        "{'id': 'cam', 'mass_kg': 0.1, 'com_local_mm': (0, 0, 0), "
+        "'geometry': {'cad': _write_step(out_dir, 'cam.step')}, "
+        "'params': {'cad_mass_properties': _mass_props(0.1)}}], "
+        "'joints': [], 'ports': {}, 'params': {}}\n"
+        "```"
+    )
+
+    repaired = _standalone_reward_text(completion)
+    source, extracted = extract_design_py(repaired)
+
+    assert extracted is True
+    assert "def _write_step" in source
+    assert "def _mass_props" in source
+    assert source.index("def _write_step") < source.index("def build_design")
+
+
+def test_artifact_progress_caps_invalid_artifact_reward() -> None:
+    complete_invalid = (
+        "```python\n"
+        "from pathlib import Path\n"
+        "def build_design(out_dir: Path) -> dict:\n"
+        "    return {'schema_version':'design_ir.v2','parts':[],"
+        "'joints':[],'ports':{'input_port':{},'output_port':{}},"
+        "'params':{}}\n"
+        "```"
+    )
+    invalid_result = RewardResult(
+        score=0.0,
+        verified_score=0.0,
+        hard_gate_passed=False,
+        evaluation_valid=False,
+        failure_codes=["invalid_artifact"],
+        design_py_extracted=True,
+    )
+
+    reward, features = _reward_base(
+        complete_invalid,
+        invalid_result,
+        reward_channel="artifact_progress",
+    )
+
+    assert reward == pytest.approx(0.20)
+    assert features["has_no_invalid_artifact_code"] is False
 
 
 def test_parse_max_memory_accepts_comma_map_and_json() -> None:

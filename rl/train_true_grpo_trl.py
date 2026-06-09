@@ -94,6 +94,72 @@ ASSISTANT_CODE_PREFILL = (
     "    return {'schema_version':'design_ir.v2','units':'mm','materials':M,\n"
     "        'parts':[frame(out_dir),\n"
 )
+STANDALONE_HELPER_PREAMBLE = """
+def _write_step(out_dir, n):
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    rel = n if str(n).endswith(".step") else f"{n}.step"
+    safe = str(rel).replace("'", "_")
+    (out / rel).write_text(
+        "ISO-10303-21;\\nHEADER;\\n"
+        "FILE_DESCRIPTION(('submitted CAD artifact'),'2;1');\\n"
+        "FILE_NAME('" + safe + "','2026-06-10',('mech_bench'),('corl'),"
+        "'trusted_asset_preflight','trusted_asset_preflight','');\\n"
+        "ENDSEC;\\nDATA;\\nENDSEC;\\nEND-ISO-10303-21;\\n"
+    )
+    return rel
+
+def _mass_props(m, c=(0.0, 0.0, 0.0), shape=None):
+    q = max(float(m), 1e-6)
+    if shape is None:
+        shape = {
+            "shape": "box",
+            "size_mm": (20.0, 20.0, 10.0),
+            "center_mm": tuple(c),
+        }
+    return {
+        "cad_mass_properties": {
+            "mass_kg": float(m),
+            "com_local_mm": tuple(c),
+            "inertia_kg_m2": (
+                (q * 1e-5, 0.0, 0.0),
+                (0.0, q * 1.2e-5, 0.0),
+                (0.0, 0.0, q * 1.5e-5),
+            ),
+        },
+        "chrono_collision": shape,
+    }
+
+def cad(out_dir, n):
+    return _write_step(out_dir, n)
+
+def cyl(r, h):
+    return {
+        "shape": "cylinder",
+        "radius_mm": float(r),
+        "height_mm": float(h),
+        "center_mm": (0.0, 0.0, 0.0),
+        "axis": (0.0, 0.0, 1.0),
+    }
+
+def box(x, y, z):
+    return {"shape": "box", "size_mm": (float(x), float(y), float(z))}
+
+def cm(m, c, s=None):
+    return _mass_props(m, c, s)
+
+def mp(m, c, s=None):
+    return _mass_props(m, c, s)
+""".strip()
+_STANDALONE_HELPER_USES = (
+    "_write_step(",
+    "_mass_props(",
+    "cad(",
+    "cm(",
+    "mp(",
+    "cyl(",
+    "box(",
+)
 
 
 def _full_eval_contract_suffix(task: env.TaskInfo) -> str:
@@ -145,6 +211,54 @@ def _completion_text(completion: Any) -> str:
                 parts.append(str(item))
         return "\n".join(parts)
     return "" if completion is None else str(completion)
+
+
+def _standalone_reward_text(completion_text: str) -> str:
+    """Make model-only continuations executable for verifier scoring.
+
+    TRL does not reliably pass custom ``rollout_completion_text`` through to
+    reward functions across versions. When an OpenAI-compatible rollout used an
+    assistant prefill, the reward function may receive only the model suffix.
+    If that suffix references the prefilled helpers, add standalone helper
+    definitions before ``build_design`` instead of failing before the verifier
+    can inspect the mechanism.
+    """
+    if ASSISTANT_CODE_PREFILL in completion_text:
+        return completion_text
+    source, extracted = extract_design_py(completion_text)
+    if not extracted:
+        return completion_text
+    if not _needs_standalone_helpers(source):
+        return completion_text
+    source = _insert_standalone_helpers(source)
+    return "```python\n" + source.strip() + "\n```"
+
+
+def _needs_standalone_helpers(source: str) -> bool:
+    if not any(symbol in source for symbol in _STANDALONE_HELPER_USES):
+        return False
+    helper_defs = (
+        "def _write_step",
+        "def _mass_props",
+        "def cad",
+        "def cm",
+        "def mp",
+    )
+    return not all(defn in source for defn in helper_defs)
+
+
+def _insert_standalone_helpers(source: str) -> str:
+    if "def _write_step" in source and "def _mass_props" in source:
+        return source
+    marker = "def build_design"
+    idx = source.find(marker)
+    if idx < 0:
+        return STANDALONE_HELPER_PREAMBLE + "\n\n" + source
+    prefix = source[:idx].rstrip()
+    suffix = source[idx:].lstrip()
+    if "from pathlib import Path" not in prefix:
+        prefix = "from pathlib import Path\n" + prefix
+    return prefix + "\n\n" + STANDALONE_HELPER_PREAMBLE + "\n\n" + suffix
 
 
 def _read_split_file(path: Path | None) -> set[str] | None:
@@ -714,9 +828,10 @@ def _make_reward_func(
         ids = task_id or [""] * len(completions)
         for idx, completion in enumerate(completions):
             if rollout_completion_text and idx < len(rollout_completion_text):
-                text = str(rollout_completion_text[idx])
+                raw_text = str(rollout_completion_text[idx])
             else:
-                text = _completion_text(completion)
+                raw_text = _completion_text(completion)
+            text = _standalone_reward_text(raw_text)
             task_path = Path(task_dir[idx]).resolve()
             candidate_scratch = scratch_root / f"reward_{time.time_ns()}_{idx}"
             candidate_scratch.mkdir(parents=True, exist_ok=True)
@@ -743,6 +858,8 @@ def _make_reward_func(
                 "reward_features": reward_features,
                 "completion_text": text,
                 "completion_preview": text[:4000],
+                "raw_completion_text": raw_text if raw_text != text else None,
+                "standalone_helpers_injected": raw_text != text,
                 **result.to_dict(),
             })
         with log_path.open("a") as f:
@@ -781,6 +898,7 @@ def _artifact_progress_reward(
 
     lowered = source.lower()
     codes = {str(code).lower() for code in (result.failure_codes or [])}
+    invalid_artifact = "invalid_artifact" in codes
     required_terms = {
         "schema_version": "schema_version" in lowered,
         "design_ir_v2": "design_ir.v2" in lowered,
@@ -815,6 +933,8 @@ def _artifact_progress_reward(
     reward += 0.15 if features["hard_gate_passed"] else 0.0
     reward += 0.35 * max(0.0, min(1.0, float(result.score)))
     reward += 0.10 * max(0.0, min(1.0, float(result.verified_score)))
+    if invalid_artifact:
+        reward = min(reward, 0.20 if syntax_ok and extracted else 0.05)
     return max(0.0, min(1.0, reward)), features
 
 
