@@ -707,6 +707,7 @@ def _designir_evidence_scaffold_lines(*, spec: FamilySpec) -> list[str]:
             "- Use this as a schema pattern, not as the mechanism answer; "
             "adapt part ids, joint ids, dimensions, masses, and params to the task."
         ),
+        "- Do not return placeholder strings such as `replace_with_task_part_id`; replace them with concrete task part ids and CAD filenames.",
         "- Define every helper you call; submissions fail if they call undefined helpers such as `cad(...)`.",
         "- `materials` must be a dict keyed by material id, not a list.",
         "- Every checked part needs `material`, `geometry[\"cad\"]`, and positive-mass parts need `params[\"cad_mass_properties\"]`.",

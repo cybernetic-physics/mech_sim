@@ -281,6 +281,7 @@ def test_materialized_physics_prompts_are_family_specific(tmp_path: Path) -> Non
         assert "`revolute_joint` and `prismatic_joint` entries" in prompt
         assert "must reference joint ids" in prompt
         assert "Minimal trusted CAD/material evidence pattern:" in prompt
+        assert "Do not return placeholder strings" in prompt
         assert "submissions fail if they call undefined helpers such as `cad(...)`" in prompt
         assert "`materials` must be a dict keyed by material id, not a list" in prompt
         assert "'elastic_modulus_pa': 205000000000.0" in prompt
@@ -327,6 +328,7 @@ def test_frozen_physics_benchmark_prompts_are_family_specific() -> None:
         assert f"Canonical mechanism family: `{family}`" in prompt
         assert "DesignIR deliverable:" in prompt
         assert "Minimal trusted CAD/material evidence pattern:" in prompt
+        assert "Do not return placeholder strings" in prompt
         assert "'geometry': {'cad': _write_step" in prompt
         assert "'cad_mass_properties': _mass_props" in prompt
         assert "fake_contact_oracle" in prompt
