@@ -60,13 +60,14 @@ usage() {
   cat <<EOF
 Usage: $0 [--submit]
 
-Stages the current worktree plus the frozen MechanismRepair-Physics benchmark
-to MATX, writes a Slurm array over shard_0000..shard_N, and writes a dependent
-merge/audit job.
+Stages the requested git ref, including the frozen MechanismRepair-Physics
+benchmark, to MATX, writes a Slurm array over shard_0000..shard_N, and writes a
+dependent merge/audit job.
 
 Useful overrides:
   REMOTE_HOST=$REMOTE_HOST
   REMOTE_ROOT=$REMOTE_ROOT
+  SOURCE_REF=HEAD
   OUT_DIR=$OUT_DIR
   NUM_SHARDS=$NUM_SHARDS
   ARRAY_CONCURRENCY=$ARRAY_CONCURRENCY
@@ -100,27 +101,17 @@ remote_repo="$REMOTE_ROOT/repo"
 remote_logs="$REMOTE_ROOT/logs"
 remote_sbatch="$REMOTE_ROOT/run_mechanism_repair_physics_array.sbatch"
 remote_merge_sbatch="$REMOTE_ROOT/run_mechanism_repair_physics_merge.sbatch"
+source_ref="${SOURCE_REF:-HEAD}"
+source_commit="$(git -C "$repo_root" rev-parse "$source_ref")"
 array_end=$((NUM_SHARDS - 1))
 if (( NUM_SHARDS < 1 )); then
   echo "NUM_SHARDS must be >= 1" >&2
   exit 2
 fi
 
-rsync_excludes=(
-  --exclude .git/
-  --exclude .venv/
-  --exclude .mypy_cache/
-  --exclude .pytest_cache/
-  --exclude __pycache__/
-  --exclude runs/
-  --exclude .external/
-)
-
-ssh "$REMOTE_HOST" "mkdir -p '$remote_repo' '$remote_logs' '$remote_repo/$OUT_DIR'"
-rsync -az --delete "${rsync_excludes[@]}" "$repo_root/" "$REMOTE_HOST:$remote_repo/"
-rsync -az --delete \
-  "$repo_root/runs/mechanism_repair_physics_final/" \
-  "$REMOTE_HOST:$remote_repo/$OUT_DIR/"
+ssh "$REMOTE_HOST" "rm -rf '$remote_repo' && mkdir -p '$remote_repo' '$remote_logs'"
+git -C "$repo_root" archive --format=tar "$source_commit" \
+  | ssh "$REMOTE_HOST" "tar -xf - -C '$remote_repo'"
 
 tmp_sbatch="$(mktemp)"
 cat >"$tmp_sbatch" <<EOF
@@ -353,7 +344,7 @@ EOF
 scp "$tmp_merge" "$REMOTE_HOST:$remote_merge_sbatch"
 rm -f "$tmp_merge"
 
-echo "Staged current worktree at $REMOTE_HOST:$remote_repo"
+echo "Staged $source_ref ($source_commit) at $REMOTE_HOST:$remote_repo"
 echo "Wrote array Slurm script at $REMOTE_HOST:$remote_sbatch"
 echo "Wrote merge Slurm script at $REMOTE_HOST:$remote_merge_sbatch"
 if (( submit )); then
