@@ -1477,6 +1477,7 @@ def rows_from_sample_summary(
             "failure_codes": best.get("failure_codes", []),
             "trace_path": str(trace_root / f"sample_{sample_idx}" / task_id),
             "summary_path": str(trace_root / "smoke_summary.json"),
+            "training_log_paths": training["training_log_paths"],
             "raw_completion_paths": raw_paths,
             "verifier_output_paths": verifier_paths,
             "cad_artifact_paths": cad_paths,
@@ -2462,6 +2463,15 @@ def training_metadata_from_manifest(path: Path) -> dict[str, Any]:
             payload.get("adapter_checkpoint_paths")
             or ([adapter_path] if adapter_path else [])
         )
+            if item
+    ]
+    training_log_paths = [
+        str(item)
+        for item in (
+            payload.get("training_log_paths")
+            or payload.get("training_logs")
+            or [str(path)]
+        )
         if item
     ]
     return {
@@ -2471,6 +2481,7 @@ def training_metadata_from_manifest(path: Path) -> dict[str, Any]:
         "n_rl_datums": int(payload.get("n_rl_datums", 0) or 0),
         "adapter_path": adapter_path,
         "adapter_checkpoint_paths": adapter_checkpoint_paths,
+        "training_log_paths": training_log_paths,
         "sampler_http_400_count": int(
             (payload.get("rollout_retry_stats") or {}).get(
                 "sampler_http_400_count", 0
@@ -2494,6 +2505,7 @@ def empty_training_metadata() -> dict[str, Any]:
         "n_rl_datums": 0,
         "adapter_path": "",
         "adapter_checkpoint_paths": [],
+        "training_log_paths": [],
         "sampler_http_400_count": 0,
         "sampler_retry_count": 0,
     }

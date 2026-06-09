@@ -35,6 +35,8 @@ TTRL_METHODS = {
     "mechanical_evolve_ttrl_tool_verified",
     "mechanical_evolve_ttrl_confidence",
 }
+SFT_METHODS = {"sft_seen_family"}
+LEARNING_METHODS = TTRL_METHODS | SFT_METHODS
 ANALYSIS_ARTIFACTS = (
     "stats.json",
     "failure_analysis.json",
@@ -333,8 +335,13 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
         # explicit Level-2/Level-3 evidence paths documenting the unreached
         # audit obligation; missing_evidence_for_row enforces those paths.
         missing_evidence.extend(missing_evidence_for_row(out_dir, cell, row))
-        if str(cell["method"]) in TTRL_METHODS:
-            learning_missing = missing_learning_evidence(out_dir, row)
+        method = str(cell["method"])
+        if method in LEARNING_METHODS:
+            learning_missing = missing_learning_evidence(
+                out_dir,
+                row,
+                require_rl_evidence=method in TTRL_METHODS,
+            )
             if learning_missing:
                 missing_learning.append({
                     "cell": cell,
@@ -555,9 +562,16 @@ def missing_evidence_for_row(
     return missing
 
 
-def missing_learning_evidence(out_dir: Path, row: dict[str, Any]) -> list[str]:
+def missing_learning_evidence(
+    out_dir: Path,
+    row: dict[str, Any],
+    *,
+    require_rl_evidence: bool,
+) -> list[str]:
     missing: list[str] = []
     log_paths = collect_paths(row, "training_log_paths", "training_log_path")
+    if not log_paths and not require_rl_evidence:
+        log_paths = infer_sft_training_log_paths(out_dir, row)
     ckpt_paths = collect_paths(row, "adapter_checkpoint_paths", "adapter_checkpoint_path")
     if not log_paths or any(not resolve_path(out_dir, path).exists() for path in log_paths):
         missing.append("training_logs")
@@ -568,7 +582,32 @@ def missing_learning_evidence(out_dir: Path, row: dict[str, Any]) -> list[str]:
     updates = int_value(row.get("adapter_updates", row.get("online_update_steps", 0)))
     if updates <= 0:
         missing.append("adapter_updates")
+    trained_tokens = int_value(row.get("trained_tokens", 0))
+    if trained_tokens <= 0:
+        missing.append("trained_tokens")
+    if require_rl_evidence:
+        rl_datums = int_value(row.get("n_rl_datums", row.get("rl_datums", 0)))
+        if rl_datums <= 0:
+            missing.append("rl_datums")
+        rl_trained_tokens = int_value(row.get("rl_trained_tokens", 0))
+        if rl_trained_tokens <= 0:
+            missing.append("rl_trained_tokens")
     return missing
+
+
+def infer_sft_training_log_paths(out_dir: Path, row: dict[str, Any]) -> list[str]:
+    inferred: list[str] = []
+    raw_paths = [
+        *collect_paths(row, "adapter_checkpoint_paths", "adapter_checkpoint_path"),
+        *collect_paths(row, "adapter_paths", "adapter_path"),
+    ]
+    for raw_path in raw_paths:
+        adapter_path = resolve_path(out_dir, raw_path)
+        base = adapter_path.parent if adapter_path.name == "final_adapter" else adapter_path
+        for candidate in (base / "run_manifest.json", base / "train_sft.jsonl"):
+            if candidate.is_file():
+                inferred.append(str(candidate))
+    return unique_list(inferred)
 
 
 def adapter_checkpoint_has_weights(path: Path) -> bool:

@@ -253,6 +253,7 @@ def test_rows_from_sample_summary_uses_explicit_sft_manifest(
     assert rows[0]["trained_tokens"] == 1234
     assert rows[0]["adapter_path"] == str(adapter)
     assert rows[0]["adapter_checkpoint_paths"] == [str(adapter)]
+    assert rows[0]["training_log_paths"] == [str(manifest)]
 
 
 def test_rows_from_sample_summary_materializes_multiturn_evidence(

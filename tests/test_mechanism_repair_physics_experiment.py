@@ -236,7 +236,7 @@ def test_complete_synthetic_evidence_gets_binary_claim_status(
             "cad_artifact_paths": [str(cad.relative_to(out_dir))],
             "chrono_output_paths": [str(chrono.relative_to(out_dir))],
         }
-        if cell["method"] in physics.TTRL_METHODS:
+        if cell["method"] in physics.LEARNING_METHODS:
             log = out_dir / "training_logs" / f"{prefix}.log"
             ckpt = out_dir / "adapter_checkpoints" / prefix
             log.write_text("trained\n")
@@ -247,8 +247,11 @@ def test_complete_synthetic_evidence_gets_binary_claim_status(
                     "training_log_paths": [str(log.relative_to(out_dir))],
                     "adapter_checkpoint_paths": [str(ckpt.relative_to(out_dir))],
                     "adapter_updates": 1,
+                    "trained_tokens": 16,
                 }
             )
+            if cell["method"] in physics.TTRL_METHODS:
+                row.update({"n_rl_datums": 4, "rl_trained_tokens": 16})
         rows.append(row)
     (out_dir / "cell_results.jsonl").write_text(
         "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows)
@@ -338,7 +341,7 @@ def test_unreached_cad_chrono_obligation_evidence_is_not_budget_mismatch(
             "cad_artifact_paths": [str(cad.relative_to(out_dir))],
             "chrono_output_paths": [str(chrono.relative_to(out_dir))],
         }
-        if cell["method"] in physics.TTRL_METHODS:
+        if cell["method"] in physics.LEARNING_METHODS:
             log = out_dir / "training_logs" / f"{prefix}.log"
             ckpt = out_dir / "adapter_checkpoints" / prefix
             log.write_text("trained\n")
@@ -349,8 +352,11 @@ def test_unreached_cad_chrono_obligation_evidence_is_not_budget_mismatch(
                     "training_log_paths": [str(log.relative_to(out_dir))],
                     "adapter_checkpoint_paths": [str(ckpt.relative_to(out_dir))],
                     "adapter_updates": 1,
+                    "trained_tokens": 16,
                 }
             )
+            if cell["method"] in physics.TTRL_METHODS:
+                row.update({"n_rl_datums": 4, "rl_trained_tokens": 16})
         rows.append(row)
     (out_dir / "cell_results.jsonl").write_text(
         "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows)
@@ -435,6 +441,9 @@ def test_ttrl_learning_evidence_requires_adapter_weights(tmp_path: Path) -> None
         "training_log_paths": [str(log.relative_to(out_dir))],
         "adapter_checkpoint_paths": [str(ckpt.relative_to(out_dir))],
         "adapter_updates": 1,
+        "trained_tokens": 16,
+        "n_rl_datums": 4,
+        "rl_trained_tokens": 16,
     }
     (out_dir / "cell_results.jsonl").write_text(json.dumps(row) + "\n")
     for name in ("failure_analysis.json", "trace_pairs.json", "repair_taxonomy.json"):
@@ -457,6 +466,74 @@ def test_ttrl_learning_evidence_requires_adapter_weights(tmp_path: Path) -> None
     assert audit["claim_audit"]["sample_missing_learning"][0]["missing"] == [
         "adapter_checkpoint_weights"
     ]
+
+
+def test_sft_learning_evidence_accepts_adjacent_manifest_for_legacy_rows(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    for name in (
+        "raw_completions",
+        "verifier_outputs",
+        "cad_artifacts",
+        "chrono_outputs",
+    ):
+        (out_dir / name).mkdir(parents=True)
+
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=["sft_seen_family"],
+        splits=["A"],
+        anti_shortcut_splits=[],
+        seeds=[20260610],
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    cell = plan["expected_cells"][0]
+    prefix = (
+        f"{cell['split']}_{cell['task_id']}_{cell['seed']}_"
+        f"{cell['method']}_{cell['budget']}"
+    )
+    raw = out_dir / "raw_completions" / f"{prefix}.txt"
+    verifier = out_dir / "verifier_outputs" / f"{prefix}.json"
+    cad = out_dir / "cad_artifacts" / f"{prefix}.json"
+    chrono = out_dir / "chrono_outputs" / f"{prefix}.json"
+    for path in (raw, verifier, cad, chrono):
+        path.write_text("{}\n")
+    sft_dir = out_dir / "shared_sft" / "A" / "20260610" / "sft_train"
+    ckpt = sft_dir / "final_adapter"
+    ckpt.mkdir(parents=True)
+    (ckpt / "adapter_model.safetensors").write_bytes(b"weights")
+    (sft_dir / "run_manifest.json").write_text(
+        json.dumps({"adapter_updates": 4, "trained_tokens": 16}) + "\n"
+    )
+    row = {
+        "split": cell["split"],
+        "task_id": cell["task_id"],
+        "seed": cell["seed"],
+        "method": cell["method"],
+        "budget": cell["budget"],
+        "actual_verifier_calls": PRIMARY_BUDGET,
+        "actual_cad_calls": 0,
+        "actual_chrono_calls": 0,
+        "raw_completion_paths": [str(raw.relative_to(out_dir))],
+        "verifier_output_paths": [str(verifier.relative_to(out_dir))],
+        "cad_artifact_paths": [str(cad.relative_to(out_dir))],
+        "chrono_output_paths": [str(chrono.relative_to(out_dir))],
+        "adapter_checkpoint_paths": [str(ckpt.relative_to(out_dir))],
+        "adapter_updates": 4,
+        "trained_tokens": 16,
+    }
+    (out_dir / "cell_results.jsonl").write_text(json.dumps(row) + "\n")
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["claim_audit"]["missing_learning_count"] == 0
 
 
 def test_shards_partition_full_experiment_plan(tmp_path: Path) -> None:
