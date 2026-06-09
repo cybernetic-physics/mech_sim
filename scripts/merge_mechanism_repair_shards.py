@@ -321,6 +321,7 @@ def materialize_row_evidence(
         copied = copy_path(
             source=Path(str(adapter_path)).expanduser(),
             dest_dir=out_dir / "adapter_checkpoints" / split / seed / method / task_id,
+            omit_redundant_adapter_files=True,
         )
         normalized["adapter_path"] = str(copied)
     return normalized
@@ -357,7 +358,12 @@ def copy_artifact(
     return dest
 
 
-def copy_path(*, source: Path, dest_dir: Path) -> Path:
+def copy_path(
+    *,
+    source: Path,
+    dest_dir: Path,
+    omit_redundant_adapter_files: bool = False,
+) -> Path:
     if source.is_file():
         return copy_artifact(source=source, dest_dir=dest_dir)
     if not source.is_dir():
@@ -369,7 +375,10 @@ def copy_path(*, source: Path, dest_dir: Path) -> Path:
         return dest
     if dest.exists():
         return dest
-    shutil.copytree(source, dest)
+    ignore = None
+    if omit_redundant_adapter_files:
+        ignore = lambda _dir, names: {"tokenizer.json"} & set(names)
+    shutil.copytree(source, dest, ignore=ignore)
     return dest
 
 

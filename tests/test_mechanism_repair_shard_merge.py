@@ -18,6 +18,7 @@ def test_merge_mechanism_repair_shards_copies_evidence(
     adapter = source / "final_adapter"
     adapter.mkdir()
     (adapter / "adapter_config.json").write_text('{"r": 16}\n')
+    (adapter / "tokenizer.json").write_text('{"large": "base tokenizer"}\n')
     raw.write_text("completion")
     verifier.write_text('{"ok": true}\n')
     summary.write_text('{"all_samples": []}\n')
@@ -89,6 +90,7 @@ def test_merge_mechanism_repair_shards_copies_evidence(
     assert verifier_path.is_file()
     assert summary_path.is_file()
     assert (adapter_path / "adapter_config.json").is_file()
+    assert not (adapter_path / "tokenizer.json").exists()
     assert raw_path.is_relative_to(out_dir / "raw_completions")
     assert verifier_path.is_relative_to(out_dir / "verifier_outputs")
     assert summary_path.is_relative_to(out_dir / "verifier_outputs")
