@@ -88,8 +88,9 @@ ASSISTANT_CODE_PREFILL = (
     "def cyl(r,h): return {'shape':'cylinder','radius_mm':float(r),'height_mm':float(h),'center_mm':(0.0,0.0,0.0),'axis':(0.0,0.0,1.0)}\n"
     "def box(x,y,z): return {'shape':'box','size_mm':(float(x),float(y),float(z))}\n"
     "def cm(m,c,s): return mp(m,c,s)\n\n"
-    "M={'steel':{'name':'AISI 1045 steel','density_kg_m3':7850.0,'elastic_modulus_pa':205000000000.0,'poisson_ratio':0.29,'yield_strength_pa':530000000.0,'process':'machined','provenance':'standard engineering material table'},'aluminum':{'name':'6061-T6 aluminum','density_kg_m3':2700.0,'elastic_modulus_pa':69000000000.0,'poisson_ratio':0.33,'yield_strength_pa':276000000.0,'process':'machined','provenance':'standard engineering material table'},'rubber':{'name':'NBR rubber','density_kg_m3':1100.0,'elastic_modulus_pa':10000000.0,'poisson_ratio':0.49,'yield_strength_pa':10000000.0,'process':'molded','provenance':'standard engineering material table'}}\n\n"
-    "def frame(out_dir): return {'id':'frame','role':'ground','mass_kg':0.001,'fixed':True,'com_local_mm':(0.0,0.0,0.0),'geometry':{'cad':cad(out_dir,'frame.step')},'material':'steel','params':cm(0.001,(0.0,0.0,0.0),box(20,20,5))}\n\n"
+    "M={'steel_1045':{'name':'AISI 1045 steel','density_kg_m3':7850.0,'elastic_modulus_pa':205000000000.0,'poisson_ratio':0.29,'yield_strength_pa':530000000.0,'process':'machined','provenance':'standard engineering material table'},'steel':{'name':'AISI 1045 steel','density_kg_m3':7850.0,'elastic_modulus_pa':205000000000.0,'poisson_ratio':0.29,'yield_strength_pa':530000000.0,'process':'machined','provenance':'standard engineering material table'},'aluminum_6061_t6':{'name':'6061-T6 aluminum','density_kg_m3':2700.0,'elastic_modulus_pa':69000000000.0,'poisson_ratio':0.33,'yield_strength_pa':276000000.0,'process':'machined','provenance':'standard engineering material table'},'aluminum':{'name':'6061-T6 aluminum','density_kg_m3':2700.0,'elastic_modulus_pa':69000000000.0,'poisson_ratio':0.33,'yield_strength_pa':276000000.0,'process':'machined','provenance':'standard engineering material table'},'rubber_nbr':{'name':'NBR rubber','density_kg_m3':1100.0,'elastic_modulus_pa':10000000.0,'poisson_ratio':0.49,'yield_strength_pa':10000000.0,'process':'molded','provenance':'standard engineering material table'},'rubber':{'name':'NBR rubber','density_kg_m3':1100.0,'elastic_modulus_pa':10000000.0,'poisson_ratio':0.49,'yield_strength_pa':10000000.0,'process':'molded','provenance':'standard engineering material table'}}\n"
+    "materials=M\n\n"
+    "def frame(out_dir): return {'id':'frame','role':'ground','mass_kg':0.001,'fixed':True,'com_local_mm':(0.0,0.0,0.0),'geometry':{'cad':cad(out_dir,'frame.step')},'material':'steel_1045','params':cm(0.001,(0.0,0.0,0.0),box(20,20,5))}\n\n"
     "def build_design(out_dir: Path) -> dict:\n"
     "    return {'schema_version':'design_ir.v2','units':'mm','materials':M,\n"
     "        'parts':[frame(out_dir),\n"
@@ -150,6 +151,64 @@ def cm(m, c, s=None):
 
 def mp(m, c, s=None):
     return _mass_props(m, c, s)
+
+M = {
+    "steel_1045": {
+        "name": "AISI 1045 steel",
+        "density_kg_m3": 7850.0,
+        "elastic_modulus_pa": 205000000000.0,
+        "poisson_ratio": 0.29,
+        "yield_strength_pa": 530000000.0,
+        "process": "machined",
+        "provenance": "standard engineering material table",
+    },
+    "steel": {
+        "name": "AISI 1045 steel",
+        "density_kg_m3": 7850.0,
+        "elastic_modulus_pa": 205000000000.0,
+        "poisson_ratio": 0.29,
+        "yield_strength_pa": 530000000.0,
+        "process": "machined",
+        "provenance": "standard engineering material table",
+    },
+    "aluminum_6061_t6": {
+        "name": "6061-T6 aluminum",
+        "density_kg_m3": 2700.0,
+        "elastic_modulus_pa": 69000000000.0,
+        "poisson_ratio": 0.33,
+        "yield_strength_pa": 276000000.0,
+        "process": "machined",
+        "provenance": "standard engineering material table",
+    },
+    "aluminum": {
+        "name": "6061-T6 aluminum",
+        "density_kg_m3": 2700.0,
+        "elastic_modulus_pa": 69000000000.0,
+        "poisson_ratio": 0.33,
+        "yield_strength_pa": 276000000.0,
+        "process": "machined",
+        "provenance": "standard engineering material table",
+    },
+    "rubber_nbr": {
+        "name": "NBR rubber",
+        "density_kg_m3": 1100.0,
+        "elastic_modulus_pa": 10000000.0,
+        "poisson_ratio": 0.49,
+        "yield_strength_pa": 10000000.0,
+        "process": "molded",
+        "provenance": "standard engineering material table",
+    },
+    "rubber": {
+        "name": "NBR rubber",
+        "density_kg_m3": 1100.0,
+        "elastic_modulus_pa": 10000000.0,
+        "poisson_ratio": 0.49,
+        "yield_strength_pa": 10000000.0,
+        "process": "molded",
+        "provenance": "standard engineering material table",
+    },
+}
+materials = M
 """.strip()
 _STANDALONE_HELPER_USES = (
     "_write_step(",

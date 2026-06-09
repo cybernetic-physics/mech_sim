@@ -147,7 +147,7 @@ def test_load_submission_canonicalizes_model_topology_near_misses(
                 "schema_version": "design_ir.v2",
                 "parts": [
                     {"id": "frame", "role": "ground",
-                     "fixed": True, "mass_kg": 0.0},
+                     "fixed": False, "mass_kg": 0.0},
                     {"id": "cam", "role": "input", "mass_kg": 0.02},
                     {"id": "follower", "role": "output", "mass_kg": 0.05},
                     {"id": "cam_follower_contact",
@@ -226,6 +226,73 @@ def test_load_submission_canonicalizes_noisy_port_records(
     assert {j.id for j in ir.joints} == {
         "cam_follower_contact", "input_port", "output_port",
     }
+
+
+def test_load_submission_infers_missing_port_fields_and_flattens_helper_params(
+    tmp_path: Path,
+):
+    sub = _write_design(tmp_path, '''
+        from pathlib import Path
+        def build_design(out_dir: Path) -> dict:
+            mass_props = {
+                "cad_mass_properties": {
+                    "mass_kg": 0.05,
+                    "com_local_mm": (0.0, 0.0, 0.0),
+                    "inertia_kg_m2": (
+                        (5e-7, 0.0, 0.0),
+                        (0.0, 6e-7, 0.0),
+                        (0.0, 0.0, 7e-7),
+                    ),
+                },
+                "chrono_collision": {
+                    "shape": "cylinder",
+                    "radius_mm": 10.0,
+                    "height_mm": 5.0,
+                },
+            }
+            return {
+                "schema_version": "design_ir.v2",
+                "parts": [
+                    {"id": "frame", "role": "ground",
+                     "fixed": True, "mass_kg": 0.0},
+                    {"id": "cam", "role": "cam", "mass_kg": 0.05,
+                     "params": {"cad_mass_properties": mass_props}},
+                    {"id": "follower", "role": "follower", "mass_kg": 0.05,
+                     "params": {"cad_mass_properties": mass_props}},
+                ],
+                "joints": [],
+                "ports": {
+                    "input_port": {
+                        "id": "input_port",
+                        "type": "revolute_joint",
+                        "parent": "cam",
+                    },
+                    "output_port": {
+                        "id": "output_port",
+                        "part": "follower",
+                    },
+                },
+            }
+    ''')
+
+    ir = load_submission(
+        sub,
+        tmp_path / "scratch",
+        required_port_kinds={
+            "input_port": "revolute_joint",
+            "output_port": "revolute_joint",
+        },
+    )
+
+    assert ir.ports["input_port"].part == "input_port"
+    assert ir.ports["output_port"].part == "output_port"
+    assert ir.ports["output_port"].kind == "revolute_joint"
+    assert {j.id for j in ir.joints} == {"input_port", "output_port"}
+    frame = next(p for p in ir.parts if p.id == "frame")
+    assert frame.fixed is True
+    cam = next(p for p in ir.parts if p.id == "cam")
+    assert cam.params["cad_mass_properties"]["mass_kg"] == 0.05
+    assert cam.params["chrono_collision"]["shape"] == "cylinder"
 
 
 def test_evaluate_canonicalized_submission_reaches_required_ports_probe(

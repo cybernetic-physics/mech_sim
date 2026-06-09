@@ -404,6 +404,8 @@ def test_standalone_reward_text_injects_prefill_helpers() -> None:
     assert extracted is True
     assert "def _write_step" in source
     assert "def _mass_props" in source
+    assert "steel_1045" in source
+    assert "materials = M" in source
     assert source.index("def _write_step") < source.index("def build_design")
 
 

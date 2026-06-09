@@ -572,14 +572,20 @@ def _infer_port_child_part(
         for p in parts
         if isinstance(p, dict) and isinstance(p.get("id"), str)
     }
-    raw_target = port.get("part")
-    if isinstance(raw_target, str) and raw_target in part_ids:
-        return raw_target
+    fixed_part = _infer_fixed_part(parts)
+    for key in ("child", "part", "parent"):
+        raw_target = port.get(key)
+        if (
+            isinstance(raw_target, str)
+            and raw_target in part_ids
+            and raw_target != fixed_part
+        ):
+            return raw_target
 
     lowered = port_id.lower()
     role_targets: list[str] = []
     if "input" in lowered:
-        role_targets = ["input", "drive", "driver"]
+        role_targets = ["input", "drive", "driver", "cam", "crank"]
     elif "output" in lowered:
         role_targets = ["output", "driven", "follower", "slider"]
     for role in role_targets:
@@ -588,11 +594,47 @@ def _infer_port_child_part(
                 continue
             pid = p.get("id")
             prole = str(p.get("role") or "").lower()
-            if isinstance(pid, str) and pid and prole == role:
+            pid_lower = str(pid or "").lower()
+            if (
+                isinstance(pid, str)
+                and pid
+                and pid != fixed_part
+                and (prole == role or role in prole or role in pid_lower)
+            ):
                 return pid
     if len(part_ids) == 1:
         return next(iter(part_ids))
     return None
+
+
+def _canonicalize_part_record(item: Any) -> Any:
+    if not isinstance(item, dict):
+        return item
+    out = dict(item)
+    pid = str(out.get("id") or "").lower()
+    role = str(out.get("role") or "").lower()
+    if pid in {"frame", "ground", "base"} or role in {
+        "frame",
+        "ground",
+        "base",
+        "fixed_frame",
+    }:
+        out["fixed"] = True
+    params = out.get("params")
+    if not isinstance(params, dict):
+        return out
+    nested_mass = params.get("cad_mass_properties")
+    if not isinstance(nested_mass, dict):
+        return out
+    if "cad_mass_properties" not in nested_mass:
+        return out
+    merged = dict(params)
+    merged["cad_mass_properties"] = nested_mass["cad_mass_properties"]
+    for key in ("chrono_collision",):
+        if key in nested_mass and key not in merged:
+            merged[key] = nested_mass[key]
+    out["params"] = merged
+    return out
 
 
 def _canonicalize_submission_raw(
@@ -627,7 +669,7 @@ def _canonicalize_submission_raw(
             if joint is not None:
                 joints.append(joint)
             continue
-        parts.append(item)
+        parts.append(_canonicalize_part_record(item))
     for item in joints_in:
         if isinstance(item, dict):
             joint = _joint_record(item)
@@ -669,6 +711,7 @@ def _canonicalize_submission_raw(
         kind = port.get("kind") or required_port_kinds.get(str(pid))
         if kind not in {"revolute_joint", "prismatic_joint"}:
             continue
+        port["kind"] = kind
         target = port.get("part")
         expected_joint_type = (
             "prismatic" if kind == "prismatic_joint" else "revolute"
