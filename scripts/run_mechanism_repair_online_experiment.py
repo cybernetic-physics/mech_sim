@@ -1670,7 +1670,18 @@ def row_from_ttrl_reward_log(
     }
 
 
-def sample_rank(row: dict[str, Any]) -> tuple[bool, float, bool]:
+def sample_rank(row: dict[str, Any]) -> tuple[
+    bool, float, bool, bool, bool, float, bool
+]:
+    codes = failure_codes(row)
+    invalid_codes = {
+        "invalid_artifact",
+        "invalid_design",
+        "runner_json_error",
+        "design_build_error",
+        "missing_cad",
+        "untrusted_asset",
+    }
     return (
         bool(
             row.get("evaluation_valid")
@@ -1678,6 +1689,10 @@ def sample_rank(row: dict[str, Any]) -> tuple[bool, float, bool]:
             and not (row.get("failure_codes") or [])
         ),
         float(row.get("verified_score", 0.0) or 0.0),
+        bool(row.get("evaluation_valid", False)),
+        bool(row.get("hard_gate_passed", False)),
+        not bool(codes & invalid_codes),
+        float(row.get("score", 0.0) or 0.0),
         bool(row.get("design_py_extracted", False)),
     )
 

@@ -18,6 +18,7 @@ from scripts.run_mechanism_repair_online_experiment import (
     run_or_load_eval_summary,
     run_or_load_sft,
     rows_from_sample_summary,
+    sample_rank,
     ttrl_steps_per_generation_for_budget,
 )
 
@@ -749,6 +750,36 @@ def test_row_from_ttrl_reward_log_uses_reward_log_budget(
     assert row["verified_repair_success_at_32"] is True
     assert row["verifier_calls"] == 32
     assert row["actual_budget_matches_primary"] is True
+
+
+def test_sample_rank_prefers_valid_structural_failure_over_invalid_artifact() -> None:
+    invalid = {
+        "verified_score": 0.0,
+        "score": 0.0,
+        "evaluation_valid": False,
+        "hard_gate_passed": False,
+        "failure_codes": ["invalid_artifact"],
+        "design_py_extracted": True,
+    }
+    missing_port = {
+        "verified_score": 0.0,
+        "score": 0.0,
+        "evaluation_valid": False,
+        "hard_gate_passed": False,
+        "failure_codes": ["missing_port"],
+        "design_py_extracted": True,
+    }
+    valid_partial = {
+        "verified_score": 0.0,
+        "score": 0.0,
+        "evaluation_valid": True,
+        "hard_gate_passed": False,
+        "failure_codes": ["missing_contact", "lockup"],
+        "design_py_extracted": True,
+    }
+
+    assert sample_rank(missing_port) > sample_rank(invalid)
+    assert sample_rank(valid_partial) > sample_rank(missing_port)
 
 
 def test_eval_summary_runner_forces_declared_audit_retries(
