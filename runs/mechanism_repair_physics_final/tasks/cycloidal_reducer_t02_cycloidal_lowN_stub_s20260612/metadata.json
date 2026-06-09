@@ -1,0 +1,21 @@
+{
+  "family": "cycloidal_reducer",
+  "tier": "contact_dynamics",
+  "seed": 20260612,
+  "difficulty": 3,
+  "pins": 8,
+  "target_ratio": 7.0,
+  "requires_adapter": "rigid_body_dynamics+contact_forces",
+  "task_id": "cycloidal_reducer_t02_cycloidal_lowN_stub_s20260612",
+  "source_task_id": "cycloidal_lowN_stub_s20260612",
+  "source_generator": "cycloidal_lowN_stub",
+  "verifier_level": 3,
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "fake_contact_oracle_allowed": false
+}

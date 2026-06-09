@@ -1,0 +1,21 @@
+{
+  "family": "chain_drive",
+  "tier": "transmission_analytic",
+  "seed": 20264611,
+  "difficulty": 2,
+  "driver": 14,
+  "driven": 56,
+  "ratio": 4.0,
+  "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+  "source_task_id": "chain_sprocket_ratio_s20264611",
+  "source_generator": "chain_sprocket_ratio",
+  "verifier_level": 2,
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "fake_contact_oracle_allowed": false
+}

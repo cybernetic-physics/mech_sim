@@ -1,0 +1,31 @@
+[task]
+id = "spur_compound_gear_train_t09_spur_gear_ratio_analytic_s20262619"
+family = "spur_compound_gear_train"
+difficulty = 2
+units = "mm"
+tier = "cad_artifact"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 2
+max_envelope_mm = [200, 200, 50]
+
+[objective]
+description = "Two-gear analytic ratio = 4.0."
+allow_massless_links = false
+ground_required = true
+
+[visibility]
+public_split = ["mobility", "ports", "ratio"]
+hidden_split = ["ratio"]
+
+[mechanism_repair_physics]
+canonical_family = "spur_compound_gear_train"
+source_task_id = "spur_gear_ratio_analytic_s20262619"
+source_generator = "spur_gear_ratio_analytic"
+verifier_level = 2
+headline_eligible = true
+min_constraint_classes = 3
+requires_hidden_variant = true
+requires_isomorphic_variant = true
+fake_contact_oracle_allowed = false

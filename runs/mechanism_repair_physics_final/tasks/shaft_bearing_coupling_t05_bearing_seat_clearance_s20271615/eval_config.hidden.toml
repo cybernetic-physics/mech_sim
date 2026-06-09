@@ -1,0 +1,53 @@
+[feedback]
+public_metrics = ["mobility.observed", "clearance.observed", "clearance.expected", "trusted_asset_preflight.parts_with_required_geometry"]
+hidden_metrics = ["clearance.error_abs", "trusted_asset_preflight.trusted_mass_properties_recomputed"]
+
+[hard_gate]
+require = ["mobility", "ports", "trusted_asset_preflight"]
+
+[mechanism_repair_physics]
+family = "shaft_bearing_coupling"
+verifier_level = 2
+hidden_variant = true
+fake_contact_oracle_allowed = false
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 0
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["bore_face", "bearing_seat"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["bore_face"]
+
+[[probes]]
+id = "clearance"
+type = "analytic_param_check"
+path = "params.clearance_mm"
+expected = 0.03
+comparator = "ge"
+failure_code = "insufficient_clearance"
+weight = 1.0
+severity = "major"
+hard_gate = false
+tolerance_abs = 0.001
+
+[[probes]]
+id = "trusted_asset_preflight"
+type = "trusted_asset_preflight"
+require_geometry_roles = ["cad"]
+require_materials = true
+require_material_properties = ["density_kg_m3", "elastic_modulus_pa", "poisson_ratio", "yield_strength_pa"]
+require_provenance = true
+require_trusted_mass_properties = true
+hard_gate = true
+severity = "critical"
+weight = 0.2

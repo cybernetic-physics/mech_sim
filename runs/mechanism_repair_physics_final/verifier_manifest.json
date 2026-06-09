@@ -1,0 +1,44 @@
+{
+  "constraint_class_policy": {
+    "classes": [
+      "topology_mobility",
+      "interface",
+      "functional_behavior",
+      "cad_artifact",
+      "physics_contact",
+      "manufacturability_assembly"
+    ],
+    "non_toy_min_classes": 3
+  },
+  "fake_oracle_tasks": [],
+  "level_2_contract": {
+    "current_limit": "trusted_asset_preflight consumes trusted mass records; final paper validation must run the trusted CAD/OCCT bridge or an equivalent recomputation path.",
+    "requires_geometry_roles": [
+      "cad"
+    ],
+    "requires_material_provenance": true,
+    "requires_trusted_asset_preflight": true,
+    "requires_trusted_mass_properties": true
+  },
+  "level_3_contract": {
+    "allows_fake_contact_oracle": false,
+    "chrono_diagnostic": {
+      "_chrono_impl_importable": true,
+      "adapter": "chrono_contact",
+      "pychrono_importable": false,
+      "pychrono_project_chrono": false,
+      "reason": "pychrono not importable: No module named 'pychrono'",
+      "runner_status": "missing_dependency",
+      "status": "unavailable"
+    },
+    "requires_chrono_contact": true,
+    "requires_real_pychrono": true
+  },
+  "main_claim_allows_fake_oracle": false,
+  "schema": "mechanism_repair_physics.verifier_manifest.v1",
+  "tasks_root": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks",
+  "verifier_levels": {
+    "2": 80,
+    "3": 40
+  }
+}

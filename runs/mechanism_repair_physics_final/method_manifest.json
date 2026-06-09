@@ -1,0 +1,55 @@
+{
+  "budget_curve": [
+    8,
+    16,
+    32
+  ],
+  "causal_contrast": {
+    "difference": "mechanical_evolve_ttrl variants update LoRA weights online; llm_evolve_no_update receives the same verifier feedback but does not update weights",
+    "same_actual_verifier_budget": true,
+    "same_base_model": true,
+    "same_prompts": true,
+    "same_task_order": true,
+    "same_tasks": true
+  },
+  "eval_seeds": [
+    20260610,
+    20260611,
+    20260612
+  ],
+  "fallback_primary_method": "mechanical_evolve_ttrl",
+  "method_roles": {
+    "adaptive_evolution": "population/archive search, no gradient updates",
+    "frozen_model": "base model only, no feedback updates",
+    "llm_evolve_no_update": "primary no-update verifier-feedback baseline",
+    "mechanical_evolve_ttrl": "online GRPO/LoRA from verifier rewards",
+    "mechanical_evolve_ttrl_confidence": "confidence-conditioned TTRL exploration/reward ablation",
+    "mechanical_evolve_ttrl_tool_verified": "TTRL with tool-verification reward filtering",
+    "sft_seen_family": "seen-family LoRA/SFT, no test-time updates",
+    "verifier_gated_search": "best-of-K or beam under matched budget"
+  },
+  "primary_baseline": "llm_evolve_no_update",
+  "primary_budget_expensive_verifier_calls": 32,
+  "primary_method": "mechanical_evolve_ttrl_tool_verified",
+  "required_methods": [
+    "frozen_model",
+    "sft_seen_family",
+    "llm_evolve_no_update",
+    "verifier_gated_search",
+    "adaptive_evolution",
+    "mechanical_evolve_ttrl",
+    "mechanical_evolve_ttrl_tool_verified",
+    "mechanical_evolve_ttrl_confidence"
+  ],
+  "schema": "mechanism_repair_physics.method_manifest.v1",
+  "success_threshold": {
+    "anti_shortcut_delta_positive": true,
+    "beats_adaptive_evolution": true,
+    "beats_verifier_gated_search": true,
+    "hidden_variant_delta_positive": true,
+    "level23_success_abs_delta_pct": 15.0,
+    "paired_bootstrap_ci95_low_gt_0": true,
+    "paired_sign_or_permutation_p_lte": 0.05,
+    "positive_delta_min_families": 8
+  }
+}

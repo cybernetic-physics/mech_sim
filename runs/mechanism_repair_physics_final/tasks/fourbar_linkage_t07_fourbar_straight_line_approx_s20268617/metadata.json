@@ -1,0 +1,22 @@
+{
+  "family": "fourbar_linkage",
+  "tier": "planar_kinematics",
+  "seed": 20268617,
+  "difficulty": 2,
+  "coupler_offset_mm": [
+    47.15,
+    5.42
+  ],
+  "task_id": "fourbar_linkage_t07_fourbar_straight_line_approx_s20268617",
+  "source_task_id": "fourbar_straight_line_approx_s20268617",
+  "source_generator": "fourbar_straight_line_approx",
+  "verifier_level": 2,
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "fake_contact_oracle_allowed": false
+}

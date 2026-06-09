@@ -1,0 +1,38 @@
+[task]
+id = "geneva_indexer_t03_geneva_indexing_stub_s20270613"
+family = "geneva_indexer"
+difficulty = 3
+units = "mm"
+tier = "physics_contact"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 2
+max_envelope_mm = [200, 200, 80]
+
+[objective]
+description = "geneva_indexing_stub synthetic contact stub."
+ground_required = true
+
+[capability]
+requires_adapter = "contact_forces"
+synthetic_oracle = true
+
+[mechanism_repair_physics]
+canonical_family = "geneva_indexer"
+source_task_id = "geneva_indexing_stub_s20270613"
+source_generator = "geneva_indexing_stub"
+verifier_level = 3
+headline_eligible = true
+min_constraint_classes = 3
+requires_hidden_variant = true
+requires_isomorphic_variant = true
+fake_contact_oracle_allowed = false
+
+[chrono_contact]
+contact_model = "smc"
+procedural_cycloidal_fallback = false
+samples = 720
+duration_s = 1.0
+input_speed_rad_s = 1.0
+output_load_Nm = 0.05

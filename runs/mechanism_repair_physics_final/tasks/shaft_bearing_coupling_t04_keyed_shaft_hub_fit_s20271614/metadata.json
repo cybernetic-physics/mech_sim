@@ -1,0 +1,20 @@
+{
+  "family": "shaft_bearing_coupling",
+  "tier": "artifact_static",
+  "seed": 20271614,
+  "difficulty": 2,
+  "shaft_diameter_mm": 9.192,
+  "keyway_width_mm": 2.717,
+  "task_id": "shaft_bearing_coupling_t04_keyed_shaft_hub_fit_s20271614",
+  "source_task_id": "keyed_shaft_hub_fit_s20271614",
+  "source_generator": "keyed_shaft_hub_fit",
+  "verifier_level": 2,
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "fake_contact_oracle_allowed": false
+}

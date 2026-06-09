@@ -1,0 +1,26 @@
+[task]
+id = "planetary_reducer_t04_planetary_fixed_ring_ratio_analytic_s20261614"
+family = "planetary_reducer"
+difficulty = 2
+units = "mm"
+tier = "cad_artifact"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 2
+max_envelope_mm = [200, 200, 80]
+
+[objective]
+description = "Planetary fixed-ring ratio = 3.428571."
+ground_required = true
+
+[mechanism_repair_physics]
+canonical_family = "planetary_reducer"
+source_task_id = "planetary_fixed_ring_ratio_analytic_s20261614"
+source_generator = "planetary_fixed_ring_ratio_analytic"
+verifier_level = 2
+headline_eligible = true
+min_constraint_classes = 3
+requires_hidden_variant = true
+requires_isomorphic_variant = true
+fake_contact_oracle_allowed = false

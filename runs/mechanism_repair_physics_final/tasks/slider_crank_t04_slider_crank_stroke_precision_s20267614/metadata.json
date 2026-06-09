@@ -1,0 +1,21 @@
+{
+  "family": "slider_crank",
+  "tier": "planar_kinematics",
+  "seed": 20267614,
+  "difficulty": 2,
+  "crank_mm": 24.89,
+  "coupler_mm": 61.4,
+  "declared_stroke_mm": 49.78,
+  "task_id": "slider_crank_t04_slider_crank_stroke_precision_s20267614",
+  "source_task_id": "slider_crank_stroke_precision_s20267614",
+  "source_generator": "slider_crank_stroke_precision",
+  "verifier_level": 2,
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "fake_contact_oracle_allowed": false
+}

@@ -1,0 +1,45 @@
+{
+  "description": "Tier 1 fourbar_path negative controls.",
+  "controls": [
+    {
+      "id": "wrong_coupler_offset",
+      "submission": "negative_solutions/wrong_coupler_offset",
+      "expected_failure_codes": [
+        "path_error"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.6
+    },
+    {
+      "id": "wrong_mobility_extra_fixed",
+      "submission": "negative_solutions/wrong_mobility_extra_fixed",
+      "expected_failure_codes": [
+        "wrong_mobility"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001
+    },
+    {
+      "id": "missing_required_port_physics",
+      "submission": "negative_solutions/missing_required_port_physics",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001
+    },
+    {
+      "id": "missing_trusted_mass_physics",
+      "submission": "negative_solutions/missing_trusted_mass_physics",
+      "expected_failure_codes": [
+        "invalid_mass_properties"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.6
+    }
+  ],
+  "mechanism_repair_physics": {
+    "min_effective_negative_controls": 2,
+    "negative_controls_must_not_all_pass_hard_gates": true
+  }
+}

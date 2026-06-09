@@ -1,0 +1,73 @@
+[feedback]
+public_metrics = ["ports.ports_required", "contact.contact.pinion:rack.rms_N", "travel.observed", "trusted_asset_preflight.parts_with_required_geometry"]
+hidden_metrics = ["trusted_asset_preflight.trusted_mass_properties_recomputed"]
+
+[hard_gate]
+require = ["ports", "contact", "trusted_asset_preflight"]
+
+[adapters.chrono_contact]
+contact_model = "smc"
+procedural_cycloidal_fallback = false
+samples = 720
+duration_s = 1.0
+input_speed_rad_s = 1.0
+output_load_Nm = 0.05
+
+[mechanism_repair_physics]
+family = "rack_pinion"
+verifier_level = 3
+hidden_variant = false
+fake_contact_oracle_allowed = false
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["input_port"]
+
+[[probes]]
+id = "contact"
+type = "contact_engagement"
+required_pairs = ["pinion:rack"]
+min_rms_force_N = 0.5
+min_engagement_fraction = 0.2
+weight = 1.0
+severity = "critical"
+hard_gate = true
+adapter = "chrono_contact"
+
+[[probes]]
+id = "travel"
+type = "analytic_param_check"
+path = "params.declared_travel_per_rev_mm"
+expected = 97.5779
+comparator = "eq"
+failure_code = "wrong_ratio"
+weight = 0.5
+severity = "major"
+hard_gate = false
+tolerance_pct = 2.0
+
+[[probes]]
+id = "lockup"
+type = "lockup"
+input_port = "input_port"
+output_port = "output_port"
+min_output_motion_rad = 0.05
+weight = 0.0
+severity = "major"
+adapter = "chrono_contact"
+
+[[probes]]
+id = "trusted_asset_preflight"
+type = "trusted_asset_preflight"
+require_geometry_roles = ["cad"]
+require_materials = true
+require_material_properties = ["density_kg_m3", "elastic_modulus_pa", "poisson_ratio", "yield_strength_pa"]
+require_provenance = true
+require_trusted_mass_properties = true
+hard_gate = true
+severity = "critical"
+weight = 0.2

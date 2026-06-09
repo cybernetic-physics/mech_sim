@@ -1,0 +1,69 @@
+[feedback]
+public_metrics = ["mobility.observed", "shaft_d.observed", "keyway.observed", "trusted_asset_preflight.parts_with_required_geometry"]
+hidden_metrics = ["shaft_d.error_pct", "keyway.error_pct", "trusted_asset_preflight.trusted_mass_properties_recomputed"]
+
+[hard_gate]
+require = ["mobility", "ports", "trusted_asset_preflight"]
+
+[mechanism_repair_physics]
+family = "shaft_bearing_coupling"
+verifier_level = 2
+hidden_variant = true
+fake_contact_oracle_allowed = false
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 1
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["hub_face", "output_port"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["hub_face"]
+
+[probes.require_kinds]
+hub_face = "frame"
+output_port = "revolute_joint"
+
+[[probes]]
+id = "shaft_d"
+type = "analytic_param_check"
+path = "params.shaft_diameter_mm"
+expected = 24.87
+comparator = "eq"
+failure_code = "wrong_ratio"
+weight = 0.5
+severity = "major"
+hard_gate = false
+tolerance_pct = 1.0
+
+[[probes]]
+id = "keyway"
+type = "analytic_param_check"
+path = "params.keyway_width_mm"
+expected = 7.353
+comparator = "eq"
+failure_code = "wrong_ratio"
+weight = 0.5
+severity = "major"
+hard_gate = false
+tolerance_pct = 1.0
+
+[[probes]]
+id = "trusted_asset_preflight"
+type = "trusted_asset_preflight"
+require_geometry_roles = ["cad"]
+require_materials = true
+require_material_properties = ["density_kg_m3", "elastic_modulus_pa", "poisson_ratio", "yield_strength_pa"]
+require_provenance = true
+require_trusted_mass_properties = true
+hard_gate = true
+severity = "critical"
+weight = 0.2

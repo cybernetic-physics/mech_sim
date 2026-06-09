@@ -1,0 +1,22 @@
+{
+  "family": "fourbar_linkage",
+  "tier": "planar_kinematics",
+  "seed": 20268616,
+  "difficulty": 2,
+  "coupler_offset_mm": [
+    33.94,
+    10.65
+  ],
+  "task_id": "fourbar_linkage_t06_fourbar_wiper_arc_s20268616",
+  "source_task_id": "fourbar_wiper_arc_s20268616",
+  "source_generator": "fourbar_wiper_arc",
+  "verifier_level": 2,
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "fake_contact_oracle_allowed": false
+}
