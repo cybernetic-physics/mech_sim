@@ -7,6 +7,9 @@ import torch
 
 from rl.train_sft_peft import (
     _causal_lm_loss_from_logits,
+    _finite_named_tensor_audit,
+    _prepare_model_for_kbit_training_lightweight,
+    _raise_if_nonfinite_trainable_parameters,
     _sanitize_tokenized_rows,
     _tokenize_row,
     build_sft_rows,
@@ -140,4 +143,78 @@ def test_causal_lm_loss_rejects_labels_outside_logits_vocab() -> None:
     labels = torch.tensor([[-100, 3, 5]])
 
     with pytest.raises(RuntimeError, match="outside the model logits vocabulary"):
-        _causal_lm_loss_from_logits(logits, labels)
+        _causal_lm_loss_from_logits(
+            logits,
+            labels,
+            invalid_label_policy="raise",
+        )
+
+
+def test_causal_lm_loss_masks_labels_outside_logits_vocab_by_default() -> None:
+    logits = torch.zeros((1, 3, 5), dtype=torch.float32)
+    labels = torch.tensor([[-100, 3, 9223231297218904063]])
+
+    loss = _causal_lm_loss_from_logits(logits, labels)
+
+    assert torch.isfinite(loss)
+
+
+def test_causal_lm_loss_sanitizes_nonfinite_logits_by_default() -> None:
+    logits = torch.zeros((1, 3, 5), dtype=torch.float32)
+    logits[0, 1, 3] = float("nan")
+    logits[0, 2, 4] = float("inf")
+    logits.requires_grad_()
+    labels = torch.tensor([[-100, 3, 4]])
+
+    loss = _causal_lm_loss_from_logits(logits, labels)
+    loss.backward()
+
+    assert torch.isfinite(loss)
+    assert logits.grad is not None
+    assert torch.isfinite(logits.grad).all()
+
+
+def test_causal_lm_loss_can_reject_nonfinite_logits() -> None:
+    logits = torch.zeros((1, 3, 5), dtype=torch.float32)
+    logits[0, 1, 3] = float("nan")
+    labels = torch.tensor([[-100, 3, 4]])
+
+    with pytest.raises(RuntimeError, match="SFT logits contain non-finite"):
+        _causal_lm_loss_from_logits(
+            logits,
+            labels,
+            sanitize_nonfinite_logits=False,
+        )
+
+
+def test_finite_named_tensor_audit_reports_nonfinite_values() -> None:
+    audit = _finite_named_tensor_audit([
+        ("good", torch.tensor([1.0, 2.0])),
+        ("bad", torch.tensor([float("nan"), float("inf")])),
+    ])
+
+    assert audit["checked_tensors"] == 2
+    assert audit["total_values"] == 4
+    assert audit["nonfinite_values"] == 2
+    assert audit["examples"][0]["name"] == "bad"
+
+
+def test_nonfinite_trainable_adapter_weights_raise() -> None:
+    module = torch.nn.Linear(2, 2, bias=False)
+    with torch.no_grad():
+        module.weight[0, 0] = float("nan")
+
+    with pytest.raises(RuntimeError, match="non-finite trainable adapter weights"):
+        _raise_if_nonfinite_trainable_parameters(module, label="test adapter")
+
+
+def test_lightweight_kbit_prepare_freezes_base_weights() -> None:
+    module = torch.nn.Linear(2, 2, bias=False)
+
+    prepared = _prepare_model_for_kbit_training_lightweight(
+        module,
+        use_gradient_checkpointing=False,
+    )
+
+    assert prepared is module
+    assert all(not parameter.requires_grad for parameter in module.parameters())

@@ -26,6 +26,8 @@ from rl.train_true_grpo_trl import (  # noqa: E402
     SYSTEM_PROMPT_PATH,
     _build_rows,
     _estimate_prompt_tokens,
+    _guarded_optimizer_manifest,
+    _make_guarded_adamw,
     _parse_device_map,
 )
 
@@ -161,31 +163,165 @@ def _sanitize_tokenized_rows(
     return audit
 
 
-def _causal_lm_loss_from_logits(logits: Any, labels: Any) -> Any:
+def _count_invalid_supervised_labels(labels: Any, vocab_size: int) -> int:
+    supervised = labels != -100
+    if not bool(supervised.any()):
+        return 0
+    invalid = supervised & ((labels < 0) | (labels >= int(vocab_size)))
+    return int(invalid.sum().item())
+
+
+def _mask_invalid_supervised_labels(labels: Any, vocab_size: int) -> Any:
+    supervised = labels != -100
+    if not bool(supervised.any()):
+        return labels
+    invalid = supervised & ((labels < 0) | (labels >= int(vocab_size)))
+    if not bool(invalid.any()):
+        return labels
+    labels = labels.clone()
+    labels[invalid] = -100
+    return labels
+
+
+def _causal_lm_loss_from_logits(
+    logits: Any,
+    labels: Any,
+    *,
+    invalid_label_policy: str = "mask",
+    sanitize_nonfinite_logits: bool = True,
+) -> Any:
+    import torch
     import torch.nn.functional as F
 
     if logits.ndim != 3:
         raise RuntimeError(f"expected 3D causal-LM logits, got shape {tuple(logits.shape)}")
+    finite_logits = torch.isfinite(logits)
+    if not bool(finite_logits.all()):
+        if not sanitize_nonfinite_logits:
+            raise RuntimeError("SFT logits contain non-finite values")
+        logits = logits.masked_fill(~finite_logits, 0.0)
     vocab_size = int(logits.shape[-1])
     labels = labels.to(logits.device)
-    supervised = labels != -100
-    if bool(supervised.any()):
-        supervised_labels = labels[supervised]
+    invalid_count = _count_invalid_supervised_labels(labels, vocab_size)
+    if invalid_count:
+        supervised_labels = labels[labels != -100]
         min_label = int(supervised_labels.min().item())
         max_label = int(supervised_labels.max().item())
-        if min_label < 0 or max_label >= vocab_size:
+        if invalid_label_policy == "raise":
             raise RuntimeError(
                 "SFT labels are outside the model logits vocabulary: "
                 f"min_label={min_label} max_label={max_label} "
                 f"logits_vocab_size={vocab_size}"
             )
+        labels = _mask_invalid_supervised_labels(labels, vocab_size)
     shift_logits = logits[..., :-1, :].contiguous()
     shift_labels = labels[..., 1:].contiguous()
-    return F.cross_entropy(
+    if not bool((shift_labels != -100).any()):
+        return shift_logits.sum() * 0.0
+    loss = F.cross_entropy(
         shift_logits.view(-1, vocab_size),
         shift_labels.view(-1),
         ignore_index=-100,
     )
+    if not bool(torch.isfinite(loss)):
+        raise RuntimeError("SFT loss is non-finite")
+    return loss
+
+
+def _count_nonfinite_values(tensor: Any) -> int:
+    import torch
+
+    return int((~torch.isfinite(tensor)).sum().item())
+
+
+def _finite_named_tensor_audit(
+    named_tensors: Any,
+    *,
+    max_examples: int = 8,
+) -> dict[str, Any]:
+    import torch
+
+    total_values = 0
+    nonfinite_values = 0
+    checked_tensors = 0
+    examples: list[dict[str, Any]] = []
+    for name, tensor in named_tensors:
+        if tensor is None or not hasattr(tensor, "detach"):
+            continue
+        detached = tensor.detach()
+        if not (torch.is_floating_point(detached) or torch.is_complex(detached)):
+            continue
+        checked_tensors += 1
+        n_values = int(detached.numel())
+        total_values += n_values
+        finite = torch.isfinite(detached)
+        n_nonfinite = n_values - int(finite.sum().item())
+        nonfinite_values += n_nonfinite
+        if n_nonfinite and len(examples) < max_examples:
+            examples.append({
+                "name": str(name),
+                "shape": list(detached.shape),
+                "nonfinite": n_nonfinite,
+                "numel": n_values,
+            })
+    return {
+        "checked_tensors": checked_tensors,
+        "total_values": total_values,
+        "nonfinite_values": nonfinite_values,
+        "examples": examples,
+    }
+
+
+def _finite_trainable_parameter_audit(model: Any) -> dict[str, Any]:
+    return _finite_named_tensor_audit(
+        (
+            (name, parameter)
+            for name, parameter in model.named_parameters()
+            if getattr(parameter, "requires_grad", False)
+        )
+    )
+
+
+def _raise_if_nonfinite_trainable_parameters(
+    model: Any,
+    *,
+    label: str,
+) -> dict[str, Any]:
+    audit = _finite_trainable_parameter_audit(model)
+    if int(audit["nonfinite_values"]):
+        raise RuntimeError(
+            f"{label} contains non-finite trainable adapter weights: "
+            + json.dumps(audit, sort_keys=True)
+        )
+    return audit
+
+
+def _prepare_model_for_kbit_training_lightweight(
+    model: Any,
+    *,
+    use_gradient_checkpointing: bool,
+) -> Any:
+    for parameter in model.parameters():
+        parameter.requires_grad = False
+    if not use_gradient_checkpointing:
+        return model
+    if hasattr(model, "enable_input_require_grads"):
+        model.enable_input_require_grads()
+    elif hasattr(model, "get_input_embeddings"):
+        def make_inputs_require_grad(_module: Any, _input: Any, output: Any) -> None:
+            output.requires_grad_(True)
+
+        model.get_input_embeddings().register_forward_hook(
+            make_inputs_require_grad
+        )
+    enable = getattr(model, "gradient_checkpointing_enable", None)
+    if callable(enable):
+        params = inspect.signature(enable).parameters
+        if "gradient_checkpointing_kwargs" in params:
+            enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+        else:
+            enable()
+    return model
 
 
 def main() -> int:
@@ -199,6 +335,7 @@ def main() -> int:
     parser.add_argument("--limit-tasks", type=int, default=0)
     parser.add_argument("--max-steps", type=int, default=100)
     parser.add_argument("--learning-rate", type=float, default=5.0e-6)
+    parser.add_argument("--max-grad-norm", type=float, default=1.0)
     parser.add_argument("--per-device-train-batch-size", type=int, default=1)
     parser.add_argument("--gradient-accumulation-steps", type=int, default=1)
     parser.add_argument("--max-seq-length", type=int, default=8192)
@@ -222,6 +359,16 @@ def main() -> int:
         "--prepare-kbit-training",
         action="store_true",
         help="run PEFT prepare_model_for_kbit_training before adding LoRA",
+    )
+    parser.add_argument(
+        "--prepare-kbit-training-mode",
+        default="peft",
+        choices=("peft", "lightweight"),
+        help=(
+            "k-bit preparation implementation. `peft` uses PEFT's full helper; "
+            "`lightweight` freezes the base and enables input gradients without "
+            "upcasting model weights to fp32."
+        ),
     )
     parser.add_argument("--torch-dtype", default=None,
                         choices=("auto", "bfloat16", "float16", "float32"))
@@ -276,6 +423,7 @@ def main() -> int:
             "load_in_4bit": bool(args.load_in_4bit),
             "load_in_8bit": bool(args.load_in_8bit),
             "prepare_kbit_training": bool(args.prepare_kbit_training),
+            "prepare_kbit_training_mode": args.prepare_kbit_training_mode,
             "torch_dtype": args.torch_dtype,
             "attn_implementation": args.attn_implementation,
             "device_map": args.device_map,
@@ -296,6 +444,7 @@ def main() -> int:
             AutoModelForCausalLM,
             AutoTokenizer,
             Trainer,
+            TrainerCallback,
             TrainingArguments,
         )
         if args.load_in_4bit or args.load_in_8bit:
@@ -325,6 +474,8 @@ def main() -> int:
 
     model_kwargs: dict[str, Any] = {}
     if args.load_in_4bit or args.load_in_8bit:
+        if args.load_in_4bit and args.load_in_8bit:
+            raise SystemExit("choose at most one of --load-in-4bit or --load-in-8bit")
         quant_kwargs: dict[str, Any] = {
             "load_in_4bit": bool(args.load_in_4bit),
             "load_in_8bit": bool(args.load_in_8bit),
@@ -372,7 +523,13 @@ def main() -> int:
         prepare_model_for_kbit_training is not None
         and bool(args.prepare_kbit_training)
     ):
-        model = prepare_model_for_kbit_training(model)
+        if args.prepare_kbit_training_mode == "peft":
+            model = prepare_model_for_kbit_training(model)
+        else:
+            model = _prepare_model_for_kbit_training_lightweight(
+                model,
+                use_gradient_checkpointing=bool(args.gradient_checkpointing),
+            )
     peft_config = LoraConfig(
         r=max(1, int(args.lora_rank)),
         lora_alpha=max(1, int(args.lora_alpha)),
@@ -386,6 +543,12 @@ def main() -> int:
         ],
     )
     model = get_peft_model(model, peft_config)
+    manifest["initial_trainable_finite_audit"] = (
+        _raise_if_nonfinite_trainable_parameters(
+            model,
+            label="initial SFT adapter",
+        )
+    )
     tokenized = [
         _tokenize_row(
             tokenizer,
@@ -436,11 +599,19 @@ def main() -> int:
             out["input_ids"].append(item["input_ids"] + [pad_id] * pad)
             out["attention_mask"].append(item["attention_mask"] + [0] * pad)
             out["labels"].append(item["labels"] + [-100] * pad)
-        return {key: torch.tensor(value) for key, value in out.items()}
+        return {
+            "input_ids": torch.tensor(out["input_ids"], dtype=torch.long),
+            "attention_mask": torch.tensor(
+                out["attention_mask"],
+                dtype=torch.long,
+            ),
+            "labels": torch.tensor(out["labels"], dtype=torch.long),
+        }
 
     training_args = _filtered_config(TrainingArguments, {
         "output_dir": str(out_dir),
         "learning_rate": float(args.learning_rate),
+        "max_grad_norm": float(args.max_grad_norm),
         "per_device_train_batch_size": int(args.per_device_train_batch_size),
         "gradient_accumulation_steps": int(args.gradient_accumulation_steps),
         "max_steps": int(args.max_steps),
@@ -451,9 +622,24 @@ def main() -> int:
         "fp16": bool(args.fp16),
         "gradient_checkpointing": bool(args.gradient_checkpointing),
         "remove_unused_columns": False,
+        "logging_nan_inf_filter": False,
         "report_to": [],
     })
+
+    class FiniteTrainableParameterCallback(TrainerCallback):
+        def on_step_end(self, args: Any, state: Any, control: Any, **kwargs: Any) -> Any:
+            step_model = kwargs.get("model")
+            if step_model is not None:
+                _raise_if_nonfinite_trainable_parameters(
+                    step_model,
+                    label=f"SFT adapter after step {getattr(state, 'global_step', '?')}",
+                )
+            return control
+
     class CausalLMTrainer(Trainer):
+        runtime_labels_masked = 0
+        runtime_nonfinite_logits_sanitized = 0
+
         def compute_loss(
             self,
             model: Any,
@@ -463,6 +649,13 @@ def main() -> int:
         ) -> Any:
             labels = inputs.pop("labels")
             outputs = model(**inputs)
+            self.runtime_labels_masked += _count_invalid_supervised_labels(
+                labels.to(outputs.logits.device),
+                int(outputs.logits.shape[-1]),
+            )
+            self.runtime_nonfinite_logits_sanitized += _count_nonfinite_values(
+                outputs.logits
+            )
             loss = _causal_lm_loss_from_logits(outputs.logits, labels)
             if return_outputs:
                 return loss, outputs
@@ -473,8 +666,20 @@ def main() -> int:
         args=training_args,
         train_dataset=train_dataset,
         data_collator=collate,
+        callbacks=[FiniteTrainableParameterCallback()],
     )
+    guarded_optimizer = _make_guarded_adamw(
+        trainer.model,
+        learning_rate=float(args.learning_rate),
+    )
+    trainer.optimizer = guarded_optimizer
     trainer.train()
+    manifest["final_trainable_finite_audit"] = (
+        _raise_if_nonfinite_trainable_parameters(
+            model,
+            label="final SFT adapter",
+        )
+    )
     final_adapter = out_dir / "final_adapter"
     trainer.save_model(str(final_adapter))
     global_step = int(getattr(trainer.state, "global_step", 0) or 0)
@@ -490,12 +695,22 @@ def main() -> int:
             global_step,
             0,
         )
+    optimizer_guard = _guarded_optimizer_manifest(guarded_optimizer)
+    adapter_updates = int(optimizer_guard["successful_steps"])
     manifest["completed_ts"] = time.time()
     manifest["final_adapter"] = str(final_adapter)
-    manifest["adapter_updates"] = global_step
+    manifest["adapter_updates"] = adapter_updates
+    manifest["trainer_global_step"] = global_step
     manifest["trained_tokens"] = trained_tokens
     manifest["rl_trained_tokens"] = 0
     manifest["n_rl_datums"] = 0
+    manifest["optimizer_guard"] = optimizer_guard
+    manifest["runtime_labels_masked"] = int(
+        getattr(trainer, "runtime_labels_masked", 0) or 0
+    )
+    manifest["runtime_nonfinite_logits_sanitized"] = int(
+        getattr(trainer, "runtime_nonfinite_logits_sanitized", 0) or 0
+    )
     (out_dir / "run_manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True, default=str) + "\n"
     )
@@ -505,7 +720,8 @@ def main() -> int:
         "name": final_adapter.name,
         "path": str(final_adapter),
         "step": global_step,
-        "adapter_updates": global_step,
+        "adapter_updates": adapter_updates,
+        "trainer_global_step": global_step,
         "trained_tokens": trained_tokens,
         "rl_trained_tokens": 0,
         "n_rl_datums": 0,
