@@ -475,6 +475,8 @@ def reset_non_resume_outputs(*, out_dir: Path, run_root: Path) -> None:
         run_root,
         out_dir / "raw_completions",
         out_dir / "verifier_outputs",
+        out_dir / "cad_artifacts",
+        out_dir / "chrono_outputs",
         out_dir / "training_logs",
         out_dir / "adapter_checkpoints",
     ):
@@ -861,6 +863,14 @@ def rows_from_sample_summary(
             task_id=task_id,
             samples=samples,
         )
+        cad_paths, chrono_paths = materialize_audit_evidence(
+            evidence_root=evidence_root,
+            split=split,
+            seed=seed,
+            method=method,
+            task_id=task_id,
+            rows=samples,
+        )
         first_valid = first_valid_call(samples)
         best_metrics = dict(best.get("physical_metrics") or {})
         training = training_metadata_for_method(method, trace_root)
@@ -881,14 +891,20 @@ def rows_from_sample_summary(
             "best_verified_reward_at_32": float(
                 best.get("verified_score", 0.0) or 0.0
             ),
+            "budget": int(budget),
             "verifier_calls": verifier_calls,
             "cad_audits": cad_audits,
             "chrono_audits": chrono_audits,
+            "actual_verifier_calls": verifier_calls,
+            "actual_cad_calls": cad_audits,
+            "actual_chrono_calls": chrono_audits,
             "failure_codes": best.get("failure_codes", []),
             "trace_path": str(trace_root / f"sample_{sample_idx}" / task_id),
             "summary_path": str(trace_root / "smoke_summary.json"),
             "raw_completion_paths": raw_paths,
             "verifier_output_paths": verifier_paths,
+            "cad_artifact_paths": cad_paths,
+            "chrono_output_paths": chrono_paths,
             "first_valid_verifier_call": first_valid,
             "strict_score_pass_rate": strict_pass_rate(samples),
             "wrong_mobility_rate": failure_rate(samples, "wrong_mobility"),
@@ -964,6 +980,14 @@ def row_from_ttrl_reward_log(
         task_id=task_id,
         rows=matching,
     )
+    cad_paths, chrono_paths = materialize_audit_evidence(
+        evidence_root=evidence_root,
+        split=split,
+        seed=seed,
+        method=PRIMARY_METHOD,
+        task_id=task_id,
+        rows=matching,
+    )
     best_metrics = dict(best.get("physical_metrics") or {})
     training = training_metadata_from_manifest(run_dir / "run_manifest.json")
     return {
@@ -980,13 +1004,19 @@ def row_from_ttrl_reward_log(
         "best_verified_reward_at_32": float(
             best.get("verified_score", 0.0) or 0.0
         ),
+        "budget": int(budget),
         "verifier_calls": verifier_calls,
         "cad_audits": cad_audits,
         "chrono_audits": chrono_audits,
+        "actual_verifier_calls": verifier_calls,
+        "actual_cad_calls": cad_audits,
+        "actual_chrono_calls": chrono_audits,
         "failure_codes": best.get("failure_codes", []),
         "trace_path": str(reward_log),
         "raw_completion_paths": raw_paths,
         "verifier_output_paths": verifier_paths,
+        "cad_artifact_paths": cad_paths,
+        "chrono_output_paths": chrono_paths,
         "run_dir": str(run_dir),
         "first_valid_verifier_call": first_valid_call(matching),
         "strict_score_pass_rate": strict_pass_rate(matching),
@@ -1214,6 +1244,119 @@ def materialize_ttrl_evidence(
         )
         verifier_paths.append(str(verifier_dest))
     return raw_paths, verifier_paths
+
+
+def materialize_audit_evidence(
+    *,
+    evidence_root: Path | None,
+    split: str,
+    seed: int,
+    method: str,
+    task_id: str,
+    rows: list[dict[str, Any]],
+) -> tuple[list[str], list[str]]:
+    cad_paths: list[str] = []
+    chrono_paths: list[str] = []
+    if evidence_root is None:
+        return cad_paths, chrono_paths
+    cad_dir = evidence_root / "cad_artifacts" / split / str(seed) / method / task_id
+    chrono_dir = (
+        evidence_root / "chrono_outputs" / split / str(seed) / method / task_id
+    )
+    cad_dir.mkdir(parents=True, exist_ok=True)
+    chrono_dir.mkdir(parents=True, exist_ok=True)
+    for item_idx, item in enumerate(rows):
+        traces = item.get("turn_traces") or []
+        if traces:
+            for trace_idx, trace in enumerate(traces):
+                stem = evidence_stem(
+                    item=item,
+                    fallback_idx=item_idx,
+                    suffix=f"turn_{trace_idx:04d}",
+                )
+                cad_paths.extend(
+                    write_audit_json_if_present(
+                        out_dir=cad_dir,
+                        stem=stem,
+                        kind="cad",
+                        row=trace,
+                    )
+                )
+                chrono_paths.extend(
+                    write_audit_json_if_present(
+                        out_dir=chrono_dir,
+                        stem=stem,
+                        kind="chrono",
+                        row=trace,
+                    )
+                )
+            continue
+        stem = evidence_stem(item=item, fallback_idx=item_idx)
+        cad_paths.extend(
+            write_audit_json_if_present(
+                out_dir=cad_dir,
+                stem=stem,
+                kind="cad",
+                row=item,
+            )
+        )
+        chrono_paths.extend(
+            write_audit_json_if_present(
+                out_dir=chrono_dir,
+                stem=stem,
+                kind="chrono",
+                row=item,
+            )
+        )
+    return cad_paths, chrono_paths
+
+
+def evidence_stem(
+    *,
+    item: dict[str, Any],
+    fallback_idx: int,
+    suffix: str = "",
+) -> str:
+    sample_idx = int(item.get("sample_idx", fallback_idx) or 0)
+    audit_attempt = int(item.get("audit_attempt", 0) or 0)
+    sampler_attempt = int(item.get("sampler_attempt", 0) or 0)
+    bits = [
+        f"sample_{sample_idx:04d}",
+        f"audit_{audit_attempt:02d}",
+        f"attempt_{sampler_attempt:02d}",
+    ]
+    if suffix:
+        bits.append(suffix)
+    return "_".join(bits)
+
+
+def write_audit_json_if_present(
+    *,
+    out_dir: Path,
+    stem: str,
+    kind: str,
+    row: dict[str, Any],
+) -> list[str]:
+    field = "cad_audits" if kind == "cad" else "chrono_audits"
+    if int(row.get(field, 0) or 0) <= 0:
+        return []
+    payload = {
+        "schema": f"mechanism_repair_ttrl.{kind}_artifact_evidence.v1",
+        "kind": kind,
+        "audit_count": int(row.get(field, 0) or 0),
+        "task_id": row.get("task_id"),
+        "family": row.get("family"),
+        "sample_idx": row.get("sample_idx"),
+        "turn_idx": row.get("turn_idx"),
+        "hard_gate_passed": row.get("hard_gate_passed", row.get("passed")),
+        "evaluation_valid": row.get("evaluation_valid"),
+        "failure_codes": row.get("failure_codes", []),
+        "physical_metrics": row.get("physical_metrics", {}),
+        "feedback": row.get("feedback", []),
+    }
+    dest = out_dir / f"{stem}.json"
+    dest.write_text(json.dumps(payload, indent=2, sort_keys=True, default=str) + "\n")
+    return [str(dest)]
 
 
 def first_valid_call(rows: list[dict[str, Any]]) -> int | None:
@@ -1469,6 +1612,8 @@ def ensure_required_artifact_dirs(out_dir: Path) -> None:
     for name in (
         "raw_completions",
         "verifier_outputs",
+        "cad_artifacts",
+        "chrono_outputs",
         "training_logs",
         "adapter_checkpoints",
     ):
@@ -1478,6 +1623,8 @@ def ensure_required_artifact_dirs(out_dir: Path) -> None:
 def write_artifact_indexes(out_dir: Path, rows: list[dict[str, Any]]) -> None:
     raw_paths: list[str] = []
     verifier_paths: list[str] = []
+    cad_paths: list[str] = []
+    chrono_paths: list[str] = []
     training_logs: set[str] = set()
     adapters: set[str] = set()
     for row in rows:
@@ -1485,6 +1632,8 @@ def write_artifact_indexes(out_dir: Path, rows: list[dict[str, Any]]) -> None:
         verifier_paths.extend(
             str(path) for path in row.get("verifier_output_paths", []) or []
         )
+        cad_paths.extend(str(path) for path in row.get("cad_artifact_paths", []) or [])
+        chrono_paths.extend(str(path) for path in row.get("chrono_output_paths", []) or [])
         trace = str(row.get("trace_path") or "")
         if trace.endswith("reward_log.jsonl"):
             training_logs.add(trace)
@@ -1501,6 +1650,14 @@ def write_artifact_indexes(out_dir: Path, rows: list[dict[str, Any]]) -> None:
     write_json(
         out_dir / "verifier_outputs" / "index.json",
         {"paths": sorted(set(verifier_paths)), "count": len(set(verifier_paths))},
+    )
+    write_json(
+        out_dir / "cad_artifacts" / "index.json",
+        {"paths": sorted(set(cad_paths)), "count": len(set(cad_paths))},
+    )
+    write_json(
+        out_dir / "chrono_outputs" / "index.json",
+        {"paths": sorted(set(chrono_paths)), "count": len(set(chrono_paths))},
     )
     write_json(
         out_dir / "training_logs" / "index.json",

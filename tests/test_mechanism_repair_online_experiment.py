@@ -206,6 +206,52 @@ def test_rows_from_sample_summary_materializes_multiturn_evidence(
     assert verifier["hard_gate_passed"] is True
 
 
+def test_rows_from_sample_summary_materializes_cad_chrono_evidence(
+    tmp_path: Path,
+) -> None:
+    summary = {
+        "max_turns": 1,
+        "all_samples": [
+            {
+                "task_id": "rack_task",
+                "family": "rack_pinion",
+                "sample_idx": 0,
+                "verified_score": 1.0,
+                "evaluation_valid": True,
+                "hard_gate_passed": True,
+                "failure_codes": [],
+                "verifier_calls": 1,
+                "cad_audits": 1,
+                "chrono_audits": 1,
+                "physical_metrics": {"contact_force_rms_N": 3.0},
+            },
+        ],
+    }
+
+    rows = rows_from_sample_summary(
+        summary=summary,
+        method="frozen_model",
+        split="A",
+        seed=20260610,
+        budget=1,
+        trace_root=tmp_path / "trace",
+        family_by_task={"rack_task": "rack_pinion"},
+        evidence_root=tmp_path / "evidence",
+    )
+
+    row = rows[0]
+    assert row["actual_verifier_calls"] == 1
+    assert row["actual_cad_calls"] == 1
+    assert row["actual_chrono_calls"] == 1
+    assert len(row["cad_artifact_paths"]) == 1
+    assert len(row["chrono_output_paths"]) == 1
+    cad = json.loads(Path(row["cad_artifact_paths"][0]).read_text())
+    chrono = json.loads(Path(row["chrono_output_paths"][0]).read_text())
+    assert cad["kind"] == "cad"
+    assert chrono["kind"] == "chrono"
+    assert chrono["physical_metrics"]["contact_force_rms_N"] == 3.0
+
+
 def test_rows_from_sample_summary_keeps_retry_evidence_paths_unique(
     tmp_path: Path,
 ) -> None:

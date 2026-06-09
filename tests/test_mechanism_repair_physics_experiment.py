@@ -197,3 +197,53 @@ def test_complete_synthetic_evidence_gets_binary_claim_status(
     )
     assert audit["budget_audit"]["budget_matched"] is True
     assert audit["anti_shortcut_audit"]["anti_shortcut_executed"] is True
+
+
+def test_shards_partition_full_experiment_plan(tmp_path: Path) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    full = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+
+    observed = []
+    for shard_index in range(3):
+        shard = physics.build_plan(
+            benchmark_dir=benchmark,
+            out_dir=out_dir,
+            methods=list(REQUIRED_METHODS),
+            splits=["A", "B"],
+            anti_shortcut_splits=["hidden_perturbation", "external_style"],
+            seeds=list(EVAL_SEEDS),
+            budgets=[PRIMARY_BUDGET],
+            limit_tasks=1,
+            task_index=task_index,
+            shard_index=shard_index,
+            num_shards=3,
+        )
+        assert shard["full_planned_cells"] == full["planned_cells"]
+        observed.extend(shard["expected_cells"])
+
+    def key(cell: dict) -> tuple:
+        return (
+            cell["split"],
+            cell["task_id"],
+            cell["seed"],
+            cell["method"],
+            cell["budget"],
+        )
+
+    full_keys = {key(cell) for cell in full["expected_cells"]}
+    observed_keys = [key(cell) for cell in observed]
+    assert set(observed_keys) == full_keys
+    assert len(observed_keys) == len(set(observed_keys))

@@ -2,8 +2,10 @@
   "budget_matched": false,
   "budget_mismatch_count": 0,
   "duplicate_cell_count": 0,
+  "full_planned_cells": 6480,
   "missing_accounting_count": 0,
   "missing_cell_count": 6480,
+  "num_shards": 1,
   "observed_rows": 0,
   "planned_cells": 6480,
   "primary_budget": 32,
@@ -262,5 +264,6 @@
       "verifier_level": 3
     }
   ],
-  "schema": "mechanism_repair_physics.budget_audit.v1"
+  "schema": "mechanism_repair_physics.budget_audit.v1",
+  "shard_index": 0
 }

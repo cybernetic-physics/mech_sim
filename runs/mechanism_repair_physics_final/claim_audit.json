@@ -5,6 +5,7 @@
     "run hidden/isomorphic anti-shortcut variants",
     "write statistical, failure, trace-pair, repair-taxonomy, anti-shortcut, and budget analyses"
   ],
+  "full_planned_cells": 6480,
   "goal_complete": false,
   "missing_analysis_artifacts": [
     "stats.json",
@@ -19,9 +20,11 @@
   ],
   "missing_evidence_count": 0,
   "missing_learning_count": 0,
+  "num_shards": 1,
   "observed_rows": 0,
   "planned_cells": 6480,
   "sample_missing_evidence": [],
   "sample_missing_learning": [],
-  "schema": "mechanism_repair_physics.experiment_claim_audit.v1"
+  "schema": "mechanism_repair_physics.experiment_claim_audit.v1",
+  "shard_index": 0
 }

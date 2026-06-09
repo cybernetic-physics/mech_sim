@@ -11,6 +11,7 @@ coverage, and analysis artifacts.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -63,6 +64,25 @@ def main() -> int:
     )
     parser.add_argument("--budgets", default=str(PRIMARY_BUDGET))
     parser.add_argument("--limit-tasks", type=int, default=0)
+    parser.add_argument(
+        "--num-shards",
+        type=int,
+        default=1,
+        help="number of deterministic cell shards; default audits the full grid",
+    )
+    parser.add_argument(
+        "--shard-index",
+        type=int,
+        default=0,
+        help="0-based deterministic shard index to plan/audit",
+    )
+    parser.add_argument(
+        "--write-shard-files",
+        type=int,
+        default=0,
+        metavar="N",
+        help="write N deterministic shard JSON files and exit after auditing",
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument(
         "--require-complete",
@@ -91,6 +111,10 @@ def main() -> int:
     budgets = [int(item) for item in parse_csv(args.budgets)]
     if PRIMARY_BUDGET not in budgets:
         raise SystemExit(f"--budgets must include primary budget {PRIMARY_BUDGET}")
+    if args.num_shards < 1:
+        raise SystemExit("--num-shards must be >= 1")
+    if args.shard_index < 0 or args.shard_index >= args.num_shards:
+        raise SystemExit("--shard-index must be in [0, --num-shards)")
 
     task_index = load_task_index(benchmark_dir)
     plan = build_plan(
@@ -103,7 +127,28 @@ def main() -> int:
         budgets=budgets,
         limit_tasks=max(0, int(args.limit_tasks)),
         task_index=task_index,
+        shard_index=int(args.shard_index),
+        num_shards=int(args.num_shards),
     )
+    if int(args.write_shard_files) > 0:
+        shard_plan = build_plan(
+            benchmark_dir=benchmark_dir,
+            out_dir=out_dir,
+            methods=methods,
+            splits=splits,
+            anti_shortcut_splits=anti_splits,
+            seeds=seeds,
+            budgets=budgets,
+            limit_tasks=max(0, int(args.limit_tasks)),
+            task_index=task_index,
+            shard_index=0,
+            num_shards=1,
+        )
+        write_shard_files(
+            out_dir=out_dir,
+            plan=shard_plan,
+            num_shards=int(args.write_shard_files),
+        )
     write_json(out_dir / "physics_experiment_plan.json", public_plan(plan))
     audit = audit_existing_experiment(out_dir=out_dir, plan=plan)
     write_json(out_dir / "budget_audit.json", audit["budget_audit"])
@@ -154,6 +199,8 @@ def build_plan(
     budgets: list[int],
     limit_tasks: int,
     task_index: dict[str, dict[str, Any]],
+    shard_index: int = 0,
+    num_shards: int = 1,
 ) -> dict[str, Any]:
     split_tasks: dict[str, list[str]] = {}
     all_splits = unique_list([*splits, *anti_shortcut_splits])
@@ -181,6 +228,12 @@ def build_plan(
                             "method": method,
                             "budget": int(budget),
                         })
+    full_cell_count = len(expected_cells)
+    if num_shards > 1:
+        expected_cells = [
+            cell for cell in expected_cells
+            if cell_shard(cell, num_shards=num_shards) == shard_index
+        ]
     return {
         "schema": "mechanism_repair_physics.experiment_plan.v1",
         "hypothesis": (
@@ -209,6 +262,10 @@ def build_plan(
         "split_tasks": split_tasks,
         "expected_cells": expected_cells,
         "planned_cells": len(expected_cells),
+        "full_planned_cells": full_cell_count,
+        "shard_index": int(shard_index),
+        "num_shards": int(num_shards),
+        "sharded": bool(num_shards > 1),
         "limit_tasks": int(limit_tasks),
         "artifact_contract": {
             "raw_completions": "one or more raw model outputs per cell",
@@ -308,6 +365,9 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
         "schema": "mechanism_repair_physics.budget_audit.v1",
         "primary_budget": int(plan["primary_budget"]),
         "planned_cells": int(plan["planned_cells"]),
+        "full_planned_cells": int(plan.get("full_planned_cells", plan["planned_cells"])),
+        "shard_index": int(plan.get("shard_index", 0)),
+        "num_shards": int(plan.get("num_shards", 1)),
         "observed_rows": len(rows),
         "missing_cell_count": len(missing_cells),
         "duplicate_cell_count": len(duplicate_keys),
@@ -348,6 +408,9 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
         "goal_complete": not blockers,
         "benchmark_dir": plan["benchmark_dir"],
         "planned_cells": int(plan["planned_cells"]),
+        "full_planned_cells": int(plan.get("full_planned_cells", plan["planned_cells"])),
+        "shard_index": int(plan.get("shard_index", 0)),
+        "num_shards": int(plan.get("num_shards", 1)),
         "observed_rows": len(rows),
         "blockers": blockers,
         "missing_before_paper_claim": blockers,
@@ -372,6 +435,71 @@ def public_plan(plan: dict[str, Any]) -> dict[str, Any]:
     out.pop("expected_cells", None)
     out["expected_cells_materialized_in_audit"] = False
     return out
+
+
+def write_shard_files(
+    *,
+    out_dir: Path,
+    plan: dict[str, Any],
+    num_shards: int,
+) -> None:
+    if num_shards < 1:
+        raise SystemExit("--write-shard-files must be >= 1")
+    shard_dir = out_dir / "experiment_shards"
+    shard_dir.mkdir(parents=True, exist_ok=True)
+    cells = list(plan.get("expected_cells", []) or [])
+    for shard_index in range(num_shards):
+        shard_cells = [
+            cell for cell in cells
+            if cell_shard(cell, num_shards=num_shards) == shard_index
+        ]
+        payload = {
+            "schema": "mechanism_repair_physics.experiment_shard.v1",
+            "benchmark_dir": plan["benchmark_dir"],
+            "out_dir": plan["out_dir"],
+            "num_shards": int(num_shards),
+            "shard_index": int(shard_index),
+            "planned_cells": len(shard_cells),
+            "full_planned_cells": len(cells),
+            "cells": shard_cells,
+            "replay_args": [
+                "--benchmark-dir",
+                plan["benchmark_dir"],
+                "--out-dir",
+                plan["out_dir"],
+                "--methods",
+                ",".join(plan["methods"]),
+                "--splits",
+                ",".join(plan["headline_splits"]),
+                "--anti-shortcut-splits",
+                ",".join(plan["anti_shortcut_splits"]),
+                "--eval-seeds",
+                ",".join(str(seed) for seed in plan["seeds"]),
+                "--budgets",
+                ",".join(str(budget) for budget in plan["budgets"]),
+                "--num-shards",
+                str(num_shards),
+                "--shard-index",
+                str(shard_index),
+            ],
+        }
+        write_json(shard_dir / f"shard_{shard_index:04d}.json", payload)
+
+
+def cell_shard(cell: dict[str, Any], *, num_shards: int) -> int:
+    key = json.dumps(
+        {
+            "split": cell["split"],
+            "task_id": cell["task_id"],
+            "seed": int(cell["seed"]),
+            "method": cell["method"],
+            "budget": int(cell["budget"]),
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
+    return int(digest[:16], 16) % int(num_shards)
 
 
 def build_blockers(
