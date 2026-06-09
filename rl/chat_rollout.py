@@ -45,6 +45,13 @@ except ImportError as _e:
     requests = None  # type: ignore[assignment]
 
 
+_SGLANG_OPTIONAL_CHAT_KEYS = (
+    "continue_final_message",
+    "separate_reasoning",
+    "chat_template_kwargs",
+)
+
+
 @dataclass
 class TurnTrace:
     """One assistant turn worth of evidence."""
@@ -324,6 +331,26 @@ def _chat_completion(
         )
         r = requests.post(url, json=body, timeout=timeout_s,
                           headers={"Authorization": "Bearer dummy"})
+    if r.status_code == 400 and any(k in body for k in _SGLANG_OPTIONAL_CHAT_KEYS):
+        retry_body = {
+            k: v for k, v in body.items()
+            if k not in _SGLANG_OPTIONAL_CHAT_KEYS
+        }
+        r = requests.post(url, json=retry_body, timeout=timeout_s,
+                          headers={"Authorization": "Bearer dummy"})
+        body = retry_body
+        if (
+            r.status_code == 400
+            and lora_path
+            and "never been loaded" in getattr(r, "text", "")
+        ):
+            _load_sglang_lora_adapter(
+                base_url=base_url,
+                lora_path=lora_path,
+                timeout_s=timeout_s,
+            )
+            r = requests.post(url, json=body, timeout=timeout_s,
+                              headers={"Authorization": "Bearer dummy"})
     try:
         r.raise_for_status()
     except Exception as exc:

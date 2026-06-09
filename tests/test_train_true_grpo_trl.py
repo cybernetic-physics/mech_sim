@@ -21,6 +21,7 @@ from rl.train_true_grpo_trl import (
     _make_guarded_adamw,
     _messages_for_rollout,
     _parse_max_memory,
+    _post_openai_chat_completion,
     _prepare_model_for_kbit_training_lightweight,
     _prompt_text_for_rollout,
     _raise_if_nonfinite_trainable_parameters,
@@ -100,6 +101,51 @@ class ChatTemplateTokenizer:
         return rendered
 
 
+class FakeChatResponse:
+    def __init__(
+        self,
+        status_code: int,
+        payload: dict[str, object] | None = None,
+        *,
+        text: str = "bad request",
+    ) -> None:
+        self.status_code = status_code
+        self._payload = payload or {}
+        self.text = text
+
+    def raise_for_status(self) -> None:
+        if self.status_code >= 400:
+            raise RuntimeError(f"{self.status_code} error")
+
+    def json(self) -> dict[str, object]:
+        return self._payload
+
+
+class FakeOpenAIRequests:
+    calls: list[dict[str, object]] = []
+
+    @classmethod
+    def post(
+        cls,
+        url: str,
+        *,
+        json: dict[str, object],
+        timeout: float,
+        headers: dict[str, str],
+    ) -> FakeChatResponse:
+        cls.calls.append(dict(json))
+        optional = {
+            "continue_final_message",
+            "separate_reasoning",
+            "chat_template_kwargs",
+        }
+        if "seed" in json:
+            return FakeChatResponse(400, text="seed unsupported")
+        if optional.intersection(json):
+            return FakeChatResponse(400, text="chat options unsupported")
+        return FakeChatResponse(200, {"ok": True})
+
+
 class DummyTrainingArgs:
     def __init__(
         self,
@@ -111,6 +157,35 @@ class DummyTrainingArgs:
         self.save_strategy = save_strategy
         self.save_steps = save_steps
         self.save_total_limit = save_total_limit
+
+
+def test_openai_chat_post_retries_without_seed_and_optional_sglang_fields() -> None:
+    FakeOpenAIRequests.calls = []
+    result = _post_openai_chat_completion(
+        requests_mod=FakeOpenAIRequests,
+        base_url="http://localhost:30000",
+        api_key="dummy",
+        body={
+            "model": "model",
+            "messages": [{"role": "assistant", "content": "```python\n"}],
+            "max_tokens": 8,
+            "temperature": 0.7,
+            "top_p": 0.95,
+            "stream": False,
+            "continue_final_message": True,
+            "separate_reasoning": False,
+            "chat_template_kwargs": {"enable_thinking": False},
+            "seed": 123,
+        },
+        timeout_s=1.0,
+    )
+
+    assert result == {"ok": True}
+    assert FakeOpenAIRequests.calls[0]["seed"] == 123
+    assert "seed" not in FakeOpenAIRequests.calls[1]
+    assert "continue_final_message" not in FakeOpenAIRequests.calls[2]
+    assert "separate_reasoning" not in FakeOpenAIRequests.calls[2]
+    assert "chat_template_kwargs" not in FakeOpenAIRequests.calls[2]
 
 
 def test_intermediate_checkpoint_config_disables_trainer_saves() -> None:

@@ -38,6 +38,11 @@ from rl.train_grpo import _contract_from_task  # noqa: E402
 SYSTEM_PROMPT_PATH = REPO_ROOT / "rl" / "agent_prompt_rl.md"
 SCHEMA = "mech_bench.true_grpo_trl.v1"
 REWARD_CHANNELS = ("verified_score", "score", "artifact_progress")
+SGLANG_OPTIONAL_CHAT_KEYS = (
+    "continue_final_message",
+    "separate_reasoning",
+    "chat_template_kwargs",
+)
 STRICT_FENCED_OUTPUT_INSTRUCTION = (
     "/no_think\n"
     "You must reply with exactly one fenced ```python code block containing "
@@ -810,7 +815,26 @@ def _post_openai_chat_completion(
 ) -> dict[str, Any]:
     url = base_url.rstrip("/") + "/v1/chat/completions"
     headers = {"Authorization": f"Bearer {api_key}"}
-    response = requests_mod.post(url, json=body, timeout=timeout_s, headers=headers)
+    request_body = dict(body)
+    response = requests_mod.post(
+        url, json=request_body, timeout=timeout_s, headers=headers
+    )
+    if response.status_code == 400 and "seed" in request_body:
+        request_body.pop("seed", None)
+        response = requests_mod.post(
+            url, json=request_body, timeout=timeout_s, headers=headers
+        )
+    if (
+        response.status_code == 400
+        and any(k in request_body for k in SGLANG_OPTIONAL_CHAT_KEYS)
+    ):
+        request_body = {
+            k: v for k, v in request_body.items()
+            if k not in SGLANG_OPTIONAL_CHAT_KEYS
+        }
+        response = requests_mod.post(
+            url, json=request_body, timeout=timeout_s, headers=headers
+        )
     try:
         response.raise_for_status()
     except Exception as exc:
