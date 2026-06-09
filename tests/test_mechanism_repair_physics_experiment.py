@@ -8,7 +8,9 @@ from scripts import run_mechanism_repair_physics_experiment as physics
 from scripts.prepare_mechanism_repair_physics_benchmark import (
     EVAL_SEEDS,
     PRIMARY_BUDGET,
+    REQUIRED_FAMILIES,
     REQUIRED_METHODS,
+    materialize_benchmark,
 )
 
 
@@ -60,6 +62,47 @@ def _write_fake_benchmark(root: Path) -> None:
         (split_dir / "test.txt").write_text(
             f"{root / 'tasks' / 'task_l3'}\n"
         )
+
+
+def test_materialized_physics_prompts_are_family_specific(tmp_path: Path) -> None:
+    tasks_root = tmp_path / "tasks"
+    tasks_root.mkdir()
+    manifest = materialize_benchmark(
+        tasks_root=tasks_root,
+        tasks_per_family=1,
+        base_seed=20270610,
+    )
+    by_family = {row["family"]: row for row in manifest["tasks"]}
+
+    assert set(by_family) == set(REQUIRED_FAMILIES)
+    for family in REQUIRED_FAMILIES:
+        prompt = Path(by_family[family]["task_dir"], "prompt.md").read_text()
+        assert f"Canonical mechanism family: `{family}`" in prompt
+        assert "DesignIR deliverable:" in prompt
+        assert "`schema_version=\"design_ir.v2\"`" in prompt
+        assert "`params[\"cad_mass_properties\"]`" in prompt
+        assert "`revolute_joint` and `prismatic_joint` entries" in prompt
+        assert "must reference joint ids" in prompt
+        assert "fake_contact_oracle" in prompt
+
+    geneva_prompt = Path(
+        by_family["geneva_indexer"]["task_dir"], "prompt.md"
+    ).read_text()
+    assert "Geneva indexing mechanism" in geneva_prompt
+    assert "rotating driver wheel" in geneva_prompt
+    assert "`driver`" in geneva_prompt
+    assert "`geneva`" in geneva_prompt
+    assert "`input_port`: kind `revolute_joint`" in geneva_prompt
+    assert "`output_port`: kind `revolute_joint`" in geneva_prompt
+    assert "Required contact pairs: `driver:geneva`" in geneva_prompt
+    assert "plain spur gear train" in geneva_prompt
+
+    rack_prompt = Path(
+        by_family["rack_pinion"]["task_dir"], "prompt.md"
+    ).read_text()
+    assert "rotating pinion meshes with a translating rack" in rack_prompt
+    assert "Required contact pairs: `pinion:rack`" in rack_prompt
+    assert "`output_port`: kind `prismatic_joint`" in rack_prompt
 
 
 def test_dry_run_writes_plan_and_incomplete_audit(

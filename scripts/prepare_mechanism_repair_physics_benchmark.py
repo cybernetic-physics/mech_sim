@@ -149,6 +149,247 @@ DEFAULT_CONTACT_PAIRS = {
     "geneva_indexer": ("driver:geneva",),
 }
 
+FAMILY_PROMPT_GUIDANCE: dict[str, dict[str, tuple[str, ...] | str]] = {
+    "cycloidal_reducer": {
+        "mechanism": (
+            "Cycloidal speed reducer: an eccentric input shaft drives a "
+            "cycloidal disc inside a fixed housing/ring-pin set, and an "
+            "output pin carrier takes reduced rotation from the disc."
+        ),
+        "roles": (
+            "fixed housing or ring-pin ground part named housing",
+            "eccentric input shaft/crank",
+            "cycloidal disc named disc",
+            "output pin carrier or output hub",
+        ),
+        "nominal_parts": ("housing", "input_shaft", "disc", "output_carrier"),
+        "forbidden": (
+            "plain spur gear pair",
+            "planetary gearbox",
+            "belt or chain drive",
+            "generic pulley transmission",
+        ),
+    },
+    "planetary_reducer": {
+        "mechanism": (
+            "Planetary reducer: coaxial sun, planet gears on a carrier, and "
+            "ring gear; the selected fixed member and output member must "
+            "match the task's ratio semantics."
+        ),
+        "roles": (
+            "fixed frame/housing",
+            "sun gear",
+            "planet gears",
+            "planet carrier",
+            "ring gear",
+        ),
+        "nominal_parts": ("frame", "sun", "planet_0", "carrier", "ring"),
+        "forbidden": (
+            "single external spur pair",
+            "belt drive",
+            "chain drive",
+            "lead screw",
+        ),
+    },
+    "spur_compound_gear_train": {
+        "mechanism": (
+            "Spur or compound spur gear train with meshing external gears; "
+            "compound gears must share a shaft when the ratio requires a "
+            "multi-stage train."
+        ),
+        "roles": (
+            "fixed frame",
+            "input gear/shaft",
+            "idler or compound gear shaft when needed",
+            "output gear/shaft",
+        ),
+        "nominal_parts": ("frame", "input_gear", "compound_gear", "output_gear"),
+        "forbidden": (
+            "planetary gear set",
+            "belt or chain drive",
+            "rack and pinion",
+            "friction-only wheel pair",
+        ),
+    },
+    "belt_drive": {
+        "mechanism": (
+            "Belt drive: two pulleys connected by a belt, with the pulley "
+            "radii/diameters and center distance satisfying the task."
+        ),
+        "roles": (
+            "fixed frame",
+            "input pulley/shaft",
+            "output pulley/shaft",
+            "belt span or belt loop representation",
+        ),
+        "nominal_parts": ("frame", "input_pulley", "output_pulley", "belt"),
+        "forbidden": (
+            "gear mesh",
+            "chain and sprocket",
+            "rack and pinion",
+            "lead screw",
+        ),
+    },
+    "chain_drive": {
+        "mechanism": (
+            "Chain drive: two sprockets coupled by a chain loop; tooth "
+            "counts and sprocket radii must encode the requested ratio."
+        ),
+        "roles": (
+            "fixed frame",
+            "input sprocket/shaft",
+            "output sprocket/shaft",
+            "chain loop or chain span representation",
+        ),
+        "nominal_parts": ("frame", "input_sprocket", "output_sprocket", "chain"),
+        "forbidden": (
+            "belt drive without chain/sprocket semantics",
+            "spur gear mesh",
+            "rack and pinion",
+            "lead screw",
+        ),
+    },
+    "rack_pinion": {
+        "mechanism": (
+            "Rack and pinion: a rotating pinion meshes with a translating "
+            "rack to convert rotary input into linear output."
+        ),
+        "roles": (
+            "fixed frame",
+            "rotating pinion named pinion",
+            "translating rack named rack",
+            "contact or mesh relation between pinion and rack",
+        ),
+        "nominal_parts": ("frame", "pinion", "rack"),
+        "forbidden": (
+            "two rotating gears only",
+            "belt drive",
+            "chain drive",
+            "lead screw without rack teeth",
+        ),
+    },
+    "lead_screw": {
+        "mechanism": (
+            "Lead screw actuator: a rotating screw/nut pair converts input "
+            "rotation into linear travel according to the specified lead."
+        ),
+        "roles": (
+            "fixed frame",
+            "rotating screw or driven nut",
+            "translating nut or carriage",
+            "helical screw constraint",
+        ),
+        "nominal_parts": ("frame", "screw", "nut", "carriage"),
+        "forbidden": (
+            "rack and pinion",
+            "belt drive",
+            "gear train only",
+            "slider crank",
+        ),
+    },
+    "slider_crank": {
+        "mechanism": (
+            "Slider-crank mechanism: a crank, connecting rod, and prismatic "
+            "slider convert rotary motion into reciprocating linear motion."
+        ),
+        "roles": (
+            "fixed frame",
+            "rotating crank",
+            "connecting rod",
+            "prismatic slider",
+        ),
+        "nominal_parts": ("frame", "crank", "connecting_rod", "slider"),
+        "forbidden": (
+            "four-bar without a slider",
+            "rack and pinion",
+            "lead screw",
+            "gear train",
+        ),
+    },
+    "fourbar_linkage": {
+        "mechanism": (
+            "Planar four-bar linkage with ground, input crank, coupler, and "
+            "output rocker/crank; coupler geometry must satisfy the path or "
+            "arc objective."
+        ),
+        "roles": (
+            "fixed ground link",
+            "input crank",
+            "coupler link",
+            "output rocker or crank",
+            "coupler point when required",
+        ),
+        "nominal_parts": ("ground", "input_crank", "coupler", "output_rocker"),
+        "forbidden": (
+            "slider-crank with prismatic output",
+            "gear train",
+            "belt drive",
+            "cam follower",
+        ),
+    },
+    "cam_follower": {
+        "mechanism": (
+            "Cam-follower mechanism: a rotating cam drives a follower through "
+            "physical contact, producing the requested output motion."
+        ),
+        "roles": (
+            "fixed frame",
+            "rotating cam named cam",
+            "follower named follower",
+            "contact pair between cam and follower",
+        ),
+        "nominal_parts": ("frame", "cam", "follower"),
+        "forbidden": (
+            "gear pair",
+            "belt or chain drive",
+            "Geneva indexer",
+            "plain four-bar linkage",
+        ),
+    },
+    "geneva_indexer": {
+        "mechanism": (
+            "Geneva indexing mechanism: a rotating driver wheel with a drive "
+            "pin intermittently indexes a Geneva wheel/slot wheel by discrete "
+            "steps, while the output locks between index events."
+        ),
+        "roles": (
+            "fixed frame",
+            "rotating driver wheel named driver",
+            "drive pin on the driver",
+            "indexed Geneva wheel named geneva",
+            "slots or dwell geometry on the Geneva wheel",
+        ),
+        "nominal_parts": ("frame", "driver", "drive_pin", "geneva"),
+        "forbidden": (
+            "belt drive",
+            "chain drive",
+            "plain spur gear train",
+            "pulley pair",
+            "generic two-wheel friction drive",
+        ),
+    },
+    "shaft_bearing_coupling": {
+        "mechanism": (
+            "Shaft/bearing/coupling assembly: a shaft, hub or bearing seat, "
+            "and keyed/clearance/interference interfaces satisfy the fit "
+            "and alignment constraints."
+        ),
+        "roles": (
+            "shaft",
+            "hub, bearing, or housing seat",
+            "key or retaining feature when required",
+            "fixed reference frame or housing",
+        ),
+        "nominal_parts": ("shaft", "hub", "bearing", "housing", "key"),
+        "forbidden": (
+            "gear train",
+            "belt drive",
+            "linkage",
+            "contact-only cam task",
+        ),
+    },
+}
+
 TOPOLOGY_PROBES = {"dof_grubler"}
 INTERFACE_PROBES = {"required_ports"}
 FUNCTIONAL_PROBES = {
@@ -323,6 +564,279 @@ def materialize_benchmark(
     }
 
 
+def build_physics_prompt_contract(
+    task: GeneratedTask,
+    *,
+    spec: FamilySpec,
+    source_generator: str,
+    original_id: str,
+) -> str:
+    guidance = FAMILY_PROMPT_GUIDANCE.get(spec.name, {})
+    mechanism = str(guidance.get("mechanism", "Build the canonical mechanism."))
+    roles = tuple(guidance.get("roles", ()) or ())
+    nominal_parts = tuple(guidance.get("nominal_parts", ()) or ())
+    forbidden = tuple(guidance.get("forbidden", ()) or ())
+    reqs = task.task_toml.get("requirements", {}) or {}
+    objective = task.task_toml.get("objective", {}) or {}
+    lines: list[str] = [
+        "## MechanismRepair-Physics canonical contract",
+        "",
+        (
+            f"Canonical mechanism family: `{spec.name}`. Source task "
+            f"`{original_id}` from generator `{source_generator}` is being "
+            "evaluated under this canonical family."
+        ),
+        "Build this canonical mechanism family, not an analogous transmission.",
+        "",
+        "Family mechanism:",
+        f"- {mechanism}",
+    ]
+    if roles:
+        lines.append("- Required mechanism roles/parts:")
+        for role in roles:
+            lines.append(f"  - {role}")
+    if nominal_parts:
+        lines.append(
+            "- Preferred stable part ids: " + ", ".join(f"`{p}`" for p in nominal_parts)
+        )
+    if forbidden:
+        lines.append("- Do not submit:")
+        for item in forbidden:
+            lines.append(f"  - {item}")
+
+    objective_desc = objective.get("description")
+    if objective_desc:
+        lines.extend(["", "Task objective:", f"- {objective_desc}"])
+    req_lines = _task_requirement_lines(reqs)
+    if req_lines:
+        lines.extend(["", "Task-level requirements:", *req_lines])
+
+    port_lines = _required_port_lines(task.eval_config_toml, family=spec.name)
+    if port_lines:
+        lines.extend(["", "Required interface ports:", *port_lines])
+        lines.extend(
+            [
+                "- Port ids must match exactly.",
+                (
+                    "- For `revolute_joint` or `prismatic_joint` ports, "
+                    "`port.part` must reference the id of the corresponding "
+                    "joint in `joints`, not the moving part id."
+                ),
+                (
+                    "- For `frame` ports, `port.part` must reference a part id. "
+                    "Grounded port checks pass only when the referenced joint "
+                    "touches a fixed ground/frame part."
+                ),
+            ]
+        )
+
+    param_lines = _analytic_param_lines(task.eval_config_toml)
+    if param_lines:
+        lines.extend(["", "Functional/numeric checks:", *param_lines])
+
+    hard_gates = _hard_gate_lines(task.eval_config_toml)
+    if hard_gates:
+        lines.extend(["", "Hard-gated verifier probes:", *hard_gates])
+
+    lines.extend(
+        [
+            "",
+            "DesignIR deliverable:",
+            (
+                "- Return only Python code defining "
+                "`build_design(out_dir: Path) -> dict`."
+            ),
+            (
+                "- The returned dict must use `schema_version=\"design_ir.v2\"`, "
+                "`units=\"mm\"`, and include `parts`, `joints`, `ports`, "
+                "`params`, `materials`, and `provenance`."
+            ),
+            (
+                "- Include a fixed ground/frame part and positive, finite "
+                "mass for moving physical parts."
+            ),
+            (
+                "- In `ports`, `revolute_joint` and `prismatic_joint` entries "
+                "must reference joint ids; `frame` entries must reference "
+                "part ids."
+            ),
+            (
+                "- Write or reference CAD artifacts through `geometry[\"cad\"]` "
+                "for checked parts; artifact paths should be relative to "
+                "`out_dir`."
+            ),
+            (
+                "- Define material records with density, elastic modulus, "
+                "Poisson ratio, yield strength, process, and provenance."
+            ),
+            (
+                "- Every positive-mass checked part must include trusted "
+                "`params[\"cad_mass_properties\"]` with mass, COM, and inertia "
+                "consistent with the part mass."
+            ),
+            (
+                "- Do not use `fake_contact_oracle`, synthetic oracle outputs, "
+                "or placeholder mechanisms for headline success."
+            ),
+        ]
+    )
+
+    if spec.verifier_level >= 3:
+        contact_lines = _level3_contact_lines(task.eval_config_toml, spec.name)
+        lines.extend(["", "Level-3 Chrono contact requirements:", *contact_lines])
+
+    lines.extend(
+        [
+            "",
+            (
+                "A submission only counts if it preserves topology, exact "
+                "interfaces, functional behavior, trusted CAD/material/mass "
+                "evidence, and the hidden variant semantics."
+            ),
+        ]
+    )
+    return "\n".join(lines) + "\n"
+
+
+def _task_requirement_lines(reqs: dict[str, Any]) -> list[str]:
+    lines: list[str] = []
+    for key in ("required_ports", "expected_mobility", "max_envelope_mm"):
+        if key in reqs:
+            lines.append(f"- `{key}`: {_prompt_value(reqs[key])}")
+    for key, value in sorted(reqs.items()):
+        if key in {"required_ports", "expected_mobility", "max_envelope_mm"}:
+            continue
+        if isinstance(value, (str, int, float, bool, list, tuple)):
+            lines.append(f"- `{key}`: {_prompt_value(value)}")
+    return lines
+
+
+def _required_port_lines(eval_config: dict[str, Any], *, family: str) -> list[str]:
+    lines: list[str] = []
+    for probe in _probe_dicts(eval_config, "required_ports"):
+        ports = [str(p) for p in probe.get("ports", []) or []]
+        require_kinds = dict(probe.get("require_kinds", {}) or {})
+        require_grounded = {str(p) for p in probe.get("require_grounded", []) or []}
+        for port_id in ports:
+            kind = str(
+                require_kinds.get(port_id)
+                or _default_port_kind(family, port_id)
+                or "any"
+            )
+            grounded = "yes" if port_id in require_grounded else "no"
+            lines.append(
+                f"- `{port_id}`: kind `{kind}`, grounded required: {grounded}."
+            )
+    return lines
+
+
+def _default_port_kind(family: str, port_id: str) -> str | None:
+    if port_id == "input_port":
+        return "revolute_joint"
+    if port_id == "output_port":
+        if family in {"rack_pinion", "lead_screw", "slider_crank"}:
+            return "prismatic_joint"
+        if family in {
+            "cycloidal_reducer",
+            "planetary_reducer",
+            "spur_compound_gear_train",
+            "belt_drive",
+            "chain_drive",
+            "cam_follower",
+            "geneva_indexer",
+        }:
+            return "revolute_joint"
+    return None
+
+
+def _analytic_param_lines(eval_config: dict[str, Any]) -> list[str]:
+    lines: list[str] = []
+    for probe in _probe_dicts(eval_config, "analytic_param_check"):
+        probe_id = str(probe.get("id") or "analytic_param_check")
+        path = str(probe.get("path") or "")
+        expected = _prompt_value(probe.get("expected"))
+        comparator = str(probe.get("comparator", "eq"))
+        tol_pct = probe.get("tolerance_pct")
+        tol_abs = probe.get("tolerance_abs")
+        tolerance_bits: list[str] = []
+        if tol_pct is not None:
+            tolerance_bits.append(f"tolerance_pct={_prompt_value(tol_pct)}")
+        if tol_abs is not None:
+            tolerance_bits.append(f"tolerance_abs={_prompt_value(tol_abs)}")
+        suffix = f" ({', '.join(tolerance_bits)})" if tolerance_bits else ""
+        lines.append(
+            f"- `{probe_id}` requires `{path}` {comparator} {expected}{suffix}."
+        )
+    return lines
+
+
+def _hard_gate_lines(eval_config: dict[str, Any]) -> list[str]:
+    hard_gate = eval_config.get("hard_gate", {}) or {}
+    required = [str(x) for x in hard_gate.get("require", []) or []]
+    if not required:
+        return []
+    return [f"- `{item}` must pass." for item in required]
+
+
+def _level3_contact_lines(eval_config: dict[str, Any], family: str) -> list[str]:
+    pairs = set(DEFAULT_CONTACT_PAIRS.get(family, ()))
+    adapters = eval_config.get("adapters", {}) or {}
+    if isinstance(adapters, dict):
+        chrono_cfg = adapters.get("chrono_contact", {}) or {}
+        if isinstance(chrono_cfg, dict):
+            for pair in chrono_cfg.get("contact_pairs", []) or []:
+                pairs.add(str(pair))
+    for probe in _probe_dicts(eval_config):
+        if probe.get("adapter") != "chrono_contact":
+            continue
+        for pair in probe.get("required_pairs", []) or []:
+            pairs.add(str(pair))
+    lines = [
+        "- Use real `chrono_contact`; fake contact oracle outputs are rejected.",
+        (
+            "- Include `contact_pair` joints and `params[\"chrono\"]` metadata "
+            "for contact simulation."
+        ),
+        (
+            "- Contact bodies must provide `params[\"chrono_collision\"]` "
+            "primitive or trusted collision geometry."
+        ),
+    ]
+    if pairs:
+        lines.append(
+            "- Required contact pairs: " + ", ".join(f"`{pair}`" for pair in sorted(pairs))
+        )
+        for pair in sorted(pairs):
+            left, _, right = pair.partition(":")
+            if left and right:
+                lines.append(
+                    f"  - Pair `{pair}` means part `{left}` contacts part `{right}`."
+                )
+    return lines
+
+
+def _probe_dicts(
+    eval_config: dict[str, Any],
+    probe_type: str | None = None,
+) -> list[dict[str, Any]]:
+    probes = eval_config.get("probes", []) or []
+    out: list[dict[str, Any]] = []
+    for probe in probes:
+        if not isinstance(probe, dict):
+            continue
+        if probe_type is not None and probe.get("type") != probe_type:
+            continue
+        out.append(probe)
+    return out
+
+
+def _prompt_value(value: Any) -> str:
+    try:
+        return json.dumps(value, sort_keys=True)
+    except TypeError:
+        return repr(value)
+
+
 def upgrade_task_for_physics(
     task: GeneratedTask,
     *,
@@ -366,14 +880,6 @@ def upgrade_task_for_physics(
             "output_load_Nm": 0.05,
         }
 
-    task.prompt_md = task.prompt_md.rstrip() + (
-        "\n\n## MechanismRepair-Physics verifier contract\n\n"
-        "This task counts only if the submitted mechanism preserves topology, "
-        "ports, functional behavior, trusted CAD/material/mass evidence, and "
-        "the hidden variant semantics. Fake contact-oracle outputs are not "
-        "accepted for headline evaluation.\n"
-    )
-
     task.reference_solution_py = wrap_reference_with_trusted_assets(
         task.reference_solution_py,
         family=spec.name,
@@ -393,6 +899,16 @@ def upgrade_task_for_physics(
         family=spec.name,
         verifier_level=spec.verifier_level,
         hidden=True,
+    )
+    task.prompt_md = (
+        task.prompt_md.rstrip()
+        + "\n\n"
+        + build_physics_prompt_contract(
+            task,
+            spec=spec,
+            source_generator=source_generator,
+            original_id=original_id,
+        )
     )
 
     task.expected_failures = dict(task.expected_failures or {})
