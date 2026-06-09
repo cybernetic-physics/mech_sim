@@ -147,9 +147,9 @@ set -euo pipefail
 
 cd "$remote_repo"
 export PYTHONPATH="$remote_repo:\${PYTHONPATH:-}"
-export HF_HOME="\${HF_HOME:-$REMOTE_ROOT/hf_home}"
-export TRANSFORMERS_CACHE="\${TRANSFORMERS_CACHE:-$REMOTE_ROOT/hf_home/transformers}"
-export HF_HUB_CACHE="\${HF_HUB_CACHE:-$REMOTE_ROOT/hf_home/hub}"
+export HF_HOME="\${HF_HOME:-$JOB_RUNTIME_ROOT/hf_home}"
+export TRANSFORMERS_CACHE="\${TRANSFORMERS_CACHE:-$JOB_RUNTIME_ROOT/hf_home/transformers}"
+export HF_HUB_CACHE="\${HF_HUB_CACHE:-$JOB_RUNTIME_ROOT/hf_home/hub}"
 export UV_CACHE_DIR="\${UV_CACHE_DIR:-$JOB_RUNTIME_ROOT/uv_cache}"
 export UV_PROJECT_ENVIRONMENT="\${UV_PROJECT_ENVIRONMENT:-$JOB_RUNTIME_ROOT/venvs/mechanism_repair_$source_commit}"
 export XDG_CACHE_HOME="\${XDG_CACHE_HOME:-$JOB_RUNTIME_ROOT/xdg_cache}"
