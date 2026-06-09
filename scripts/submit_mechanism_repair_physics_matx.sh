@@ -109,7 +109,7 @@ if (( NUM_SHARDS < 1 )); then
   exit 2
 fi
 
-ssh "$REMOTE_HOST" "rm -rf '$remote_repo' && mkdir -p '$remote_repo' '$remote_logs'"
+ssh "$REMOTE_HOST" "rm -rf '$remote_repo' && mkdir -p '$remote_repo' '$remote_logs' '$REMOTE_ROOT/locks' '$REMOTE_ROOT/venvs'"
 git -C "$repo_root" archive --format=tar "$source_commit" \
   | ssh "$REMOTE_HOST" "tar -xf - -C '$remote_repo'"
 
@@ -136,6 +136,7 @@ export HF_HOME="\${HF_HOME:-$REMOTE_ROOT/hf_home}"
 export TRANSFORMERS_CACHE="\${TRANSFORMERS_CACHE:-$REMOTE_ROOT/hf_home/transformers}"
 export HF_HUB_CACHE="\${HF_HUB_CACHE:-$REMOTE_ROOT/hf_home/hub}"
 export UV_CACHE_DIR="\${UV_CACHE_DIR:-$REMOTE_ROOT/uv_cache}"
+export UV_PROJECT_ENVIRONMENT="\${UV_PROJECT_ENVIRONMENT:-$REMOTE_ROOT/venvs/mechanism_repair_$source_commit}"
 export XDG_CACHE_HOME="\${XDG_CACHE_HOME:-$REMOTE_ROOT/xdg_cache}"
 export TRITON_CACHE_DIR="\${TRITON_CACHE_DIR:-$REMOTE_ROOT/triton_cache}"
 export HOME="\${JOB_HOME:-$REMOTE_ROOT/home}"
@@ -143,25 +144,38 @@ export SGLANG_DISABLE_CUDNN_CHECK="\${SGLANG_DISABLE_CUDNN_CHECK:-1}"
 export USE_HUB_KERNELS="\${USE_HUB_KERNELS:-0}"
 export PYTORCH_CUDA_ALLOC_CONF="\${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
 mkdir -p "\$HF_HOME" "\$TRANSFORMERS_CACHE" "\$HF_HUB_CACHE" \\
-  "\$UV_CACHE_DIR" "\$XDG_CACHE_HOME" "\$TRITON_CACHE_DIR" "\$HOME"
+  "\$UV_CACHE_DIR" "\$XDG_CACHE_HOME" "\$TRITON_CACHE_DIR" "\$HOME" \\
+  "$REMOTE_ROOT/locks" "$REMOTE_ROOT/venvs"
 
 if ! command -v uv >/dev/null 2>&1; then
-  python3 -m venv "$REMOTE_ROOT/uv_bootstrap"
-  "$REMOTE_ROOT/uv_bootstrap/bin/python" -m pip install --upgrade pip uv
+  (
+    flock 9
+    if [[ ! -x "$REMOTE_ROOT/uv_bootstrap/bin/uv" ]]; then
+      rm -rf "$REMOTE_ROOT/uv_bootstrap"
+      python3 -m venv "$REMOTE_ROOT/uv_bootstrap"
+      "$REMOTE_ROOT/uv_bootstrap/bin/python" -m pip install --upgrade pip uv
+    fi
+  ) 9>"$REMOTE_ROOT/locks/uv_bootstrap.lock"
   export PATH="$REMOTE_ROOT/uv_bootstrap/bin:\$PATH"
 fi
-uv sync --extra training-grpo
-repo_python="$remote_repo/.venv/bin/python"
+(
+  flock 9
+  uv sync --extra training-grpo
+) 9>"$REMOTE_ROOT/locks/uv_sync_$source_commit.lock"
+repo_python="\$UV_PROJECT_ENVIRONMENT/bin/python"
 
 if [[ "$ENABLE_CHRONO_ENV" == "1" ]]; then
-  if [[ ! -x "$CHRONO_ENV_PREFIX/bin/python" ]]; then
-    env \\
-      CONDA_PKGS_DIRS="$CHRONO_CONDA_PKGS_DIR" \\
-      XDG_CACHE_HOME="$REMOTE_ROOT/xdg_cache" \\
-      "$CHRONO_CONDA_EXE" create -y -p "$CHRONO_ENV_PREFIX" \\
-      --override-channels \\
-      -c projectchrono -c conda-forge python=3.13 pychrono numpy
-  fi
+  (
+    flock 9
+    if [[ ! -x "$CHRONO_ENV_PREFIX/bin/python" ]]; then
+      env \\
+        CONDA_PKGS_DIRS="$CHRONO_CONDA_PKGS_DIR" \\
+        XDG_CACHE_HOME="$REMOTE_ROOT/xdg_cache" \\
+        "$CHRONO_CONDA_EXE" create -y -p "$CHRONO_ENV_PREFIX" \\
+        --override-channels \\
+        -c projectchrono -c conda-forge python=3.13 pychrono numpy
+    fi
+  ) 9>"$REMOTE_ROOT/locks/chrono_env.lock"
   export MECH_BENCH_CHRONO_PYTHON="$CHRONO_ENV_PREFIX/bin/python"
 fi
 
@@ -186,11 +200,15 @@ sglang_cuda_visible_devices="\${sglang_cuda_visible_devices:-0}"
 train_cuda_visible_devices="\${train_cuda_visible_devices:-0}"
 
 sglang_venv="$REMOTE_ROOT/sglang_venv"
-if [[ ! -x "\$sglang_venv/bin/python" ]]; then
-  python3 -m venv "\$sglang_venv"
-  "\$sglang_venv/bin/python" -m pip install --upgrade pip
-fi
-"\$sglang_venv/bin/python" -m pip install "$SGLANG_PIP_SPEC" $SGLANG_PIP_EXTRA
+(
+  flock 9
+  if [[ ! -x "\$sglang_venv/bin/python" ]]; then
+    rm -rf "\$sglang_venv"
+    python3 -m venv "\$sglang_venv"
+    "\$sglang_venv/bin/python" -m pip install --upgrade pip
+  fi
+  "\$sglang_venv/bin/python" -m pip install "$SGLANG_PIP_SPEC" $SGLANG_PIP_EXTRA
+) 9>"$REMOTE_ROOT/locks/sglang_venv.lock"
 export PATH="\$sglang_venv/bin:\$PATH"
 sglang_log="$remote_logs/sglang-\${SLURM_ARRAY_JOB_ID:-manual}_\${SLURM_ARRAY_TASK_ID:-0}.log"
 if ! ss -tln 2>/dev/null | grep -q ":$SGLANG_PORT "; then
@@ -327,14 +345,25 @@ set -euo pipefail
 cd "$remote_repo"
 export PYTHONPATH="$remote_repo:\${PYTHONPATH:-}"
 export UV_CACHE_DIR="\${UV_CACHE_DIR:-$REMOTE_ROOT/uv_cache}"
+export UV_PROJECT_ENVIRONMENT="\${UV_PROJECT_ENVIRONMENT:-$REMOTE_ROOT/venvs/mechanism_repair_$source_commit}"
 export XDG_CACHE_HOME="\${XDG_CACHE_HOME:-$REMOTE_ROOT/xdg_cache}"
 export HOME="\${JOB_HOME:-$REMOTE_ROOT/home}"
+mkdir -p "$REMOTE_ROOT/locks" "$REMOTE_ROOT/venvs" "\$UV_CACHE_DIR" "\$XDG_CACHE_HOME" "\$HOME"
 if ! command -v uv >/dev/null 2>&1; then
-  python3 -m venv "$REMOTE_ROOT/uv_bootstrap"
-  "$REMOTE_ROOT/uv_bootstrap/bin/python" -m pip install --upgrade pip uv
+  (
+    flock 9
+    if [[ ! -x "$REMOTE_ROOT/uv_bootstrap/bin/uv" ]]; then
+      rm -rf "$REMOTE_ROOT/uv_bootstrap"
+      python3 -m venv "$REMOTE_ROOT/uv_bootstrap"
+      "$REMOTE_ROOT/uv_bootstrap/bin/python" -m pip install --upgrade pip uv
+    fi
+  ) 9>"$REMOTE_ROOT/locks/uv_bootstrap.lock"
   export PATH="$REMOTE_ROOT/uv_bootstrap/bin:\$PATH"
 fi
-uv sync
+(
+  flock 9
+  uv sync --extra training-grpo
+) 9>"$REMOTE_ROOT/locks/uv_sync_$source_commit.lock"
 uv run python scripts/merge_mechanism_repair_shards.py \\
   --benchmark-dir "$OUT_DIR" \\
   --out-dir "$OUT_DIR" \\
