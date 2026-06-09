@@ -185,8 +185,8 @@ if [[ "$VALIDATE_LEVEL3" != "1" ]]; then
   prepare_args+=(--skip-level3-validation)
 fi
 
-uv run python "\${prepare_args[@]}"
-uv run python -m json.tool "$OUT_DIR/claim_audit.json"
+"\$repo_python" "\${prepare_args[@]}"
+"\$repo_python" -m json.tool "$OUT_DIR/claim_audit.json"
 EOF
 } >"$tmp_sbatch"
 

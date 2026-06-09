@@ -391,7 +391,7 @@ if [[ -n "$EVAL_SEEDS" ]]; then
   seed_args=(--eval-seeds "$EVAL_SEEDS")
 fi
 if [[ ! -f "\$shard_file" ]]; then
-  uv run python scripts/run_mechanism_repair_physics_experiment.py \\
+  "\$repo_python" scripts/run_mechanism_repair_physics_experiment.py \\
     --benchmark-dir "$OUT_DIR" \\
     --out-dir "$OUT_DIR" \\
     --write-shard-files "$NUM_SHARDS" \\
@@ -566,7 +566,7 @@ if diag["status"] != "available":
     raise SystemExit(f"chrono_contact unavailable: {diag}")
 PY
 
-uv run python scripts/merge_mechanism_repair_shards.py \\
+"\$repo_python" scripts/merge_mechanism_repair_shards.py \\
   --benchmark-dir "$OUT_DIR" \\
   --out-dir "$OUT_DIR" \\
   --require-all-shards "$NUM_SHARDS"
@@ -663,14 +663,14 @@ if diag["status"] != "available":
 PY
 
 analysis_rc=0
-uv run python scripts/analyze_mechanism_repair_results.py \\
+"\$repo_python" scripts/analyze_mechanism_repair_results.py \\
   --results "$OUT_DIR/cell_results.jsonl" \\
   --out-dir "$OUT_DIR" \\
   --benchmark-dir "$OUT_DIR" \\
   --bootstrap-samples 5000 \\
   --seed 20260607 || analysis_rc=\$?
 echo "\$analysis_rc" > "$OUT_DIR/analysis_exit_code.txt"
-uv run python scripts/run_mechanism_repair_physics_experiment.py \\
+"\$repo_python" scripts/run_mechanism_repair_physics_experiment.py \\
   --benchmark-dir "$OUT_DIR" \\
   --out-dir "$OUT_DIR" \\
   --require-complete
