@@ -15,6 +15,8 @@ from __future__ import annotations
 
 import argparse
 import csv
+import fcntl
+import hashlib
 import json
 import os
 import shutil
@@ -62,6 +64,11 @@ TTRL_METHODS = {
 }
 SFT_METHODS = {"sft_model", "sft_seen_family"}
 BASELINE_FEEDBACK_METHODS = {"llm_evolve_no_update"}
+ADAPTER_WEIGHT_FILE_NAMES = {
+    "adapter_model.safetensors",
+    "adapter_model.bin",
+    "pytorch_model.bin",
+}
 
 
 @dataclass(frozen=True)
@@ -72,6 +79,34 @@ class EvalMethod:
     temperature: float
     top_p: float
     adapter_kind: str = "none"
+
+
+class OptionalFileLock:
+    def __init__(self, path: Path | None):
+        self.path = path
+        self._handle: Any | None = None
+
+    def __enter__(self) -> None:
+        if self.path is None:
+            return None
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self._handle = self.path.open("w")
+        fcntl.flock(self._handle.fileno(), fcntl.LOCK_EX)
+        return None
+
+    def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
+        if self._handle is None:
+            return None
+        try:
+            fcntl.flock(self._handle.fileno(), fcntl.LOCK_UN)
+        finally:
+            self._handle.close()
+            self._handle = None
+        return None
+
+
+def optional_file_lock(path: Path | None) -> OptionalFileLock:
+    return OptionalFileLock(path)
 
 
 def main() -> int:
@@ -149,6 +184,15 @@ def main() -> int:
         "--sft-runner",
         default="uv run --extra training-grpo python",
     )
+    parser.add_argument(
+        "--shared-sft-root",
+        default=None,
+        help=(
+            "optional shared directory for split/seed SFT adapters. Use this "
+            "for sharded runs so shards do not retrain and store duplicate "
+            "SFT adapters."
+        ),
+    )
     parser.add_argument("--sft-max-steps", type=int, default=64)
     parser.add_argument("--sft-learning-rate", type=float, default=5.0e-6)
     parser.add_argument("--sft-max-grad-norm", type=float, default=0.0)
@@ -193,6 +237,16 @@ def main() -> int:
         help="optional dtype cast for saved TTRL adapter checkpoints",
     )
     parser.add_argument(
+        "--ttrl-adapter-retention",
+        default="full",
+        choices=("full", "metadata"),
+        help=(
+            "full keeps each TTRL final adapter weight directory. metadata "
+            "keeps adapter config, manifest, file sizes, and hashes while "
+            "removing per-cell weight payloads after the row is materialized."
+        ),
+    )
+    parser.add_argument(
         "--ttrl-reward-channel",
         default="artifact_progress",
         choices=("verified_score", "score", "artifact_progress"),
@@ -229,6 +283,11 @@ def main() -> int:
         Path(args.out_dir).expanduser().resolve()
         if args.out_dir
         else benchmark_dir
+    )
+    shared_sft_root = (
+        Path(args.shared_sft_root).expanduser().resolve()
+        if args.shared_sft_root
+        else None
     )
     out_dir.mkdir(parents=True, exist_ok=True)
     run_root = out_dir / "online_runs"
@@ -366,15 +425,22 @@ def main() -> int:
                 )
             )
             if needs_sft:
-                sft_dir = run_root / split / str(seed) / "sft_train"
-                sft_adapter = run_or_load_sft(
-                    args=args,
-                    run_dir=sft_dir,
-                    tasks_root=benchmark_dir / "tasks",
-                    train_file=train_file,
-                    seed=seed,
-                    resume_existing=bool(args.resume_existing),
+                sft_base = shared_sft_root or run_root
+                sft_dir = sft_base / split / str(seed) / "sft_train"
+                lock_path = (
+                    sft_base / split / str(seed) / ".sft_train.lock"
+                    if shared_sft_root
+                    else None
                 )
+                with optional_file_lock(lock_path):
+                    sft_adapter = run_or_load_sft(
+                        args=args,
+                        run_dir=sft_dir,
+                        tasks_root=benchmark_dir / "tasks",
+                        train_file=train_file,
+                        seed=seed,
+                        resume_existing=bool(args.resume_existing),
+                    )
             for method in requested_methods:
                 if method in TTRL_METHODS:
                     for task_id in task_ids:
@@ -1051,8 +1117,9 @@ def run_or_load_ttrl_cell(
                 continue
             raise SystemExit(f"TTRL did not write manifest: {manifest}")
         try:
+            payload = json.loads(manifest.read_text())
             require_learning_manifest(
-                json.loads(manifest.read_text()),
+                payload,
                 manifest_path=manifest,
                 label=f"TTRL {task_id}",
                 expected_adapter_updates=int(ttrl_steps),
@@ -1070,6 +1137,15 @@ def run_or_load_ttrl_cell(
                 continue
             raise
         break
+    retain_ttrl_adapter_checkpoint(
+        manifest_path=run_dir / "run_manifest.json",
+        split=split,
+        seed=seed,
+        method=method,
+        task_id=task_id,
+        evidence_root=evidence_root,
+        retention=str(getattr(args, "ttrl_adapter_retention", "full") or "full"),
+    )
     row = row_from_ttrl_reward_log(
         reward_log=reward_log,
         split=split,
@@ -1090,6 +1166,135 @@ def run_or_load_ttrl_cell(
             "--ttrl-num-generations before running the full audit."
         )
     return row
+
+
+def retain_ttrl_adapter_checkpoint(
+    *,
+    manifest_path: Path,
+    split: str,
+    seed: int,
+    method: str,
+    task_id: str,
+    evidence_root: Path | None,
+    retention: str,
+) -> str:
+    payload = json.loads(manifest_path.read_text())
+    adapter_path = Path(
+        str(payload.get("final_adapter") or manifest_path.parent / "final_adapter")
+    )
+    if retention == "full":
+        payload["adapter_retention"] = {
+            "mode": "full",
+            "path": str(adapter_path),
+            "weights_retained": True,
+        }
+        payload["adapter_checkpoint_paths"] = [str(adapter_path)]
+        manifest_path.write_text(
+            json.dumps(payload, indent=2, sort_keys=True, default=str) + "\n"
+        )
+        return str(adapter_path)
+    if retention != "metadata":
+        raise SystemExit(f"unknown TTRL adapter retention mode: {retention}")
+
+    root = evidence_root if evidence_root is not None else manifest_path.parent
+    checkpoint_dir = (
+        root
+        / "adapter_checkpoints"
+        / split
+        / str(seed)
+        / method
+        / task_id
+    )
+    if checkpoint_dir.exists():
+        shutil.rmtree(checkpoint_dir)
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+
+    files = adapter_file_manifest(adapter_path)
+    copied_files: list[str] = []
+    if adapter_path.is_dir():
+        for source in sorted(path for path in adapter_path.rglob("*") if path.is_file()):
+            if is_adapter_weight_file(source):
+                continue
+            rel = source.relative_to(adapter_path)
+            dest = checkpoint_dir / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, dest)
+            copied_files.append(str(rel))
+    manifest_copy = checkpoint_dir / "training_run_manifest.json"
+    manifest_copy.write_text(
+        json.dumps(payload, indent=2, sort_keys=True, default=str) + "\n"
+    )
+    checkpoint_manifest = {
+        "schema": "mechanism_repair.ttrl_adapter_checkpoint_metadata.v1",
+        "mode": "metadata",
+        "split": split,
+        "seed": int(seed),
+        "method": method,
+        "task_id": task_id,
+        "source_adapter_path": str(adapter_path),
+        "source_run_manifest": str(manifest_path),
+        "copied_non_weight_files": copied_files,
+        "source_files": files,
+        "weights_retained": False,
+        "rationale": (
+            "Per-cell TTRL adapter weights are omitted to keep the full "
+            "paper-scale shard run within shared-storage limits; the reward "
+            "log, trainer manifest, adapter config, file sizes, and hashes "
+            "are retained for audit."
+        ),
+    }
+    (checkpoint_dir / "checkpoint_manifest.json").write_text(
+        json.dumps(checkpoint_manifest, indent=2, sort_keys=True, default=str) + "\n"
+    )
+    if adapter_path.exists() and adapter_path.resolve() != checkpoint_dir.resolve():
+        shutil.rmtree(adapter_path)
+
+    payload["final_adapter"] = str(checkpoint_dir)
+    payload["adapter_checkpoint_paths"] = [str(checkpoint_dir)]
+    payload["adapter_retention"] = {
+        "mode": "metadata",
+        "path": str(checkpoint_dir),
+        "weights_retained": False,
+        "source_adapter_path": str(adapter_path),
+        "source_files": files,
+    }
+    manifest_path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True, default=str) + "\n"
+    )
+    return str(checkpoint_dir)
+
+
+def adapter_file_manifest(adapter_path: Path) -> list[dict[str, Any]]:
+    if not adapter_path.exists():
+        return []
+    if adapter_path.is_file():
+        paths = [adapter_path]
+        base = adapter_path.parent
+    else:
+        paths = sorted(path for path in adapter_path.rglob("*") if path.is_file())
+        base = adapter_path
+    out: list[dict[str, Any]] = []
+    for path in paths:
+        rel = path.relative_to(base)
+        out.append({
+            "path": str(rel),
+            "bytes": path.stat().st_size,
+            "sha256": sha256_file(path),
+            "weight_file": is_adapter_weight_file(path),
+        })
+    return out
+
+
+def is_adapter_weight_file(path: Path) -> bool:
+    return path.name in ADAPTER_WEIGHT_FILE_NAMES or path.suffix == ".safetensors"
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def require_learning_manifest(
@@ -1261,6 +1466,7 @@ def rows_from_sample_summary(
             "rl_trained_tokens": training["rl_trained_tokens"],
             "n_rl_datums": training["n_rl_datums"],
             "adapter_path": training["adapter_path"],
+            "adapter_checkpoint_paths": training["adapter_checkpoint_paths"],
             "actual_budget_matches_primary": verifier_calls == int(budget),
             "n_candidates": len(samples),
             "candidate_count": len(samples),
@@ -1340,6 +1546,7 @@ def row_from_ttrl_reward_log(
         "actual_chrono_calls": chrono_audits,
         "failure_codes": best.get("failure_codes", []),
         "trace_path": str(reward_log),
+        "training_log_paths": [str(reward_log)],
         "raw_completion_paths": raw_paths,
         "verifier_output_paths": verifier_paths,
         "cad_artifact_paths": cad_paths,
@@ -1385,6 +1592,12 @@ def row_from_ttrl_reward_log(
         "n_candidates": len(matching),
         "candidate_count": len(matching),
         "adapter_path": training["adapter_path"] or str(run_dir / "final_adapter"),
+        "adapter_checkpoint_paths": training["adapter_checkpoint_paths"]
+        or (
+            [training["adapter_path"]]
+            if training["adapter_path"]
+            else [str(run_dir / "final_adapter")]
+        ),
     }
 
 
@@ -1797,12 +2010,22 @@ def training_metadata_from_manifest(path: Path) -> dict[str, Any]:
     if not path.is_file():
         return empty_training_metadata()
     payload = json.loads(path.read_text())
+    adapter_path = str(payload.get("final_adapter") or "")
+    adapter_checkpoint_paths = [
+        str(item)
+        for item in (
+            payload.get("adapter_checkpoint_paths")
+            or ([adapter_path] if adapter_path else [])
+        )
+        if item
+    ]
     return {
         "adapter_updates": int(payload.get("adapter_updates", 0) or 0),
         "trained_tokens": int(payload.get("trained_tokens", 0) or 0),
         "rl_trained_tokens": int(payload.get("rl_trained_tokens", 0) or 0),
         "n_rl_datums": int(payload.get("n_rl_datums", 0) or 0),
-        "adapter_path": str(payload.get("final_adapter") or ""),
+        "adapter_path": adapter_path,
+        "adapter_checkpoint_paths": adapter_checkpoint_paths,
         "sampler_http_400_count": int(
             (payload.get("rollout_retry_stats") or {}).get(
                 "sampler_http_400_count", 0
@@ -1825,6 +2048,7 @@ def empty_training_metadata() -> dict[str, Any]:
         "rl_trained_tokens": 0,
         "n_rl_datums": 0,
         "adapter_path": "",
+        "adapter_checkpoint_paths": [],
         "sampler_http_400_count": 0,
         "sampler_retry_count": 0,
     }
@@ -2037,6 +2261,9 @@ def write_artifact_indexes(out_dir: Path, rows: list[dict[str, Any]]) -> None:
         adapter = str(row.get("adapter_path") or "")
         if adapter:
             adapters.add(adapter)
+        for adapter_checkpoint in row.get("adapter_checkpoint_paths", []) or []:
+            if adapter_checkpoint:
+                adapters.add(str(adapter_checkpoint))
     write_json(
         out_dir / "raw_completions" / "index.json",
         {"paths": sorted(set(raw_paths)), "count": len(set(raw_paths))},

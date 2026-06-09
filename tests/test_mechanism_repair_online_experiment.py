@@ -1006,6 +1006,119 @@ def test_ttrl_runner_preserves_physics_method_and_reward_channel(
     assert cmd[cmd.index("--reward-channel") + 1] == "verified_score"
 
 
+def test_ttrl_metadata_retention_keeps_checkpoint_provenance(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    run_dir = tmp_path / "ttrl_metadata"
+
+    def fake_run(cmd: list[str], *, timeout: float) -> None:
+        del cmd, timeout
+        run_dir.mkdir(parents=True)
+        rows = [
+            {
+                "task_id": "task",
+                "verified_score": 1.0,
+                "evaluation_valid": True,
+                "hard_gate_passed": True,
+                "failure_codes": [],
+                "cad_audits": 0,
+                "chrono_audits": 0,
+                "design_py_extracted": True,
+            }
+            for _ in range(4)
+        ]
+        (run_dir / "reward_log.jsonl").write_text(
+            "\n".join(json.dumps(row) for row in rows) + "\n"
+        )
+        adapter = run_dir / "final_adapter"
+        adapter.mkdir()
+        (adapter / "adapter_config.json").write_text('{"r": 8}\n')
+        (adapter / "adapter_model.safetensors").write_bytes(b"weight-bytes")
+        (run_dir / "run_manifest.json").write_text(
+            json.dumps({
+                "adapter_updates": 1,
+                "trained_tokens": 16,
+                "rl_trained_tokens": 16,
+                "n_rl_datums": 4,
+                "final_adapter": str(adapter),
+                "optimizer_guard": {
+                    "attempted_steps": 1,
+                    "successful_steps": 1,
+                },
+            })
+        )
+
+    monkeypatch.setattr(online, "run", fake_run)
+
+    args = Namespace(
+        ttrl_runner="python",
+        ttrl_model=None,
+        base_model="base",
+        ttrl_learning_rate=5e-6,
+        ttrl_max_grad_norm=1.0,
+        max_context_tokens=512,
+        max_tokens=128,
+        timeout=30.0,
+        ttrl_lora_rank=16,
+        ttrl_save_adapter_dtype="native",
+        ttrl_adapter_retention="metadata",
+        ttrl_load_in_4bit=False,
+        ttrl_load_in_8bit=False,
+        ttrl_kbit_prepare_mode="none",
+        ttrl_gradient_checkpointing=False,
+        ttrl_trust_remote_code=True,
+        ttrl_bf16=False,
+        ttrl_fp16=False,
+        ttrl_torch_dtype=None,
+        ttrl_attn_implementation=None,
+        ttrl_device_map=None,
+        ttrl_max_memory=None,
+        ttrl_rollout_openai=False,
+        sglang_base_url="http://127.0.0.1:30000",
+        base_url="http://127.0.0.1:30000",
+        api_key="dummy",
+        train_timeout_s=60.0,
+    )
+
+    row = run_or_load_ttrl_cell(
+        args=args,
+        run_dir=run_dir,
+        benchmark_dir=tmp_path,
+        split_file=tmp_path / "one.txt",
+        split="A",
+        task_id="task",
+        seed=20260610,
+        budget=4,
+        ttrl_steps=1,
+        ttrl_generations=4,
+        ttrl_steps_per_generation=4,
+        family_by_task={"task": "cycloidal"},
+        evidence_root=tmp_path / "evidence",
+        init_adapter=None,
+        resume_existing=False,
+    )
+
+    adapter_path = Path(row["adapter_path"])
+    manifest = json.loads((adapter_path / "checkpoint_manifest.json").read_text())
+    source_files = {item["path"]: item for item in manifest["source_files"]}
+    assert adapter_path.is_dir()
+    assert (adapter_path / "adapter_config.json").is_file()
+    assert (adapter_path / "training_run_manifest.json").is_file()
+    assert source_files["adapter_model.safetensors"]["weight_file"] is True
+    assert source_files["adapter_model.safetensors"]["bytes"] == len(b"weight-bytes")
+    assert not (run_dir / "final_adapter").exists()
+    assert row["adapter_checkpoint_paths"] == [str(adapter_path)]
+    assert row["training_log_paths"] == [str(run_dir / "reward_log.jsonl")]
+
+
+def test_optional_file_lock_enters_and_exits(tmp_path: Path) -> None:
+    lock_path = tmp_path / "locks" / "sft.lock"
+
+    with online.optional_file_lock(lock_path):
+        assert lock_path.is_file()
+
+
 def test_ttrl_runner_rejects_reward_log_over_budget(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
