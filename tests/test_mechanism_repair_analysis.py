@@ -124,7 +124,61 @@ def test_mechanism_repair_analysis_rejects_unmatched_budget(
         == 24
     )
     assert audit["claim_status"] == "does_not_support_primary_hypothesis"
-    assert any("budgets are not matched" in item for item in audit["blockers"])
+    assert any("verifier budget" in item for item in audit["blockers"])
+
+
+def test_mechanism_repair_analysis_allows_primary_fewer_cad_chrono_calls(
+    tmp_path: Path,
+) -> None:
+    raw_rows = _support_rows(tmp_path)
+    for row in raw_rows:
+        if row["method"] == "mechanical_evolve_ttrl":
+            row["cad_audits"] = 1
+            row["chrono_audits"] = 1
+        elif row["method"] == "llm_evolve_no_update":
+            row["cad_audits"] = 4
+            row["chrono_audits"] = 4
+        else:
+            row["cad_audits"] = 9
+            row["chrono_audits"] = 9
+
+    rows = normalize_rows(raw_rows)
+    stats = analyze_rows(rows, bootstrap_samples=200, seed=7)
+    audit = build_claim_audit(stats)
+
+    assert stats["budget_audit"]["budget_matched"] is True
+    assert (
+        stats["budget_audit"]["primary_expensive_budget_not_more_than_baseline"]
+        is True
+    )
+    assert stats["budget_audit"]["n_primary_expensive_budget_excesses"] == 0
+    assert audit["claim_status"] == "supports_primary_hypothesis"
+
+
+def test_mechanism_repair_analysis_rejects_primary_cad_chrono_overspend(
+    tmp_path: Path,
+) -> None:
+    raw_rows = _support_rows(tmp_path)
+    for row in raw_rows:
+        if row["method"] == "mechanical_evolve_ttrl":
+            row["cad_audits"] = 5
+            row["chrono_audits"] = 6
+        elif row["method"] == "llm_evolve_no_update":
+            row["cad_audits"] = 4
+            row["chrono_audits"] = 5
+
+    rows = normalize_rows(raw_rows)
+    stats = analyze_rows(rows, bootstrap_samples=200, seed=7)
+    audit = build_claim_audit(stats)
+
+    assert stats["budget_audit"]["budget_matched"] is False
+    assert (
+        stats["budget_audit"]["primary_expensive_budget_not_more_than_baseline"]
+        is False
+    )
+    assert stats["budget_audit"]["n_primary_expensive_budget_excesses"] == 16
+    assert audit["claim_status"] == "does_not_support_primary_hypothesis"
+    assert any("primary CAD/Chrono budget" in item for item in audit["blockers"])
 
 
 def test_mechanism_repair_analysis_writes_rejectable_json_shape(

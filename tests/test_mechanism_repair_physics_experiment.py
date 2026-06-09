@@ -261,6 +261,69 @@ def _write_fake_benchmark(root: Path) -> None:
         )
 
 
+def _write_complete_physics_rows(out_dir: Path, plan: dict, audit_counts) -> None:
+    for name in (
+        "raw_completions",
+        "verifier_outputs",
+        "cad_artifacts",
+        "chrono_outputs",
+        "training_logs",
+        "adapter_checkpoints",
+    ):
+        (out_dir / name).mkdir(parents=True, exist_ok=True)
+
+    rows = []
+    for cell in plan["expected_cells"]:
+        prefix = (
+            f"{cell['split']}_{cell['task_id']}_{cell['seed']}_"
+            f"{cell['method']}_{cell['budget']}"
+        )
+        raw = out_dir / "raw_completions" / f"{prefix}.txt"
+        verifier = out_dir / "verifier_outputs" / f"{prefix}.json"
+        cad = out_dir / "cad_artifacts" / f"{prefix}.json"
+        chrono = out_dir / "chrono_outputs" / f"{prefix}.json"
+        for path in (raw, verifier, cad, chrono):
+            path.write_text("{}\n")
+        cad_calls, chrono_calls = audit_counts(cell)
+        row = {
+            "split": cell["split"],
+            "task_id": cell["task_id"],
+            "seed": cell["seed"],
+            "method": cell["method"],
+            "budget": cell["budget"],
+            "actual_verifier_calls": PRIMARY_BUDGET,
+            "actual_cad_calls": cad_calls,
+            "actual_chrono_calls": chrono_calls,
+            "raw_completion_paths": [str(raw.relative_to(out_dir))],
+            "verifier_output_paths": [str(verifier.relative_to(out_dir))],
+            "cad_artifact_paths": [str(cad.relative_to(out_dir))],
+            "chrono_output_paths": [str(chrono.relative_to(out_dir))],
+        }
+        if cell["method"] in physics.LEARNING_METHODS:
+            log = out_dir / "training_logs" / f"{prefix}.log"
+            ckpt = out_dir / "adapter_checkpoints" / prefix
+            log.write_text("trained\n")
+            ckpt.mkdir()
+            (ckpt / "adapter_model.safetensors").write_bytes(b"weights")
+            row.update(
+                {
+                    "training_log_paths": [str(log.relative_to(out_dir))],
+                    "adapter_checkpoint_paths": [str(ckpt.relative_to(out_dir))],
+                    "adapter_updates": 1,
+                    "trained_tokens": 16,
+                }
+            )
+            if cell["method"] in physics.TTRL_METHODS:
+                row.update({"n_rl_datums": 4, "rl_trained_tokens": 16})
+        rows.append(row)
+    (out_dir / "cell_results.jsonl").write_text(
+        "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows)
+    )
+    for name in ("failure_analysis.json", "trace_pairs.json", "repair_taxonomy.json"):
+        _write_json(out_dir / name, {"schema": "test"})
+    _write_complete_negative_stats(out_dir)
+
+
 def test_materialized_physics_prompts_are_family_specific(tmp_path: Path) -> None:
     tasks_root = tmp_path / "tasks"
     tasks_root.mkdir()
@@ -586,6 +649,87 @@ def test_unreached_cad_chrono_obligation_evidence_is_not_budget_mismatch(
     assert audit["budget_audit"]["budget_matched"] is True
     assert audit["budget_audit"]["budget_mismatch_count"] == 0
     assert audit["claim_audit"]["goal_complete"] is True
+
+
+def test_primary_fewer_cad_chrono_calls_than_baseline_is_not_budget_mismatch(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+
+    def audit_counts(cell):
+        if cell["method"] == physics.PRIMARY_METHOD:
+            return 1, 1
+        if cell["method"] == physics.PRIMARY_BASELINE:
+            return 4, 4
+        return 9, 9
+
+    _write_complete_physics_rows(out_dir, plan, audit_counts)
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["budget_audit"]["budget_matched"] is True
+    assert audit["budget_audit"]["primary_expensive_budget_excess_count"] == 0
+    assert audit["claim_audit"]["goal_complete"] is True
+
+
+def test_primary_cad_chrono_overspend_blocks_goal_completion(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    expected_groups = {
+        (cell["split"], cell["task_id"], cell["seed"], cell["budget"])
+        for cell in plan["expected_cells"]
+    }
+
+    def audit_counts(cell):
+        if cell["method"] == physics.PRIMARY_METHOD:
+            return 5, 6
+        if cell["method"] == physics.PRIMARY_BASELINE:
+            return 4, 5
+        return 1, 1
+
+    _write_complete_physics_rows(out_dir, plan, audit_counts)
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["budget_audit"]["budget_matched"] is False
+    assert (
+        audit["budget_audit"]["primary_expensive_budget_excess_count"]
+        == 2 * len(expected_groups)
+    )
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert any(
+        "actual verifier/CAD/Chrono budget" in item
+        for item in audit["claim_audit"]["blockers"]
+    )
 
 
 def test_incomplete_stats_blocks_goal_completion(tmp_path: Path) -> None:

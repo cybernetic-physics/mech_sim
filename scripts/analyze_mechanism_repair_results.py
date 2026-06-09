@@ -706,6 +706,7 @@ def audit_budget(
         split, family, task_id, seed = row["_pair_key"]
         by_cell[(split, family, task_id, seed)].append(row)
     mismatches: list[dict[str, Any]] = []
+    primary_expensive_budget_excesses: list[dict[str, Any]] = []
     wrong_primary_budget: list[dict[str, Any]] = []
     sampler_accounting: dict[str, dict[str, int]] = defaultdict(
         lambda: {
@@ -743,18 +744,49 @@ def audit_budget(
                 })
         if len(set(verifier.values())) > 1:
             mismatches.append({"cell": list(key), "kind": "verifier", "values": verifier})
-        if len(set(cad.values())) > 1:
-            mismatches.append({"cell": list(key), "kind": "cad", "values": cad})
-        if len(set(chrono.values())) > 1:
-            mismatches.append({"cell": list(key), "kind": "chrono", "values": chrono})
+        primary = contract.primary_method
+        baseline = contract.primary_baseline
+        if primary in cad and baseline in cad and cad[primary] > cad[baseline]:
+            primary_expensive_budget_excesses.append({
+                "cell": list(key),
+                "kind": "cad",
+                "primary_method": primary,
+                "primary_calls": cad[primary],
+                "baseline_method": baseline,
+                "baseline_calls": cad[baseline],
+                "values": cad,
+            })
+        if (
+            primary in chrono
+            and baseline in chrono
+            and chrono[primary] > chrono[baseline]
+        ):
+            primary_expensive_budget_excesses.append({
+                "cell": list(key),
+                "kind": "chrono",
+                "primary_method": primary,
+                "primary_calls": chrono[primary],
+                "baseline_method": baseline,
+                "baseline_calls": chrono[baseline],
+                "values": chrono,
+            })
     return {
         "n_cells": len(by_cell),
-        "budget_matched": not mismatches,
+        "budget_matched": not mismatches and not primary_expensive_budget_excesses,
         "primary_budget_spent": not wrong_primary_budget,
         "mismatches": mismatches[:100],
         "n_mismatches": len(mismatches),
         "wrong_primary_budget": wrong_primary_budget[:100],
         "n_wrong_primary_budget": len(wrong_primary_budget),
+        "primary_expensive_budget_not_more_than_baseline": (
+            not primary_expensive_budget_excesses
+        ),
+        "primary_expensive_budget_excesses": (
+            primary_expensive_budget_excesses[:100]
+        ),
+        "n_primary_expensive_budget_excesses": (
+            len(primary_expensive_budget_excesses)
+        ),
         "sampler_accounting_by_method": dict(sorted(sampler_accounting.items())),
     }
 
@@ -1403,7 +1435,9 @@ def build_claim_audit(stats: dict[str, Any]) -> dict[str, Any]:
         if any(not row["keeps_positive_sign"] for row in leave_one):
             blockers.append("leave-one-family-out check flips reward delta sign")
     if not stats["budget_audit"]["budget_matched"]:
-        blockers.append("actual verifier/CAD/Chrono budgets are not matched")
+        blockers.append(
+            "actual verifier budget or primary CAD/Chrono budget is invalid"
+        )
     if not stats["budget_audit"].get("primary_budget_spent", False):
         blockers.append(
             f"not every cell spent B={primary_budget} verifier calls"

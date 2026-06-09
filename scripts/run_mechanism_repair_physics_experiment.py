@@ -464,6 +464,7 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
 
     missing_cells: list[dict[str, Any]] = []
     budget_mismatches: list[dict[str, Any]] = []
+    primary_expensive_budget_excesses: list[dict[str, Any]] = []
     missing_evidence: list[dict[str, Any]] = []
     missing_learning: list[dict[str, Any]] = []
     missing_accounting: list[dict[str, Any]] = []
@@ -520,6 +521,43 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
                     "missing": learning_missing,
                 })
 
+    expected_groups: set[tuple[str, str, int, int]] = {
+        (
+            str(cell["split"]),
+            str(cell["task_id"]),
+            int(cell["seed"]),
+            int(cell["budget"]),
+        )
+        for cell in plan["expected_cells"]
+    }
+    for split, task_id, seed, budget in sorted(expected_groups):
+        primary_key = (split, task_id, seed, str(plan["primary_method"]), budget)
+        baseline_key = (split, task_id, seed, str(plan["primary_baseline"]), budget)
+        primary_row = row_map.get(primary_key)
+        baseline_row = row_map.get(baseline_key)
+        if primary_row is None or baseline_row is None:
+            continue
+        for kind, key_names in (
+            ("cad", ("actual_cad_calls", "cad_audits")),
+            ("chrono", ("actual_chrono_calls", "chrono_audits")),
+        ):
+            primary_calls = int_value(first_present(primary_row, key_names, -1))
+            baseline_calls = int_value(first_present(baseline_row, key_names, -1))
+            if primary_calls > baseline_calls:
+                primary_expensive_budget_excesses.append({
+                    "cell": {
+                        "split": split,
+                        "task_id": task_id,
+                        "seed": int(seed),
+                        "budget": int(budget),
+                    },
+                    "kind": kind,
+                    "primary_method": str(plan["primary_method"]),
+                    "primary_calls": primary_calls,
+                    "baseline_method": str(plan["primary_baseline"]),
+                    "baseline_calls": baseline_calls,
+                })
+
     missing_analysis = [
         name for name in ANALYSIS_ARTIFACTS if not (out_dir / name).is_file()
     ]
@@ -550,16 +588,23 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
         "missing_cell_count": len(missing_cells),
         "duplicate_cell_count": len(duplicate_keys),
         "budget_mismatch_count": len(budget_mismatches),
+        "primary_expensive_budget_excess_count": (
+            len(primary_expensive_budget_excesses)
+        ),
         "missing_accounting_count": len(missing_accounting),
         "budget_matched": (
             not missing_cells
             and not duplicate_keys
             and not budget_mismatches
+            and not primary_expensive_budget_excesses
             and not missing_accounting
         ),
         "sample_missing_cells": missing_cells[:25],
         "sample_duplicate_cells": duplicate_keys[:25],
         "sample_budget_mismatches": budget_mismatches[:25],
+        "sample_primary_expensive_budget_excesses": (
+            primary_expensive_budget_excesses[:25]
+        ),
         "sample_missing_accounting": missing_accounting[:25],
     }
     anti_shortcut_audit = {
@@ -698,7 +743,11 @@ def build_blockers(
         )
     if budget_audit["duplicate_cell_count"]:
         blockers.append("deduplicate repeated method/seed/task/budget cells")
-    if budget_audit["budget_mismatch_count"] or budget_audit["missing_accounting_count"]:
+    if (
+        budget_audit["budget_mismatch_count"]
+        or budget_audit.get("primary_expensive_budget_excess_count", 0)
+        or budget_audit["missing_accounting_count"]
+    ):
         blockers.append("prove matched actual verifier/CAD/Chrono budget")
     if missing_evidence:
         blockers.append("record raw completions and verifier/CAD/Chrono outputs")
@@ -998,6 +1047,17 @@ def unique_list(items: list[str]) -> list[str]:
 
 def has_any_key(row: dict[str, Any], keys: tuple[str, ...]) -> bool:
     return any(key in row for key in keys)
+
+
+def first_present(
+    row: dict[str, Any],
+    keys: tuple[str, ...],
+    default: Any = None,
+) -> Any:
+    for key in keys:
+        if key in row:
+            return row[key]
+    return default
 
 
 def int_value(value: Any) -> int:
