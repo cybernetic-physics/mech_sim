@@ -247,12 +247,17 @@ echo "SGLang port: \$sglang_port"
 sglang_venv="$SGLANG_VENV"
 (
   flock 9
+  sglang_ready_marker="\$sglang_venv/.corl_sglang_ready"
   if [[ ! -x "\$sglang_venv/bin/python" ]]; then
     rm -rf "\$sglang_venv"
     python3 -m venv "\$sglang_venv"
     "\$sglang_venv/bin/python" -m pip install --upgrade pip
+    rm -f "\$sglang_ready_marker"
   fi
-  "\$sglang_venv/bin/python" -m pip install "$SGLANG_PIP_SPEC" $SGLANG_PIP_EXTRA
+  if [[ ! -f "\$sglang_ready_marker" ]]; then
+    "\$sglang_venv/bin/python" -m pip install "$SGLANG_PIP_SPEC" $SGLANG_PIP_EXTRA
+    touch "\$sglang_ready_marker"
+  fi
 ) 9>"$REMOTE_ROOT/locks/sglang_venv.lock"
 export PATH="\$sglang_venv/bin:\$PATH"
 sglang_log="$remote_logs/sglang-\${SLURM_ARRAY_JOB_ID:-manual}_\${SLURM_ARRAY_TASK_ID:-0}.log"

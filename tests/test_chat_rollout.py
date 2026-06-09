@@ -86,6 +86,24 @@ class FakeOptionalChatRequests:
         return FakeResponse(200, {"ok": True})
 
 
+class FakeTransientBadRequest:
+    calls: list[dict[str, Any]] = []
+
+    @classmethod
+    def post(
+        cls,
+        url: str,
+        *,
+        json: dict[str, Any],
+        timeout: float,
+        headers: dict[str, str],
+    ) -> FakeResponse:
+        cls.calls.append(json)
+        if len(cls.calls) == 1:
+            return FakeResponse(400, text="transient bad request")
+        return FakeResponse(200, {"ok": True})
+
+
 def test_chat_completion_retries_without_seed_on_bad_request(monkeypatch) -> None:
     FakeRequests.calls = []
     monkeypatch.setattr(chat_rollout, "requests", FakeRequests)
@@ -134,6 +152,25 @@ def test_chat_completion_retries_without_optional_sglang_chat_fields(
     assert "continue_final_message" not in FakeOptionalChatRequests.calls[2]
     assert "separate_reasoning" not in FakeOptionalChatRequests.calls[2]
     assert "chat_template_kwargs" not in FakeOptionalChatRequests.calls[2]
+
+
+def test_chat_completion_retries_transient_bad_request(monkeypatch) -> None:
+    FakeTransientBadRequest.calls = []
+    monkeypatch.setattr(chat_rollout, "requests", FakeTransientBadRequest)
+    monkeypatch.setattr(chat_rollout.time, "sleep", lambda _: None)
+
+    result = chat_rollout._chat_completion(
+        base_url="http://localhost:30000",
+        model="model",
+        messages=[{"role": "user", "content": "hi"}],
+        max_tokens=8,
+        temperature=0.7,
+        top_p=0.95,
+        timeout_s=1.0,
+    )
+
+    assert result == {"ok": True}
+    assert len(FakeTransientBadRequest.calls) == 2
 
 
 def test_chat_completion_forwards_continue_final_message(monkeypatch) -> None:

@@ -50,6 +50,8 @@ _SGLANG_OPTIONAL_CHAT_KEYS = (
     "separate_reasoning",
     "chat_template_kwargs",
 )
+_SGLANG_TRANSIENT_BAD_REQUEST_RETRIES = 2
+_SGLANG_TRANSIENT_RETRY_SLEEP_S = 1.0
 
 
 @dataclass
@@ -351,6 +353,12 @@ def _chat_completion(
             )
             r = requests.post(url, json=body, timeout=timeout_s,
                               headers={"Authorization": "Bearer dummy"})
+    for _ in range(_SGLANG_TRANSIENT_BAD_REQUEST_RETRIES):
+        if r.status_code != 400:
+            break
+        time.sleep(_SGLANG_TRANSIENT_RETRY_SLEEP_S)
+        r = requests.post(url, json=body, timeout=timeout_s,
+                          headers={"Authorization": "Bearer dummy"})
     try:
         r.raise_for_status()
     except Exception as exc:

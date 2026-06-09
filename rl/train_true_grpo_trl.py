@@ -43,6 +43,8 @@ SGLANG_OPTIONAL_CHAT_KEYS = (
     "separate_reasoning",
     "chat_template_kwargs",
 )
+SGLANG_TRANSIENT_BAD_REQUEST_RETRIES = 2
+SGLANG_TRANSIENT_RETRY_SLEEP_S = 1.0
 STRICT_FENCED_OUTPUT_INSTRUCTION = (
     "/no_think\n"
     "You must reply with exactly one fenced ```python code block containing "
@@ -832,6 +834,13 @@ def _post_openai_chat_completion(
             k: v for k, v in request_body.items()
             if k not in SGLANG_OPTIONAL_CHAT_KEYS
         }
+        response = requests_mod.post(
+            url, json=request_body, timeout=timeout_s, headers=headers
+        )
+    for _ in range(SGLANG_TRANSIENT_BAD_REQUEST_RETRIES):
+        if response.status_code != 400:
+            break
+        time.sleep(SGLANG_TRANSIENT_RETRY_SLEEP_S)
         response = requests_mod.post(
             url, json=request_body, timeout=timeout_s, headers=headers
         )

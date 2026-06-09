@@ -7,6 +7,7 @@ import torch
 
 from rl.mech_env import TaskInfo
 from rl.mech_bench_reward import RewardResult
+from rl import train_true_grpo_trl
 from rl.train_true_grpo_trl import (
     STRICT_FENCED_OUTPUT_INSTRUCTION,
     _chat_prompt_rows,
@@ -146,6 +147,24 @@ class FakeOpenAIRequests:
         return FakeChatResponse(200, {"ok": True})
 
 
+class FakeTransientOpenAIRequests:
+    calls: list[dict[str, object]] = []
+
+    @classmethod
+    def post(
+        cls,
+        url: str,
+        *,
+        json: dict[str, object],
+        timeout: float,
+        headers: dict[str, str],
+    ) -> FakeChatResponse:
+        cls.calls.append(dict(json))
+        if len(cls.calls) == 1:
+            return FakeChatResponse(400, text="transient bad request")
+        return FakeChatResponse(200, {"ok": True})
+
+
 class DummyTrainingArgs:
     def __init__(
         self,
@@ -186,6 +205,29 @@ def test_openai_chat_post_retries_without_seed_and_optional_sglang_fields() -> N
     assert "continue_final_message" not in FakeOpenAIRequests.calls[2]
     assert "separate_reasoning" not in FakeOpenAIRequests.calls[2]
     assert "chat_template_kwargs" not in FakeOpenAIRequests.calls[2]
+
+
+def test_openai_chat_post_retries_transient_bad_request(monkeypatch) -> None:
+    FakeTransientOpenAIRequests.calls = []
+    monkeypatch.setattr(train_true_grpo_trl.time, "sleep", lambda _: None)
+
+    result = _post_openai_chat_completion(
+        requests_mod=FakeTransientOpenAIRequests,
+        base_url="http://localhost:30000",
+        api_key="dummy",
+        body={
+            "model": "model",
+            "messages": [{"role": "user", "content": "hi"}],
+            "max_tokens": 8,
+            "temperature": 0.7,
+            "top_p": 0.95,
+            "stream": False,
+        },
+        timeout_s=1.0,
+    )
+
+    assert result == {"ok": True}
+    assert len(FakeTransientOpenAIRequests.calls) == 2
 
 
 def test_intermediate_checkpoint_config_disables_trainer_saves() -> None:
