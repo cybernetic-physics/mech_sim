@@ -11,6 +11,7 @@ not, the adapter must:
 
 from __future__ import annotations
 
+import os
 import sys
 import types
 from pathlib import Path
@@ -100,9 +101,28 @@ def test_chrono_python_candidates_include_abi_specific_env(tmp_path, monkeypatch
     monkeypatch.delenv("MECH_BENCH_CHRONO_ENV", raising=False)
 
     py_tag = f"py{sys.version_info.major}{sys.version_info.minor}"
-    expected = root / ".external" / f"chrono_env_{py_tag}" / "bin" / "python"
+    expected_external = (
+        root / ".external" / f"chrono_env_{py_tag}" / "bin" / "python"
+    )
+    expected_sibling = root / f"chrono_env_{py_tag}" / "bin" / "python"
 
-    assert expected in chrono_env._candidate_chrono_pythons()
+    candidates = chrono_env._candidate_chrono_pythons()
+    assert expected_external in candidates
+    assert expected_sibling in candidates
+
+
+def test_chrono_child_env_adds_chrono_lib_path(tmp_path, monkeypatch):
+    import mech_bench.adapters.chrono_env as chrono_env
+
+    chrono_python = tmp_path / "chrono_env_py312" / "bin" / "python"
+    chrono_lib = chrono_python.parent.parent / "lib"
+    chrono_lib.mkdir(parents=True)
+    monkeypatch.setenv("LD_LIBRARY_PATH", f"/already{os.pathsep}{chrono_lib}")
+
+    env = chrono_env.chrono_child_env(chrono_python)
+
+    assert env["LD_LIBRARY_PATH"].split(os.pathsep)[0] == str(chrono_lib)
+    assert env["LD_LIBRARY_PATH"].split(os.pathsep).count(str(chrono_lib)) == 1
 
 
 def test_chrono_unavailable_yields_capability_unavailable(tmp_path):

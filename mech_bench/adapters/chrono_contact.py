@@ -239,7 +239,7 @@ def _run_chrono_subprocess(
                  str(ir_path), str(cfg_path), str(out_path)],
                 capture_output=True, text=True,
                 timeout=max_wall_s, check=False,
-                env=chrono_child_env(),
+                env=chrono_child_env(alt_python),
             )
         except subprocess.TimeoutExpired:
             return _capability_unavailable_payload(

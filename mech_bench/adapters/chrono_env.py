@@ -14,13 +14,17 @@ CHRONO_PYTHON_ENV = "MECH_BENCH_CHRONO_PYTHON"
 CHRONO_ENV_PREFIX_ENV = "MECH_BENCH_CHRONO_ENV"
 
 
-def chrono_child_env() -> dict[str, str]:
+def chrono_child_env(chrono_python: Path | None = None) -> dict[str, str]:
     """Environment for subprocesses that need to import this checkout."""
     env = os.environ.copy()
     env.pop(CHRONO_PYTHON_ENV, None)
     existing = env.get("PYTHONPATH")
     repo = str(REPO_ROOT)
     env["PYTHONPATH"] = repo if not existing else f"{repo}{os.pathsep}{existing}"
+    if chrono_python is not None:
+        lib_dir = chrono_python.expanduser().parent.parent / "lib"
+        if lib_dir.exists():
+            _prepend_path(env, "LD_LIBRARY_PATH", lib_dir)
     return env
 
 
@@ -63,7 +67,7 @@ def probe_chrono_python(path: Path, *, timeout_s: float = 30.0) -> tuple[bool, s
             text=True,
             timeout=timeout_s,
             check=False,
-            env=chrono_child_env(),
+            env=chrono_child_env(path),
             cwd=str(REPO_ROOT),
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
@@ -83,6 +87,7 @@ def _candidate_chrono_pythons() -> list[Path]:
         candidates.extend(_python_bins(Path(prefix).expanduser()))
     py_tag = f"py{sys.version_info.major}{sys.version_info.minor}"
     for root in _candidate_roots():
+        candidates.extend(_python_bins(root / f"chrono_env_{py_tag}"))
         candidates.extend(_python_bins(root / ".external" / f"chrono_env_{py_tag}"))
         candidates.extend(_python_bins(root / ".external" / "chrono_env"))
         candidates.extend(
@@ -105,3 +110,9 @@ def _candidate_roots() -> list[Path]:
 
 def _python_bins(prefix: Path) -> list[Path]:
     return [prefix / "bin" / "python", prefix / "bin" / "python3"]
+
+
+def _prepend_path(env: dict[str, str], name: str, path: Path) -> None:
+    value = str(path)
+    existing = [p for p in env.get(name, "").split(os.pathsep) if p]
+    env[name] = os.pathsep.join([value, *[p for p in existing if p != value]])
