@@ -8,6 +8,7 @@ from scripts.analyze_mechanism_repair_results import (
     build_benchmark_readiness,
     build_expected_coverage,
     build_claim_audit,
+    load_analysis_contract,
     normalize_rows,
 )
 from scripts.prepare_mechanism_repair_benchmark import REQUIRED_METHODS
@@ -131,6 +132,141 @@ def test_mechanism_repair_analysis_writes_rejectable_json_shape(
 
     assert set(stats["method_summary"]) == set(REQUIRED_METHODS)
     assert stats["reward_beats_all_required_baselines"] is True
+
+
+def test_physics_contract_loads_manifest_and_normalizes_expected_cells(
+    tmp_path: Path,
+) -> None:
+    benchmark_dir = tmp_path / "physics"
+    task_dir = benchmark_dir / "tasks" / "hidden_task"
+    task_dir.mkdir(parents=True)
+    required = [
+        "frozen_model",
+        "sft_seen_family",
+        "llm_evolve_no_update",
+        "verifier_gated_search",
+        "adaptive_evolution",
+        "mechanical_evolve_ttrl",
+        "mechanical_evolve_ttrl_tool_verified",
+        "mechanical_evolve_ttrl_confidence",
+    ]
+    (benchmark_dir / "method_manifest.json").write_text(json.dumps({
+        "schema": "mechanism_repair_physics.method_manifest.v1",
+        "primary_method": "mechanical_evolve_ttrl_tool_verified",
+        "primary_baseline": "llm_evolve_no_update",
+        "primary_budget_expensive_verifier_calls": 32,
+        "eval_seeds": [20260610],
+        "required_methods": required,
+        "success_threshold": {"level23_success_abs_delta_pct": 15.0},
+    }))
+    (benchmark_dir / "split_manifest_hidden_perturbation.json").write_text(
+        json.dumps({"splits": {"test": [str(task_dir)]}})
+    )
+
+    contract = load_analysis_contract(benchmark_dir)
+    expected = build_expected_coverage(benchmark_dir, contract=contract)
+
+    assert contract.primary_method == "mechanical_evolve_ttrl_tool_verified"
+    assert contract.primary_baseline == "llm_evolve_no_update"
+    assert contract.required_min_trace_pairs == 24
+    assert "mechanical_evolve_ttrl_confidence" in contract.learning_methods
+    assert expected["split_task_counts"] == {"hidden_perturbation": 1}
+    assert ("hidden_perturbation", "hidden_task", 20260610, required[0]) in {
+        tuple(item) for item in expected["expected_cells"]
+    }
+
+
+def test_physics_analysis_uses_manifest_primary_and_learning_variants(
+    tmp_path: Path,
+) -> None:
+    benchmark_dir = tmp_path / "physics"
+    benchmark_dir.mkdir()
+    methods = [
+        "frozen_model",
+        "sft_seen_family",
+        "llm_evolve_no_update",
+        "verifier_gated_search",
+        "adaptive_evolution",
+        "mechanical_evolve_ttrl",
+        "mechanical_evolve_ttrl_tool_verified",
+        "mechanical_evolve_ttrl_confidence",
+    ]
+    (benchmark_dir / "method_manifest.json").write_text(json.dumps({
+        "schema": "mechanism_repair_physics.method_manifest.v1",
+        "primary_method": "mechanical_evolve_ttrl_tool_verified",
+        "primary_baseline": "llm_evolve_no_update",
+        "primary_budget_expensive_verifier_calls": 32,
+        "eval_seeds": [20260610],
+        "required_methods": methods,
+        "success_threshold": {"level23_success_abs_delta_pct": 15.0},
+    }))
+    contract = load_analysis_contract(benchmark_dir)
+    rows = []
+    for idx in range(24):
+        family = f"family_{idx % 12:02d}"
+        task_id = f"task_{idx:02d}"
+        for method in methods:
+            evidence_dir = tmp_path / "evidence" / method / task_id
+            evidence_dir.mkdir(parents=True, exist_ok=True)
+            raw = evidence_dir / "completion.txt"
+            verifier = evidence_dir / "verifier.json"
+            raw.write_text("design\n")
+            verifier.write_text('{"verified_score": 1.0}\n')
+            success = method == "mechanical_evolve_ttrl_tool_verified"
+            reward = 1.0 if success else 0.1
+            if method == "llm_evolve_no_update":
+                reward = 0.25
+            row = {
+                "split": "A",
+                "family": family,
+                "task_id": task_id,
+                "seed": 20260610,
+                "method": method,
+                "verified_repair_success": success,
+                "verified_score": reward,
+                "actual_verifier_calls": 32,
+                "actual_cad_calls": 1,
+                "actual_chrono_calls": 1,
+                "raw_completion_paths": [str(raw)] * 32,
+                "verifier_output_paths": [str(verifier)] * 32,
+                "failure_codes": "" if success else "wrong_ratio",
+            }
+            if method.startswith("mechanical_evolve_ttrl"):
+                reward_log = evidence_dir / "reward_log.jsonl"
+                reward_log.write_text('{"verified_score": 1.0}\n')
+                adapter = evidence_dir / "final_adapter"
+                adapter.mkdir(exist_ok=True)
+                row.update({
+                    "trace_path": str(reward_log),
+                    "adapter_path": str(adapter),
+                    "adapter_updates": 32,
+                    "trained_tokens": 128,
+                    "rl_trained_tokens": 128,
+                    "n_rl_datums": 32,
+                })
+            rows.append(row)
+
+    stats = analyze_rows(
+        normalize_rows(rows),
+        bootstrap_samples=200,
+        seed=7,
+        contract=contract,
+    )
+    audit = build_claim_audit(stats)
+
+    assert stats["primary_method"] == "mechanical_evolve_ttrl_tool_verified"
+    assert stats["primary_baseline"] == "llm_evolve_no_update"
+    assert stats["required_methods_present"] is True
+    assert stats["n_paired_cells"] == 24
+    assert stats["evidence_audit"]["required_min_trace_pairs"] == 24
+    assert (
+        stats["evidence_audit"]["matched_ttrl_vs_no_update_trace_pairs_with_evidence"]
+        == 24
+    )
+    assert stats["learning_audit"]["ttrl_rows"] == 72
+    assert stats["learning_audit"]["ttrl_learning_evidence_complete"] is True
+    assert audit["primary_method"] == "mechanical_evolve_ttrl_tool_verified"
+    assert audit["claim_status"] == "supports_primary_hypothesis"
 
 
 def test_mechanism_repair_analysis_summarizes_secondary_metrics(

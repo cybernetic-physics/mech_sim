@@ -14,16 +14,17 @@ import json
 import math
 import random
 from collections import Counter, defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from scripts.prepare_mechanism_repair_benchmark import (
-    EVAL_SEEDS,
-    PRIMARY_BASELINE,
-    PRIMARY_BUDGET,
-    PRIMARY_METHOD,
-    REQUIRED_METHODS,
-    SUCCESS_DELTA_PCT,
+    EVAL_SEEDS as LEGACY_EVAL_SEEDS,
+    PRIMARY_BASELINE as LEGACY_PRIMARY_BASELINE,
+    PRIMARY_BUDGET as LEGACY_PRIMARY_BUDGET,
+    PRIMARY_METHOD as LEGACY_PRIMARY_METHOD,
+    REQUIRED_METHODS as LEGACY_REQUIRED_METHODS,
+    SUCCESS_DELTA_PCT as LEGACY_SUCCESS_DELTA_PCT,
 )
 
 SECONDARY_METRIC_FIELDS = (
@@ -54,6 +55,32 @@ SECONDARY_METRIC_FIELDS = (
 )
 
 
+@dataclass(frozen=True)
+class AnalysisContract:
+    schema: str
+    primary_method: str
+    primary_baseline: str
+    required_methods: tuple[str, ...]
+    primary_budget: int
+    eval_seeds: tuple[int, ...]
+    success_delta_pct: float
+    required_min_trace_pairs: int
+    learning_methods: tuple[str, ...]
+
+
+DEFAULT_CONTRACT = AnalysisContract(
+    schema="mechanism_repair_ttrl.analysis_contract.v1",
+    primary_method=LEGACY_PRIMARY_METHOD,
+    primary_baseline=LEGACY_PRIMARY_BASELINE,
+    required_methods=tuple(LEGACY_REQUIRED_METHODS),
+    primary_budget=int(LEGACY_PRIMARY_BUDGET),
+    eval_seeds=tuple(int(seed) for seed in LEGACY_EVAL_SEEDS),
+    success_delta_pct=float(LEGACY_SUCCESS_DELTA_PCT),
+    required_min_trace_pairs=8,
+    learning_methods=(LEGACY_PRIMARY_METHOD,),
+)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--results", required=True)
@@ -74,8 +101,13 @@ def main() -> int:
         if args.benchmark_dir
         else default_benchmark_dir(out_dir)
     )
+    contract = (
+        load_analysis_contract(benchmark_dir)
+        if benchmark_dir is not None
+        else DEFAULT_CONTRACT
+    )
     expected = (
-        build_expected_coverage(benchmark_dir)
+        build_expected_coverage(benchmark_dir, contract=contract)
         if benchmark_dir is not None
         else None
     )
@@ -91,9 +123,10 @@ def main() -> int:
         seed=int(args.seed),
         expected_coverage=expected,
         benchmark_readiness=benchmark_readiness,
+        contract=contract,
     )
-    failure_analysis = build_failure_analysis(rows)
-    trace_pairs = build_trace_pairs(rows)
+    failure_analysis = build_failure_analysis(rows, contract=contract)
+    trace_pairs = build_trace_pairs(rows, contract=contract)
     claim_audit = build_claim_audit(stats)
 
     write_json(out_dir / "stats.json", stats)
@@ -109,6 +142,67 @@ def main() -> int:
         "blockers": claim_audit["blockers"],
     }, indent=2, sort_keys=True))
     return 0 if claim_audit["claim_status"] == "supports_primary_hypothesis" else 2
+
+
+def load_analysis_contract(benchmark_dir: Path) -> AnalysisContract:
+    manifest_path = benchmark_dir / "method_manifest.json"
+    if not manifest_path.is_file():
+        return DEFAULT_CONTRACT
+    manifest = json.loads(manifest_path.read_text())
+    required = tuple(
+        str(method)
+        for method in manifest.get("required_methods", DEFAULT_CONTRACT.required_methods)
+    )
+    primary_method = str(
+        manifest.get("primary_method")
+        or (
+            "mechanical_evolve_ttrl_tool_verified"
+            if "mechanical_evolve_ttrl_tool_verified" in required
+            else DEFAULT_CONTRACT.primary_method
+        )
+    )
+    primary_baseline = str(
+        manifest.get("primary_baseline") or DEFAULT_CONTRACT.primary_baseline
+    )
+    primary_budget = int(
+        manifest.get("primary_budget_expensive_verifier_calls")
+        or manifest.get("primary_budget_verifier_calls")
+        or DEFAULT_CONTRACT.primary_budget
+    )
+    eval_seeds = tuple(
+        int(seed)
+        for seed in manifest.get("eval_seeds", DEFAULT_CONTRACT.eval_seeds)
+    )
+    threshold = manifest.get("success_threshold") or {}
+    success_delta_pct = float(
+        threshold.get("level23_success_abs_delta_pct")
+        or threshold.get("success_delta_pct")
+        or manifest.get("success_delta_pct")
+        or DEFAULT_CONTRACT.success_delta_pct
+    )
+    is_physics = str(manifest.get("schema", "")).startswith(
+        "mechanism_repair_physics."
+    )
+    learning_methods = tuple(
+        method
+        for method in required
+        if method.startswith("mechanical_evolve_ttrl")
+    ) or (primary_method,)
+    return AnalysisContract(
+        schema=(
+            "mechanism_repair_physics.analysis_contract.v1"
+            if is_physics
+            else DEFAULT_CONTRACT.schema
+        ),
+        primary_method=primary_method,
+        primary_baseline=primary_baseline,
+        required_methods=required,
+        primary_budget=primary_budget,
+        eval_seeds=eval_seeds,
+        success_delta_pct=success_delta_pct,
+        required_min_trace_pairs=24 if is_physics else DEFAULT_CONTRACT.required_min_trace_pairs,
+        learning_methods=learning_methods,
+    )
 
 
 def load_rows(path: Path) -> list[dict[str, Any]]:
@@ -152,9 +246,15 @@ def normalize_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     row.get("best_verified_reward",
                             row.get("verified_score", 0.0)))
         )
-        verifier_calls = int(float_value(row.get("verifier_calls", 0)))
-        cad_audits = int(float_value(row.get("cad_audits", 0)))
-        chrono_audits = int(float_value(row.get("chrono_audits", 0)))
+        verifier_calls = int(float_value(
+            row.get("verifier_calls", row.get("actual_verifier_calls", 0))
+        ))
+        cad_audits = int(float_value(
+            row.get("cad_audits", row.get("actual_cad_calls", 0))
+        ))
+        chrono_audits = int(float_value(
+            row.get("chrono_audits", row.get("actual_chrono_calls", 0))
+        ))
         normalized.append({
             **row,
             "method": method,
@@ -179,6 +279,7 @@ def analyze_rows(
     seed: int,
     expected_coverage: dict[str, Any] | None = None,
     benchmark_readiness: dict[str, Any] | None = None,
+    contract: AnalysisContract = DEFAULT_CONTRACT,
 ) -> dict[str, Any]:
     by_method: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in rows:
@@ -188,7 +289,7 @@ def analyze_rows(
         method: summarize_method(items)
         for method, items in sorted(by_method.items())
     }
-    paired = paired_primary_rows(rows)
+    paired = paired_primary_rows(rows, contract=contract)
     success_deltas = [
         float(p["primary_success"]) - float(p["baseline_success"])
         for p in paired
@@ -204,25 +305,38 @@ def analyze_rows(
     sign_p = one_sided_sign_test(success_deltas)
     family_rows = family_delta_rows(paired)
     leave_one = leave_one_family_out(paired)
-    budget_audit = audit_budget(rows)
-    evidence_audit = audit_evidence(rows)
-    learning_audit = audit_ttrl_learning(rows)
+    budget_audit = audit_budget(rows, contract=contract)
+    evidence_audit = audit_evidence(rows, contract=contract)
+    learning_audit = audit_ttrl_learning(rows, contract=contract)
     coverage_audit = audit_expected_coverage(rows, expected_coverage)
     family_method_summary = summarize_family_methods(rows)
-    required_present = all(method in by_method for method in REQUIRED_METHODS)
-    reward_beats = reward_beats_all_required(method_summary)
+    required_present = all(
+        method in by_method for method in contract.required_methods
+    )
+    reward_beats = reward_beats_all_required(method_summary, contract=contract)
 
     return {
         "schema": "mechanism_repair_ttrl.stats.v1",
-        "primary_method": PRIMARY_METHOD,
-        "primary_baseline": PRIMARY_BASELINE,
-        "required_methods": list(REQUIRED_METHODS),
+        "analysis_contract": {
+            "schema": contract.schema,
+            "primary_method": contract.primary_method,
+            "primary_baseline": contract.primary_baseline,
+            "required_methods": list(contract.required_methods),
+            "primary_budget": contract.primary_budget,
+            "eval_seeds": list(contract.eval_seeds),
+            "success_delta_pct": contract.success_delta_pct,
+            "required_min_trace_pairs": contract.required_min_trace_pairs,
+            "learning_methods": list(contract.learning_methods),
+        },
+        "primary_method": contract.primary_method,
+        "primary_baseline": contract.primary_baseline,
+        "required_methods": list(contract.required_methods),
         "required_methods_present": required_present,
         "missing_required_methods": [
-            method for method in REQUIRED_METHODS if method not in by_method
+            method for method in contract.required_methods if method not in by_method
         ],
-        "primary_budget_verifier_calls": PRIMARY_BUDGET,
-        "eval_seeds_expected": list(EVAL_SEEDS),
+        "primary_budget_verifier_calls": contract.primary_budget,
+        "eval_seeds_expected": list(contract.eval_seeds),
         "n_rows": len(rows),
         "n_paired_cells": len(paired),
         "method_summary": method_summary,
@@ -234,7 +348,7 @@ def analyze_rows(
             "success_sign_test_p_one_sided": sign_p,
             "reward_delta_mean": reward_mean,
             "reward_delta_ci95": reward_ci,
-            "success_threshold_pct": SUCCESS_DELTA_PCT,
+            "success_threshold_pct": contract.success_delta_pct,
         },
         "family_deltas": family_rows,
         "leave_one_family_out": leave_one,
@@ -323,14 +437,18 @@ def summarize_metric_field(
     }
 
 
-def paired_primary_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def paired_primary_rows(
+    rows: list[dict[str, Any]],
+    *,
+    contract: AnalysisContract = DEFAULT_CONTRACT,
+) -> list[dict[str, Any]]:
     by_key_method: dict[tuple[Any, ...], dict[str, dict[str, Any]]] = defaultdict(dict)
     for row in rows:
         by_key_method[row["_pair_key"]][row["method"]] = row
     paired: list[dict[str, Any]] = []
     for key, methods in sorted(by_key_method.items()):
-        primary = methods.get(PRIMARY_METHOD)
-        baseline = methods.get(PRIMARY_BASELINE)
+        primary = methods.get(contract.primary_method)
+        baseline = methods.get(contract.primary_baseline)
         if primary is None or baseline is None:
             continue
         split, family, task_id, seed = key
@@ -390,13 +508,17 @@ def leave_one_family_out(paired: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
-def reward_beats_all_required(method_summary: dict[str, dict[str, Any]]) -> bool:
-    primary = method_summary.get(PRIMARY_METHOD)
+def reward_beats_all_required(
+    method_summary: dict[str, dict[str, Any]],
+    *,
+    contract: AnalysisContract = DEFAULT_CONTRACT,
+) -> bool:
+    primary = method_summary.get(contract.primary_method)
     if not primary:
         return False
     primary_reward = float(primary["best_verified_reward_at_32"])
-    for method in REQUIRED_METHODS:
-        if method == PRIMARY_METHOD:
+    for method in contract.required_methods:
+        if method == contract.primary_method:
             continue
         summary = method_summary.get(method)
         if summary is None:
@@ -406,7 +528,11 @@ def reward_beats_all_required(method_summary: dict[str, dict[str, Any]]) -> bool
     return True
 
 
-def audit_budget(rows: list[dict[str, Any]]) -> dict[str, Any]:
+def audit_budget(
+    rows: list[dict[str, Any]],
+    *,
+    contract: AnalysisContract = DEFAULT_CONTRACT,
+) -> dict[str, Any]:
     by_cell: dict[tuple[Any, ...], list[dict[str, Any]]] = defaultdict(list)
     for row in rows:
         split, family, task_id, seed = row["_pair_key"]
@@ -418,12 +544,12 @@ def audit_budget(rows: list[dict[str, Any]]) -> dict[str, Any]:
         cad = {row["method"]: int(row["cad_audits"]) for row in cell_rows}
         chrono = {row["method"]: int(row["chrono_audits"]) for row in cell_rows}
         for method, calls in verifier.items():
-            if calls != PRIMARY_BUDGET:
+            if calls != contract.primary_budget:
                 wrong_primary_budget.append({
                     "cell": list(key),
                     "method": method,
                     "verifier_calls": calls,
-                    "expected": PRIMARY_BUDGET,
+                    "expected": contract.primary_budget,
                 })
         if len(set(verifier.values())) > 1:
             mismatches.append({"cell": list(key), "kind": "verifier", "values": verifier})
@@ -442,7 +568,11 @@ def audit_budget(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def audit_evidence(rows: list[dict[str, Any]]) -> dict[str, Any]:
+def audit_evidence(
+    rows: list[dict[str, Any]],
+    *,
+    contract: AnalysisContract = DEFAULT_CONTRACT,
+) -> dict[str, Any]:
     missing_raw_rows: list[dict[str, Any]] = []
     missing_verifier_rows: list[dict[str, Any]] = []
     missing_raw_files: list[dict[str, Any]] = []
@@ -476,7 +606,7 @@ def audit_evidence(rows: list[dict[str, Any]]) -> dict[str, Any]:
         summary_path = str(row.get("summary_path") or "")
         if summary_path and not Path(summary_path).is_file():
             missing_summary_files.append({**ref, "path": summary_path})
-        if row["method"] == PRIMARY_METHOD:
+        if row["method"] in contract.learning_methods:
             trace_path = str(row.get("trace_path") or "")
             if not trace_path or not Path(trace_path).is_file():
                 missing_ttrl_training_logs.append({**ref, "path": trace_path})
@@ -484,7 +614,7 @@ def audit_evidence(rows: list[dict[str, Any]]) -> dict[str, Any]:
             if not adapter_path or not Path(adapter_path).exists():
                 missing_ttrl_adapters.append({**ref, "path": adapter_path})
 
-    paired_with_evidence = count_paired_trace_evidence(rows)
+    paired_with_evidence = count_paired_trace_evidence(rows, contract=contract)
     ok = not any([
         missing_raw_rows,
         missing_verifier_rows,
@@ -505,8 +635,10 @@ def audit_evidence(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "training_logs_present": not missing_ttrl_training_logs,
         "adapter_checkpoints_present": not missing_ttrl_adapters,
         "matched_ttrl_vs_no_update_trace_pairs_with_evidence": paired_with_evidence,
-        "required_min_trace_pairs": 8,
-        "evidence_complete": ok and paired_with_evidence >= 8,
+        "required_min_trace_pairs": contract.required_min_trace_pairs,
+        "evidence_complete": (
+            ok and paired_with_evidence >= contract.required_min_trace_pairs
+        ),
         "n_missing_raw_rows": len(missing_raw_rows),
         "n_missing_verifier_rows": len(missing_verifier_rows),
         "n_missing_raw_files": len(missing_raw_files),
@@ -526,15 +658,24 @@ def audit_evidence(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def audit_ttrl_learning(rows: list[dict[str, Any]]) -> dict[str, Any]:
-    ttrl_rows = [row for row in rows if row["method"] == PRIMARY_METHOD]
+def audit_ttrl_learning(
+    rows: list[dict[str, Any]],
+    *,
+    contract: AnalysisContract = DEFAULT_CONTRACT,
+) -> dict[str, Any]:
+    ttrl_rows = [
+        row for row in rows if row["method"] in contract.learning_methods
+    ]
     bad_rows: list[dict[str, Any]] = []
     for row in ttrl_rows:
         adapter_updates = int(row.get("adapter_updates", 0) or 0)
         trained_tokens = int(row.get("trained_tokens", 0) or 0)
         rl_trained_tokens = int(row.get("rl_trained_tokens", 0) or 0)
         n_rl_datums = int(row.get("n_rl_datums", 0) or 0)
-        min_rl_datums = max(PRIMARY_BUDGET, int(row.get("verifier_calls", 0) or 0))
+        min_rl_datums = max(
+            contract.primary_budget,
+            int(row.get("verifier_calls", 0) or 0),
+        )
         reasons = []
         if adapter_updates <= 0:
             reasons.append("adapter_updates<=0")
@@ -561,14 +702,18 @@ def audit_ttrl_learning(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def count_paired_trace_evidence(rows: list[dict[str, Any]]) -> int:
+def count_paired_trace_evidence(
+    rows: list[dict[str, Any]],
+    *,
+    contract: AnalysisContract = DEFAULT_CONTRACT,
+) -> int:
     by_key_method: dict[tuple[Any, ...], dict[str, dict[str, Any]]] = defaultdict(dict)
     for row in rows:
         by_key_method[row["_pair_key"]][row["method"]] = row
     count = 0
     for methods in by_key_method.values():
-        primary = methods.get(PRIMARY_METHOD)
-        baseline = methods.get(PRIMARY_BASELINE)
+        primary = methods.get(contract.primary_method)
+        baseline = methods.get(contract.primary_baseline)
         if not primary or not baseline:
             continue
         if row_has_evidence(primary, require_training=True) and row_has_evidence(
@@ -610,7 +755,11 @@ def row_ref(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def build_failure_analysis(rows: list[dict[str, Any]]) -> dict[str, Any]:
+def build_failure_analysis(
+    rows: list[dict[str, Any]],
+    *,
+    contract: AnalysisContract = DEFAULT_CONTRACT,
+) -> dict[str, Any]:
     counts: Counter[tuple[str, str, str]] = Counter()
     method_family: Counter[tuple[str, str]] = Counter()
     for row in rows:
@@ -629,21 +778,28 @@ def build_failure_analysis(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "ttrl_vs_no_update_failure_deltas": failure_code_deltas(
             counts,
             method_family,
-            primary=PRIMARY_METHOD,
-            baseline=PRIMARY_BASELINE,
+            primary=contract.primary_method,
+            baseline=contract.primary_baseline,
         ),
-        "repair_dimension_deltas": repair_dimension_deltas(rows),
+        "repair_dimension_deltas": repair_dimension_deltas(
+            rows,
+            contract=contract,
+        ),
     }
 
 
-def build_trace_pairs(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def build_trace_pairs(
+    rows: list[dict[str, Any]],
+    *,
+    contract: AnalysisContract = DEFAULT_CONTRACT,
+) -> list[dict[str, Any]]:
     by_key_method: dict[tuple[Any, ...], dict[str, dict[str, Any]]] = defaultdict(dict)
     for row in rows:
         by_key_method[row["_pair_key"]][row["method"]] = row
     pairs: list[dict[str, Any]] = []
     for key, methods in sorted(by_key_method.items()):
-        primary = methods.get(PRIMARY_METHOD)
-        baseline = methods.get(PRIMARY_BASELINE)
+        primary = methods.get(contract.primary_method)
+        baseline = methods.get(contract.primary_baseline)
         if not primary or not baseline:
             continue
         split, family, task_id, seed = key
@@ -675,8 +831,8 @@ def build_trace_pairs(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 == int(baseline.get("verifier_calls", 0) or 0)
             ),
             "verifier_calls": {
-                PRIMARY_METHOD: int(primary.get("verifier_calls", 0) or 0),
-                PRIMARY_BASELINE: int(baseline.get("verifier_calls", 0) or 0),
+                contract.primary_method: int(primary.get("verifier_calls", 0) or 0),
+                contract.primary_baseline: int(baseline.get("verifier_calls", 0) or 0),
             },
             "repair_dimension_delta": repair_dimension_delta(primary, baseline),
         })
@@ -760,14 +916,18 @@ def failure_code_deltas(
     return out
 
 
-def repair_dimension_deltas(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def repair_dimension_deltas(
+    rows: list[dict[str, Any]],
+    *,
+    contract: AnalysisContract = DEFAULT_CONTRACT,
+) -> list[dict[str, Any]]:
     by_key_method: dict[tuple[Any, ...], dict[str, dict[str, Any]]] = defaultdict(dict)
     for row in rows:
         by_key_method[row["_pair_key"]][row["method"]] = row
     paired = [
-        (methods[PRIMARY_METHOD], methods[PRIMARY_BASELINE])
+        (methods[contract.primary_method], methods[contract.primary_baseline])
         for methods in by_key_method.values()
-        if PRIMARY_METHOD in methods and PRIMARY_BASELINE in methods
+        if contract.primary_method in methods and contract.primary_baseline in methods
     ]
     by_family: dict[str, list[dict[str, float]]] = defaultdict(list)
     for primary, baseline in paired:
@@ -859,6 +1019,17 @@ def build_claim_audit(stats: dict[str, Any]) -> dict[str, Any]:
     comparison = stats["primary_comparison"]
     family_deltas = stats["family_deltas"]
     leave_one = stats["leave_one_family_out"]
+    primary_method = str(stats.get("primary_method") or DEFAULT_CONTRACT.primary_method)
+    primary_baseline = str(
+        stats.get("primary_baseline") or DEFAULT_CONTRACT.primary_baseline
+    )
+    primary_budget = int(
+        stats.get("primary_budget_verifier_calls")
+        or DEFAULT_CONTRACT.primary_budget
+    )
+    success_delta_pct = float(
+        comparison.get("success_threshold_pct", DEFAULT_CONTRACT.success_delta_pct)
+    )
     blockers: list[str] = []
     if not stats["required_methods_present"]:
         blockers.append(
@@ -867,10 +1038,10 @@ def build_claim_audit(stats: dict[str, Any]) -> dict[str, Any]:
         )
     if stats["n_paired_cells"] <= 0:
         blockers.append("no paired primary/baseline cells")
-    if comparison["success_delta_pct"] < SUCCESS_DELTA_PCT:
+    if comparison["success_delta_pct"] < success_delta_pct:
         blockers.append(
             "success delta below threshold: "
-            f"{comparison['success_delta_pct']:.3f} < {SUCCESS_DELTA_PCT:.3f}"
+            f"{comparison['success_delta_pct']:.3f} < {success_delta_pct:.3f}"
         )
     success_ci = comparison["success_delta_ci95"]
     sign_p = comparison["success_sign_test_p_one_sided"]
@@ -892,7 +1063,7 @@ def build_claim_audit(stats: dict[str, Any]) -> dict[str, Any]:
         blockers.append("actual verifier/CAD/Chrono budgets are not matched")
     if not stats["budget_audit"].get("primary_budget_spent", False):
         blockers.append(
-            f"not every cell spent B={PRIMARY_BUDGET} verifier calls"
+            f"not every cell spent B={primary_budget} verifier calls"
         )
     evidence = stats.get("evidence_audit") or {}
     if not evidence.get("evidence_complete", False):
@@ -932,8 +1103,9 @@ def build_claim_audit(stats: dict[str, Any]) -> dict[str, Any]:
             else "does_not_support_primary_hypothesis"
         ),
         "blockers": blockers,
-        "primary_method": PRIMARY_METHOD,
-        "primary_baseline": PRIMARY_BASELINE,
+        "primary_method": primary_method,
+        "primary_baseline": primary_baseline,
+        "primary_budget_verifier_calls": primary_budget,
         "evidence": {
             "stats": "stats.json",
             "failure_analysis": "failure_analysis.json",
@@ -1040,25 +1212,29 @@ def default_benchmark_dir(out_dir: Path) -> Path | None:
     return None
 
 
-def build_expected_coverage(benchmark_dir: Path) -> dict[str, Any]:
+def build_expected_coverage(
+    benchmark_dir: Path,
+    *,
+    contract: AnalysisContract = DEFAULT_CONTRACT,
+) -> dict[str, Any]:
     method_manifest = json.loads(
         (benchmark_dir / "method_manifest.json").read_text()
     )
     methods = [
         str(method)
-        for method in method_manifest.get("required_methods", REQUIRED_METHODS)
+        for method in method_manifest.get("required_methods", contract.required_methods)
     ]
     seeds = [
         int(seed)
-        for seed in method_manifest.get("eval_seeds", EVAL_SEEDS)
+        for seed in method_manifest.get("eval_seeds", contract.eval_seeds)
     ]
     expected: set[tuple[str, str, int, str]] = set()
     split_task_counts: dict[str, int] = {}
     for split_path in sorted(benchmark_dir.glob("split_manifest_*.json")):
-        split = split_path.stem.rsplit("_", 1)[-1]
+        split = split_path.name.removeprefix("split_manifest_").removesuffix(".json")
         manifest = json.loads(split_path.read_text())
         task_ids = [
-            str(task_id)
+            Path(str(task_id)).name
             for task_id in (manifest.get("splits") or {}).get("test", [])
         ]
         split_task_counts[split] = len(task_ids)
@@ -1088,13 +1264,18 @@ def build_benchmark_readiness(benchmark_dir: Path) -> dict[str, Any]:
         verifier = {}
     else:
         verifier = json.loads(verifier_path.read_text())
+    is_physics = str(benchmark.get("schema", "")).startswith(
+        "mechanism_repair_physics."
+    )
 
     audit = benchmark.get("audit") or {}
     audit_tasks = audit.get("tasks") or []
     family_counts = audit.get("family_counts") or {}
     primary_families = (
         audit.get("primary_families")
+        or audit.get("required_families")
         or benchmark.get("primary_families")
+        or benchmark.get("required_families")
         or []
     )
     if benchmark.get("experiment_ready") is not True:
@@ -1103,18 +1284,25 @@ def build_benchmark_readiness(benchmark_dir: Path) -> dict[str, Any]:
         blockers.append("benchmark audit did not pass")
     for blocker in audit.get("blockers") or []:
         blockers.append(f"benchmark audit blocker: {blocker}")
-    if int(audit.get("task_count") or benchmark.get("task_count") or 0) < 40:
-        blockers.append("benchmark has fewer than 40 tasks")
-    if len(primary_families) < 8:
-        blockers.append("benchmark has fewer than 8 primary families")
+    min_task_count = 120 if is_physics else 40
+    min_family_count = 12 if is_physics else 8
+    min_tasks_per_family = 10 if is_physics else 5
+    if int(audit.get("task_count") or benchmark.get("task_count") or 0) < min_task_count:
+        blockers.append(f"benchmark has fewer than {min_task_count} tasks")
+    if len(primary_families) < min_family_count:
+        blockers.append(
+            f"benchmark has fewer than {min_family_count} primary families"
+        )
     if family_counts:
         low = {
             str(family): int(count)
             for family, count in family_counts.items()
-            if int(count) < 5
+            if int(count) < min_tasks_per_family
         }
         if low:
-            blockers.append(f"primary families below 5 tasks: {low}")
+            blockers.append(
+                f"primary families below {min_tasks_per_family} tasks: {low}"
+            )
     if not audit_tasks:
         blockers.append("benchmark audit task records are missing")
     else:
@@ -1125,15 +1313,26 @@ def build_benchmark_readiness(benchmark_dir: Path) -> dict[str, Any]:
         for task in audit_tasks:
             task_id = str(task.get("task_id") or "")
             classes = set(str(item) for item in task.get("constraint_classes") or [])
-            if (
-                len(classes) < 2
-                or "topology_or_mobility" not in classes
+            has_mobility = bool(
+                {"topology_or_mobility", "topology_mobility"} & classes
+            )
+            has_functional_or_physics = bool(
+                {"functional_behavior", "physics_contact"} & classes
+            )
+            min_constraint_classes = 3 if is_physics else 2
+            if is_physics:
+                if len(classes) < min_constraint_classes or not has_functional_or_physics:
+                    bad_constraints.append(task_id)
+            elif (
+                len(classes) < min_constraint_classes
+                or not has_mobility
                 or "functional_behavior" not in classes
             ):
                 bad_constraints.append(task_id)
             if (
                 task.get("has_negative_control") is not True
-                or int(task.get("negative_control_count") or 0) < 1
+                and int(task.get("negative_control_count") or 0) < 1
+                and int(task.get("effective_negative_control_count") or 0) < 1
             ):
                 bad_negatives.append(task_id)
             validation = task.get("validation") or {}
@@ -1172,27 +1371,44 @@ def build_benchmark_readiness(benchmark_dir: Path) -> dict[str, Any]:
     verifier_levels = verifier.get("verifier_levels") or {}
     if not verifier_levels:
         blockers.append("verifier levels are missing")
+    if is_physics:
+        level_counts = audit.get("level_counts") or benchmark.get("level_counts") or {}
+        level2 = int(level_counts.get("2") or level_counts.get(2) or 0)
+        level3 = int(level_counts.get("3") or level_counts.get(3) or 0)
+        if level2 + level3 < min_task_count:
+            blockers.append("physics benchmark has fewer than 120 Level-2/3 tasks")
+        if level3 < 30:
+            blockers.append("physics benchmark has fewer than 30 Level-3 tasks")
 
-    expected_splits = {
-        "A": {
-            "seen": {"belt", "chain", "rack_pinion", "fourbar"},
-            "unseen": {"planetary", "lead_screw", "slider_crank", "cycloidal"},
-        },
-        "B": {
-            "seen": {"planetary", "lead_screw", "fourbar", "slider_crank"},
-            "unseen": {"belt", "chain", "rack_pinion", "cycloidal"},
-        },
-    }
+    expected_splits = (
+        {
+            "A": {
+                "seen": {"belt", "chain", "rack_pinion", "fourbar"},
+                "unseen": {"planetary", "lead_screw", "slider_crank", "cycloidal"},
+            },
+            "B": {
+                "seen": {"planetary", "lead_screw", "fourbar", "slider_crank"},
+                "unseen": {"belt", "chain", "rack_pinion", "cycloidal"},
+            },
+        }
+        if not is_physics
+        else {}
+    )
+    split_paths = (
+        [benchmark_dir / f"split_manifest_{split}.json" for split in expected_splits]
+        if expected_splits
+        else sorted(benchmark_dir.glob("split_manifest_*.json"))
+    )
     split_summary: dict[str, Any] = {}
-    for split, expected in expected_splits.items():
-        path = benchmark_dir / f"split_manifest_{split}.json"
+    for path in split_paths:
+        split = path.name.removeprefix("split_manifest_").removesuffix(".json")
         if not path.is_file():
             blockers.append(f"missing split_manifest_{split}.json")
             continue
         manifest = json.loads(path.read_text())
         splits = manifest.get("splits") or {}
-        train = set(str(item) for item in splits.get("train", []) or [])
-        test = set(str(item) for item in splits.get("test", []) or [])
+        train = set(Path(str(item)).name for item in splits.get("train", []) or [])
+        test = set(Path(str(item)).name for item in splits.get("test", []) or [])
         seen = set(str(item) for item in manifest.get("seen_families") or [])
         unseen = set(str(item) for item in manifest.get("unseen_families") or [])
         split_summary[split] = {
@@ -1201,16 +1417,18 @@ def build_benchmark_readiness(benchmark_dir: Path) -> dict[str, Any]:
             "seen_families": sorted(seen),
             "unseen_families": sorted(unseen),
         }
-        if len(test) < 20:
-            blockers.append(f"split {split} has fewer than 20 held-out tasks")
-        if seen != expected["seen"]:
+        min_heldout = 20
+        if is_physics and split in {"A", "B"}:
+            min_heldout = 40
+        if len(test) < min_heldout:
             blockers.append(
-                f"split {split} seen families mismatch: {sorted(seen)}"
+                f"split {split} has fewer than {min_heldout} held-out tasks"
             )
-        if unseen != expected["unseen"]:
-            blockers.append(
-                f"split {split} unseen families mismatch: {sorted(unseen)}"
-            )
+        expected = expected_splits.get(split)
+        if expected is not None and seen != expected["seen"]:
+            blockers.append(f"split {split} seen families mismatch: {sorted(seen)}")
+        if expected is not None and unseen != expected["unseen"]:
+            blockers.append(f"split {split} unseen families mismatch: {sorted(unseen)}")
         if train & test:
             blockers.append(f"split {split} has train/test overlap")
 
