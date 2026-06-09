@@ -1,0 +1,262 @@
+{
+  "anti_shortcut_executed": false,
+  "anti_shortcut_splits": [
+    "hidden_perturbation",
+    "external_style"
+  ],
+  "expected_anti_shortcut_cells": 3600,
+  "missing_anti_shortcut_cells": 3600,
+  "sample_missing_anti_shortcut_cells": [
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_ratio_analytic_s20261615",
+      "verifier_level": 2
+    }
+  ],
+  "schema": "mechanism_repair_physics.anti_shortcut_audit.v1"
+}

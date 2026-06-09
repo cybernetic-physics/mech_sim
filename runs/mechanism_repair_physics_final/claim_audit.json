@@ -1,16 +1,27 @@
 {
-  "blockers": [],
-  "experiment_ready": true,
-  "goal_complete": false,
-  "missing_before_paper_claim": [
-    "execute all required methods for at least three seeds",
-    "record raw completions and verifier outputs for every cell",
+  "benchmark_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
+  "blockers": [
+    "execute all required methods for all planned seeds/splits/tasks",
     "run hidden/isomorphic anti-shortcut variants",
-    "prove matched actual CAD/Chrono verifier budget",
     "write statistical, failure, trace-pair, repair-taxonomy, anti-shortcut, and budget analyses"
   ],
-  "paper_blockers": [],
-  "passes_current_preflight": true,
-  "schema": "mechanism_repair_physics.claim_audit.v1",
-  "structural_passes": true
+  "goal_complete": false,
+  "missing_analysis_artifacts": [
+    "stats.json",
+    "failure_analysis.json",
+    "trace_pairs.json",
+    "repair_taxonomy.json"
+  ],
+  "missing_before_paper_claim": [
+    "execute all required methods for all planned seeds/splits/tasks",
+    "run hidden/isomorphic anti-shortcut variants",
+    "write statistical, failure, trace-pair, repair-taxonomy, anti-shortcut, and budget analyses"
+  ],
+  "missing_evidence_count": 0,
+  "missing_learning_count": 0,
+  "observed_rows": 0,
+  "planned_cells": 6480,
+  "sample_missing_evidence": [],
+  "sample_missing_learning": [],
+  "schema": "mechanism_repair_physics.experiment_claim_audit.v1"
 }

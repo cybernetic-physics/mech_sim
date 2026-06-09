@@ -1,0 +1,266 @@
+{
+  "budget_matched": false,
+  "budget_mismatch_count": 0,
+  "duplicate_cell_count": 0,
+  "missing_accounting_count": 0,
+  "missing_cell_count": 6480,
+  "observed_rows": 0,
+  "planned_cells": 6480,
+  "primary_budget": 32,
+  "sample_budget_mismatches": [],
+  "sample_duplicate_cells": [],
+  "sample_missing_accounting": [],
+  "sample_missing_cells": [
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cam_follower_t01_cam_follower_contact_stub_s20269611",
+      "verifier_level": 3
+    }
+  ],
+  "schema": "mechanism_repair_physics.budget_audit.v1"
+}
