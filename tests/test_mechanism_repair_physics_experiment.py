@@ -14,6 +14,10 @@ from scripts.prepare_mechanism_repair_physics_benchmark import (
 )
 
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+FROZEN_PHYSICS_BENCHMARK = REPO_ROOT / "runs" / "mechanism_repair_physics_final"
+
+
 def _write_json(path: Path, payload: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
@@ -94,6 +98,36 @@ def test_materialized_physics_prompts_are_family_specific(tmp_path: Path) -> Non
     assert "`geneva`" in geneva_prompt
     assert "`input_port`: kind `revolute_joint`" in geneva_prompt
     assert "`output_port`: kind `revolute_joint`" in geneva_prompt
+    assert "Required contact pairs: `driver:geneva`" in geneva_prompt
+    assert "plain spur gear train" in geneva_prompt
+
+    rack_prompt = Path(
+        by_family["rack_pinion"]["task_dir"], "prompt.md"
+    ).read_text()
+    assert "rotating pinion meshes with a translating rack" in rack_prompt
+    assert "Required contact pairs: `pinion:rack`" in rack_prompt
+    assert "`output_port`: kind `prismatic_joint`" in rack_prompt
+
+
+def test_frozen_physics_benchmark_prompts_are_family_specific() -> None:
+    manifest = json.loads(
+        (FROZEN_PHYSICS_BENCHMARK / "benchmark_manifest.json").read_text()
+    )
+    assert manifest["task_count"] == 120
+    assert manifest["experiment_ready"] is True
+
+    by_family = {row["family"]: row for row in manifest["tasks"]}
+    assert set(by_family) == set(REQUIRED_FAMILIES)
+    for family in REQUIRED_FAMILIES:
+        prompt = Path(by_family[family]["task_dir"], "prompt.md").read_text()
+        assert f"Canonical mechanism family: `{family}`" in prompt
+        assert "DesignIR deliverable:" in prompt
+        assert "fake_contact_oracle" in prompt
+
+    geneva_prompt = Path(
+        by_family["geneva_indexer"]["task_dir"], "prompt.md"
+    ).read_text()
+    assert "Geneva indexing mechanism" in geneva_prompt
     assert "Required contact pairs: `driver:geneva`" in geneva_prompt
     assert "plain spur gear train" in geneva_prompt
 

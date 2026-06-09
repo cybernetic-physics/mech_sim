@@ -64,7 +64,7 @@
         ],
         "source_generator": "belt_pulley_ratio",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t00_belt_pulley_ratio_s20263610",
-        "task_hash": "0e25af0c1bf48f844a938d66d8c89046e069c2b3d0a064288c7d319bf9a3637f",
+        "task_hash": "d9c36fa73026bda0624844501b9c38e5f2901774d4a2b3a0c083f38e591ee3bb",
         "task_id": "belt_drive_t00_belt_pulley_ratio_s20263610",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -99,7 +99,7 @@
         ],
         "source_generator": "timing_belt_center_distance",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t01_timing_belt_center_distance_s20263611",
-        "task_hash": "a2f84c6c02444beb432ff81096d814ab47ee9c2d65c1aa6cb7d07ca4ce3afbca",
+        "task_hash": "922ea3b61d4cc857737f35de3c2efd2a35fba41d0da0c1ee7b751cbe4ca32e75",
         "task_id": "belt_drive_t01_timing_belt_center_distance_s20263611",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -133,7 +133,7 @@
         ],
         "source_generator": "belt_pulley_ratio",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t02_belt_pulley_ratio_s20263612",
-        "task_hash": "3e483bd9a84484abcd49d1f237e251abcd855288cadd6e94603185a3dc4764bf",
+        "task_hash": "5bc632ea8804e68f77c7fdd9fdaf9563eb0966c3a5a8787813edd6b83f1740cc",
         "task_id": "belt_drive_t02_belt_pulley_ratio_s20263612",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -168,7 +168,7 @@
         ],
         "source_generator": "timing_belt_center_distance",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t03_timing_belt_center_distance_s20263613",
-        "task_hash": "da98d84fce3cf05f57c2b339772b42e6a3aa8c53d39d2177ef8178d2652db3fa",
+        "task_hash": "39697d5b004ba0461a8442fc6f2d7f7cb50d913390eb7f8d3de9391e12c0c429",
         "task_id": "belt_drive_t03_timing_belt_center_distance_s20263613",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -202,7 +202,7 @@
         ],
         "source_generator": "belt_pulley_ratio",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t04_belt_pulley_ratio_s20263614",
-        "task_hash": "6eeb9efe729a3fe0a68ad2225151b57600268cdf21c738126b061a1c1b093313",
+        "task_hash": "7816283cf316072b91a51d3a8f877f8c27b253802e7c5a62698c5bd191436e09",
         "task_id": "belt_drive_t04_belt_pulley_ratio_s20263614",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -237,7 +237,7 @@
         ],
         "source_generator": "timing_belt_center_distance",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t05_timing_belt_center_distance_s20263615",
-        "task_hash": "df29e1699b94a66b1849eb8da54df8ec3ba92ab1c20050186d8754eeb12e2c5e",
+        "task_hash": "84e540d4bee9aa74c7214b1be6cf98cc7790e7724943d264115b78956b5fe5f6",
         "task_id": "belt_drive_t05_timing_belt_center_distance_s20263615",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -271,7 +271,7 @@
         ],
         "source_generator": "belt_pulley_ratio",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t06_belt_pulley_ratio_s20263616",
-        "task_hash": "f9c5ac0f76c7d249b98f0a3ea21ff843feb5f3fd5fe2eef06320cf99c80e7c2c",
+        "task_hash": "277c14dc0368793c82a0d6b74f485370dff7d9057c5d3c667f96340952c12ef2",
         "task_id": "belt_drive_t06_belt_pulley_ratio_s20263616",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -306,7 +306,7 @@
         ],
         "source_generator": "timing_belt_center_distance",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t07_timing_belt_center_distance_s20263617",
-        "task_hash": "949face1b2c859eb281c18c7a67b4bb4d0f6a7b256106ccb6e576c76a0eb1cea",
+        "task_hash": "fb120d29b6f47b603f72a932cedc9cd57504f545e74997b3582aaa64cfcd763c",
         "task_id": "belt_drive_t07_timing_belt_center_distance_s20263617",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -340,7 +340,7 @@
         ],
         "source_generator": "belt_pulley_ratio",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t08_belt_pulley_ratio_s20263618",
-        "task_hash": "7be68da99043d11ff791ac6547e19f7f5be70c106a332c427230ccab6e8ca4e7",
+        "task_hash": "96d83f623db32141c644e946990f3932711cea193cf1bc471dd6ffddbb6e7c6b",
         "task_id": "belt_drive_t08_belt_pulley_ratio_s20263618",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -375,7 +375,7 @@
         ],
         "source_generator": "timing_belt_center_distance",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t09_timing_belt_center_distance_s20263619",
-        "task_hash": "18b5980e99bcb9a5597519ef11686db31b685e28b201e0b6d0d595c56c83fced",
+        "task_hash": "9b1847b0179bc47db8d90a48c1e8b581dc7cfadc2f263c6f502be8772ac4fe97",
         "task_id": "belt_drive_t09_timing_belt_center_distance_s20263619",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -409,7 +409,7 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t00_cam_follower_contact_stub_s20269610",
-        "task_hash": "072c5e46a2566f532f7bb50da58ab8a0ef9c8af12a0dc64a15c6bbbef658df28",
+        "task_hash": "6c2e9210df5cec02094b722b96d620514e62fd90e898e019575d637a09a75bef",
         "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -443,7 +443,7 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t01_cam_follower_contact_stub_s20269611",
-        "task_hash": "9ebb4d16e52caa0102e2efb442a38477a2875f3fe7ac7eb3b84110da8a87c589",
+        "task_hash": "01ae5b2a5a4ea8f79c698d50f8d19137aced739d688b7adcac9b73c8320eb597",
         "task_id": "cam_follower_t01_cam_follower_contact_stub_s20269611",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -477,7 +477,7 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t02_cam_follower_contact_stub_s20269612",
-        "task_hash": "80e453194e381e8b6cb83decf6cd7b12cc01452c88703e79b5266e25ef1ec822",
+        "task_hash": "9e5d5a17755e7c0da10e58845561cb69ccb83b608f9e28caaab7b96c2f9d9fca",
         "task_id": "cam_follower_t02_cam_follower_contact_stub_s20269612",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -511,7 +511,7 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t03_cam_follower_contact_stub_s20269613",
-        "task_hash": "f39cb56b2fedaaca31840afd08ba4c95280a1e553657ec9238a03a903e40a3b8",
+        "task_hash": "4e33e3b77e8b7888f9b86c9455e13751acdd05617b1bea3f4d9c60fa91eea41f",
         "task_id": "cam_follower_t03_cam_follower_contact_stub_s20269613",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -545,7 +545,7 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t04_cam_follower_contact_stub_s20269614",
-        "task_hash": "bb41a05cf66331aa5d9866cd505ba05181b09dc7b129e2a6631d28f71a25308f",
+        "task_hash": "636bf23effe16136a05c26edfbd9a0bf392d0f6dca29573a4688709d07ef4dad",
         "task_id": "cam_follower_t04_cam_follower_contact_stub_s20269614",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -579,7 +579,7 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t05_cam_follower_contact_stub_s20269615",
-        "task_hash": "5bb5a33ea499b93eed7de923184deb3d995802eb88638c06b1d688702dcb09bb",
+        "task_hash": "254ce4190ea1cad9707e25db68dd72e11bd614ce00fcf3600bcf7647aa517805",
         "task_id": "cam_follower_t05_cam_follower_contact_stub_s20269615",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -613,7 +613,7 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t06_cam_follower_contact_stub_s20269616",
-        "task_hash": "154c950fa5123369db1e4cfd77c50206916de679ccb017d3c65015b944eb9496",
+        "task_hash": "78245868034051803d3bd09c28771310e06c366d46cc5d165cb5faf0bede7ed1",
         "task_id": "cam_follower_t06_cam_follower_contact_stub_s20269616",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -647,7 +647,7 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t07_cam_follower_contact_stub_s20269617",
-        "task_hash": "d30e3c9e1ebcc5effcf62f06a10edb15bc0d416ab83e10ea39942edcf1273385",
+        "task_hash": "dfca05e5e1ae1d00625922ac46b160f610b74921424b5987feb1d2a1b52bc3bf",
         "task_id": "cam_follower_t07_cam_follower_contact_stub_s20269617",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -681,7 +681,7 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t08_cam_follower_contact_stub_s20269618",
-        "task_hash": "67f0a2812f3e99159899095d349f3b5266ca017b4660077e579e296ad8841de4",
+        "task_hash": "a68071461ca0b8d5ebee1afb5aa927c76162181a7cfba6a5482011d62880e0db",
         "task_id": "cam_follower_t08_cam_follower_contact_stub_s20269618",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -715,7 +715,7 @@
         ],
         "source_generator": "cam_follower_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t09_cam_follower_contact_stub_s20269619",
-        "task_hash": "952aaf2340595dd0f3538d4834fb643c72580ce333cdba2abc1452935cf03902",
+        "task_hash": "970d6901356698d855e517b01518dea74a93fdcd5ec666816e2c224a863f909a",
         "task_id": "cam_follower_t09_cam_follower_contact_stub_s20269619",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -749,7 +749,7 @@
         ],
         "source_generator": "chain_sprocket_ratio",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t00_chain_sprocket_ratio_s20264610",
-        "task_hash": "66cc331131cafb679954c674cb3a40219a6ac0763d1395508c86bf53a5d2bb11",
+        "task_hash": "653f8eec6026fa5f3756ebe534ce65b23f50601a308365a9e44ae0c39b8d3c1a",
         "task_id": "chain_drive_t00_chain_sprocket_ratio_s20264610",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -783,7 +783,7 @@
         ],
         "source_generator": "chain_sprocket_ratio",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t01_chain_sprocket_ratio_s20264611",
-        "task_hash": "c680b097fcc8dfc04f08ca1b60893467f3499c829b2e6721df393a6904bce0c5",
+        "task_hash": "69cdadfc3031ae27a73ccb006e48a5c64a2b6df499e9c6c4e3317a96d73f540b",
         "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -817,7 +817,7 @@
         ],
         "source_generator": "chain_sprocket_ratio",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t02_chain_sprocket_ratio_s20264612",
-        "task_hash": "1c5cacaab814c1a1348e66f9f34c95e45aea02765fabe89aba7f5ffb37d66e49",
+        "task_hash": "910c676158e16b4ea98885d2f37e81480e3c328be3f7dafc1421564014564321",
         "task_id": "chain_drive_t02_chain_sprocket_ratio_s20264612",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -851,7 +851,7 @@
         ],
         "source_generator": "chain_sprocket_ratio",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t03_chain_sprocket_ratio_s20264613",
-        "task_hash": "eb5805d8f38e002b17aab0e2ed2d7395b90967fc634bfaf98c75f5e431c63934",
+        "task_hash": "1c34932a93e7ca26f3e60f21509d20c4ed501c6ce17008ae3b86d7bcb7b25901",
         "task_id": "chain_drive_t03_chain_sprocket_ratio_s20264613",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -885,7 +885,7 @@
         ],
         "source_generator": "chain_sprocket_ratio",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t04_chain_sprocket_ratio_s20264614",
-        "task_hash": "c255f2b531ba67927e587ba17cd51379fa15479876ff6b22715769e26abbfc60",
+        "task_hash": "caafd950f4c86ddbc860fd4e3809d14982e10ddacba7308c8bb51bd2cd82553d",
         "task_id": "chain_drive_t04_chain_sprocket_ratio_s20264614",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -919,7 +919,7 @@
         ],
         "source_generator": "chain_sprocket_ratio",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t05_chain_sprocket_ratio_s20264615",
-        "task_hash": "ce5d09e91319e5ae306b2fd57d78d46aa44cad36bd2c7688bf88804250de714f",
+        "task_hash": "89233eaa74bf3070b120f1cc460f8f612e7569154efa45ab72b9c9797be4e9d8",
         "task_id": "chain_drive_t05_chain_sprocket_ratio_s20264615",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -953,7 +953,7 @@
         ],
         "source_generator": "chain_sprocket_ratio",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t06_chain_sprocket_ratio_s20264616",
-        "task_hash": "4891be7156d8b2e69a0e27b6c7c1dc6a4cb6bfaed96cf631e620a10d4e86a462",
+        "task_hash": "acb028ddf5a73f409408e899bab6822b1813bb57a53835b998512d526f1ace3e",
         "task_id": "chain_drive_t06_chain_sprocket_ratio_s20264616",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -987,7 +987,7 @@
         ],
         "source_generator": "chain_sprocket_ratio",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t07_chain_sprocket_ratio_s20264617",
-        "task_hash": "c75b7b576f574d6b48856b7f5da24ac4e98eca5583b588bf940dc4b4706402e3",
+        "task_hash": "42da7cb02dcbfbae001b6bf9d08b3a07a426b55f7c1abbf189c9da86e07825a1",
         "task_id": "chain_drive_t07_chain_sprocket_ratio_s20264617",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1021,7 +1021,7 @@
         ],
         "source_generator": "chain_sprocket_ratio",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t08_chain_sprocket_ratio_s20264618",
-        "task_hash": "9ecd5ef6e9d9d873ca72669826ff5130f1164b116430927983a7fdcdebd7ac22",
+        "task_hash": "cade9345e41abaff67a4f3caa924d596905ebfadd41e9d9e784a72afdf5d998f",
         "task_id": "chain_drive_t08_chain_sprocket_ratio_s20264618",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1055,7 +1055,7 @@
         ],
         "source_generator": "chain_sprocket_ratio",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t09_chain_sprocket_ratio_s20264619",
-        "task_hash": "e3a316a900c9d2c94acc50eff9789c338fc6c36d0ecc9e9d1ef2aea53d090010",
+        "task_hash": "fabc6754d3e652c8556bbb27d0981679fc3dcdd8a5d2a8584c1b78eae1690943",
         "task_id": "chain_drive_t09_chain_sprocket_ratio_s20264619",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1090,7 +1090,7 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t00_cycloidal_lowN_stub_s20260610",
-        "task_hash": "0f1e1f1edee572af3b760c34c5455c86b6a1182946961d851403298834e3f469",
+        "task_hash": "3b21a8a2f66430865ec2c533f0737d9c4493443c7b9510e5d0a5f25f65328f9b",
         "task_id": "cycloidal_reducer_t00_cycloidal_lowN_stub_s20260610",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1128,7 +1128,7 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t01_cycloidal_lowN_stub_s20260611",
-        "task_hash": "7b387f9b9d51c5f7a9feb56f07fa07a01e447983f699ce9e9ef0aedf3cb0607e",
+        "task_hash": "dbae40c7bedd0d726dcfa4ee39b67ade3a93b59a7300942443a16d7284d13b0a",
         "task_id": "cycloidal_reducer_t01_cycloidal_lowN_stub_s20260611",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1166,7 +1166,7 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t02_cycloidal_lowN_stub_s20260612",
-        "task_hash": "0294a8e4d17801b11ec13d57a47e3309a40104308ce666f58a4b65ed56e29121",
+        "task_hash": "7b8d6c742f88e72319fdff675513997b6de361e50720451e648faddb02a9595b",
         "task_id": "cycloidal_reducer_t02_cycloidal_lowN_stub_s20260612",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1204,7 +1204,7 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t03_cycloidal_lowN_stub_s20260613",
-        "task_hash": "a0f38f577024763a81190771bd0cdd2da8f9d9d6349f97fcb4a4d98eef4b5927",
+        "task_hash": "5ec5c50d9535884943afceb72bf9846ed285e42e936dde2261a59316bd5d8573",
         "task_id": "cycloidal_reducer_t03_cycloidal_lowN_stub_s20260613",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1242,7 +1242,7 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t04_cycloidal_lowN_stub_s20260614",
-        "task_hash": "bd14ad6265de26e6b52e3ec041a0831b560648d09839b06dd3b63275b1b08c57",
+        "task_hash": "f7361b1eaa536892588cccf281bde38c69cb60b4b05450ccc4fdfb03f81418d9",
         "task_id": "cycloidal_reducer_t04_cycloidal_lowN_stub_s20260614",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1280,7 +1280,7 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t05_cycloidal_lowN_stub_s20260615",
-        "task_hash": "864e202871ec9aed8ff578831e5be1653e6da5edb4d6264126032d72a6bf868f",
+        "task_hash": "8ff517ca75fd85be0b7db95ce6cee174996485b1406cf564aea3e11b2cc4c821",
         "task_id": "cycloidal_reducer_t05_cycloidal_lowN_stub_s20260615",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1318,7 +1318,7 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t06_cycloidal_lowN_stub_s20260616",
-        "task_hash": "fce3625a22330de3c0ae57cbfda4f2d4ea7b6a41f50f02cbcaa652f291110153",
+        "task_hash": "5efe4b0190302f8ece16cb14fc4a79b23aed34b03101a4959a4c57888df77b1d",
         "task_id": "cycloidal_reducer_t06_cycloidal_lowN_stub_s20260616",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1356,7 +1356,7 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t07_cycloidal_lowN_stub_s20260617",
-        "task_hash": "e8663e612a3696c10d396d94a0fc3b51d39385a71aa1f098fb914f19488c649f",
+        "task_hash": "3cc4557d04b799feee7dd4855bf908b8dc9e2cce0755ba1ddbcaf3969cd3b9a7",
         "task_id": "cycloidal_reducer_t07_cycloidal_lowN_stub_s20260617",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1394,7 +1394,7 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t08_cycloidal_lowN_stub_s20260618",
-        "task_hash": "e8728da7e8e2a73c545db3eb9ef90cebddd349e7864fd210cc4a44ec407ac578",
+        "task_hash": "610a02499b8f1b7861ec73a093dd3e4ea78a5e30144b50e2951496387e9a5f1f",
         "task_id": "cycloidal_reducer_t08_cycloidal_lowN_stub_s20260618",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1432,7 +1432,7 @@
         ],
         "source_generator": "cycloidal_lowN_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t09_cycloidal_lowN_stub_s20260619",
-        "task_hash": "97df190c4a0811c13a918cba97864b6d74eaccba180a07d3a286db4b1fd84eec",
+        "task_hash": "14f32da35c33f61b66bcccf79cb29ab54705bb71f7e012d7489e6cbd03aeadfd",
         "task_id": "cycloidal_reducer_t09_cycloidal_lowN_stub_s20260619",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1467,7 +1467,7 @@
         ],
         "source_generator": "fourbar_path",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t00_fourbar_path_s20268610",
-        "task_hash": "95eac0e5e77ff0831ccc97d6e68c794a09ab30a5470527bc9162b3e9541f3c4d",
+        "task_hash": "a79ea8ef946e420f353bcf1b0f870f1f406f9545dc1c586e1f6baa015dd13d99",
         "task_id": "fourbar_linkage_t00_fourbar_path_s20268610",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1501,7 +1501,7 @@
         ],
         "source_generator": "fourbar_wiper_arc",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t01_fourbar_wiper_arc_s20268611",
-        "task_hash": "f8bcca4226117e50924b8e2968b2c84d6248a76aaffd358acd4097637e83b8b3",
+        "task_hash": "d558ae8b26673d0843fe57959cc17c4d1a838bb50a84ca6e8e3d3961b0e9a5db",
         "task_id": "fourbar_linkage_t01_fourbar_wiper_arc_s20268611",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1535,7 +1535,7 @@
         ],
         "source_generator": "fourbar_straight_line_approx",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
-        "task_hash": "a082cb74de6d090b9324ca9f7fe313ec267fab40917472ded51018082d2748e4",
+        "task_hash": "5f4da4aa2674cb88ae87dd2610d880239566879c180e09f51b3c8bec6712bd9d",
         "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1569,7 +1569,7 @@
         ],
         "source_generator": "fourbar_dwell_path",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t03_fourbar_dwell_path_s20268613",
-        "task_hash": "342b5825cbba823b97a781f3651ba811ccb1d82b023333cc49670cc54ecfa237",
+        "task_hash": "680b77bab87055dc6c876d2b6c0803c27fc3bd1eabe1c9c338dc3e6ec69f42c1",
         "task_id": "fourbar_linkage_t03_fourbar_dwell_path_s20268613",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1604,7 +1604,7 @@
         ],
         "source_generator": "fourbar_pump_handle",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t04_fourbar_pump_handle_s20268614",
-        "task_hash": "e3c8570c7e2567b1d1f57ab5f83f80881c2f11231216837bf2818458d9bccb2c",
+        "task_hash": "515d7e3537e71b4f907feb2008228eefd96785a21dee4a68e252a83a9fe05707",
         "task_id": "fourbar_linkage_t04_fourbar_pump_handle_s20268614",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1636,7 +1636,7 @@
         ],
         "source_generator": "fourbar_path",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t05_fourbar_path_s20268615",
-        "task_hash": "767481f1e70e0a5d36de8903a45bf749cee00e3d3e7c36b9e79fc13d4a29a167",
+        "task_hash": "6a9b2f8c3b977abe6e8c87097b4e4ab2668f196c27ad4133fc3088b0ecd6b8e6",
         "task_id": "fourbar_linkage_t05_fourbar_path_s20268615",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1670,7 +1670,7 @@
         ],
         "source_generator": "fourbar_wiper_arc",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t06_fourbar_wiper_arc_s20268616",
-        "task_hash": "cde18a7f2d6856b427ac4b7b5e32137c968c036bd2bd30400aa9f65da0951746",
+        "task_hash": "7ce3f7c6f8c6892b300a90eead764d1296fe1b150cb7d58c81cdd2bafff46268",
         "task_id": "fourbar_linkage_t06_fourbar_wiper_arc_s20268616",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1704,7 +1704,7 @@
         ],
         "source_generator": "fourbar_straight_line_approx",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t07_fourbar_straight_line_approx_s20268617",
-        "task_hash": "1ce0de0d97cff1ca0e1740aa498eb3f100337310ee12bfe5bbb1ebf117f6e3b4",
+        "task_hash": "fda0a2a28a40dc5bc7921ae041e27e25b3d8b5a9ce88862a778bfed4390f2ca9",
         "task_id": "fourbar_linkage_t07_fourbar_straight_line_approx_s20268617",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1738,7 +1738,7 @@
         ],
         "source_generator": "fourbar_dwell_path",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t08_fourbar_dwell_path_s20268618",
-        "task_hash": "51184087659c9e57a1229559e298bc62ab395290e2ca88253d5be8302719723b",
+        "task_hash": "c1673eef9c7cd075262854ccf29393b931ff4a1eadab819dc1a5e57a907f10dd",
         "task_id": "fourbar_linkage_t08_fourbar_dwell_path_s20268618",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1773,7 +1773,7 @@
         ],
         "source_generator": "fourbar_pump_handle",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t09_fourbar_pump_handle_s20268619",
-        "task_hash": "1b0c6874e2b116c998cbbe140f8793522cd0ff7522624a7a90d77dd47ada348a",
+        "task_hash": "0cc714c6e7e65a09d5dafc75c57e73e957cae8635409ae268f317072dd8f0e2d",
         "task_id": "fourbar_linkage_t09_fourbar_pump_handle_s20268619",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1808,7 +1808,7 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t00_geneva_indexing_stub_s20270610",
-        "task_hash": "1f0c779ef5011ab43eb0e5cfc84b1468a2d2e32c49151844368a0120995e6210",
+        "task_hash": "e7b6c3382b13fa0e89ff0e74d3fb8abcb362b365b3bb2ba79bb0b6850faa4331",
         "task_id": "geneva_indexer_t00_geneva_indexing_stub_s20270610",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1843,7 +1843,7 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t01_geneva_indexing_stub_s20270611",
-        "task_hash": "9ff770c8931f6ac00239f34fedb3a11164c4f03a4e52dc0ef73e9d642af3b624",
+        "task_hash": "2106a6a21519ad57a5393d2910b7d53e91576567b38aa6c801e711515b5d103b",
         "task_id": "geneva_indexer_t01_geneva_indexing_stub_s20270611",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1878,7 +1878,7 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t02_geneva_indexing_stub_s20270612",
-        "task_hash": "382c9607ac8224c120c013445815bfe76964e4b9c3c19446c9c89d207ee5b42b",
+        "task_hash": "cab6898ee1a5905da07d7728924f657b05da0832c816038073e43d362a6c1108",
         "task_id": "geneva_indexer_t02_geneva_indexing_stub_s20270612",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1913,7 +1913,7 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t03_geneva_indexing_stub_s20270613",
-        "task_hash": "c67d6f4817e696f4a3bfd45a49346e7416f45b54402539e9a1316fa8743642fc",
+        "task_hash": "150a71af650afb033472e1549a68bde589bfe9ecdfc758c0875feec5992232fa",
         "task_id": "geneva_indexer_t03_geneva_indexing_stub_s20270613",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1948,7 +1948,7 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t04_geneva_indexing_stub_s20270614",
-        "task_hash": "3972d0b949f040d4dd0a0a5365e9daa84d9796ef5856403249535cb1199fc755",
+        "task_hash": "1dd376aeb9876f8c26d4dc73303a4ea31d5f8e9926260a9f08c8931a1742649f",
         "task_id": "geneva_indexer_t04_geneva_indexing_stub_s20270614",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -1983,7 +1983,7 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t05_geneva_indexing_stub_s20270615",
-        "task_hash": "6b8896a3163aefcb45d781fe32e13474e87c911f507d619d8f42fb320a57435e",
+        "task_hash": "679aefb4ab4e42865278acd5fb72b855f574e288220b92c8fb6f6ea682a98dc6",
         "task_id": "geneva_indexer_t05_geneva_indexing_stub_s20270615",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2018,7 +2018,7 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t06_geneva_indexing_stub_s20270616",
-        "task_hash": "e96ae959ea32c92c8540ac0f9239b3a67f775cea5e569ee576c3b795a780a6a0",
+        "task_hash": "11394c647d84df8867b0e24f6e8ebea9edaead5cd5791be0eb7e87b8ccc51c3f",
         "task_id": "geneva_indexer_t06_geneva_indexing_stub_s20270616",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2053,7 +2053,7 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t07_geneva_indexing_stub_s20270617",
-        "task_hash": "a1684ddfb87a4778a53313fa3c01f1867d2c7d4ad8c3d0eb089b8cdefa02f137",
+        "task_hash": "e0956f0a37981cee50bcf79b09b29d51b942bc5507e68d2a2bab61178e41afef",
         "task_id": "geneva_indexer_t07_geneva_indexing_stub_s20270617",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2088,7 +2088,7 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t08_geneva_indexing_stub_s20270618",
-        "task_hash": "a1152471227695e726631e2af140c596480da74d5099d35d84f474254e051fae",
+        "task_hash": "737291c1b11fb89e3a6709052bfa37abe3a17a1daa1149fe5f56d3e0617ea2f3",
         "task_id": "geneva_indexer_t08_geneva_indexing_stub_s20270618",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2123,7 +2123,7 @@
         ],
         "source_generator": "geneva_indexing_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t09_geneva_indexing_stub_s20270619",
-        "task_hash": "6a0094b7c1237ae05e5001e8e8e26c9cb3a17e450119877305f486e77471a834",
+        "task_hash": "bb8325994c0f527a8632f0594ca0440b66e9b32dc668ca6515e0d5b1cb191ba4",
         "task_id": "geneva_indexer_t09_geneva_indexing_stub_s20270619",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2157,7 +2157,7 @@
         ],
         "source_generator": "lead_screw_linear_travel",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t00_lead_screw_linear_travel_s20266610",
-        "task_hash": "04a4b6601fd24d28d776789ecf385a31fc2f5a0c0efb91c52a2cc3a0cc01cf96",
+        "task_hash": "c972230300605e250b709f1f6d35a5dd382127a069bba4e3ae7a4cf2a63c7ac4",
         "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2191,7 +2191,7 @@
         ],
         "source_generator": "lead_screw_linear_travel",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t01_lead_screw_linear_travel_s20266611",
-        "task_hash": "c7e228e60c21781574f17000c1fda656c6786e07cad96cfe80b6f3fd8b02cf31",
+        "task_hash": "9ca666519d5af212cc41bad6b44e0e5af44b870ecdc5fa9607bd8bebfcc2b2b3",
         "task_id": "lead_screw_t01_lead_screw_linear_travel_s20266611",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2225,7 +2225,7 @@
         ],
         "source_generator": "lead_screw_linear_travel",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t02_lead_screw_linear_travel_s20266612",
-        "task_hash": "c120075346d0cb30dd0c259cf0081800bcf74541c78aead2a8761013d81158af",
+        "task_hash": "8b0be53d79aecd01861690cdc92f30802c5d7b1fa2c084cb64dd95026f8ae01f",
         "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2259,7 +2259,7 @@
         ],
         "source_generator": "lead_screw_linear_travel",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t03_lead_screw_linear_travel_s20266613",
-        "task_hash": "c84c86307c7de46c835065906e331d45b1f7401c71365a4cd5cefdf8fa425fd0",
+        "task_hash": "1618c14c03594602c436ca4c75ab0a8ac9c2f73656ddaa7b9aa90c5626ac6c82",
         "task_id": "lead_screw_t03_lead_screw_linear_travel_s20266613",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2293,7 +2293,7 @@
         ],
         "source_generator": "lead_screw_linear_travel",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t04_lead_screw_linear_travel_s20266614",
-        "task_hash": "a242a1a7b5071839abd18d778fc076b3d35665507a7dcd1620d0c31edf806c8c",
+        "task_hash": "a6c4a9e75716d76e4f2cca3533eef64bf51acb7d0e48333611bf34c5041464c3",
         "task_id": "lead_screw_t04_lead_screw_linear_travel_s20266614",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2327,7 +2327,7 @@
         ],
         "source_generator": "lead_screw_linear_travel",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t05_lead_screw_linear_travel_s20266615",
-        "task_hash": "5a667494c1b46a600c4b543044d5c00dea59ba9f32973f831061b46ba9ec0c66",
+        "task_hash": "8ee9a9bf92cd4e06313de6b74d689835f89317b8b24e5c0ca81238e849c7a71a",
         "task_id": "lead_screw_t05_lead_screw_linear_travel_s20266615",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2361,7 +2361,7 @@
         ],
         "source_generator": "lead_screw_linear_travel",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t06_lead_screw_linear_travel_s20266616",
-        "task_hash": "52339580c28cd2e368a7859260281709685c61370447d2c752e6bfd50e521eb9",
+        "task_hash": "f6310c8bd00927edf163ae227ec9f93a8281b2e6f779cd58dda4745827a42f40",
         "task_id": "lead_screw_t06_lead_screw_linear_travel_s20266616",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2395,7 +2395,7 @@
         ],
         "source_generator": "lead_screw_linear_travel",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t07_lead_screw_linear_travel_s20266617",
-        "task_hash": "8ebb0ff7683e76b7d4e87fe542ad9d7d508dcb4b3dd5a4fb6e08cd746b5f5066",
+        "task_hash": "2f9c9302ed08d2e8e4b7820af05ffbb221f0d426cb2b331e24f01a8cf179c9bd",
         "task_id": "lead_screw_t07_lead_screw_linear_travel_s20266617",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2429,7 +2429,7 @@
         ],
         "source_generator": "lead_screw_linear_travel",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t08_lead_screw_linear_travel_s20266618",
-        "task_hash": "f71cb56614dd7a188cc071f9fcf1001c80ed4cb8e91d139e4b1ebc00f40ae214",
+        "task_hash": "725dec0c7e26e5ad462953ab5d59e1522ad7e710c59743308503446c09eb65d8",
         "task_id": "lead_screw_t08_lead_screw_linear_travel_s20266618",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2463,7 +2463,7 @@
         ],
         "source_generator": "lead_screw_linear_travel",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t09_lead_screw_linear_travel_s20266619",
-        "task_hash": "001b3fc676b06ee1ccce63061eb739d036bd2eb62b0ee53bfb96b1e25ce4dd38",
+        "task_hash": "3d1825bb5dc0f8e3e1892438e046852341f46e15d4ad33e2c75fcf5e4502248a",
         "task_id": "lead_screw_t09_lead_screw_linear_travel_s20266619",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2497,7 +2497,7 @@
         ],
         "source_generator": "planetary_fixed_ring_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t00_planetary_fixed_ring_ratio_analytic_s20261610",
-        "task_hash": "517269a2796f1324386146fbf9035d334e648378327e602e7a8a6077fedb38bd",
+        "task_hash": "db1da52d26a2abcf36b25fe65536f127b13d7a19e8854e72b1955beaf55a1887",
         "task_id": "planetary_reducer_t00_planetary_fixed_ring_ratio_analytic_s20261610",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2531,7 +2531,7 @@
         ],
         "source_generator": "planetary_fixed_sun_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t01_planetary_fixed_sun_ratio_analytic_s20261611",
-        "task_hash": "1af09510c394ce70f1b491f55e945b5f052bd59f411cd55ec121b311ecade095",
+        "task_hash": "f6ed4d0d9d438a74a325a4cc184c2f06b1a949b627cb3453d2aada67448f4dfa",
         "task_id": "planetary_reducer_t01_planetary_fixed_sun_ratio_analytic_s20261611",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2565,7 +2565,7 @@
         ],
         "source_generator": "planetary_fixed_ring_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t02_planetary_fixed_ring_ratio_analytic_s20261612",
-        "task_hash": "edbfbad7cbfaad51f4578fedb8275cf1c046bfaadc205d9a3394020f3362d386",
+        "task_hash": "3446c749ee6c91537997d65be3f2de863e0a7d629db39d6b4c8da7ddbe0b9ea9",
         "task_id": "planetary_reducer_t02_planetary_fixed_ring_ratio_analytic_s20261612",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2599,7 +2599,7 @@
         ],
         "source_generator": "planetary_fixed_sun_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t03_planetary_fixed_sun_ratio_analytic_s20261613",
-        "task_hash": "2f6831b99eb1b4a751f5c33fed1f7073c58e1185c326c423f024416403396272",
+        "task_hash": "a204b5cdb3b1abccf18b8580154f6d376653f3a087b0a53537cc78611b9ec6da",
         "task_id": "planetary_reducer_t03_planetary_fixed_sun_ratio_analytic_s20261613",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2633,7 +2633,7 @@
         ],
         "source_generator": "planetary_fixed_ring_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t04_planetary_fixed_ring_ratio_analytic_s20261614",
-        "task_hash": "0b5ec2f4b357068f3b33c46d8692bd03c8f19f6cebf0bb6e5d01cf3d9ccb54f9",
+        "task_hash": "4c006e7bcb2b8d0addb6e5052eb77c337994916c27593d7f3a776d5b3bfac34a",
         "task_id": "planetary_reducer_t04_planetary_fixed_ring_ratio_analytic_s20261614",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2667,7 +2667,7 @@
         ],
         "source_generator": "planetary_fixed_sun_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t05_planetary_fixed_sun_ratio_analytic_s20261615",
-        "task_hash": "93ccdbbd169b8180a4662ded6eeef6b543aea623f757dd6a788395c0eba37ba8",
+        "task_hash": "b8459d744fd7097da895480e393e2afc4f9fc38f815328dc0690983904b85588",
         "task_id": "planetary_reducer_t05_planetary_fixed_sun_ratio_analytic_s20261615",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2701,7 +2701,7 @@
         ],
         "source_generator": "planetary_fixed_ring_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t06_planetary_fixed_ring_ratio_analytic_s20261616",
-        "task_hash": "ea99bf7288911dae7253ebe1acbaaac1e02a960069bb41fb0e9bf3a3842a467f",
+        "task_hash": "13cfc81b7224c40acd3107f071e36d56252d9f539ce63493d5a1fb10e596d7ff",
         "task_id": "planetary_reducer_t06_planetary_fixed_ring_ratio_analytic_s20261616",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2735,7 +2735,7 @@
         ],
         "source_generator": "planetary_fixed_sun_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t07_planetary_fixed_sun_ratio_analytic_s20261617",
-        "task_hash": "8cbf7aae2311ebb729c133b1a85b84a7e7b5c7b3210c8db7650456cdf4deaf3d",
+        "task_hash": "1544433b969d37dd62a9c5a8f53d7b78fe4a474816bf9ba80f610b28336f5c9d",
         "task_id": "planetary_reducer_t07_planetary_fixed_sun_ratio_analytic_s20261617",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2769,7 +2769,7 @@
         ],
         "source_generator": "planetary_fixed_ring_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t08_planetary_fixed_ring_ratio_analytic_s20261618",
-        "task_hash": "35f2f70f72df1368373c59c9f36ed23a4a37288e8b055d001da754feb6d14912",
+        "task_hash": "27a72e3ad74059ce9794df4231301a533fee4043381a8077d973ac9d48b8148c",
         "task_id": "planetary_reducer_t08_planetary_fixed_ring_ratio_analytic_s20261618",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2803,7 +2803,7 @@
         ],
         "source_generator": "planetary_fixed_sun_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t09_planetary_fixed_sun_ratio_analytic_s20261619",
-        "task_hash": "55e79ab34a56e954ff6f57494dabe7ad9f4b5f66002cb8b2e85c386941b1b649",
+        "task_hash": "be8a0fb1735cf7f8445850d1378b49d1fc27d8f40a4ed5997ddb72ea8937e62d",
         "task_id": "planetary_reducer_t09_planetary_fixed_sun_ratio_analytic_s20261619",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2838,7 +2838,7 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t00_rack_pinion_contact_stub_s20265610",
-        "task_hash": "447d68d73895901eff063d5ecc6ad0b02dbcec3587586d038e24ae1f55439e0a",
+        "task_hash": "362e38fd94b60f982fdf588ce5881ded362497c8c859402f34fa0f5550e60075",
         "task_id": "rack_pinion_t00_rack_pinion_contact_stub_s20265610",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2875,7 +2875,7 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t01_rack_pinion_contact_stub_s20265611",
-        "task_hash": "264a4927b9fb0e340b4fa3bc5573e8332c7e0e88716aee520de4c6507187767b",
+        "task_hash": "bd1a719985ca4886e080b2a6720d37b44f87eb1c2f62b02cabf3fce90c0e699b",
         "task_id": "rack_pinion_t01_rack_pinion_contact_stub_s20265611",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2912,7 +2912,7 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t02_rack_pinion_contact_stub_s20265612",
-        "task_hash": "a030cf3e336db5a1b3cad7b25b1764d3f27ba978dd75302ed995ad259af53d2c",
+        "task_hash": "ca3af39239504ffe4a326792029a977d6776c37b90859ba5ed70666e85be48d1",
         "task_id": "rack_pinion_t02_rack_pinion_contact_stub_s20265612",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2949,7 +2949,7 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t03_rack_pinion_contact_stub_s20265613",
-        "task_hash": "f5dfa53c4943fb05f92aea4ad5918d51acf3232fbb7d66992c5a314554f34c09",
+        "task_hash": "16815a8dc84b734d9b43d90019c2e394c2ef4e606e1fab0a2a09c8008b14bfb3",
         "task_id": "rack_pinion_t03_rack_pinion_contact_stub_s20265613",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2986,7 +2986,7 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t04_rack_pinion_contact_stub_s20265614",
-        "task_hash": "7506b53fa732f42c9b856dc1d498824abe557d553959f2e5d53a0a49c58b7876",
+        "task_hash": "9c4d313f00c7eedb066774108d5e1ec20d0d04b93f9809d7ebdc411144125779",
         "task_id": "rack_pinion_t04_rack_pinion_contact_stub_s20265614",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3023,7 +3023,7 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t05_rack_pinion_contact_stub_s20265615",
-        "task_hash": "4a0307e6b2ec16c444915a6d6858b9a87868269b845476d55b5793ae9bfac2c9",
+        "task_hash": "f5d70522300ff7b265b1be7f41aed0aab110c732962708efa31249b2adf11c49",
         "task_id": "rack_pinion_t05_rack_pinion_contact_stub_s20265615",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3060,7 +3060,7 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t06_rack_pinion_contact_stub_s20265616",
-        "task_hash": "76d2b33fd7cb43c34055a75390c7bf3e50d004b74c72690931c3f34b97494c1c",
+        "task_hash": "c6c84fa8c316786ea6c47982035073cc179f9e948ba4d1bdde4083a7e623909a",
         "task_id": "rack_pinion_t06_rack_pinion_contact_stub_s20265616",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3097,7 +3097,7 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t07_rack_pinion_contact_stub_s20265617",
-        "task_hash": "af0cc07aebeb9a86be0153a0e9ca2c0fbb56488a73c498fa5f2ce0ecee1cc851",
+        "task_hash": "3d4e8d9b85345d06a4f968f0c97851ea78331b132313c6525c59b91f9745b04d",
         "task_id": "rack_pinion_t07_rack_pinion_contact_stub_s20265617",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3134,7 +3134,7 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t08_rack_pinion_contact_stub_s20265618",
-        "task_hash": "6785966652775308aea906be3233d5b34613dc40ff4e35a8142c41d4254e71b7",
+        "task_hash": "776af41f18c8f2a2fcd597fbc126e7c9aa96183b55dd767c6fef183a8b498332",
         "task_id": "rack_pinion_t08_rack_pinion_contact_stub_s20265618",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3171,7 +3171,7 @@
         ],
         "source_generator": "rack_pinion_contact_stub",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t09_rack_pinion_contact_stub_s20265619",
-        "task_hash": "6bbeac922a2eb9587a3d266fc393fe1c09c3df91f8a18265a459f5b641aeb422",
+        "task_hash": "dd9257b2841939853c32125a55f0cf6bed2dd70219899d1a6d8367c8cef79332",
         "task_id": "rack_pinion_t09_rack_pinion_contact_stub_s20265619",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3208,7 +3208,7 @@
         ],
         "source_generator": "keyed_shaft_hub_fit",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t00_keyed_shaft_hub_fit_s20271610",
-        "task_hash": "4e2c5e6850415a96c498678d99e92d886b9ad24b0d980d5333aee0eac56f776f",
+        "task_hash": "1237c250e6f827206c8ca7aa0311803121545281078c769893ad54f0c61721bf",
         "task_id": "shaft_bearing_coupling_t00_keyed_shaft_hub_fit_s20271610",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3242,7 +3242,7 @@
         ],
         "source_generator": "bearing_seat_clearance",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t01_bearing_seat_clearance_s20271611",
-        "task_hash": "b3abef1180b982299e2e911ef9024afcfca71984c00ca365c087d4430b8b52fe",
+        "task_hash": "4675dcb4be3ee9a02e735e6bab90c31e7d328a93ea1a63d5a5c7f8fa9451b00e",
         "task_id": "shaft_bearing_coupling_t01_bearing_seat_clearance_s20271611",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3277,7 +3277,7 @@
         ],
         "source_generator": "keyed_shaft_hub_fit",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t02_keyed_shaft_hub_fit_s20271612",
-        "task_hash": "e1970a9afd79ed49d7e7e73c4a80c6337c5172458241f60c024997b42a388fa3",
+        "task_hash": "f50a08cac4eccef7caf5cde46dc9beaaddf2eda24282759780bd5ef5a6df8a27",
         "task_id": "shaft_bearing_coupling_t02_keyed_shaft_hub_fit_s20271612",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3311,7 +3311,7 @@
         ],
         "source_generator": "bearing_seat_clearance",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t03_bearing_seat_clearance_s20271613",
-        "task_hash": "7969fb76d0c24e93bcd20e48b16845051c55a0b4d249fa6cbc5178ea9f256286",
+        "task_hash": "cd74497a4018d9984abf89995d499c7dc04ae262e4d47cb3f232998e7bf5eccb",
         "task_id": "shaft_bearing_coupling_t03_bearing_seat_clearance_s20271613",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3346,7 +3346,7 @@
         ],
         "source_generator": "keyed_shaft_hub_fit",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t04_keyed_shaft_hub_fit_s20271614",
-        "task_hash": "d71b2026046c6a597297a02a6529c56e95a648521ffe07c8ba3eb151720733dd",
+        "task_hash": "4c9fd8c025a2ec3c752103eeda16e90cab25ff40310bac76fa9ed89c64943331",
         "task_id": "shaft_bearing_coupling_t04_keyed_shaft_hub_fit_s20271614",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3380,7 +3380,7 @@
         ],
         "source_generator": "bearing_seat_clearance",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t05_bearing_seat_clearance_s20271615",
-        "task_hash": "b2c77f14fc26e7ea9e938f6d5212ff490523cd8c20dd198b504e2a65a655161d",
+        "task_hash": "5b8e64cc2322b6ff669096010e91b0f1ebc0213dc96d313b14b81d4dacff0dbd",
         "task_id": "shaft_bearing_coupling_t05_bearing_seat_clearance_s20271615",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3415,7 +3415,7 @@
         ],
         "source_generator": "keyed_shaft_hub_fit",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t06_keyed_shaft_hub_fit_s20271616",
-        "task_hash": "7fbe400ab834e4caa206efad0a9cfd8e7afc6fc4b6fd43dc1e2ace88c11d70dd",
+        "task_hash": "d8246dde824f390882e750ebb0b1ff9bf9c73ba54337b6154d8ba5a62d048750",
         "task_id": "shaft_bearing_coupling_t06_keyed_shaft_hub_fit_s20271616",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3449,7 +3449,7 @@
         ],
         "source_generator": "bearing_seat_clearance",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t07_bearing_seat_clearance_s20271617",
-        "task_hash": "8b59f5d93ba2d56164be55c0b9239085b2e15388b9bffb872cb3d5a5946b8760",
+        "task_hash": "4b3dd0827e9221b3f527d36cc771f207084dd5d2ffec2f96fd7f371d7be24803",
         "task_id": "shaft_bearing_coupling_t07_bearing_seat_clearance_s20271617",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3484,7 +3484,7 @@
         ],
         "source_generator": "keyed_shaft_hub_fit",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t08_keyed_shaft_hub_fit_s20271618",
-        "task_hash": "a86ce44af6b35803734426060928d87dec230f7d06914fc632119bf47e010dfe",
+        "task_hash": "da1772a87b05efff5850e4bdeb60e9ad479cfe38f09973a239263d6394bbf1ed",
         "task_id": "shaft_bearing_coupling_t08_keyed_shaft_hub_fit_s20271618",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3518,7 +3518,7 @@
         ],
         "source_generator": "bearing_seat_clearance",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t09_bearing_seat_clearance_s20271619",
-        "task_hash": "6f12faac9ec4af81eb7ce9fc47524e217c06c48c3ceadb2fb225d04156904e12",
+        "task_hash": "e7858a35500c8563d7c7c3e44ff8633db83c75cb677c30e40825e2bd7a6c7ad8",
         "task_id": "shaft_bearing_coupling_t09_bearing_seat_clearance_s20271619",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3552,7 +3552,7 @@
         ],
         "source_generator": "slider_crank_stroke",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t00_slider_crank_stroke_s20267610",
-        "task_hash": "a0be258dd3875cdce3a1806149373b095136047962bd4b2fbd34318da78b7537",
+        "task_hash": "e79bbdbb5d2ed9059a02bca9ca594534c77ce232e67d46110e6c1561928a29a8",
         "task_id": "slider_crank_t00_slider_crank_stroke_s20267610",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3586,7 +3586,7 @@
         ],
         "source_generator": "slider_crank_stroke_precision",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t01_slider_crank_stroke_precision_s20267611",
-        "task_hash": "ee1846683eb214b931b02ba5fa91dfebd615184efe96fef685d93c21287a626b",
+        "task_hash": "3b588d8738bf6d0cbcfb00a466ea8508f5bf3a7744c612ed241e3428fadfb405",
         "task_id": "slider_crank_t01_slider_crank_stroke_precision_s20267611",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3620,7 +3620,7 @@
         ],
         "source_generator": "slider_crank_quick_return_proxy",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t02_slider_crank_quick_return_proxy_s20267612",
-        "task_hash": "1364038567525b6a1de4f0fb5fc95e4bd722aeb79238d0098a74615e312775a5",
+        "task_hash": "8785db105e554e370eac21cf2500fd043ea7c667803bdaea7f066ed735f9a1e5",
         "task_id": "slider_crank_t02_slider_crank_quick_return_proxy_s20267612",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3654,7 +3654,7 @@
         ],
         "source_generator": "slider_crank_stroke",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t03_slider_crank_stroke_s20267613",
-        "task_hash": "f035bd60d917f5c564ad065442202bef2f769bad72ee09af932f7e86b031ecff",
+        "task_hash": "cce446ea0de7ee2e070ccdb9692bb8d9f4b15456701d344dcea03da895850552",
         "task_id": "slider_crank_t03_slider_crank_stroke_s20267613",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3688,7 +3688,7 @@
         ],
         "source_generator": "slider_crank_stroke_precision",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t04_slider_crank_stroke_precision_s20267614",
-        "task_hash": "774dd48cf6690d8acae4a4b35b7407a4439ad09bf9becc88137803602f1d155e",
+        "task_hash": "26fee1c32833a3eb97ee1a7b58333c415699b4b01ae511447a2e7836ef6fa67e",
         "task_id": "slider_crank_t04_slider_crank_stroke_precision_s20267614",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3722,7 +3722,7 @@
         ],
         "source_generator": "slider_crank_quick_return_proxy",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t05_slider_crank_quick_return_proxy_s20267615",
-        "task_hash": "93a3fe1a10fdea7f697acf3c83d6cfdc7141fff297553ff4cf9a4dba7f36ed19",
+        "task_hash": "be82e34e14178acde0449427aad648a47a893e94482f50d6e72527e5d78262ab",
         "task_id": "slider_crank_t05_slider_crank_quick_return_proxy_s20267615",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3756,7 +3756,7 @@
         ],
         "source_generator": "slider_crank_stroke",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t06_slider_crank_stroke_s20267616",
-        "task_hash": "cd126e608a05b25244e38cd71fac7c9d56ab478a35548818c0b21bd6df71d1cf",
+        "task_hash": "2b73b556b12b8658e518ecc229f8dab55f372f47f2ddaedcbd59a2235343f35b",
         "task_id": "slider_crank_t06_slider_crank_stroke_s20267616",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3790,7 +3790,7 @@
         ],
         "source_generator": "slider_crank_stroke_precision",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t07_slider_crank_stroke_precision_s20267617",
-        "task_hash": "61955c2dde1143501bf62c39ab89115109b8db7c2ab8b0987d7bc7c62937b02d",
+        "task_hash": "d282c0fe53d2cfe56e92a2682d10b5de8f35ba6d054c5159f9cea36ebcbec48a",
         "task_id": "slider_crank_t07_slider_crank_stroke_precision_s20267617",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3824,7 +3824,7 @@
         ],
         "source_generator": "slider_crank_quick_return_proxy",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t08_slider_crank_quick_return_proxy_s20267618",
-        "task_hash": "e232de20a4e32f96170ae694135b1488133197033384772cefdad56c6e1b853b",
+        "task_hash": "6e00466b7f47e5e4058f004843a8f4b8db545bc088ddca0aa51f90872c06ac67",
         "task_id": "slider_crank_t08_slider_crank_quick_return_proxy_s20267618",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3858,7 +3858,7 @@
         ],
         "source_generator": "slider_crank_stroke",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t09_slider_crank_stroke_s20267619",
-        "task_hash": "a78fed6a22e0efa61325b82840af90ce12a5abe07c7deee481964c9dc3f1aacc",
+        "task_hash": "a7439cf7f0a9c7b86041e01a6735eb3b984a2d46072b466e09f78cb08a22f2d9",
         "task_id": "slider_crank_t09_slider_crank_stroke_s20267619",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3892,7 +3892,7 @@
         ],
         "source_generator": "compound_gear_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t00_compound_gear_ratio_analytic_s20262610",
-        "task_hash": "bb951da0b48c6cc25daed5e0b45d43dc5ecfd6cdd54c6562d54ebfa731de173c",
+        "task_hash": "7c015a5e69ed36efa5879dd565054e7702fdad615f66cea413bfce6a6e0c02fe",
         "task_id": "spur_compound_gear_train_t00_compound_gear_ratio_analytic_s20262610",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3926,7 +3926,7 @@
         ],
         "source_generator": "spur_gear_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t01_spur_gear_ratio_analytic_s20262611",
-        "task_hash": "4cf4adaecab55805bdaf4a99fcb2e84a0ac54662837f661c1c79f6a2d73cb3f3",
+        "task_hash": "cdd14fc4efa4af4e83f968e38f46d52b3eed62b8e7d3355f1aea2a4aca1bb7cd",
         "task_id": "spur_compound_gear_train_t01_spur_gear_ratio_analytic_s20262611",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3960,7 +3960,7 @@
         ],
         "source_generator": "compound_gear_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t02_compound_gear_ratio_analytic_s20262612",
-        "task_hash": "28e3d081fc00ce7524f44f9d29458f89d51a0bc83a21d11780711e7fbe817392",
+        "task_hash": "324b8759b416a99dbc14fae2d4efeb2d9b97cdd41140bf49b8793b159a19e0af",
         "task_id": "spur_compound_gear_train_t02_compound_gear_ratio_analytic_s20262612",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3994,7 +3994,7 @@
         ],
         "source_generator": "spur_gear_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t03_spur_gear_ratio_analytic_s20262613",
-        "task_hash": "5004bcc8274365a529f437be25c22ff7019a07f1872b870ede2a9efbd106c1c5",
+        "task_hash": "6c0ac21e2b809ba366614ecf06bec0633ff45bf16f65fac78324422f0c456bbe",
         "task_id": "spur_compound_gear_train_t03_spur_gear_ratio_analytic_s20262613",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -4028,7 +4028,7 @@
         ],
         "source_generator": "compound_gear_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t04_compound_gear_ratio_analytic_s20262614",
-        "task_hash": "4141234ce5ed50de284dd8fc537c7faff3402b984190a514b8cfc3b5dbf0126d",
+        "task_hash": "c443a51c7ce395cdb75eef8a0c87ec89883704b77917e235da4fb14557ad027d",
         "task_id": "spur_compound_gear_train_t04_compound_gear_ratio_analytic_s20262614",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -4062,7 +4062,7 @@
         ],
         "source_generator": "spur_gear_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t05_spur_gear_ratio_analytic_s20262615",
-        "task_hash": "7cfb35b74af8336740c1ab4c506681d5ce209a57cdc0c6e16af7d4f217aaef44",
+        "task_hash": "85827c79308cf563be52727f97f63e635068af5848e6921e69e4df22ed467aae",
         "task_id": "spur_compound_gear_train_t05_spur_gear_ratio_analytic_s20262615",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -4096,7 +4096,7 @@
         ],
         "source_generator": "compound_gear_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t06_compound_gear_ratio_analytic_s20262616",
-        "task_hash": "a27d3dddf45a280d6bd6ccda88c61bdab4eae8065c5bc1f8689ec12eb1011f34",
+        "task_hash": "dd456896fb0ca783a97503d77ffad02df4758b18bc6604919c27f3a7ce7aeb3c",
         "task_id": "spur_compound_gear_train_t06_compound_gear_ratio_analytic_s20262616",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -4130,7 +4130,7 @@
         ],
         "source_generator": "spur_gear_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t07_spur_gear_ratio_analytic_s20262617",
-        "task_hash": "93e838435597dc359e692f56f02b4a43f93ed6f7c565499bdc27a028a3744793",
+        "task_hash": "cd51deff4a9a09e3cb80f894a87d017dbcf982bba3bce96f7d5db6873b945662",
         "task_id": "spur_compound_gear_train_t07_spur_gear_ratio_analytic_s20262617",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -4164,7 +4164,7 @@
         ],
         "source_generator": "compound_gear_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t08_compound_gear_ratio_analytic_s20262618",
-        "task_hash": "d03d812c0fd56a1c0835ff6990bde637bfb8015c508b32cdb2353430aa364856",
+        "task_hash": "97df7d8d5a9cd55b40d5afbd62e7a802faea974b6753f1842fe85f0fcd6dcb8c",
         "task_id": "spur_compound_gear_train_t08_compound_gear_ratio_analytic_s20262618",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -4198,7 +4198,7 @@
         ],
         "source_generator": "spur_gear_ratio_analytic",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t09_spur_gear_ratio_analytic_s20262619",
-        "task_hash": "9b893b2dab447236367459e7e5e145edbd0786bb5ffb24ab982791305d91e2a7",
+        "task_hash": "8a7947bf44b71ade75d6157913e07533d7310c0d65d0a6590874161ee184df38",
         "task_id": "spur_compound_gear_train_t09_spur_gear_ratio_analytic_s20262619",
         "uses_fake_contact_oracle": false,
         "validation": {

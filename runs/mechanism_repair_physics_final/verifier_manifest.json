@@ -25,9 +25,15 @@
     "chrono_diagnostic": {
       "_chrono_impl_importable": true,
       "adapter": "chrono_contact",
-      "pychrono_importable": false,
-      "pychrono_project_chrono": false,
-      "reason": "pychrono + _chrono_impl available via /Users/nataliakokoromyti/Projects/corl/.external/chrono_env/bin/python (subprocess)",
+      "chrono_python": "/Users/nataliakokoromyti/Projects/corl/.external/chrono_env_py312/bin/python",
+      "pychrono_import_mode": "in_process",
+      "pychrono_importable": true,
+      "pychrono_inprocess_importable": true,
+      "pychrono_inprocess_project_chrono": true,
+      "pychrono_project_chrono": true,
+      "pychrono_subprocess_importable": true,
+      "pychrono_subprocess_reason": "pychrono + _chrono_impl available via /Users/nataliakokoromyti/Projects/corl/.external/chrono_env_py312/bin/python (subprocess)",
+      "reason": "pychrono available (in-process)",
       "runner_status": "ready",
       "status": "available"
     },
