@@ -237,6 +237,12 @@ fi
 sglang_cuda_visible_devices="\${sglang_cuda_visible_devices:-0}"
 train_cuda_visible_devices="\${train_cuda_visible_devices:-0}"
 echo "CUDA split: sglang=\$sglang_cuda_visible_devices train=\$train_cuda_visible_devices"
+sglang_port="$SGLANG_PORT"
+if [[ "\${SLURM_ARRAY_TASK_ID:-}" =~ ^[0-9]+$ ]]; then
+  sglang_port="\$(( $SGLANG_PORT + SLURM_ARRAY_TASK_ID ))"
+fi
+export SGLANG_EFFECTIVE_PORT="\$sglang_port"
+echo "SGLang port: \$sglang_port"
 
 sglang_venv="$SGLANG_VENV"
 (
@@ -250,12 +256,12 @@ sglang_venv="$SGLANG_VENV"
 ) 9>"$REMOTE_ROOT/locks/sglang_venv.lock"
 export PATH="\$sglang_venv/bin:\$PATH"
 sglang_log="$remote_logs/sglang-\${SLURM_ARRAY_JOB_ID:-manual}_\${SLURM_ARRAY_TASK_ID:-0}.log"
-if ! ss -tln 2>/dev/null | grep -q ":$SGLANG_PORT "; then
+if ! ss -tln 2>/dev/null | grep -q ":\$sglang_port "; then
   nohup env CUDA_VISIBLE_DEVICES="\$sglang_cuda_visible_devices" \\
     "\$sglang_venv/bin/python" -m sglang.launch_server \\
     --model-path "$SGLANG_MODEL" \\
     --host 127.0.0.1 \\
-    --port "$SGLANG_PORT" \\
+    --port "\$sglang_port" \\
     --dtype bfloat16 \\
     --tp "$SGLANG_TP" \\
     --context-length "$SGLANG_CTX" \\
@@ -274,7 +280,11 @@ fi
 for i in \$(seq 1 120); do
   if python3 - <<'PY' >/dev/null 2>&1
 import urllib.request
-urllib.request.urlopen("http://127.0.0.1:$SGLANG_PORT/v1/models", timeout=2).read()
+import os
+urllib.request.urlopen(
+    f"http://127.0.0.1:{os.environ['SGLANG_EFFECTIVE_PORT']}/v1/models",
+    timeout=2,
+).read()
 PY
   then
     echo "SGLang is ready"
@@ -336,7 +346,7 @@ exec env CUDA_VISIBLE_DEVICES="\$train_cuda_visible_devices" \\
   --cell-shard-file "\$shard_file" \\
   --runner-python "\$repo_python" \\
   --base-model "$BASE_MODEL" \\
-  --sglang-base-url "http://127.0.0.1:$SGLANG_PORT" \\
+  --sglang-base-url "http://127.0.0.1:\$sglang_port" \\
   --audit-retries "$AUDIT_RETRIES" \\
   --skip-analysis \\
   "\${resume_args[@]}" \\
