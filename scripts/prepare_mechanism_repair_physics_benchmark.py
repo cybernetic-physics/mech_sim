@@ -618,6 +618,10 @@ def build_physics_prompt_contract(
             [
                 "- Port ids must match exactly.",
                 (
+                    "- `ports` must be a dict keyed by port id, not a list. "
+                    "Each value must include the same `id` field as its key."
+                ),
+                (
                     "- For `revolute_joint` or `prismatic_joint` ports, "
                     "`port.part` must reference the id of the corresponding "
                     "joint in `joints`, not the moving part id."
@@ -652,13 +656,18 @@ def build_physics_prompt_contract(
                 "`params`, `materials`, and `provenance`."
             ),
             (
+                "- `parts` and `joints` must be lists. `ports` must be a "
+                "dict keyed by port id, not a list; for example "
+                "`{'input_port': {'id': 'input_port', ...}}`."
+            ),
+            (
                 "- Include a fixed ground/frame part and positive, finite "
                 "mass for moving physical parts."
             ),
             (
-                "- In `ports`, `revolute_joint` and `prismatic_joint` entries "
-                "must reference joint ids; `frame` entries must reference "
-                "part ids."
+                "- In the `ports` dict, `revolute_joint` and "
+                "`prismatic_joint` values must reference joint ids; `frame` "
+                "values must reference part ids."
             ),
             (
                 "- Write or reference CAD artifacts through `geometry[\"cad\"]` "

@@ -34,6 +34,7 @@ Required interface ports:
 - `input_port`: kind `revolute_joint`, grounded required: yes.
 - `output_port`: kind `prismatic_joint`, grounded required: no.
 - Port ids must match exactly.
+- `ports` must be a dict keyed by port id, not a list. Each value must include the same `id` field as its key.
 - For `revolute_joint` or `prismatic_joint` ports, `port.part` must reference the id of the corresponding joint in `joints`, not the moving part id.
 - For `frame` ports, `port.part` must reference a part id. Grounded port checks pass only when the referenced joint touches a fixed ground/frame part.
 
@@ -48,8 +49,9 @@ Hard-gated verifier probes:
 DesignIR deliverable:
 - Return only Python code defining `build_design(out_dir: Path) -> dict`.
 - The returned dict must use `schema_version="design_ir.v2"`, `units="mm"`, and include `parts`, `joints`, `ports`, `params`, `materials`, and `provenance`.
+- `parts` and `joints` must be lists. `ports` must be a dict keyed by port id, not a list; for example `{'input_port': {'id': 'input_port', ...}}`.
 - Include a fixed ground/frame part and positive, finite mass for moving physical parts.
-- In `ports`, `revolute_joint` and `prismatic_joint` entries must reference joint ids; `frame` entries must reference part ids.
+- In the `ports` dict, `revolute_joint` and `prismatic_joint` values must reference joint ids; `frame` values must reference part ids.
 - Write or reference CAD artifacts through `geometry["cad"]` for checked parts; artifact paths should be relative to `out_dir`.
 - Define material records with density, elastic modulus, Poisson ratio, yield strength, process, and provenance.
 - Every positive-mass checked part must include trusted `params["cad_mass_properties"]` with mass, COM, and inertia consistent with the part mass.

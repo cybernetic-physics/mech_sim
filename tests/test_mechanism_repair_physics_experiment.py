@@ -278,7 +278,8 @@ def test_materialized_physics_prompts_are_family_specific(tmp_path: Path) -> Non
         assert "DesignIR deliverable:" in prompt
         assert "`schema_version=\"design_ir.v2\"`" in prompt
         assert "`params[\"cad_mass_properties\"]`" in prompt
-        assert "`revolute_joint` and `prismatic_joint` entries" in prompt
+        assert "`ports` must be a dict keyed by port id, not a list" in prompt
+        assert "`revolute_joint` and `prismatic_joint` values" in prompt
         assert "must reference joint ids" in prompt
         assert "Minimal trusted CAD/material evidence pattern:" in prompt
         assert "Do not return placeholder strings" in prompt
