@@ -4,6 +4,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 from scripts import run_mechanism_repair_physics_experiment as physics
 from scripts.prepare_mechanism_repair_physics_benchmark import (
     EVAL_SEEDS,
@@ -24,11 +26,106 @@ def _write_json(path: Path, payload: dict) -> None:
 
 
 def _write_fake_benchmark(root: Path) -> None:
+    tasks = []
+    audit_tasks = []
+    level_tasks = []
+    hidden_tasks = []
+    level3_families = set(REQUIRED_FAMILIES[:4])
+    for family in REQUIRED_FAMILIES:
+        verifier_level = 3 if family in level3_families else 2
+        for idx in range(10):
+            task_id = f"{family}_task_{idx:02d}"
+            task_dir = root / "tasks" / task_id
+            task_dir.mkdir(parents=True)
+            tasks.append(
+                {
+                    "task_id": task_id,
+                    "family": family,
+                    "seed": 20260610 + idx,
+                    "task_dir": str(task_dir),
+                    "verifier_level": verifier_level,
+                    "headline_eligible": True,
+                }
+            )
+            audit_tasks.append(
+                {
+                    "task_id": task_id,
+                    "family": family,
+                    "task_dir": str(task_dir),
+                    "verifier_level": verifier_level,
+                    "headline_eligible": True,
+                    "constraint_classes": [
+                        "topology_mobility",
+                        "interface",
+                        "cad_artifact",
+                    ],
+                    "negative_control_count": 2,
+                    "effective_negative_control_count": 2,
+                    "has_hidden_variant": True,
+                    "uses_fake_contact_oracle": False,
+                    "validation": {
+                        "reference_passed": True,
+                        "reference_evaluation_valid": True,
+                        "reference_hard_gate_passed": True,
+                        "reference_oracle_is_synthetic": False,
+                        "negative_failures": [],
+                    },
+                }
+            )
+            level_tasks.append(
+                {
+                    "task_id": task_id,
+                    "family": family,
+                    "verifier_level": verifier_level,
+                    "headline_eligible": True,
+                    "constraint_classes": [
+                        "topology_mobility",
+                        "interface",
+                        "cad_artifact",
+                    ],
+                }
+            )
+            hidden_tasks.append(
+                {
+                    "task_id": task_id,
+                    "family": family,
+                    "verifier_level": verifier_level,
+                    "hidden_variant_present": True,
+                    "perturbations": ["rename", "retarget", "reframe"],
+                    "isomorphic_variant_status": "manifested_not_executed",
+                }
+            )
+    family_counts = {
+        family: sum(1 for task in tasks if task["family"] == family)
+        for family in REQUIRED_FAMILIES
+    }
+    level_counts = {
+        "2": sum(1 for task in tasks if task["verifier_level"] == 2),
+        "3": sum(1 for task in tasks if task["verifier_level"] == 3),
+    }
     _write_json(
         root / "benchmark_manifest.json",
         {
             "schema": "mechanism_repair_physics.benchmark_manifest.v1",
             "experiment_ready": True,
+            "task_count": len(tasks),
+            "required_families": list(REQUIRED_FAMILIES),
+            "level_counts": level_counts,
+            "tasks": tasks,
+            "audit": {
+                "schema": "mechanism_repair_physics.benchmark_audit.v1",
+                "experiment_ready": True,
+                "task_count": len(tasks),
+                "family_counts": family_counts,
+                "level_counts": level_counts,
+                "level2plus_headline_count": len(tasks),
+                "level3_headline_count": level_counts["3"],
+                "tasks": audit_tasks,
+                "blockers": [],
+                "paper_blockers": [],
+                "structural_blockers": [],
+                "validation_blockers": [],
+            },
         },
     )
     _write_json(
@@ -36,35 +133,73 @@ def _write_fake_benchmark(root: Path) -> None:
         {
             "schema": "mechanism_repair_physics.method_manifest.v1",
             "required_methods": list(REQUIRED_METHODS),
+            "eval_seeds": list(EVAL_SEEDS),
+            "primary_budget_expensive_verifier_calls": PRIMARY_BUDGET,
         },
     )
     _write_json(
         root / "level_manifest.json",
         {
             "schema": "mechanism_repair_physics.level_manifest.v1",
-            "tasks": [
-                {
-                    "task_id": "task_l2",
-                    "family": "family_l2",
-                    "verifier_level": 2,
-                },
-                {
-                    "task_id": "task_l3",
-                    "family": "family_l3",
-                    "verifier_level": 3,
-                },
-            ],
+            "headline_levels": [2, 3],
+            "level_counts": level_counts,
+            "tasks": level_tasks,
         },
     )
-    _write_json(root / "verifier_manifest.json", {"schema": "test"})
-    _write_json(root / "hidden_variant_manifest.json", {"schema": "test"})
-    (root / "tasks" / "task_l2").mkdir(parents=True)
-    (root / "tasks" / "task_l3").mkdir(parents=True)
-    for split in ("A", "B", "hidden_perturbation", "external_style"):
+    _write_json(
+        root / "verifier_manifest.json",
+        {
+            "schema": "test",
+            "main_claim_allows_fake_oracle": False,
+            "requires_real_pychrono": True,
+        },
+    )
+    _write_json(
+        root / "hidden_variant_manifest.json",
+        {
+            "schema": "mechanism_repair_physics.hidden_variant_manifest.v1",
+            "tasks": hidden_tasks,
+        },
+    )
+
+    by_family = {
+        family: [task for task in tasks if task["family"] == family]
+        for family in REQUIRED_FAMILIES
+    }
+    split_specs = {
+        "A": {
+            "seen": list(REQUIRED_FAMILIES[:6]),
+            "unseen": list(REQUIRED_FAMILIES[6:]),
+        },
+        "B": {
+            "seen": list(REQUIRED_FAMILIES[::2]),
+            "unseen": list(REQUIRED_FAMILIES[1::2]),
+        },
+        "hidden_perturbation": {"seen": [], "unseen": list(REQUIRED_FAMILIES)},
+        "external_style": {"seen": [], "unseen": list(REQUIRED_FAMILIES[:3])},
+    }
+    for split, spec in split_specs.items():
         split_dir = root / f"splits_{split}"
         split_dir.mkdir(parents=True)
-        (split_dir / "test.txt").write_text(
-            f"{root / 'tasks' / 'task_l3'}\n"
+        split_tasks = [
+            by_family[family][0]
+            for family in spec["unseen"]
+            if by_family.get(family)
+        ]
+        if not split_tasks:
+            split_tasks = [tasks[0]]
+        task_paths = [str(root / "tasks" / task["task_id"]) for task in split_tasks]
+        (split_dir / "test.txt").write_text("\n".join(task_paths) + "\n")
+        _write_json(
+            root / f"split_manifest_{split}.json",
+            {
+                "schema": "test",
+                "split_name": split,
+                "seed": 20260610,
+                "seen_families": spec["seen"],
+                "unseen_families": spec["unseen"],
+                "splits": {"test": task_paths},
+            },
         )
 
 
@@ -180,6 +315,19 @@ def test_dry_run_writes_plan_and_incomplete_audit(
     assert "claim_status" not in claim
     assert "execute all required methods, not a smoke subset" in claim["blockers"]
     assert "execute all required evaluation seeds" in claim["blockers"]
+
+
+def test_validate_benchmark_rejects_underfilled_contract(tmp_path: Path) -> None:
+    benchmark = tmp_path / "benchmark"
+    _write_fake_benchmark(benchmark)
+    manifest_path = benchmark / "benchmark_manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["tasks"] = manifest["tasks"][:1]
+    manifest["task_count"] = 1
+    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+
+    with pytest.raises(SystemExit, match="need at least 120"):
+        physics.validate_benchmark(benchmark)
 
 
 def test_complete_synthetic_evidence_gets_binary_claim_status(

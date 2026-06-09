@@ -21,6 +21,7 @@ from scripts.prepare_mechanism_repair_physics_benchmark import (
     PRIMARY_BASELINE,
     PRIMARY_BUDGET,
     PRIMARY_METHOD,
+    REQUIRED_FAMILIES,
     REQUIRED_METHODS,
     SUCCESS_DELTA_PCT,
     ensure_run_scaffold,
@@ -30,6 +31,10 @@ from scripts.prepare_mechanism_repair_physics_benchmark import (
 DEFAULT_BENCHMARK_DIR = "runs/mechanism_repair_physics_final"
 DEFAULT_HEADLINE_SPLITS = ("A", "B")
 DEFAULT_ANTI_SHORTCUT_SPLITS = ("hidden_perturbation", "external_style")
+MIN_TASKS_PER_FAMILY = 10
+MIN_FINAL_TASKS = 120
+MIN_LEVEL2PLUS_FRACTION = 0.40
+MIN_LEVEL3_FRACTION = 0.25
 TTRL_METHODS = {
     "mechanical_evolve_ttrl",
     "mechanical_evolve_ttrl_tool_verified",
@@ -177,17 +182,184 @@ def validate_benchmark(benchmark_dir: Path) -> None:
         "level_manifest.json",
         "verifier_manifest.json",
         "hidden_variant_manifest.json",
+        *[
+            f"split_manifest_{split}.json"
+            for split in (*DEFAULT_HEADLINE_SPLITS, *DEFAULT_ANTI_SHORTCUT_SPLITS)
+        ],
         "tasks",
     ]
     missing = [name for name in required if not (benchmark_dir / name).exists()]
     if missing:
         raise SystemExit(f"prepared physics benchmark is incomplete: {missing}")
     manifest = read_json(benchmark_dir / "benchmark_manifest.json")
+    blockers: list[str] = []
     if manifest.get("experiment_ready") is not True:
-        raise SystemExit("benchmark_manifest.json does not mark experiment_ready=true")
+        blockers.append("benchmark_manifest.json does not mark experiment_ready=true")
     methods = read_json(benchmark_dir / "method_manifest.json")
     if methods.get("required_methods") != list(REQUIRED_METHODS):
-        raise SystemExit("method_manifest.json does not match goals.md methods")
+        blockers.append("method_manifest.json does not match goals.md methods")
+    if methods.get("eval_seeds") and methods.get("eval_seeds") != list(EVAL_SEEDS):
+        blockers.append("method_manifest.json does not match required eval seeds")
+    if methods.get("primary_budget_expensive_verifier_calls") not in (
+        None,
+        PRIMARY_BUDGET,
+    ):
+        blockers.append("method_manifest.json does not match primary budget")
+
+    level_manifest = read_json(benchmark_dir / "level_manifest.json")
+    hidden_manifest = read_json(benchmark_dir / "hidden_variant_manifest.json")
+    verifier_manifest = read_json(benchmark_dir / "verifier_manifest.json")
+
+    tasks = manifest.get("tasks")
+    if not isinstance(tasks, list):
+        tasks = []
+        blockers.append("benchmark_manifest.json does not list tasks")
+    level_tasks = level_manifest.get("tasks")
+    if not isinstance(level_tasks, list):
+        level_tasks = []
+        blockers.append("level_manifest.json does not list tasks")
+    hidden_tasks = hidden_manifest.get("tasks")
+    if not isinstance(hidden_tasks, list):
+        hidden_tasks = []
+        blockers.append("hidden_variant_manifest.json does not list tasks")
+
+    task_ids = [str(task.get("task_id", "")) for task in tasks if task.get("task_id")]
+    task_id_set = set(task_ids)
+    if len(task_ids) != len(task_id_set):
+        blockers.append("benchmark_manifest.json contains duplicate task ids")
+    task_count = len(task_id_set)
+    if task_count < MIN_FINAL_TASKS:
+        blockers.append(f"benchmark has {task_count} tasks; need at least {MIN_FINAL_TASKS}")
+    if int_value(manifest.get("task_count", task_count)) != task_count:
+        blockers.append("benchmark_manifest.json task_count does not match listed tasks")
+
+    headline_tasks = [
+        task for task in tasks if bool(task.get("headline_eligible", True))
+    ]
+    family_counts: dict[str, int] = {}
+    for task in headline_tasks:
+        family = str(task.get("family", ""))
+        family_counts[family] = family_counts.get(family, 0) + 1
+    for family in REQUIRED_FAMILIES:
+        count = int(family_counts.get(family, 0))
+        if count < MIN_TASKS_PER_FAMILY:
+            blockers.append(
+                f"{family}: only {count} headline tasks; need {MIN_TASKS_PER_FAMILY}"
+            )
+    unknown_families = sorted(set(family_counts) - set(REQUIRED_FAMILIES))
+    if unknown_families:
+        blockers.append(f"unexpected benchmark families: {unknown_families}")
+
+    def verifier_level(task: dict[str, Any]) -> int:
+        return int_value(task.get("verifier_level", task.get("level", 0)))
+
+    level2plus = [task for task in headline_tasks if verifier_level(task) >= 2]
+    level3 = [task for task in headline_tasks if verifier_level(task) >= 3]
+    if headline_tasks and len(level2plus) / len(headline_tasks) < MIN_LEVEL2PLUS_FRACTION:
+        blockers.append("Level-2/3 headline task share below 40 percent")
+    if headline_tasks and len(level3) / len(headline_tasks) < MIN_LEVEL3_FRACTION:
+        blockers.append("Level-3 headline task share below 25 percent")
+    if level_manifest.get("headline_levels") != [2, 3]:
+        blockers.append("level_manifest.json headline_levels must be [2, 3]")
+    level_ids = {str(task.get("task_id", "")) for task in level_tasks if task.get("task_id")}
+    hidden_ids = {str(task.get("task_id", "")) for task in hidden_tasks if task.get("task_id")}
+    if level_ids != task_id_set:
+        blockers.append("level_manifest.json task ids do not match benchmark tasks")
+    if hidden_ids != task_id_set:
+        blockers.append("hidden_variant_manifest.json task ids do not match benchmark tasks")
+
+    tasks_root = benchmark_dir / "tasks"
+    audit_tasks = {}
+    audit = manifest.get("audit") if isinstance(manifest.get("audit"), dict) else {}
+    for task in audit.get("tasks", []) if isinstance(audit.get("tasks"), list) else []:
+        task_id = str(task.get("task_id", ""))
+        if task_id:
+            audit_tasks[task_id] = task
+    if set(audit_tasks) != task_id_set:
+        blockers.append("benchmark audit task ids do not match benchmark tasks")
+    if audit.get("experiment_ready") is not True:
+        blockers.append("benchmark audit does not mark experiment_ready=true")
+    if audit.get("paper_blockers"):
+        blockers.append("benchmark audit still has paper_blockers")
+    if audit.get("blockers"):
+        blockers.append("benchmark audit still has blockers")
+    if audit.get("structural_blockers"):
+        blockers.append("benchmark audit still has structural_blockers")
+    if audit.get("validation_blockers"):
+        blockers.append("benchmark audit still has validation_blockers")
+
+    for task_id in sorted(task_id_set):
+        if not (tasks_root / task_id).is_dir():
+            blockers.append(f"{task_id}: task directory missing under tasks/")
+        audit_task = audit_tasks.get(task_id, {})
+        constraint_classes = audit_task.get("constraint_classes", [])
+        if not isinstance(constraint_classes, list) or len(constraint_classes) < 3:
+            blockers.append(f"{task_id}: fewer than 3 constraint classes")
+        if int_value(audit_task.get("negative_control_count", 0)) < 2:
+            blockers.append(f"{task_id}: fewer than 2 negative controls")
+        if int_value(audit_task.get("effective_negative_control_count", 0)) < 2:
+            blockers.append(f"{task_id}: fewer than 2 effective negative controls")
+        if audit_task.get("has_hidden_variant") is not True:
+            blockers.append(f"{task_id}: hidden variant missing")
+        if audit_task.get("uses_fake_contact_oracle"):
+            blockers.append(f"{task_id}: fake_contact_oracle still present")
+        validation = audit_task.get("validation", {})
+        if not isinstance(validation, dict):
+            blockers.append(f"{task_id}: validation record missing")
+            continue
+        if validation.get("reference_passed") is not True:
+            blockers.append(f"{task_id}: reference solution did not pass")
+        if validation.get("reference_evaluation_valid") is not True:
+            blockers.append(f"{task_id}: reference evaluation invalid")
+        if validation.get("reference_hard_gate_passed") is not True:
+            blockers.append(f"{task_id}: reference hard gate failed")
+        if validation.get("reference_oracle_is_synthetic"):
+            blockers.append(f"{task_id}: reference used synthetic oracle")
+        if validation.get("negative_failures"):
+            blockers.append(f"{task_id}: negative controls failed audit")
+
+    for task in hidden_tasks:
+        task_id = str(task.get("task_id", ""))
+        if task.get("hidden_variant_present") is not True:
+            blockers.append(f"{task_id}: hidden manifest marks variant missing")
+        perturbations = task.get("perturbations", [])
+        if not isinstance(perturbations, list) or len(perturbations) < 3:
+            blockers.append(f"{task_id}: hidden manifest has fewer than 3 perturbations")
+
+    for split in (*DEFAULT_HEADLINE_SPLITS, *DEFAULT_ANTI_SHORTCUT_SPLITS):
+        split_manifest = read_json(benchmark_dir / f"split_manifest_{split}.json")
+        split_test = split_manifest.get("splits", {}).get("test", [])
+        if not isinstance(split_test, list) or not split_test:
+            blockers.append(f"split_manifest_{split}.json has no test tasks")
+        split_file = benchmark_dir / f"splits_{split}" / "test.txt"
+        if not split_file.is_file():
+            blockers.append(f"splits_{split}/test.txt is missing")
+        elif not [line for line in split_file.read_text().splitlines() if line.strip()]:
+            blockers.append(f"splits_{split}/test.txt is empty")
+        if split in DEFAULT_HEADLINE_SPLITS:
+            seen = set(split_manifest.get("seen_families") or [])
+            unseen = set(split_manifest.get("unseen_families") or [])
+            if not seen or not unseen or seen & unseen:
+                blockers.append(f"split_manifest_{split}.json is not a valid family holdout")
+
+    level3_contract = (
+        verifier_manifest.get("level_3_contract")
+        if isinstance(verifier_manifest.get("level_3_contract"), dict)
+        else {}
+    )
+    if verifier_manifest.get("main_claim_allows_fake_oracle") is not False:
+        blockers.append("verifier_manifest.json must forbid fake-oracle main claims")
+    if (
+        verifier_manifest.get("requires_real_pychrono") is not True
+        and level3_contract.get("requires_real_pychrono") is not True
+    ):
+        blockers.append("verifier_manifest.json must require real PyChrono")
+
+    if blockers:
+        raise SystemExit(
+            "prepared physics benchmark does not satisfy goals.md: "
+            + json.dumps(blockers[:50], sort_keys=True)
+        )
 
 
 def build_plan(
