@@ -62,7 +62,7 @@ ENABLE_CHRONO_ENV="${ENABLE_CHRONO_ENV:-1}"
 CHRONO_CONDA_EXE="${CHRONO_CONDA_EXE:-/matx/u/knatalia/miniconda3/bin/conda}"
 CHRONO_PYTHON_VERSION="${CHRONO_PYTHON_VERSION:-auto}"
 CHRONO_ENV_PREFIX="${CHRONO_ENV_PREFIX:-auto}"
-CHRONO_CONDA_PKGS_DIR="${CHRONO_CONDA_PKGS_DIR:-$REMOTE_ROOT/conda_pkgs_chrono}"
+CHRONO_CONDA_PKGS_DIR="${CHRONO_CONDA_PKGS_DIR:-$JOB_RUNTIME_ROOT/conda_pkgs_chrono}"
 CHRONO_LINK_CURRENT_VENV="${CHRONO_LINK_CURRENT_VENV:-1}"
 
 usage() {
@@ -193,7 +193,7 @@ if [[ "$ENABLE_CHRONO_ENV" == "1" ]]; then
   fi
   chrono_env_prefix="$CHRONO_ENV_PREFIX"
   if [[ "\$chrono_env_prefix" == "auto" ]]; then
-    chrono_env_prefix="$REMOTE_ROOT/chrono_env_py\${chrono_python_version//./}"
+    chrono_env_prefix="$JOB_RUNTIME_ROOT/chrono_env_py\${chrono_python_version//./}"
   fi
   chrono_bootstrap_args=(
     scripts/bootstrap_chrono_env.py
