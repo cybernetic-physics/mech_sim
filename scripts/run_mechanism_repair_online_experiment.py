@@ -424,6 +424,7 @@ def main() -> int:
         task_ids = read_ids(test_file)
         for seed in seeds:
             sft_adapter = None
+            sft_manifest_path: Path | None = None
             needs_sft = (
                 bool(set(requested_methods) & SFT_METHODS)
                 or (
@@ -452,6 +453,7 @@ def main() -> int:
                         resume_existing=bool(args.resume_existing)
                         or shared_sft_root is not None,
                     )
+                    sft_manifest_path = sft_dir / "run_manifest.json"
             for method in requested_methods:
                 if method in TTRL_METHODS:
                     for task_id in task_ids:
@@ -544,6 +546,7 @@ def main() -> int:
                     test_file=method_test_file,
                     seed=seed,
                     resume_existing=bool(args.resume_existing),
+                    sft_manifest=sft_manifest_path,
                 )
                 new_rows = rows_from_sample_summary(
                     summary=summary,
@@ -555,6 +558,7 @@ def main() -> int:
                     family_by_task=family_by_task,
                     evidence_root=out_dir,
                     evidence_layout=str(args.evidence_layout),
+                    sft_manifest=sft_manifest_path,
                 )
                 for row in new_rows:
                     key = row_key(row)
@@ -949,6 +953,7 @@ def run_or_load_eval_summary(
     test_file: Path,
     seed: int,
     resume_existing: bool,
+    sft_manifest: Path | None = None,
 ) -> dict[str, Any]:
     summary_path = report_dir / "smoke_summary.json"
     if resume_existing and summary_path.is_file():
@@ -1001,8 +1006,12 @@ def run_or_load_eval_summary(
         str(test_file),
     ]
     if method.adapter_kind == "sft":
-        sft_manifest = report_dir.parent / "sft_train" / "run_manifest.json"
-        payload = json.loads(sft_manifest.read_text())
+        manifest_path = sft_manifest or (
+            report_dir.parent / "sft_train" / "run_manifest.json"
+        )
+        if not manifest_path.is_file():
+            raise SystemExit(f"SFT manifest missing: {manifest_path}")
+        payload = json.loads(manifest_path.read_text())
         cmd.extend(["--sglang-lora-path", str(payload["final_adapter"])])
     run(cmd, timeout=float(args.eval_timeout_s))
     if not summary_path.is_file():
@@ -1377,6 +1386,7 @@ def rows_from_sample_summary(
     family_by_task: dict[str, str],
     evidence_root: Path | None = None,
     evidence_layout: str = "files",
+    sft_manifest: Path | None = None,
 ) -> list[dict[str, Any]]:
     by_task: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in summary.get("all_samples", []) or []:
@@ -1412,7 +1422,11 @@ def rows_from_sample_summary(
         sampler_error_attempts = sampler_error_attempt_count(samples)
         first_valid = first_valid_call(samples)
         best_metrics = dict(best.get("physical_metrics") or {})
-        training = training_metadata_for_method(method, trace_root)
+        training = training_metadata_for_method(
+            method,
+            trace_root,
+            sft_manifest=sft_manifest,
+        )
         out.append({
             "method": method,
             "method_variant": method,
@@ -2273,10 +2287,16 @@ def no_procedural_fallback_rate(rows: list[dict[str, Any]]) -> float:
     return sum(1 for item in observed if item) / len(observed)
 
 
-def training_metadata_for_method(method: str, trace_root: Path) -> dict[str, Any]:
+def training_metadata_for_method(
+    method: str,
+    trace_root: Path,
+    *,
+    sft_manifest: Path | None = None,
+) -> dict[str, Any]:
     if method in SFT_METHODS:
         return training_metadata_from_manifest(
-            trace_root.parent / "sft_train" / "run_manifest.json"
+            sft_manifest
+            or (trace_root.parent / "sft_train" / "run_manifest.json")
         )
     return empty_training_metadata()
 

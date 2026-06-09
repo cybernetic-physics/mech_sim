@@ -204,6 +204,57 @@ def test_rows_from_sample_summary_uses_total_budget_and_canonical_family(
     assert row["actual_budget_matches_primary"] is True
 
 
+def test_rows_from_sample_summary_uses_explicit_sft_manifest(
+    tmp_path: Path,
+) -> None:
+    shared_sft = tmp_path / "shared_sft" / "A" / "20260607" / "sft_train"
+    adapter = shared_sft / "final_adapter"
+    adapter.mkdir(parents=True)
+    manifest = shared_sft / "run_manifest.json"
+    manifest.write_text(
+        json.dumps({
+            "adapter_updates": 7,
+            "trained_tokens": 1234,
+            "final_adapter": str(adapter),
+        })
+    )
+    summary = {
+        "max_turns": 1,
+        "all_samples": [
+            {
+                "task_id": "planet_task",
+                "family": "planetary",
+                "sample_idx": 0,
+                "verified_score": 1.0,
+                "evaluation_valid": True,
+                "hard_gate_passed": True,
+                "failure_codes": [],
+                "verifier_calls": 32,
+                "cad_audits": 0,
+                "chrono_audits": 0,
+            },
+        ],
+    }
+
+    rows = rows_from_sample_summary(
+        summary=summary,
+        method="sft_seen_family",
+        split="A",
+        seed=20260607,
+        budget=32,
+        trace_root=(
+            tmp_path / "online_runs" / "A" / "20260607" / "eval_sft_seen_family"
+        ),
+        family_by_task={"planet_task": "planetary"},
+        sft_manifest=manifest,
+    )
+
+    assert rows[0]["adapter_updates"] == 7
+    assert rows[0]["trained_tokens"] == 1234
+    assert rows[0]["adapter_path"] == str(adapter)
+    assert rows[0]["adapter_checkpoint_paths"] == [str(adapter)]
+
+
 def test_rows_from_sample_summary_materializes_multiturn_evidence(
     tmp_path: Path,
 ) -> None:
@@ -785,6 +836,59 @@ def test_eval_summary_runner_does_not_emit_none_budget(
     assert "--max-verifier-calls-per-task" in cmd
     assert cmd[cmd.index("--max-verifier-calls-per-task") + 1] == "32"
     assert "None" not in cmd
+
+
+def test_eval_summary_runner_uses_explicit_sft_manifest(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    captured: dict[str, list[str]] = {}
+    report_dir = (
+        tmp_path / "online_runs" / "A" / "20260607" / "eval_sft_seen_family"
+    )
+    shared_sft = tmp_path / "shared_sft" / "A" / "20260607" / "sft_train"
+    adapter = shared_sft / "final_adapter"
+    adapter.mkdir(parents=True)
+    manifest = shared_sft / "run_manifest.json"
+    manifest.write_text(json.dumps({"final_adapter": str(adapter)}))
+
+    def fake_run(cmd: list[str], *, timeout: float) -> None:
+        captured["cmd"] = cmd
+        report_dir.mkdir(parents=True)
+        (report_dir / "smoke_summary.json").write_text(
+            json.dumps({"all_samples": []})
+        )
+
+    monkeypatch.setattr(online, "run", fake_run)
+
+    args = Namespace(
+        runner_python="python",
+        sglang_base_url="http://127.0.0.1:30000",
+        api_key="dummy",
+        base_model="base",
+        rollout_backend="sglang_chat",
+        max_tokens=512,
+        timeout=180.0,
+        concurrency=2,
+        audit_retries=0,
+        eval_timeout_s=60.0,
+        budget=None,
+    )
+
+    run_or_load_eval_summary(
+        args=args,
+        method=EvalMethod("sft_seen_family", 32, 1, 0.2, 0.95, "sft"),
+        report_dir=report_dir,
+        tasks_root=tmp_path / "tasks",
+        test_file=tmp_path / "split.txt",
+        seed=20260607,
+        resume_existing=False,
+        sft_manifest=manifest,
+    )
+
+    cmd = captured["cmd"]
+    assert "--sglang-lora-path" in cmd
+    assert cmd[cmd.index("--sglang-lora-path") + 1] == str(adapter)
 
 
 def test_sft_runner_passes_kbit_preparation_flags(
