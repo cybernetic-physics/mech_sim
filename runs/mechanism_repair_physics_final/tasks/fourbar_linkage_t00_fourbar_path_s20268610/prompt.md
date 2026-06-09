@@ -20,6 +20,7 @@ Family mechanism:
   - output rocker or crank
   - coupler point when required
 - Preferred stable part ids: `ground`, `input_crank`, `coupler`, `output_rocker`
+- Physical bodies only go in `parts`; joints, contact pairs, and port records go in `joints`/`ports`, not in `parts`.
 - Do not submit:
   - slider-crank with prismatic output
   - gear train
@@ -42,6 +43,8 @@ DesignIR deliverable:
 - Return only Python code defining `build_design(out_dir: Path) -> dict`.
 - The returned dict must use `schema_version="design_ir.v2"`, `units="mm"`, and include `parts`, `joints`, `ports`, `params`, `materials`, and `provenance`.
 - `parts` and `joints` must be lists. `ports` must be a dict keyed by port id, not a list; for example `{'input_port': {'id': 'input_port', ...}}`.
+- `parts` entries must be physical bodies only. Do not put `contact_pair`, revolute/prismatic joint, or port records inside `parts`.
+- Revolute/prismatic `ports` values must reference explicit joint ids from `joints`, not physical part ids.
 - Include a fixed ground/frame part and positive, finite mass for moving physical parts.
 - In the `ports` dict, `revolute_joint` and `prismatic_joint` values must reference joint ids; `frame` values must reference part ids.
 - Write or reference CAD artifacts through `geometry["cad"]` for checked parts; artifact paths should be relative to `out_dir`.

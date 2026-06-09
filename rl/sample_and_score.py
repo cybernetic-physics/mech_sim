@@ -58,6 +58,9 @@ STRICT_FENCED_OUTPUT_INSTRUCTION = (
     "functions, schema_version, materials, parts, or def build_design. "
     "After closing the parts list, add joints, ports, and params keys. "
     "`ports` must be a dict keyed by port id, not a list. "
+    "Do not put joint, contact_pair, or port dictionaries inside `parts`; "
+    "contact_pair belongs in `joints` only. Revolute/prismatic ports must "
+    "reference joint ids, not physical part ids. "
     "For timing-belt and chain-sprocket analytic tasks, never create a "
     "part, joint, role, or id containing `belt` or `chain`; represent the "
     "belt/chain only by top-level params and use exactly two moving rotating "
@@ -116,7 +119,9 @@ the verifier contract or prompt.md. Do not add a `declared_` prefix
 unless the contract or prompt itself uses that exact key. Legal port
 kinds are only `frame`,
 `revolute_joint`, and `prismatic_joint`. `ports` must be a dict keyed
-by port id, not a list. The task's explicit
+by port id, not a list. Do not put joint, contact_pair, or port records
+inside `parts`; contact_pair belongs in `joints` only. Revolute/prismatic
+ports must reference joint ids, not physical part ids. The task's explicit
 `requirements.expected_mobility`, prompt mobility statement, and
 required port kinds override the task title, tier name, and any
 conflicting example in the system prompt.
