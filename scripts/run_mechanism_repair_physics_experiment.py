@@ -563,10 +563,28 @@ def missing_learning_evidence(out_dir: Path, row: dict[str, Any]) -> list[str]:
         missing.append("training_logs")
     if not ckpt_paths or any(not resolve_path(out_dir, path).exists() for path in ckpt_paths):
         missing.append("adapter_checkpoints")
+    elif any(not adapter_checkpoint_has_weights(resolve_path(out_dir, path)) for path in ckpt_paths):
+        missing.append("adapter_checkpoint_weights")
     updates = int_value(row.get("adapter_updates", row.get("online_update_steps", 0)))
     if updates <= 0:
         missing.append("adapter_updates")
     return missing
+
+
+def adapter_checkpoint_has_weights(path: Path) -> bool:
+    if path.is_file():
+        return is_adapter_weight_file(path)
+    if not path.is_dir():
+        return False
+    return any(is_adapter_weight_file(item) for item in path.rglob("*") if item.is_file())
+
+
+def is_adapter_weight_file(path: Path) -> bool:
+    name = path.name
+    return (
+        name in {"adapter_model.safetensors", "adapter_model.bin"}
+        or (path.suffix == ".safetensors" and "adapter" in name)
+    )
 
 
 def infer_claim_status(out_dir: Path) -> str:
