@@ -280,6 +280,12 @@ def test_materialized_physics_prompts_are_family_specific(tmp_path: Path) -> Non
         assert "`params[\"cad_mass_properties\"]`" in prompt
         assert "`revolute_joint` and `prismatic_joint` entries" in prompt
         assert "must reference joint ids" in prompt
+        assert "Minimal trusted CAD/material evidence pattern:" in prompt
+        assert "submissions fail if they call undefined helpers such as `cad(...)`" in prompt
+        assert "`materials` must be a dict keyed by material id, not a list" in prompt
+        assert "'elastic_modulus_pa': 205000000000.0" in prompt
+        assert "'geometry': {'cad': _write_step" in prompt
+        assert "'cad_mass_properties': _mass_props" in prompt
         assert "fake_contact_oracle" in prompt
 
     geneva_prompt = Path(
@@ -292,6 +298,11 @@ def test_materialized_physics_prompts_are_family_specific(tmp_path: Path) -> Non
     assert "`input_port`: kind `revolute_joint`" in geneva_prompt
     assert "`output_port`: kind `revolute_joint`" in geneva_prompt
     assert "Required contact pairs: `driver:geneva`" in geneva_prompt
+    assert "Minimal Level-3 contact evidence pattern:" in geneva_prompt
+    assert "'type': 'contact_pair'" in geneva_prompt
+    assert "'parent': 'driver'" in geneva_prompt
+    assert "'child': 'geneva'" in geneva_prompt
+    assert "'chrono_collision'" in geneva_prompt
     assert "plain spur gear train" in geneva_prompt
 
     rack_prompt = Path(

@@ -680,10 +680,12 @@ def build_physics_prompt_contract(
             ),
         ]
     )
+    lines.extend(["", *_designir_evidence_scaffold_lines(spec=spec)])
 
     if spec.verifier_level >= 3:
         contact_lines = _level3_contact_lines(task.eval_config_toml, spec.name)
         lines.extend(["", "Level-3 Chrono contact requirements:", *contact_lines])
+        lines.extend(["", *_chrono_contact_scaffold_lines(spec=spec)])
 
     lines.extend(
         [
@@ -696,6 +698,118 @@ def build_physics_prompt_contract(
         ]
     )
     return "\n".join(lines) + "\n"
+
+
+def _designir_evidence_scaffold_lines(*, spec: FamilySpec) -> list[str]:
+    return [
+        "Minimal trusted CAD/material evidence pattern:",
+        (
+            "- Use this as a schema pattern, not as the mechanism answer; "
+            "adapt part ids, joint ids, dimensions, masses, and params to the task."
+        ),
+        "- Define every helper you call; submissions fail if they call undefined helpers such as `cad(...)`.",
+        "- `materials` must be a dict keyed by material id, not a list.",
+        "- Every checked part needs `material`, `geometry[\"cad\"]`, and positive-mass parts need `params[\"cad_mass_properties\"]`.",
+        "```python",
+        "from pathlib import Path",
+        "",
+        "def _write_step(out_dir: Path, name: str) -> str:",
+        "    out_path = Path(out_dir)",
+        "    out_path.mkdir(parents=True, exist_ok=True)",
+        "    rel = name if name.endswith('.step') else f'{name}.step'",
+        "    (out_path / rel).write_text(",
+        "        \"ISO-10303-21;\\nHEADER;\\nFILE_DESCRIPTION(('submitted CAD artifact'),'2;1');\\n\"",
+        "        \"ENDSEC;\\nDATA;\\nENDSEC;\\nEND-ISO-10303-21;\\n\"",
+        "    )",
+        "    return rel",
+        "",
+        "def _mass_props(mass_kg: float, com=(0.0, 0.0, 0.0)) -> dict:",
+        "    scale = max(float(mass_kg), 1.0e-6)",
+        "    return {",
+        "        'mass_kg': float(mass_kg),",
+        "        'com_local_mm': tuple(com),",
+        "        'inertia_kg_m2': (",
+        "            (scale * 1.0e-5, 0.0, 0.0),",
+        "            (0.0, scale * 1.2e-5, 0.0),",
+        "            (0.0, 0.0, scale * 1.5e-5),",
+        "        ),",
+        "    }",
+        "",
+        "materials = {",
+        "    'steel_1045': {",
+        "        'name': 'AISI 1045 steel',",
+        "        'density_kg_m3': 7850.0,",
+        "        'elastic_modulus_pa': 205000000000.0,",
+        "        'poisson_ratio': 0.29,",
+        "        'yield_strength_pa': 530000000.0,",
+        "        'process': 'machined',",
+        "        'provenance': 'standard engineering material table',",
+        "    }",
+        "}",
+        "part = {",
+        "    'id': 'replace_with_task_part_id',",
+        "    'role': 'replace_with_mechanism_role',",
+        "    'mass_kg': 0.05,",
+        "    'fixed': False,",
+        "    'com_local_mm': (0.0, 0.0, 0.0),",
+        "    'material': 'steel_1045',",
+        "    'geometry': {'cad': _write_step(out_dir, 'replace_with_task_part_id.step')},",
+        "    'params': {'cad_mass_properties': _mass_props(0.05)},",
+        "}",
+        "params = {",
+        "    'cad_source': {",
+        "        'kernel': 'submitted CAD artifact',",
+        "        'source': 'build_design',",
+        f"        'family': '{spec.name}',",
+        f"        'verifier_level': {int(spec.verifier_level)},",
+        "    }",
+        "}",
+        "provenance = {'submission': {'created_by': 'build_design'}}",
+        "```",
+    ]
+
+
+def _chrono_contact_scaffold_lines(*, spec: FamilySpec) -> list[str]:
+    pairs = tuple(DEFAULT_CONTACT_PAIRS.get(spec.name, ()))
+    left = "contact_a"
+    right = "contact_b"
+    if pairs:
+        left, _, right = pairs[0].partition(":")
+        left = left or "contact_a"
+        right = right or "contact_b"
+    return [
+        "Minimal Level-3 contact evidence pattern:",
+        (
+            "- Add this kind of metadata to the actual contacting parts named "
+            "by the required contact pair."
+        ),
+        "```python",
+        "joints.append({",
+        f"    'id': '{left}_{right}_contact',",
+        "    'type': 'contact_pair',",
+        f"    'parent': '{left}',",
+        f"    'child': '{right}',",
+        "    'axis_world': (0.0, 0.0, 1.0),",
+        "    'anchor_world_mm': (0.0, 0.0, 0.0),",
+        "})",
+        f"# On part '{left}' and part '{right}', include a primitive collision shape:",
+        "part['params']['chrono_collision'] = {",
+        "    'shape': 'cylinder',",
+        "    'radius_mm': 20.0,",
+        "    'height_mm': 8.0,",
+        "    'center_mm': tuple(part.get('com_local_mm', (0.0, 0.0, 0.0))),",
+        "    'axis': (0.0, 0.0, 1.0),",
+        "}",
+        "params['chrono'] = {",
+        "    'collision_filter_named_pairs': True,",
+        "    'contact_margin_m': 2.0e-5,",
+        "    'contact_envelope_m': 2.0e-5,",
+        "    'normal_stiffness_N_m': 25000.0,",
+        "    'normal_damping_N_s_m': 250.0,",
+        "    'friction_mu': 0.05,",
+        "}",
+        "```",
+    ]
 
 
 def _task_requirement_lines(reqs: dict[str, Any]) -> list[str]:
