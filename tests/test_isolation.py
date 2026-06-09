@@ -176,6 +176,58 @@ def test_load_submission_canonicalizes_model_topology_near_misses(
     assert ir.ports["input_port"].part == "input_port"
 
 
+def test_load_submission_canonicalizes_noisy_port_records(
+    tmp_path: Path,
+):
+    sub = _write_design(tmp_path, '''
+        from pathlib import Path
+        def build_design(out_dir: Path) -> dict:
+            return {
+                "schema_version": "design_ir.v2",
+                "parts": [
+                    {"id": "frame", "role": "ground",
+                     "fixed": True, "mass_kg": 0.0},
+                    {"id": "cam", "role": "input", "mass_kg": 0.02},
+                    {"id": "follower", "role": "output", "mass_kg": 0.05},
+                ],
+                "joints": [
+                    {"id": "cam_follower_contact",
+                     "type": "contact_pair",
+                     "parent": "cam", "child": "follower"},
+                ],
+                "ports": {
+                    "input_port": {
+                        "id": "input_port",
+                        "type": "revolute_joint",
+                        "grounded": True,
+                        "parent": "frame",
+                        "part": "cam",
+                    },
+                    "output_port": {
+                        "id": "output_port",
+                        "kind": "revolute_joint",
+                        "grounded": False,
+                        "port": {"part": "follower"},
+                    },
+                },
+            }
+    ''')
+    ir = load_submission(
+        sub,
+        tmp_path / "scratch",
+        required_port_kinds={
+            "input_port": "revolute_joint",
+            "output_port": "revolute_joint",
+        },
+    )
+
+    assert ir.ports["input_port"].part == "input_port"
+    assert ir.ports["output_port"].part == "output_port"
+    assert {j.id for j in ir.joints} == {
+        "cam_follower_contact", "input_port", "output_port",
+    }
+
+
 def test_evaluate_canonicalized_submission_reaches_required_ports_probe(
     tmp_path: Path,
 ):

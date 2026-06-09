@@ -446,6 +446,12 @@ _JOINT_FIELDS = {
     "limits_rad",
     "params",
 }
+_PORT_FIELDS = {"id", "part", "kind", "pose_local_mm"}
+_PORT_KIND_ALIASES = {
+    "frame_port": "frame",
+    "revolute": "revolute_joint",
+    "prismatic": "prismatic_joint",
+}
 
 
 def _required_port_kinds(cfg: EvalConfig) -> dict[str, str]:
@@ -509,10 +515,31 @@ def _normalize_ports(raw_ports: Any) -> dict[str, Any]:
     for pid, port in list(ports.items()):
         if not isinstance(port, dict):
             continue
+        port = _canonical_port_record(str(pid), port)
+        ports[pid] = port
         port.setdefault("id", str(pid))
         if port.get("id") != str(pid):
             port["id"] = str(pid)
     return ports
+
+
+def _canonical_port_record(pid: str, port: dict[str, Any]) -> dict[str, Any]:
+    out = dict(port)
+    out.setdefault("id", pid)
+    raw_kind = out.get("kind", out.get("type"))
+    if isinstance(raw_kind, str):
+        out["kind"] = _PORT_KIND_ALIASES.get(raw_kind, raw_kind)
+
+    if "part" not in out:
+        nested = out.get("port")
+        if isinstance(nested, dict) and isinstance(nested.get("part"), str):
+            out["part"] = nested["part"]
+        elif isinstance(nested, str):
+            out["part"] = nested
+    if "pose_local_mm" not in out and "anchor_world_mm" in out:
+        out["pose_local_mm"] = out["anchor_world_mm"]
+
+    return {k: v for k, v in out.items() if k in _PORT_FIELDS}
 
 
 def _infer_fixed_part(parts: list[dict[str, Any]]) -> str | None:
