@@ -261,17 +261,21 @@ def main() -> int:
     ttrl_steps = (
         int(args.ttrl_max_steps)
         if args.ttrl_max_steps is not None
-        else budget
+        else ttrl_optimizer_steps_for_budget(
+            budget=budget,
+            num_generations=ttrl_generations,
+        )
     )
-    if ttrl_steps % ttrl_generations:
+    if int(args.ttrl_max_steps or 0) < 0:
+        raise SystemExit("--ttrl-max-steps must be non-negative")
+    if ttrl_steps <= 0:
+        raise SystemExit("TTRL max steps must be positive")
+    if budget % ttrl_generations:
         raise SystemExit(
-            "TTRL budget mismatch: "
-            f"max_steps={ttrl_steps} must be divisible by "
+            f"TTRL budget mismatch: budget={budget} must divide evenly by "
             f"num_generations={ttrl_generations}"
         )
-    expected_ttrl_verifier_calls = (
-        (ttrl_steps // ttrl_generations) * ttrl_generations
-    )
+    expected_ttrl_verifier_calls = ttrl_steps * ttrl_generations
     if expected_ttrl_verifier_calls != budget:
         raise SystemExit(
             "TTRL budget mismatch: "
@@ -636,9 +640,10 @@ def build_plan(
         "llm_evolve_feedback_turns": feedback_turns,
         "llm_evolve_max_verifier_calls_per_task": budget,
         "ttrl_max_steps": ttrl_steps,
+        "ttrl_optimizer_steps": ttrl_steps,
         "ttrl_num_generations": ttrl_generations,
         "ttrl_reward_channel": str(ttrl_reward_channel),
-        "ttrl_rollout_evaluations_per_cell": ttrl_steps,
+        "ttrl_rollout_evaluations_per_cell": ttrl_steps * ttrl_generations,
         "init_online_from_sft": init_online_from_sft,
         "planned_cells": total_cells,
         "cell_shard_file": (
@@ -690,6 +695,19 @@ def reward_channel_for_method(method: str, *, default: str) -> str:
     if method == "mechanical_evolve_ttrl_tool_verified":
         return "artifact_progress"
     return default
+
+
+def ttrl_optimizer_steps_for_budget(*, budget: int, num_generations: int) -> int:
+    budget = int(budget)
+    num_generations = int(num_generations)
+    if num_generations <= 0:
+        raise SystemExit("--ttrl-num-generations must be positive")
+    if budget % num_generations:
+        raise SystemExit(
+            f"TTRL budget mismatch: budget={budget} must divide evenly by "
+            f"num_generations={num_generations}"
+        )
+    return budget // num_generations
 
 
 def reset_non_resume_outputs(*, out_dir: Path, run_root: Path) -> None:
@@ -999,7 +1017,7 @@ def run_or_load_ttrl_cell(
                 continue
             raise
         break
-    return row_from_ttrl_reward_log(
+    row = row_from_ttrl_reward_log(
         reward_log=reward_log,
         split=split,
         task_id=task_id,
@@ -1010,6 +1028,15 @@ def run_or_load_ttrl_cell(
         family_by_task=family_by_task,
         evidence_root=evidence_root,
     )
+    if int(row.get("actual_verifier_calls", 0) or 0) != int(budget):
+        raise SystemExit(
+            "TTRL verifier budget mismatch: "
+            f"{method} {split}/{task_id}/seed={seed} wrote "
+            f"{row.get('actual_verifier_calls')} verifier calls; "
+            f"expected {int(budget)}. Adjust --ttrl-max-steps and "
+            "--ttrl-num-generations before running the full audit."
+        )
+    return row
 
 
 def require_learning_manifest(

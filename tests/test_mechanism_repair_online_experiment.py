@@ -18,6 +18,7 @@ from scripts.run_mechanism_repair_online_experiment import (
     run_or_load_eval_summary,
     run_or_load_sft,
     rows_from_sample_summary,
+    ttrl_optimizer_steps_for_budget,
 )
 
 
@@ -42,15 +43,22 @@ def test_build_plan_records_ttrl_reward_channel(monkeypatch, tmp_path: Path) -> 
         audit_retries=0,
         limit_tasks=1,
         init_online_from_sft=True,
-        ttrl_steps=32,
+        ttrl_steps=8,
         ttrl_generations=4,
         ttrl_reward_channel="artifact_progress",
     )
 
     assert plan["ttrl_reward_channel"] == "artifact_progress"
     assert plan["ttrl_rollout_evaluations_per_cell"] == 32
+    assert plan["ttrl_optimizer_steps"] == 8
     assert plan["split_tasks"] == {"A": ["task_a"]}
     assert plan["planned_cells"] == 1
+
+
+def test_ttrl_optimizer_steps_for_budget_enforces_matched_rollouts() -> None:
+    assert ttrl_optimizer_steps_for_budget(budget=32, num_generations=4) == 8
+    with pytest.raises(SystemExit, match="must divide evenly"):
+        ttrl_optimizer_steps_for_budget(budget=30, num_generations=4)
 
 
 def test_build_plan_filters_to_shard_cells_and_normalizes_paths(
@@ -926,6 +934,93 @@ def test_ttrl_runner_preserves_physics_method_and_reward_channel(
     assert row["method_variant"] == method
     assert "--reward-channel" in cmd
     assert cmd[cmd.index("--reward-channel") + 1] == "verified_score"
+
+
+def test_ttrl_runner_rejects_reward_log_over_budget(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    run_dir = tmp_path / "ttrl_over_budget"
+
+    def fake_run(cmd: list[str], *, timeout: float) -> None:
+        del cmd, timeout
+        run_dir.mkdir(parents=True)
+        rows = [
+            {
+                "task_id": "task",
+                "verified_score": 0.0,
+                "evaluation_valid": True,
+                "hard_gate_passed": False,
+                "failure_codes": ["invalid_artifact"],
+                "cad_audits": 0,
+                "chrono_audits": 0,
+                "design_py_extracted": True,
+            }
+            for _ in range(5)
+        ]
+        (run_dir / "reward_log.jsonl").write_text(
+            "\n".join(json.dumps(row) for row in rows) + "\n"
+        )
+        (run_dir / "run_manifest.json").write_text(
+            json.dumps({
+                "adapter_updates": 1,
+                "trained_tokens": 16,
+                "rl_trained_tokens": 16,
+                "n_rl_datums": 5,
+                "optimizer_guard": {
+                    "attempted_steps": 1,
+                    "successful_steps": 1,
+                },
+            })
+        )
+
+    monkeypatch.setattr(online, "run", fake_run)
+
+    args = Namespace(
+        ttrl_runner="python",
+        ttrl_model=None,
+        base_model="base",
+        ttrl_learning_rate=5e-6,
+        ttrl_max_grad_norm=1.0,
+        max_context_tokens=512,
+        max_tokens=128,
+        timeout=30.0,
+        ttrl_lora_rank=16,
+        ttrl_load_in_4bit=False,
+        ttrl_load_in_8bit=False,
+        ttrl_kbit_prepare_mode="none",
+        ttrl_gradient_checkpointing=False,
+        ttrl_trust_remote_code=True,
+        ttrl_bf16=False,
+        ttrl_fp16=False,
+        ttrl_torch_dtype=None,
+        ttrl_attn_implementation=None,
+        ttrl_device_map=None,
+        ttrl_max_memory=None,
+        ttrl_rollout_openai=False,
+        sglang_base_url="http://127.0.0.1:30000",
+        base_url="http://127.0.0.1:30000",
+        api_key="dummy",
+        train_timeout_s=60.0,
+    )
+
+    with pytest.raises(SystemExit, match="TTRL verifier budget mismatch"):
+        run_or_load_ttrl_cell(
+            args=args,
+            run_dir=run_dir,
+            benchmark_dir=tmp_path,
+            split_file=tmp_path / "one.txt",
+            split="A",
+            task_id="task",
+            seed=20260610,
+            budget=4,
+            ttrl_steps=1,
+            ttrl_generations=4,
+            family_by_task={"task": "cycloidal"},
+            evidence_root=None,
+            init_adapter=None,
+            resume_existing=False,
+        )
 
 
 def test_ttrl_resume_discards_partial_zero_update_manifest(

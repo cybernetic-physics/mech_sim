@@ -1207,8 +1207,8 @@ def main() -> int:
         )
     )
     expected_verifier_calls = (
-        ((int(args.max_steps) + effective_steps_per_generation - 1)
-         // effective_steps_per_generation)
+        int(args.max_steps)
+        * max(1, int(args.per_device_train_batch_size))
         * int(args.num_generations)
     )
     manifest = {
