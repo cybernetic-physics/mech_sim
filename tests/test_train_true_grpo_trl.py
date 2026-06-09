@@ -10,9 +10,10 @@ from rl.mech_bench_reward import RewardResult
 from rl.train_true_grpo_trl import (
     STRICT_FENCED_OUTPUT_INSTRUCTION,
     _chat_prompt_rows,
+    _disable_intermediate_checkpoint_config,
     _estimate_prompt_tokens,
-    _reward_base,
     _finite_named_tensor_audit,
+    _filtered_config,
     _full_eval_contract_suffix,
     _guarded_optimizer_manifest,
     _load_text_tokenizer,
@@ -22,7 +23,9 @@ from rl.train_true_grpo_trl import (
     _prepare_model_for_kbit_training_lightweight,
     _prompt_text_for_rollout,
     _raise_if_nonfinite_trainable_parameters,
+    _remove_intermediate_checkpoints,
     _repeat_rows_for_grpo_sampler,
+    _reward_base,
     _sanitize_token_ids,
     _truncate_prompt_rows,
     _truncate_token_ids,
@@ -94,6 +97,50 @@ class ChatTemplateTokenizer:
         if add_generation_prompt:
             rendered += "<assistant>"
         return rendered
+
+
+class DummyTrainingArgs:
+    def __init__(
+        self,
+        *,
+        save_strategy: str | None = None,
+        save_steps: int | None = None,
+        save_total_limit: int | None = None,
+    ) -> None:
+        self.save_strategy = save_strategy
+        self.save_steps = save_steps
+        self.save_total_limit = save_total_limit
+
+
+def test_intermediate_checkpoint_config_disables_trainer_saves() -> None:
+    cfg = _filtered_config(
+        DummyTrainingArgs,
+        {
+            **_disable_intermediate_checkpoint_config(25),
+            "unsupported": "ignored",
+        },
+    )
+
+    assert cfg.save_strategy == "no"
+    assert cfg.save_steps == 25
+    assert cfg.save_total_limit == 1
+
+
+def test_remove_intermediate_checkpoints_preserves_final_adapter(tmp_path: Path) -> None:
+    checkpoint = tmp_path / "checkpoint-25"
+    checkpoint.mkdir()
+    (checkpoint / "optimizer.pt").write_text("large optimizer state")
+    checkpoint_file = tmp_path / "checkpoint-note"
+    checkpoint_file.write_text("not a trainer directory")
+    final_adapter = tmp_path / "final_adapter"
+    final_adapter.mkdir()
+
+    removed = _remove_intermediate_checkpoints(tmp_path)
+
+    assert removed == [str(checkpoint)]
+    assert not checkpoint.exists()
+    assert checkpoint_file.exists()
+    assert final_adapter.exists()
 
 
 def test_estimate_prompt_tokens_counts_processor_input_ids() -> None:

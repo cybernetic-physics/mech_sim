@@ -15,6 +15,7 @@ import ast
 import inspect
 import json
 import os
+import shutil
 import sys
 import tempfile
 import time
@@ -268,6 +269,23 @@ def _filtered_config(cls: type, values: dict[str, Any]) -> Any:
         if key in params and value is not None
     }
     return cls(**accepted)
+
+
+def _disable_intermediate_checkpoint_config(save_steps: int) -> dict[str, Any]:
+    return {
+        "save_strategy": "no",
+        "save_steps": int(save_steps),
+        "save_total_limit": 1,
+    }
+
+
+def _remove_intermediate_checkpoints(out_dir: Path) -> list[str]:
+    removed: list[str] = []
+    for checkpoint in sorted(out_dir.glob("checkpoint-*")):
+        if checkpoint.is_dir():
+            shutil.rmtree(checkpoint)
+            removed.append(str(checkpoint))
+    return removed
 
 
 def _finite_named_tensor_audit(
@@ -1470,7 +1488,7 @@ def main() -> int:
         "beta": float(args.beta),
         "epsilon": float(args.epsilon),
         "max_steps": int(args.max_steps),
-        "save_steps": int(args.save_steps),
+        **_disable_intermediate_checkpoint_config(int(args.save_steps)),
         "logging_steps": int(args.logging_steps),
         "seed": int(args.seed),
         "bf16": bool(args.bf16),
@@ -1594,6 +1612,7 @@ def main() -> int:
     )
     final_adapter = out_dir / "final_adapter"
     trainer.save_model(str(final_adapter))
+    removed_checkpoints = _remove_intermediate_checkpoints(out_dir)
     global_step = int(getattr(trainer.state, "global_step", 0) or 0)
     n_rl_datums = 0
     reward_log = out_dir / "reward_log.jsonl"
@@ -1618,6 +1637,11 @@ def main() -> int:
     adapter_updates = int(optimizer_guard["successful_steps"])
     manifest["completed_ts"] = time.time()
     manifest["final_adapter"] = str(final_adapter)
+    manifest["checkpoint_policy"] = {
+        "intermediate_checkpoints": "disabled",
+        "save_strategy": "no",
+        "removed_intermediate_checkpoints": removed_checkpoints,
+    }
     manifest["adapter_updates"] = adapter_updates
     manifest["trainer_global_step"] = global_step
     manifest["trained_tokens"] = trained_tokens

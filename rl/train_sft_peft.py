@@ -25,10 +25,12 @@ sys.path.insert(0, str(REPO_ROOT / "rl"))
 from rl.train_true_grpo_trl import (  # noqa: E402
     SYSTEM_PROMPT_PATH,
     _build_rows,
+    _disable_intermediate_checkpoint_config,
     _estimate_prompt_tokens,
     _guarded_optimizer_manifest,
     _make_guarded_adamw,
     _parse_device_map,
+    _remove_intermediate_checkpoints,
 )
 
 
@@ -615,7 +617,7 @@ def main() -> int:
         "per_device_train_batch_size": int(args.per_device_train_batch_size),
         "gradient_accumulation_steps": int(args.gradient_accumulation_steps),
         "max_steps": int(args.max_steps),
-        "save_steps": int(args.save_steps),
+        **_disable_intermediate_checkpoint_config(int(args.save_steps)),
         "logging_steps": int(args.logging_steps),
         "seed": int(args.seed),
         "bf16": bool(args.bf16),
@@ -682,6 +684,7 @@ def main() -> int:
     )
     final_adapter = out_dir / "final_adapter"
     trainer.save_model(str(final_adapter))
+    removed_checkpoints = _remove_intermediate_checkpoints(out_dir)
     global_step = int(getattr(trainer.state, "global_step", 0) or 0)
     trained_tokens = int(
         getattr(trainer.state, "num_input_tokens_seen", 0) or 0
@@ -699,6 +702,11 @@ def main() -> int:
     adapter_updates = int(optimizer_guard["successful_steps"])
     manifest["completed_ts"] = time.time()
     manifest["final_adapter"] = str(final_adapter)
+    manifest["checkpoint_policy"] = {
+        "intermediate_checkpoints": "disabled",
+        "save_strategy": "no",
+        "removed_intermediate_checkpoints": removed_checkpoints,
+    }
     manifest["adapter_updates"] = adapter_updates
     manifest["trainer_global_step"] = global_step
     manifest["trained_tokens"] = trained_tokens
