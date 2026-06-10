@@ -42,6 +42,11 @@ PHYSICS_PATH_SCALAR_FIELDS = (
     "trace_path",
     "adapter_path",
 )
+MISSING_CHRONO_COLLISION_GEOMETRY_TEXT = (
+    "required contact bodies lack Chrono collision geometry"
+)
+CAPABILITY_UNAVAILABLE_CODE = "capability_unavailable"
+MISSING_COLLISION_RECLASSIFIED_CODE = "invalid_artifact"
 BENCHMARK_FILE_NAMES = (
     "benchmark_manifest.json",
     "split_manifest_A.json",
@@ -222,7 +227,9 @@ def load_shard_rows(
                 raise SystemExit(f"missing shard cell_results.jsonl: {rows_path}")
             continue
         shard_rows = [
-            absolutize_row_paths(json.loads(line), base_dir=shard_dir)
+            normalize_design_preflight_capability_code(
+                absolutize_row_paths(json.loads(line), base_dir=shard_dir)
+            )
             for line in rows_path.read_text(encoding="utf-8").splitlines()
             if line.strip()
         ]
@@ -276,6 +283,84 @@ def absolutize_path(value: Any, base_dir: Path) -> str:
     if path.is_absolute():
         return str(path)
     return str((base_dir / path).resolve())
+
+
+def normalize_design_preflight_capability_code(
+    row: dict[str, Any],
+) -> dict[str, Any]:
+    codes = failure_code_list(row.get("failure_codes", []))
+    if CAPABILITY_UNAVAILABLE_CODE not in codes:
+        return row
+    if not row_has_missing_collision_geometry_evidence(row):
+        return row
+    out = dict(row)
+    recoded = [
+        code for code in codes if code != CAPABILITY_UNAVAILABLE_CODE
+    ]
+    if MISSING_COLLISION_RECLASSIFIED_CODE not in recoded:
+        recoded.append(MISSING_COLLISION_RECLASSIFIED_CODE)
+    out["failure_codes"] = recoded
+    out["capability_unavailable_reclassified"] = True
+    out["capability_unavailable_reclassification_reason"] = (
+        MISSING_CHRONO_COLLISION_GEOMETRY_TEXT
+    )
+    return out
+
+
+def failure_code_list(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [item.strip() for item in value.split(",") if item.strip()]
+    if isinstance(value, list):
+        return [str(item) for item in value if str(item)]
+    return [str(value)]
+
+
+def row_has_missing_collision_geometry_evidence(row: dict[str, Any]) -> bool:
+    for path in candidate_evidence_paths(row):
+        if path_contains(path, MISSING_CHRONO_COLLISION_GEOMETRY_TEXT):
+            return True
+    return False
+
+
+def candidate_evidence_paths(row: dict[str, Any]) -> list[Path]:
+    values: list[Any] = []
+    for field in (
+        "summary_path",
+        "verifier_output_path",
+        "verifier_output_paths",
+        "chrono_output_path",
+        "chrono_output_paths",
+    ):
+        raw = row.get(field)
+        if isinstance(raw, list):
+            values.extend(raw)
+        elif raw:
+            values.append(raw)
+    out: list[Path] = []
+    seen: set[str] = set()
+    for value in values:
+        path = Path(str(value))
+        key = str(path)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(path)
+    return out
+
+
+def path_contains(path: Path, needle: str) -> bool:
+    if not path.is_file():
+        return False
+    try:
+        with path.open("r", encoding="utf-8", errors="ignore") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), ""):
+                if needle in chunk:
+                    return True
+    except OSError:
+        return False
+    return False
 
 
 def materialize_row_evidence(
