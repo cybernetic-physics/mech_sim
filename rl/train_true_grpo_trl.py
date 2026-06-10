@@ -871,8 +871,12 @@ def _make_reward_func(
     timeout_s: float,
     reward_scale: float,
     reward_channel: str,
+    max_cad_audits: int | None = None,
+    max_chrono_audits: int | None = None,
 ):
     log_path.parent.mkdir(parents=True, exist_ok=True)
+    cad_audits_used = 0
+    chrono_audits_used = 0
 
     def reward_func(
         prompts: list[Any],
@@ -885,6 +889,7 @@ def _make_reward_func(
         rewards: list[float] = []
         rows: list[dict[str, Any]] = []
         ids = task_id or [""] * len(completions)
+        nonlocal cad_audits_used, chrono_audits_used
         for idx, completion in enumerate(completions):
             if rollout_completion_text and idx < len(rollout_completion_text):
                 raw_text = str(rollout_completion_text[idx])
@@ -894,12 +899,24 @@ def _make_reward_func(
             task_path = Path(task_dir[idx]).resolve()
             candidate_scratch = scratch_root / f"reward_{time.time_ns()}_{idx}"
             candidate_scratch.mkdir(parents=True, exist_ok=True)
+            skip_cad_audit = (
+                max_cad_audits is not None
+                and cad_audits_used >= int(max_cad_audits)
+            )
+            skip_chrono_audit = (
+                max_chrono_audits is not None
+                and chrono_audits_used >= int(max_chrono_audits)
+            )
             result = score_completion(
                 text,
                 task_path,
                 scratch_root=candidate_scratch,
                 timeout_s=timeout_s,
+                skip_cad_audit=skip_cad_audit,
+                skip_chrono_audit=skip_chrono_audit,
             )
+            cad_audits_used += int(result.cad_audits or 0)
+            chrono_audits_used += int(result.chrono_audits or 0)
             reward_base, reward_features = _reward_base(
                 text,
                 result,
@@ -919,6 +936,12 @@ def _make_reward_func(
                 "completion_preview": text[:4000],
                 "raw_completion_text": raw_text if raw_text != text else None,
                 "standalone_helpers_injected": raw_text != text,
+                "cad_audit_cap": max_cad_audits,
+                "chrono_audit_cap": max_chrono_audits,
+                "cad_audits_used_after": cad_audits_used,
+                "chrono_audits_used_after": chrono_audits_used,
+                "cad_audit_budget_exhausted_before": skip_cad_audit,
+                "chrono_audit_budget_exhausted_before": skip_chrono_audit,
                 **result.to_dict(),
             })
         with log_path.open("a") as f:
@@ -1540,6 +1563,24 @@ def main() -> int:
         ),
     )
     parser.add_argument("--reward-timeout-s", type=float, default=60.0)
+    parser.add_argument(
+        "--max-cad-audits",
+        type=int,
+        default=None,
+        help=(
+            "optional per-run cap for trusted CAD audit executions; after "
+            "the cap is spent, CAD-backed probes return budget_exhausted"
+        ),
+    )
+    parser.add_argument(
+        "--max-chrono-audits",
+        type=int,
+        default=None,
+        help=(
+            "optional per-run cap for Chrono audit executions; after the "
+            "cap is spent, Chrono-backed probes return budget_exhausted"
+        ),
+    )
     parser.add_argument("--save-steps", type=int, default=25)
     parser.add_argument(
         "--save-adapter-dtype",
@@ -1589,6 +1630,10 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true",
                         help="write dataset/config metadata without training")
     args = parser.parse_args()
+    if args.max_cad_audits is not None and int(args.max_cad_audits) < 0:
+        raise SystemExit("--max-cad-audits must be non-negative")
+    if args.max_chrono_audits is not None and int(args.max_chrono_audits) < 0:
+        raise SystemExit("--max-chrono-audits must be non-negative")
 
     out_dir = Path(args.output_dir).expanduser().resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -1668,6 +1713,8 @@ def main() -> int:
         "reward": f"mech_bench {args.reward_channel} * reward_scale",
         "reward_channel": args.reward_channel,
         "reward_scale": float(args.reward_scale),
+        "max_cad_audits": args.max_cad_audits,
+        "max_chrono_audits": args.max_chrono_audits,
         "training_budget": {
             "max_steps": int(args.max_steps),
             "num_generations": int(args.num_generations),
@@ -1909,6 +1956,8 @@ def main() -> int:
         timeout_s=float(args.reward_timeout_s),
         reward_scale=float(args.reward_scale),
         reward_channel=str(args.reward_channel),
+        max_cad_audits=args.max_cad_audits,
+        max_chrono_audits=args.max_chrono_audits,
     )
     rollout_func = None
     rollout_retry_telemetry_path = out_dir / "rollout_retry_telemetry.jsonl"

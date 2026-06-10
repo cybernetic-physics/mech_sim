@@ -390,7 +390,7 @@ seed_args=()
 if [[ -n "$EVAL_SEEDS" ]]; then
   seed_args=(--eval-seeds "$EVAL_SEEDS")
 fi
-shard_signature="num_shards=$NUM_SHARDS;limit_tasks=$LIMIT_TASKS;methods=$METHODS;splits=$SPLITS;anti_shortcut_splits=$ANTI_SHORTCUT_SPLITS;eval_seeds=$EVAL_SEEDS"
+shard_signature="grouping=split_task_seed_budget_v2;num_shards=$NUM_SHARDS;limit_tasks=$LIMIT_TASKS;methods=$METHODS;splits=$SPLITS;anti_shortcut_splits=$ANTI_SHORTCUT_SPLITS;eval_seeds=$EVAL_SEEDS"
 shard_plan_marker="$OUT_DIR/experiment_shards/.submission_signature"
 (
   flock 9

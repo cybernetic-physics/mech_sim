@@ -1028,3 +1028,31 @@ def test_shards_partition_full_experiment_plan(tmp_path: Path) -> None:
     observed_keys = [key(cell) for cell in observed]
     assert set(observed_keys) == full_keys
     assert len(observed_keys) == len(set(observed_keys))
+
+
+def test_shards_keep_methods_for_same_cell_group_together(tmp_path: Path) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    full = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+
+    by_group: dict[tuple, set[int]] = {}
+    for cell in full["expected_cells"]:
+        group = (cell["split"], cell["task_id"], cell["seed"], cell["budget"])
+        by_group.setdefault(group, set()).add(
+            physics.cell_shard(cell, num_shards=5)
+        )
+
+    assert by_group
+    assert all(len(shards) == 1 for shards in by_group.values())

@@ -54,6 +54,7 @@ class FailureCode(str, Enum):
     # Pipeline-level
     SIMULATOR_DIVERGENCE = "simulator_divergence"
     CAPABILITY_UNAVAILABLE = "capability_unavailable"
+    BUDGET_EXHAUSTED = "budget_exhausted"
 
 
 @dataclass

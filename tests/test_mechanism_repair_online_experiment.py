@@ -11,8 +11,11 @@ from scripts import run_mechanism_repair_online_experiment as online
 from scripts.run_mechanism_repair_online_experiment import (
     EvalMethod,
     build_plan,
+    expensive_budget_caps_for_ttrl,
+    order_methods_for_budget_dependencies,
     require_learning_manifest,
     reset_non_resume_outputs,
+    reward_log_exceeds_expensive_caps,
     row_from_ttrl_reward_log,
     run_or_load_ttrl_cell,
     run_or_load_eval_summary,
@@ -150,6 +153,73 @@ def test_physics_method_specs_and_reward_channels() -> None:
             default="artifact_progress",
         )
         == "verified_score"
+    )
+
+
+def test_method_order_runs_no_update_before_ttrl_for_caps() -> None:
+    ordered = order_methods_for_budget_dependencies([
+        "mechanical_evolve_ttrl_tool_verified",
+        "frozen_model",
+        "llm_evolve_no_update",
+        "mechanical_evolve_ttrl",
+    ])
+
+    assert ordered.index("llm_evolve_no_update") < ordered.index(
+        "mechanical_evolve_ttrl"
+    )
+    assert ordered.index("llm_evolve_no_update") < ordered.index(
+        "mechanical_evolve_ttrl_tool_verified"
+    )
+
+
+def test_expensive_budget_caps_use_matching_no_update_row() -> None:
+    rows = [
+        {
+            "split": "A",
+            "task_id": "task",
+            "seed": 1,
+            "budget": 32,
+            "method": "llm_evolve_no_update",
+            "actual_cad_calls": 3,
+            "actual_chrono_calls": 2,
+        }
+    ]
+
+    assert expensive_budget_caps_for_ttrl(
+        rows,
+        split="A",
+        task_id="task",
+        seed=1,
+        budget=32,
+        required=True,
+    ) == (3, 2)
+    with pytest.raises(SystemExit, match="cap missing"):
+        expensive_budget_caps_for_ttrl(
+            rows,
+            split="A",
+            task_id="other",
+            seed=1,
+            budget=32,
+            required=True,
+        )
+
+
+def test_reward_log_exceeds_expensive_caps(tmp_path: Path) -> None:
+    reward_log = tmp_path / "reward_log.jsonl"
+    reward_log.write_text(
+        json.dumps({"cad_audits": 1, "chrono_audits": 0}) + "\n"
+        + json.dumps({"cad_audits": 1, "chrono_audits": 1}) + "\n"
+    )
+
+    assert reward_log_exceeds_expensive_caps(
+        reward_log,
+        max_cad_audits=1,
+        max_chrono_audits=1,
+    )
+    assert not reward_log_exceeds_expensive_caps(
+        reward_log,
+        max_cad_audits=2,
+        max_chrono_audits=1,
     )
 
 

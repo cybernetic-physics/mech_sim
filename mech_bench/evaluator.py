@@ -233,6 +233,39 @@ def _fake_oracle_is_explicit(
     return False
 
 
+def _csv_env_set(name: str) -> set[str]:
+    raw = os.environ.get(name, "")
+    return {item.strip() for item in raw.split(",") if item.strip()}
+
+
+def _budget_exhausted_result(
+    *,
+    spec: ProbeSpec,
+    where: str,
+) -> ProbeResult:
+    return ProbeResult(
+        probe_id=spec.id,
+        probe_type=spec.type,
+        passed=False,
+        score=0.0,
+        metrics={},
+        failures=[Failure(
+            code=FailureCode.BUDGET_EXHAUSTED,
+            severity=Severity.CRITICAL,
+            message=(
+                f"Matched expensive verifier budget exhausted before "
+                f"probe {spec.id!r} could run."
+            ),
+            where=where,
+            public_hint=(
+                "This candidate reached a CAD/physics check after the "
+                "matched expensive-call cap had already been spent."
+            ),
+        )],
+        skipped_reason="matched expensive verifier budget exhausted",
+    )
+
+
 def build_execution_plan(
     cfg: EvalConfig,
     *,
@@ -1236,6 +1269,12 @@ def evaluate_with_evidence(
     timings["plan"] = time.perf_counter() - t0
 
     evaluation_valid = True
+    budget_exhausted_probe_types = _csv_env_set(
+        "MECH_BENCH_BUDGET_EXHAUSTED_PROBES"
+    )
+    budget_exhausted_adapters = _csv_env_set(
+        "MECH_BENCH_BUDGET_EXHAUSTED_ADAPTERS"
+    )
 
     # Run each needed adapter once. Each adapter receives the
     # ``[adapters.<name>]`` table from eval_config.toml (or an empty
@@ -1250,6 +1289,22 @@ def evaluate_with_evidence(
             None,
         )
         if adapter_cls is None:
+            continue
+        if adapter_name in budget_exhausted_adapters:
+            adapter_failures.append(Failure(
+                code=FailureCode.BUDGET_EXHAUSTED,
+                severity=Severity.CRITICAL,
+                message=(
+                    f"Matched expensive verifier budget exhausted before "
+                    f"adapter {adapter_name!r} could run."
+                ),
+                where=f"adapter.{adapter_name}",
+                public_hint=(
+                    "The experimental budget cap prevented this expensive "
+                    "CAD/physics adapter from running for the candidate."
+                ),
+            ))
+            timings[f"adapter.{adapter_name}"] = 0.0
             continue
         adapter = adapter_cls()
         adapter_cfg: dict[str, Any] = {"samples": 360}
@@ -1324,7 +1379,19 @@ def evaluate_with_evidence(
         # If the probe depends on an adapter that reported
         # capability_unavailable, short-circuit so we don't surface
         # spurious physical failures like missing_contact.
-        if (pplan.adapter_type
+        if spec.type in budget_exhausted_probe_types:
+            r = _budget_exhausted_result(
+                spec=spec,
+                where=f"probe.{spec.id}",
+            )
+        elif (
+                pplan.adapter_type
+                and pplan.adapter_type in budget_exhausted_adapters):
+            r = _budget_exhausted_result(
+                spec=spec,
+                where=f"adapter.{pplan.adapter_type}",
+            )
+        elif (pplan.adapter_type
                 and pplan.adapter_type in unavailable_adapters):
             r = ProbeResult(
                 probe_id=spec.id,

@@ -717,7 +717,6 @@ def cell_shard(cell: dict[str, Any], *, num_shards: int) -> int:
             "split": cell["split"],
             "task_id": cell["task_id"],
             "seed": int(cell["seed"]),
-            "method": cell["method"],
             "budget": int(cell["budget"]),
         },
         sort_keys=True,

@@ -261,6 +261,60 @@ def test_multi_adapter_run_mixes_none_and_planar(tmp_path):
     assert FailureCode.SIMULATOR_DIVERGENCE.value not in codes
 
 
+def test_budget_exhausted_adapter_skip_is_valid_failed_probe(
+    monkeypatch,
+    tmp_path,
+):
+    task_dir = tmp_path / "task"
+    task_dir.mkdir()
+    fixtures = task_dir / "fixtures"
+    fixtures.mkdir()
+    (fixtures / "target_path.csv").write_text(
+        (TASK_DIR / "fixtures" / "target_path.csv").read_text()
+    )
+    (task_dir / "prompt.md").write_text("p")
+    (task_dir / "task.toml").write_text((TASK_DIR / "task.toml").read_text())
+    (task_dir / "eval_config.toml").write_text(
+        '[[probes]]\n'
+        'id = "ports"\n'
+        'type = "required_ports"\n'
+        'ports = ["input_port", "output_port", "coupler_point"]\n'
+        'hard_gate = true\n\n'
+        '[[probes]]\n'
+        'id = "mobility"\n'
+        'type = "dof_grubler"\n'
+        'space = "planar"\n'
+        'expected = 1\n'
+        'hard_gate = true\n\n'
+        '[[probes]]\n'
+        'id = "coupler_path"\n'
+        'type = "path_trace_chamfer"\n'
+        'moving_frame = "coupler_point"\n'
+        'target_csv = "target_path.csv"\n'
+        'normalize = true\n'
+        'max_chamfer = 0.05\n'
+        'weight = 1.0\n\n'
+        '[hard_gate]\n'
+        'require = ["ports", "mobility"]\n'
+    )
+    monkeypatch.setenv(
+        "MECH_BENCH_BUDGET_EXHAUSTED_ADAPTERS",
+        "planar_kinematics",
+    )
+
+    report = evaluate(
+        task_dir,
+        TASK_DIR / "reference_solution",
+        scratch_dir=tmp_path / "scr",
+    )
+
+    codes = _codes(report)
+    assert FailureCode.BUDGET_EXHAUSTED.value in codes
+    assert FailureCode.CAPABILITY_UNAVAILABLE.value not in codes
+    assert report.evaluation_valid is True
+    assert report.score == 0.0
+
+
 def test_contact_probe_without_adapter_is_capability_unavailable(
     _no_contact_adapters, tmp_path,
 ):

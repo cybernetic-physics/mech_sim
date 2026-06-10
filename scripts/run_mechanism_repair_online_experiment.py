@@ -313,6 +313,7 @@ def main() -> int:
         if args.methods
         else list(method_contract["required_methods"])
     )
+    requested_methods = order_methods_for_budget_dependencies(requested_methods)
     allowed_methods = set(REQUIRED_METHODS) | set(method_contract["required_methods"])
     unknown = sorted(set(requested_methods) - allowed_methods)
     if unknown:
@@ -476,6 +477,17 @@ def main() -> int:
                         run_dir = (
                             run_root / split / str(seed) / method / task_id
                         )
+                        cad_cap, chrono_cap = expensive_budget_caps_for_ttrl(
+                            rows,
+                            split=split,
+                            task_id=task_id,
+                            seed=seed,
+                            budget=budget,
+                            required=(
+                                PHYSICS_PRIMARY_BASELINE
+                                in set(requested_methods)
+                            ),
+                        )
                         row = run_or_load_ttrl_cell(
                             args=args,
                             run_dir=run_dir,
@@ -493,6 +505,8 @@ def main() -> int:
                                 method,
                                 default=str(args.ttrl_reward_channel),
                             ),
+                            max_cad_audits=cad_cap,
+                            max_chrono_audits=chrono_cap,
                             family_by_task=family_by_task,
                             verifier_level_by_task=verifier_level_by_task,
                             evidence_root=out_dir,
@@ -812,6 +826,60 @@ def method_spec(
     raise SystemExit(f"sample evaluator cannot run method {method}")
 
 
+def order_methods_for_budget_dependencies(methods: list[str]) -> list[str]:
+    """Run the no-update baseline before TTRL cells that consume its caps."""
+    out = list(dict.fromkeys(methods))
+    baseline = PHYSICS_PRIMARY_BASELINE
+    if baseline not in out:
+        return out
+
+    def key(method: str) -> tuple[int, str]:
+        if method == baseline:
+            return (0, method)
+        if method in TTRL_METHODS:
+            return (2, method)
+        return (1, method)
+
+    return sorted(out, key=key)
+
+
+def expensive_budget_caps_for_ttrl(
+    rows: list[dict[str, Any]],
+    *,
+    split: str,
+    task_id: str,
+    seed: int,
+    budget: int,
+    required: bool,
+) -> tuple[int | None, int | None]:
+    for row in reversed(rows):
+        if (
+            str(row.get("split")) == str(split)
+            and str(row.get("task_id")) == str(task_id)
+            and int(row.get("seed", -1) or -1) == int(seed)
+            and str(row.get("method")) == PHYSICS_PRIMARY_BASELINE
+            and int(row.get("budget", budget) or budget) == int(budget)
+        ):
+            return (
+                int(row.get("actual_cad_calls", row.get("cad_audits", 0)) or 0),
+                int(
+                    row.get(
+                        "actual_chrono_calls",
+                        row.get("chrono_audits", 0),
+                    )
+                    or 0
+                ),
+            )
+    if required:
+        raise SystemExit(
+            "TTRL expensive-budget cap missing: "
+            f"{split}/{task_id}/seed={seed}/budget={budget} has no "
+            f"{PHYSICS_PRIMARY_BASELINE} row. Regenerate shards grouped by "
+            "split/task/seed/budget so the baseline runs before TTRL."
+        )
+    return None, None
+
+
 def reward_channel_for_method(method: str, *, default: str) -> str:
     if method == "mechanical_evolve_ttrl_confidence":
         return "verified_score"
@@ -1042,11 +1110,29 @@ def run_or_load_ttrl_cell(
     verifier_level_by_task: dict[str, int] | None = None,
     method: str = PRIMARY_METHOD,
     reward_channel: str | None = None,
+    max_cad_audits: int | None = None,
+    max_chrono_audits: int | None = None,
     evidence_layout: str = "files",
 ) -> dict[str, Any]:
     reward_log = run_dir / "reward_log.jsonl"
     if not resume_existing and run_dir.exists():
         shutil.rmtree(run_dir)
+        reward_log = run_dir / "reward_log.jsonl"
+    if (
+        resume_existing
+        and reward_log.is_file()
+        and reward_log_exceeds_expensive_caps(
+            reward_log,
+            max_cad_audits=max_cad_audits,
+            max_chrono_audits=max_chrono_audits,
+        )
+    ):
+        print(
+            f"[resume] discarding uncapped/overspent TTRL run for {task_id}: "
+            f"{reward_log}",
+            file=sys.stderr,
+        )
+        shutil.rmtree(run_dir, ignore_errors=True)
         reward_log = run_dir / "reward_log.jsonl"
     for attempt in range(2):
         if not (resume_existing and reward_log.is_file()):
@@ -1104,6 +1190,13 @@ def run_or_load_ttrl_cell(
                 "--seed",
                 str(seed),
             ]
+            if max_cad_audits is not None:
+                cmd.extend(["--max-cad-audits", str(int(max_cad_audits))])
+            if max_chrono_audits is not None:
+                cmd.extend([
+                    "--max-chrono-audits",
+                    str(int(max_chrono_audits)),
+                ])
             add_option(cmd, "--init-adapter", init_adapter)
             add_flag(cmd, args.ttrl_load_in_4bit, "--load-in-4bit")
             add_flag(cmd, args.ttrl_load_in_8bit, "--load-in-8bit")
@@ -1194,7 +1287,57 @@ def run_or_load_ttrl_cell(
             f"expected {int(budget)}. Adjust --ttrl-max-steps and "
             "--ttrl-num-generations before running the full audit."
         )
+    if (
+        max_cad_audits is not None
+        and int(row.get("actual_cad_calls", 0) or 0) > int(max_cad_audits)
+    ):
+        raise SystemExit(
+            "TTRL CAD budget mismatch: "
+            f"{method} {split}/{task_id}/seed={seed} wrote "
+            f"{row.get('actual_cad_calls')} CAD calls; cap is {max_cad_audits}."
+        )
+    if (
+        max_chrono_audits is not None
+        and int(row.get("actual_chrono_calls", 0) or 0)
+        > int(max_chrono_audits)
+    ):
+        raise SystemExit(
+            "TTRL Chrono budget mismatch: "
+            f"{method} {split}/{task_id}/seed={seed} wrote "
+            f"{row.get('actual_chrono_calls')} Chrono calls; "
+            f"cap is {max_chrono_audits}."
+        )
     return row
+
+
+def reward_log_exceeds_expensive_caps(
+    reward_log: Path,
+    *,
+    max_cad_audits: int | None,
+    max_chrono_audits: int | None,
+) -> bool:
+    if max_cad_audits is None and max_chrono_audits is None:
+        return False
+    cad = 0
+    chrono = 0
+    try:
+        lines = reward_log.read_text().splitlines()
+    except OSError:
+        return False
+    for line in lines:
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            return True
+        cad += int(row.get("cad_audits", 0) or 0)
+        chrono += int(row.get("chrono_audits", 0) or 0)
+        if max_cad_audits is not None and cad > int(max_cad_audits):
+            return True
+        if max_chrono_audits is not None and chrono > int(max_chrono_audits):
+            return True
+    return False
 
 
 def retain_ttrl_adapter_checkpoint(

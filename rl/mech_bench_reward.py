@@ -26,6 +26,7 @@ emits text) and the deterministic reward (mech_bench probes).
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -161,6 +162,8 @@ def score_completion(
     *,
     scratch_root: Path | None = None,
     timeout_s: float = 60.0,
+    skip_cad_audit: bool = False,
+    skip_chrono_audit: bool = False,
 ) -> RewardResult:
     """Score *completion* against *task_dir*.
 
@@ -191,11 +194,33 @@ def score_completion(
         "--full",
         "--allow-partial",
     ]
+    env = os.environ.copy()
+    if skip_cad_audit:
+        probes = {
+            item.strip()
+            for item in env.get(
+                "MECH_BENCH_BUDGET_EXHAUSTED_PROBES", ""
+            ).split(",")
+            if item.strip()
+        }
+        probes.add("trusted_asset_preflight")
+        env["MECH_BENCH_BUDGET_EXHAUSTED_PROBES"] = ",".join(sorted(probes))
+    if skip_chrono_audit:
+        adapters = {
+            item.strip()
+            for item in env.get(
+                "MECH_BENCH_BUDGET_EXHAUSTED_ADAPTERS", ""
+            ).split(",")
+            if item.strip()
+        }
+        adapters.add("chrono_contact")
+        env["MECH_BENCH_BUDGET_EXHAUSTED_ADAPTERS"] = ",".join(sorted(adapters))
     try:
         proc = subprocess.run(
             cmd, capture_output=True, text=True,
             timeout=timeout_s, check=False,
             cwd=REPO_ROOT,
+            env=env,
         )
     except subprocess.TimeoutExpired:
         return RewardResult(
