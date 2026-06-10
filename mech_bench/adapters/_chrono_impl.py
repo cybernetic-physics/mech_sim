@@ -68,6 +68,9 @@ def run(ir: DesignIR, config: dict[str, Any]) -> dict[str, Any]:
     Missing PyChrono is reported as capability-unavailable. Build failures or
     solver exceptions are reported as adapter errors so the evaluator surfaces
     ``simulator_divergence`` instead of pretending the physics probe ran.
+    Submission preflight defects, such as missing collision geometry on
+    declared contact bodies, return a non-capability preflight-failure payload
+    so the verifier records a failed design rather than a missing simulator.
     """
     try:
         import pychrono as chrono  # type: ignore[import-not-found]
@@ -111,7 +114,7 @@ def run(ir: DesignIR, config: dict[str, Any]) -> dict[str, Any]:
             if "no Chrono collision geometry" in issue
         ]
         if missing_contact_geom:
-            return _capability_unavailable_payload(
+            return _preflight_failure_payload(
                 "required contact bodies lack Chrono collision geometry: "
                 + "; ".join(missing_contact_geom[:4])
             )
@@ -3250,6 +3253,27 @@ def _capability_unavailable_payload(reason: str) -> dict[str, Any]:
             "oracle_is_synthetic": False,
         },
         "__capability_unavailable__": True,
+    }
+
+
+def _preflight_failure_payload(reason: str) -> dict[str, Any]:
+    return {
+        "time_s": np.zeros(0, dtype=float),
+        "joint_positions": {},
+        "joint_velocities": {},
+        "contact_forces": {},
+        "penetration": {},
+        "body_poses": {},
+        "scalar_metrics": {
+            "chrono_preflight_failed": 1.0,
+        },
+        "metadata": {
+            "adapter": "chrono_contact",
+            "simulator": "project_chrono",
+            "preflight_issues": [reason],
+            "is_physical_oracle": False,
+            "oracle_is_synthetic": False,
+        },
     }
 
 

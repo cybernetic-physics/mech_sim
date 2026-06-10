@@ -543,6 +543,29 @@ def test_chrono_impl_direct_run_reports_missing_pychrono(monkeypatch):
     assert "pychrono not importable" in out["metadata"]["preflight_issues"][0]
 
 
+def test_missing_contact_geometry_is_design_preflight_not_capability():
+    from mech_bench.adapters import _chrono_impl
+    from mech_bench.feedback import FailureCode
+    from mech_bench.probes.contact_engagement import ContactEngagement
+
+    out = _chrono_impl._preflight_failure_payload(
+        "required contact bodies lack Chrono collision geometry: body disc"
+    )
+
+    assert "__capability_unavailable__" not in out
+    assert "__adapter_error__" not in out
+    assert out["scalar_metrics"]["chrono_preflight_failed"] == 1.0
+
+    result = ContactEngagement().run(
+        _minimal_ir(),
+        out,
+        {"required_pairs": ["input:output"]},
+    )
+    codes = {failure.code for failure in result.failures}
+    assert FailureCode.MISSING_CONTACT in codes
+    assert FailureCode.CAPABILITY_UNAVAILABLE not in codes
+
+
 def test_chrono_mesh_convex_decomposition_hulls_are_cached(tmp_path):
     if importlib.util.find_spec("pychrono") is None:
         pytest.skip("requires PyChrono")
