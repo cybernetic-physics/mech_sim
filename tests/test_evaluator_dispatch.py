@@ -36,6 +36,7 @@ from mech_bench.schema import (
     ProbeSpec,
     TaskSpec,
 )
+from rl.verifier_audits import adapter_audit_count
 
 
 TASK_DIR = (Path(__file__).resolve().parent.parent
@@ -313,6 +314,7 @@ def test_budget_exhausted_adapter_skip_is_valid_failed_probe(
     assert FailureCode.CAPABILITY_UNAVAILABLE.value not in codes
     assert report.evaluation_valid is True
     assert report.score == 0.0
+    assert adapter_audit_count(report.to_dict(), "planar_kinematics") == 0
 
 
 def test_contact_probe_without_adapter_is_capability_unavailable(

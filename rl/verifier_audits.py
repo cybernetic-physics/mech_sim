@@ -28,8 +28,8 @@ def adapter_audit_count(score_blob: dict[str, Any], adapter_name: str) -> int:
     """Return 1 iff an evaluator report shows a real adapter attempt.
 
     ``mech_bench evaluate --full`` exposes adapter execution through
-    ``timings.adapter.<name>``. Capability-unavailable probes do not count as
-    expensive audits because no simulator run happened.
+    ``timings.adapter.<name>``. Capability-unavailable and budget-exhausted
+    probes do not count as expensive audits because no simulator run happened.
     """
     timings = score_blob.get("timings") or {}
     if not isinstance(timings, dict):
@@ -40,7 +40,10 @@ def adapter_audit_count(score_blob: dict[str, Any], adapter_name: str) -> int:
     for item in score_blob.get("feedback") or []:
         if not isinstance(item, dict):
             continue
-        if item.get("code") != "capability_unavailable":
+        if item.get("code") not in {
+            "capability_unavailable",
+            "budget_exhausted",
+        }:
             continue
         where = str(item.get("where") or "")
         message = str(item.get("message") or "")
