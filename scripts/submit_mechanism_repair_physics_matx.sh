@@ -147,6 +147,10 @@ remote_logs="$REMOTE_ROOT/logs"
 remote_sbatch="$REMOTE_ROOT/run_mechanism_repair_physics_array.sbatch"
 remote_merge_sbatch="$REMOTE_ROOT/run_mechanism_repair_physics_merge.sbatch"
 remote_analysis_sbatch="$REMOTE_ROOT/run_mechanism_repair_physics_analysis.sbatch"
+remote_out_dir="$remote_repo/$OUT_DIR"
+if [[ "$OUT_DIR" == /* ]]; then
+  remote_out_dir="$OUT_DIR"
+fi
 source_ref="${SOURCE_REF:-HEAD}"
 source_commit="$(git -C "$repo_root" rev-parse "$source_ref")"
 source_commit_short="${source_commit:0:8}"
@@ -186,6 +190,7 @@ fi
 ssh "$REMOTE_HOST" "rm -rf '$remote_repo' && mkdir -p '$remote_repo' '$remote_logs' '$REMOTE_ROOT/locks' '$REMOTE_ROOT/venvs'"
 git -C "$repo_root" archive --format=tar "$source_commit" \
   | ssh "$REMOTE_HOST" "tar -xf - -C '$remote_repo'"
+ssh "$REMOTE_HOST" "rm -rf '$remote_out_dir/experiment_shards'"
 
 tmp_sbatch="$(mktemp)"
 cat >"$tmp_sbatch" <<EOF

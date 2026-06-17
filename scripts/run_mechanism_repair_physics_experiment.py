@@ -672,7 +672,10 @@ def write_shard_files(
         raise SystemExit("--write-shard-files must be >= 1")
     shard_dir = out_dir / "experiment_shards"
     shard_dir.mkdir(parents=True, exist_ok=True)
+    for stale in shard_dir.glob("shard_*.json"):
+        stale.unlink()
     cells = list(plan.get("expected_cells", []) or [])
+    shard_payloads = []
     for shard_index in range(num_shards):
         shard_cells = [
             cell for cell in cells
@@ -708,16 +711,75 @@ def write_shard_files(
                 str(shard_index),
             ],
         }
-        write_json(shard_dir / f"shard_{shard_index:04d}.json", payload)
+        shard_payloads.append(payload)
+    validate_shard_payloads(shard_payloads)
+    for payload in shard_payloads:
+        write_json(
+            shard_dir / f"shard_{int(payload['shard_index']):04d}.json",
+            payload,
+        )
+
+
+def validate_shard_payloads(payloads: list[dict[str, Any]]) -> None:
+    bad_assignments: list[dict[str, Any]] = []
+    group_shards: dict[tuple[str, str, int, int], set[int]] = {}
+    for payload in payloads:
+        num_shards = int(payload["num_shards"])
+        shard_index = int(payload["shard_index"])
+        for cell in payload.get("cells", []) or []:
+            expected = cell_shard(cell, num_shards=num_shards)
+            if expected != shard_index:
+                bad_assignments.append({
+                    "task_id": cell.get("task_id"),
+                    "split": cell.get("split"),
+                    "seed": cell.get("seed"),
+                    "method": cell.get("method"),
+                    "budget": cell.get("budget"),
+                    "actual_shard": shard_index,
+                    "expected_shard": expected,
+                })
+            group_shards.setdefault(cell_group_key(cell), set()).add(shard_index)
+    split_groups = [
+        {
+            "split": split,
+            "task_id": task_id,
+            "seed": seed,
+            "budget": budget,
+            "shards": sorted(shards),
+        }
+        for (split, task_id, seed, budget), shards in group_shards.items()
+        if len(shards) > 1
+    ]
+    if bad_assignments or split_groups:
+        raise SystemExit(
+            "invalid experiment shard partition: "
+            + json.dumps(
+                {
+                    "bad_assignments": bad_assignments[:10],
+                    "split_groups": split_groups[:10],
+                },
+                sort_keys=True,
+            )
+        )
+
+
+def cell_group_key(cell: dict[str, Any]) -> tuple[str, str, int, int]:
+    return (
+        str(cell["split"]),
+        str(cell["task_id"]),
+        int(cell["seed"]),
+        int(cell["budget"]),
+    )
 
 
 def cell_shard(cell: dict[str, Any], *, num_shards: int) -> int:
+    split, task_id, seed, budget = cell_group_key(cell)
     key = json.dumps(
         {
-            "split": cell["split"],
-            "task_id": cell["task_id"],
-            "seed": int(cell["seed"]),
-            "budget": int(cell["budget"]),
+            "split": split,
+            "task_id": task_id,
+            "seed": seed,
+            "budget": budget,
         },
         sort_keys=True,
         separators=(",", ":"),

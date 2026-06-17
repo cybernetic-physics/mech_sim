@@ -1056,3 +1056,64 @@ def test_shards_keep_methods_for_same_cell_group_together(tmp_path: Path) -> Non
 
     assert by_group
     assert all(len(shards) == 1 for shards in by_group.values())
+
+
+def test_write_shard_files_materializes_grouped_valid_shards(tmp_path: Path) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    full = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    shard_dir = out_dir / "experiment_shards"
+    shard_dir.mkdir(parents=True)
+    _write_json(
+        shard_dir / "shard_9999.json",
+        {
+            "schema": "stale",
+            "num_shards": 10000,
+            "shard_index": 9999,
+            "cells": [full["expected_cells"][0]],
+        },
+    )
+
+    physics.write_shard_files(out_dir=out_dir, plan=full, num_shards=5)
+
+    assert not (shard_dir / "shard_9999.json").exists()
+    observed = []
+    by_group: dict[tuple, set[int]] = {}
+    for path in sorted(shard_dir.glob("shard_*.json")):
+        payload = json.loads(path.read_text())
+        shard_index = int(payload["shard_index"])
+        for cell in payload["cells"]:
+            assert physics.cell_shard(cell, num_shards=5) == shard_index
+            observed.append(
+                (
+                    cell["split"],
+                    cell["task_id"],
+                    cell["seed"],
+                    cell["method"],
+                    cell["budget"],
+                )
+            )
+            group = (
+                cell["split"],
+                cell["task_id"],
+                cell["seed"],
+                cell["budget"],
+            )
+            by_group.setdefault(group, set()).add(shard_index)
+
+    assert len(observed) == full["planned_cells"]
+    assert len(observed) == len(set(observed))
+    assert by_group
+    assert all(len(shards) == 1 for shards in by_group.values())
