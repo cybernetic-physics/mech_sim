@@ -10,6 +10,23 @@ answer to the hypothesis below.
 
 No corner cutting: the thing to accomplish is the experiment.
 
+## Cluster Conduct Constraint
+
+Do not poll the MATX login host or any cluster login node aggressively. In
+particular, do not run repeated `ssh sc ...` checks every 30 seconds or at any
+similar high frequency for `squeue`, `sacct`, log tails, filesystem scans, or
+disk checks. This is forbidden even during early failure triage.
+
+Cluster monitoring must be sparse and respectful of shared infrastructure:
+
+- Prefer Slurm dependencies, job output files, and cluster-side scripts over
+  repeated SSH polling from the laptop.
+- Use manual or low-frequency status checks only when necessary.
+- If active monitoring is required, batch multiple checks into one remote
+  command and wait a substantial interval before checking again.
+- Never create an automated SSH loop against `sc` unless the user explicitly
+  authorizes it and the polling interval is acceptable under cluster policy.
+
 ## Working Title
 
 MechanicalEvolve-Physics: Test-Time Verifier-Derived Reinforcement Learning
