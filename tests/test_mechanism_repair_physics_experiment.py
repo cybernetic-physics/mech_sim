@@ -202,8 +202,29 @@ def _write_complete_mechanistic_analysis(out_dir: Path) -> None:
                     "attempts": 2,
                 }
             ],
-            "ttrl_vs_no_update_failure_deltas": [],
-            "repair_dimension_deltas": [],
+            "ttrl_vs_no_update_failure_deltas": [
+                {
+                    "split": "hidden_perturbation",
+                    "family": "cycloidal_reducer",
+                    "failure_code": "wrong_mobility",
+                    "primary_method": "mechanical_evolve_ttrl_tool_verified",
+                    "baseline_method": "llm_evolve_no_update",
+                    "primary_count": 0,
+                    "baseline_count": 1,
+                    "delta": -1,
+                }
+            ],
+            "repair_dimension_deltas": [
+                {
+                    "dimension": "topology_repair",
+                    "primary_method": "mechanical_evolve_ttrl_tool_verified",
+                    "baseline_method": "llm_evolve_no_update",
+                    "primary_rate": 0.0,
+                    "baseline_rate": 0.0,
+                    "delta": 0.0,
+                    "n_paired_cells": 1,
+                }
+            ],
             "adapter_update_timeline": [
                 {
                     "split": "hidden_perturbation",
@@ -1263,6 +1284,106 @@ def test_missing_mechanistic_analysis_field_blocks_goal_completion(
 
     assert audit["claim_audit"]["goal_complete"] is False
     assert "failure_analysis.adapter_update_timeline" in (
+        audit["claim_audit"]["missing_analysis_requirements"]
+    )
+
+
+def test_empty_mechanistic_analysis_rows_block_goal_completion(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    _write_complete_physics_rows(out_dir, plan, lambda _cell: (1, 1))
+    failure_path = out_dir / "failure_analysis.json"
+    failure = json.loads(failure_path.read_text())
+    failure["failure_code_transition_matrix"] = []
+    _write_json(failure_path, failure)
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert "failure_analysis.failure_code_transition_matrix nonempty" in (
+        audit["claim_audit"]["missing_analysis_requirements"]
+    )
+
+
+def test_hidden_perturbation_analysis_without_rows_blocks_goal_completion(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    _write_complete_physics_rows(out_dir, plan, lambda _cell: (1, 1))
+    failure_path = out_dir / "failure_analysis.json"
+    failure = json.loads(failure_path.read_text())
+    failure["hidden_perturbation_failure_analysis"]["rows"] = 0
+    _write_json(failure_path, failure)
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert "failure_analysis.hidden_perturbation_failure_analysis.rows" in (
+        audit["claim_audit"]["missing_analysis_requirements"]
+    )
+
+
+def test_incomplete_repair_taxonomy_counts_block_goal_completion(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    _write_complete_physics_rows(out_dir, plan, lambda _cell: (1, 1))
+    taxonomy_path = out_dir / "repair_taxonomy.json"
+    taxonomy = json.loads(taxonomy_path.read_text())
+    taxonomy["goal_dimension_counts"] = [
+        row
+        for row in taxonomy["goal_dimension_counts"]
+        if row["dimension"] != "contact_lockup_repair"
+    ]
+    _write_json(taxonomy_path, taxonomy)
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert "repair_taxonomy.goal_dimension_counts: contact_lockup_repair" in (
         audit["claim_audit"]["missing_analysis_requirements"]
     )
 

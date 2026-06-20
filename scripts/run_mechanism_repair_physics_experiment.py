@@ -1091,22 +1091,36 @@ def analysis_requirement_blockers(out_dir: Path) -> list[str]:
     failure_path = out_dir / "failure_analysis.json"
     if failure_path.is_file():
         failure = read_json(failure_path)
-        required_failure_fields = (
+        required_failure_list_fields = (
             "failure_code_transition_matrix",
             "first_to_final_attempt_changes",
             "ttrl_vs_no_update_failure_deltas",
             "repair_dimension_deltas",
             "adapter_update_timeline",
-            "hidden_perturbation_failure_analysis",
         )
-        for field in required_failure_fields:
+        for field in required_failure_list_fields:
             if field not in failure:
                 blockers.append(f"failure_analysis.{field}")
-        if not isinstance(failure.get("adapter_update_timeline"), list):
-            blockers.append("failure_analysis.adapter_update_timeline list")
+                continue
+            value = failure.get(field)
+            if not isinstance(value, list):
+                blockers.append(f"failure_analysis.{field} list")
+            elif not value:
+                blockers.append(f"failure_analysis.{field} nonempty")
+        if "hidden_perturbation_failure_analysis" not in failure:
+            blockers.append("failure_analysis.hidden_perturbation_failure_analysis")
         hidden_failure = failure.get("hidden_perturbation_failure_analysis")
         if not isinstance(hidden_failure, dict) or hidden_failure.get("split") != "hidden_perturbation":
             blockers.append("failure_analysis.hidden_perturbation_failure_analysis")
+        else:
+            if int_value(hidden_failure.get("rows", 0)) <= 0:
+                blockers.append(
+                    "failure_analysis.hidden_perturbation_failure_analysis.rows"
+                )
+            if not isinstance(hidden_failure.get("failure_counts"), list):
+                blockers.append(
+                    "failure_analysis.hidden_perturbation_failure_analysis.failure_counts"
+                )
     taxonomy_path = out_dir / "repair_taxonomy.json"
     if taxonomy_path.is_file():
         taxonomy = read_json(taxonomy_path)
@@ -1121,6 +1135,27 @@ def analysis_requirement_blockers(out_dir: Path) -> list[str]:
         goal_counts = taxonomy.get("goal_dimension_counts")
         if not isinstance(goal_counts, list):
             blockers.append("repair_taxonomy.goal_dimension_counts")
+        else:
+            count_dims = {
+                str(row.get("dimension", ""))
+                for row in goal_counts
+                if isinstance(row, dict)
+            }
+            missing_count_dims = sorted(required_dims - count_dims)
+            if missing_count_dims:
+                blockers.append(
+                    "repair_taxonomy.goal_dimension_counts: "
+                    + ", ".join(missing_count_dims)
+                )
+            if any(
+                not isinstance(row, dict)
+                or not row.get("dimension")
+                or "n" not in row
+                for row in goal_counts
+            ):
+                blockers.append("repair_taxonomy.goal_dimension_counts rows")
+        if not isinstance(taxonomy.get("dimension_map"), dict):
+            blockers.append("repair_taxonomy.dimension_map")
     claim = stats.get("analysis_claim_audit") or {}
     claim_status = claim.get("claim_status")
     if claim_status not in {
