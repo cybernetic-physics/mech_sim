@@ -42,6 +42,14 @@ def test_help_documents_finalize_only() -> None:
     assert proc.returncode == 0
     assert "--finalize-only" in proc.stdout
     assert "does not submit a GPU array" in proc.stdout
+    assert "AUDIT_RETRIES=0" in proc.stdout
+
+
+def test_launcher_defaults_to_no_replacement_audit_retries() -> None:
+    text = SCRIPT.read_text(encoding="utf-8")
+
+    assert 'AUDIT_RETRIES="${AUDIT_RETRIES:-0}"' in text
+    assert "--audit-retries \"$AUDIT_RETRIES\"" in text
 
 
 def test_default_refuses_broad_gpu_array_before_remote_contact() -> None:
