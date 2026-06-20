@@ -1,6 +1,6 @@
 {
-  "eligible_task_count": 8,
-  "excluded_diagnostic_task_count": 22,
+  "eligible_task_count": 10,
+  "excluded_diagnostic_task_count": 20,
   "headline_only": true,
   "positioning": "CAD/design-style holdout; this does not claim CADBench/BenchCAD evaluation until those external tasks are actually imported.",
   "schema": "mechanism_repair_physics.external_style_split.v1",
@@ -10,12 +10,14 @@
   "splits": {
     "test": [
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t07_fourbar_straight_line_approx_s20268617",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t04_fourbar_crank_rocker_sweep_s20268614",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t05_fourbar_path_s20268615",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t06_fourbar_wiper_arc_s20268616",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t03_fourbar_dwell_path_s20268613",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t01_fourbar_wiper_arc_s20268611",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t00_fourbar_path_s20268610",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t08_fourbar_dwell_path_s20268618"
     ],
     "train": [],

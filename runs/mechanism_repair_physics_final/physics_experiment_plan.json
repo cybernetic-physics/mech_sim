@@ -16,7 +16,7 @@
     32
   ],
   "expected_cells_materialized_in_audit": false,
-  "full_planned_cells": 864,
+  "full_planned_cells": 960,
   "headline_splits": [
     "A",
     "B"
@@ -37,7 +37,7 @@
   "missing_required_seeds": [],
   "num_shards": 1,
   "out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
-  "planned_cells": 864,
+  "planned_cells": 960,
   "primary_baseline": "llm_evolve_no_update",
   "primary_budget": 32,
   "primary_method": "mechanical_evolve_ttrl_tool_verified",
@@ -75,21 +75,25 @@
     "B": [],
     "external_style": [
       "fourbar_linkage_t07_fourbar_straight_line_approx_s20268617",
+      "fourbar_linkage_t04_fourbar_crank_rocker_sweep_s20268614",
       "fourbar_linkage_t05_fourbar_path_s20268615",
       "fourbar_linkage_t06_fourbar_wiper_arc_s20268616",
       "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
       "fourbar_linkage_t03_fourbar_dwell_path_s20268613",
       "fourbar_linkage_t01_fourbar_wiper_arc_s20268611",
       "fourbar_linkage_t00_fourbar_path_s20268610",
+      "fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619",
       "fourbar_linkage_t08_fourbar_dwell_path_s20268618"
     ],
     "hidden_perturbation": [
       "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
       "slider_crank_t05_reciprocating_pump_plunger_s20267615",
+      "fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619",
       "fourbar_linkage_t03_fourbar_dwell_path_s20268613",
       "slider_crank_t01_slider_crank_stroke_precision_s20267611",
       "fourbar_linkage_t06_fourbar_wiper_arc_s20268616",
       "slider_crank_t09_slider_crank_stroke_s20267619",
+      "fourbar_linkage_t04_fourbar_crank_rocker_sweep_s20268614",
       "slider_crank_t06_slider_crank_stroke_s20267616",
       "slider_crank_t00_slider_crank_stroke_s20267610",
       "slider_crank_t02_reciprocating_pump_plunger_s20267612",

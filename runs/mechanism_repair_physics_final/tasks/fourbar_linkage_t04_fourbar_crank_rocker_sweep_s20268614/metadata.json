@@ -1,0 +1,22 @@
+{
+  "family": "fourbar_linkage",
+  "tier": "planar_kinematics",
+  "seed": 20268614,
+  "difficulty": 2,
+  "ground_mm": 112.7,
+  "crank_mm": 29.82,
+  "coupler_mm": 99.18,
+  "rocker_mm": 78.54,
+  "task_id": "fourbar_linkage_t04_fourbar_crank_rocker_sweep_s20268614",
+  "source_task_id": "fourbar_crank_rocker_sweep_s20268614",
+  "source_generator": "fourbar_crank_rocker_sweep",
+  "verifier_level": 2,
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "fake_contact_oracle_allowed": false
+}

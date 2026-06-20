@@ -88,7 +88,7 @@ FAMILY_SPECS: tuple[FamilySpec, ...] = (
             "fourbar_wiper_arc",
             "fourbar_straight_line_approx",
             "fourbar_dwell_path",
-            "fourbar_pump_handle",
+            "fourbar_crank_rocker_sweep",
         ),
     ),
     FamilySpec("cam_follower", 3, ("cam_follower_contact_stub",)),

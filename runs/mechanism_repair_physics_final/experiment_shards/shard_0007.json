@@ -880,12 +880,92 @@
       "split_kind": "anti_shortcut",
       "task_id": "fourbar_linkage_t01_fourbar_wiper_arc_s20268611",
       "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619",
+      "verifier_level": 2
     }
   ],
-  "full_planned_cells": 864,
+  "full_planned_cells": 960,
   "num_shards": 24,
   "out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
-  "planned_cells": 88,
+  "planned_cells": 96,
   "replay_args": [
     "--benchmark-dir",
     "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",

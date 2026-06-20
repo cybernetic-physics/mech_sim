@@ -35,29 +35,29 @@ def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
     assert manifest["task_count"] == 120
     assert audit["family_counts"] == {family: 10 for family in REQUIRED_FAMILIES}
     assert audit["headline_family_counts"] == {
-        "fourbar_linkage": 8,
+        "fourbar_linkage": 10,
         "slider_crank": 10,
     }
     assert audit["level_counts"] == {"2": 80, "3": 40}
-    assert audit["headline_task_count"] == 18
-    assert audit["diagnostic_task_count"] == 102
-    assert audit["level2plus_headline_count"] == 18
+    assert audit["headline_task_count"] == 20
+    assert audit["diagnostic_task_count"] == 100
+    assert audit["level2plus_headline_count"] == 20
     assert audit["level3_headline_count"] == 0
     assert audit["blockers"] == []
     assert audit["paper_blockers"]
     assert any(
-        "only 18 headline tasks; need 120" in blocker
+        "only 20 headline tasks; need 120" in blocker
         for blocker in audit["paper_blockers"]
     )
     assert any(
-        "102 diagnostic tasks excluded from headline result" in blocker
+        "100 diagnostic tasks excluded from headline result" in blocker
         for blocker in audit["paper_blockers"]
     )
 
     diagnostic_tasks = [
         task for task in audit["tasks"] if not task["headline_eligible"]
     ]
-    assert len(diagnostic_tasks) == 102
+    assert len(diagnostic_tasks) == 100
     assert all(task["headline_demotion_reason"] for task in diagnostic_tasks)
 
     for task in audit["tasks"]:
@@ -95,11 +95,11 @@ def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
     assert {name: len(tasks) for name, tasks in plan["split_tasks"].items()} == {
         "A": 10,
         "B": 0,
-        "external_style": 8,
-        "hidden_perturbation": 18,
+        "external_style": 10,
+        "hidden_perturbation": 20,
     }
-    assert plan["planned_cells"] == 864
-    assert plan["full_planned_cells"] == 864
+    assert plan["planned_cells"] == 960
+    assert plan["full_planned_cells"] == 960
 
 
 def _write_json(path: Path, payload: dict) -> None:

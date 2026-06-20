@@ -211,6 +211,10 @@ class FourbarCrankRockerSweepGenerator(TaskGenerator):
         ground, crank, coupler, rocker = _grashof_lengths(rng)
         off_x = round(rng.uniform(20.0, 40.0), 2)
         off_y = round(rng.uniform(-10.0, 20.0), 2)
+        path_pts = _fourbar_coupler_trace(
+            ground, crank, coupler, rocker, off_x, off_y, n=360)
+        hidden_pts = _fourbar_coupler_trace(
+            ground, crank, coupler, rocker, off_x, off_y, n=240)
         task_id = make_task_id(self.family, seed)
 
         parts, joints, ports = _four_bar_parts(
@@ -231,9 +235,10 @@ class FourbarCrankRockerSweepGenerator(TaskGenerator):
             "`output_port` (revolute_joint, grounded), "
             "`coupler_point` (frame on coupler).\n"
             "* Mobility = 1.\n"
+            "* Match the coupler sweep path in `fixtures/target_path.csv`.\n"
         )
 
-        def _cfg() -> dict[str, Any]:
+        def _cfg(csv: str, max_ch: float) -> dict[str, Any]:
             return {
                 "probes": [
                     dof_probe(expected=1),
@@ -246,13 +251,23 @@ class FourbarCrankRockerSweepGenerator(TaskGenerator):
                             "output_port": "revolute_joint",
                             "coupler_point": "frame"},
                     ),
+                    {"id": "coupler_path",
+                     "type": "path_trace_chamfer",
+                     "moving_frame": "coupler_point",
+                     "target_csv": csv,
+                     "normalize": True,
+                     "max_chamfer": float(max_ch),
+                     "weight": 1.0, "severity": "major"},
                 ],
                 "feedback": {
                     "public_metrics": [
                         "mobility.observed", "mobility.expected",
                         "ports.ports_required",
+                        "coupler_path.chamfer",
+                        "coupler_path.n_observed",
+                        "coupler_path.n_target",
                     ],
-                    "hidden_metrics": [],
+                    "hidden_metrics": ["coupler_path.chamfer"],
                 },
                 "hard_gate": {"require": ["mobility", "ports"]},
             }
@@ -269,6 +284,11 @@ class FourbarCrankRockerSweepGenerator(TaskGenerator):
             "wrong_anchor": make_negative_overlay(
                 "    del ir['ports']['input_port']"
             ),
+            "shifted_coupler_point": make_negative_overlay(
+                f"    ir['ports']['coupler_point']['pose_local_mm'] = "
+                f"({round(off_x + 35.0, 2)}, "
+                f"{round(off_y - 25.0, 2)}, 0.0)"
+            ),
         }
         expected = make_expected_failures(
             f"Tier 1 {self.family} negatives.",
@@ -281,6 +301,10 @@ class FourbarCrankRockerSweepGenerator(TaskGenerator):
                  "expected_failure_codes": ["missing_port"],
                  "expected_hard_gate_passed": False,
                  "expected_score_below": 0.001},
+                {"id": "shifted_coupler_point",
+                 "expected_failure_codes": ["path_error"],
+                 "expected_hard_gate_passed": True,
+                 "expected_score_below": 0.8},
             ],
         )
         task_toml = {
@@ -294,7 +318,9 @@ class FourbarCrankRockerSweepGenerator(TaskGenerator):
                 "max_envelope_mm": [220, 220, 50],
             },
             "objective": {
-                "description": "Crank-rocker four-bar; mobility=1.",
+                "description": "Crank-rocker four-bar; coupler path target.",
+                "target_path_csv": "target_path.csv",
+                "max_chamfer_normalized": 0.05,
                 "ground_required": True,
             },
         }
@@ -302,9 +328,13 @@ class FourbarCrankRockerSweepGenerator(TaskGenerator):
             task_id=task_id, family=self.family,
             difficulty=int(difficulty), prompt_md=prompt,
             task_toml=task_toml,
-            eval_config_toml=_cfg(),
-            eval_config_hidden_toml=_cfg(),
-            fixtures={}, reference_solution_py=ref_py,
+            eval_config_toml=_cfg("target_path.csv", 0.05),
+            eval_config_hidden_toml=_cfg("target_path_hidden.csv", 0.04),
+            fixtures={
+                "target_path.csv": _csv_text(path_pts),
+                "target_path_hidden.csv": _csv_text(hidden_pts),
+            },
+            reference_solution_py=ref_py,
             negative_solutions=negatives,
             expected_failures=expected,
             metadata=common_metadata(self.family, self.tier, seed,

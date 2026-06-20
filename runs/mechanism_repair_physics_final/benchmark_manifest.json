@@ -1,7 +1,7 @@
 {
   "audit": {
     "blockers": [],
-    "diagnostic_task_count": 102,
+    "diagnostic_task_count": 100,
     "experiment_ready": false,
     "family_counts": {
       "belt_drive": 10,
@@ -18,11 +18,11 @@
       "spur_compound_gear_train": 10
     },
     "headline_family_counts": {
-      "fourbar_linkage": 8,
+      "fourbar_linkage": 10,
       "slider_crank": 10
     },
-    "headline_task_count": 18,
-    "level2plus_headline_count": 18,
+    "headline_task_count": 20,
+    "level2plus_headline_count": 20,
     "level3_headline_count": 0,
     "level_counts": {
       "2": 80,
@@ -30,7 +30,7 @@
     },
     "min_tasks_per_family": 10,
     "paper_blockers": [
-      "102 diagnostic tasks excluded from headline result",
+      "100 diagnostic tasks excluded from headline result",
       "Level-3 headline task share below 25 percent",
       "belt_drive: only 0 headline tasks; need 10",
       "cam_follower: only 0 headline tasks; need 10",
@@ -57,7 +57,6 @@
       "cycloidal_reducer_t07_cycloidal_lowN_stub_s20260617: level3_validation_skipped",
       "cycloidal_reducer_t08_cycloidal_lowN_stub_s20260618: level3_validation_skipped",
       "cycloidal_reducer_t09_cycloidal_lowN_stub_s20260619: level3_validation_skipped",
-      "fourbar_linkage: only 8 headline tasks; need 10",
       "geneva_indexer: only 0 headline tasks; need 10",
       "geneva_indexer_t00_geneva_indexing_stub_s20270610: level3_validation_skipped",
       "geneva_indexer_t01_geneva_indexing_stub_s20270611: level3_validation_skipped",
@@ -70,7 +69,7 @@
       "geneva_indexer_t08_geneva_indexing_stub_s20270618: level3_validation_skipped",
       "geneva_indexer_t09_geneva_indexing_stub_s20270619: level3_validation_skipped",
       "lead_screw: only 0 headline tasks; need 10",
-      "only 18 headline tasks; need 120",
+      "only 20 headline tasks; need 120",
       "planetary_reducer: only 0 headline tasks; need 10",
       "rack_pinion: only 0 headline tasks; need 10",
       "rack_pinion_t00_rack_pinion_contact_stub_s20265610: level3_validation_skipped",
@@ -1610,24 +1609,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "fourbar_linkage",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
-          "analytic_param_check",
-          "analytic_param_check",
+          "path_trace_chamfer",
           "trusted_asset_preflight"
         ],
-        "source_generator": "fourbar_pump_handle",
-        "source_task_id": "fourbar_pump_handle_s20268614",
-        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t04_fourbar_pump_handle_s20268614",
-        "task_hash": "c2235dc2158fc539a6ab9d2e4d1ae024b48d97c960a8b371f583ff4e7a2a026a",
-        "task_id": "fourbar_linkage_t04_fourbar_pump_handle_s20268614",
+        "source_generator": "fourbar_crank_rocker_sweep",
+        "source_task_id": "fourbar_crank_rocker_sweep_s20268614",
+        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t04_fourbar_crank_rocker_sweep_s20268614",
+        "task_hash": "58ad682bdd4126992da9c69283a64664cfaef35322e685918e5bae9a0a1bb0a6",
+        "task_id": "fourbar_linkage_t04_fourbar_crank_rocker_sweep_s20268614",
         "uses_fake_contact_oracle": false,
         "validation": {
           "negative_failures": [],
@@ -1636,7 +1634,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999996944869151
         },
         "verifier_level": 2
       },
@@ -1789,24 +1787,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "fourbar_linkage",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
-          "analytic_param_check",
-          "analytic_param_check",
+          "path_trace_chamfer",
           "trusted_asset_preflight"
         ],
-        "source_generator": "fourbar_pump_handle",
-        "source_task_id": "fourbar_pump_handle_s20268619",
-        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t09_fourbar_pump_handle_s20268619",
-        "task_hash": "565563a77204f2b5684dee6094443c9f074b24159af78adf743b2bda70c37a5c",
-        "task_id": "fourbar_linkage_t09_fourbar_pump_handle_s20268619",
+        "source_generator": "fourbar_crank_rocker_sweep",
+        "source_task_id": "fourbar_crank_rocker_sweep_s20268619",
+        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619",
+        "task_hash": "034a1185ce6f27a44da921066aea72a1998f7a6d7acba49a022f8f9be78aa76b",
+        "task_id": "fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619",
         "uses_fake_contact_oracle": false,
         "validation": {
           "negative_failures": [],
@@ -1815,7 +1812,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999996778367044
         },
         "verifier_level": 2
       },
@@ -5266,13 +5263,13 @@
     },
     {
       "family": "fourbar_linkage",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20268614,
-      "source_family": "fourbar_pump_handle",
-      "source_generator": "fourbar_pump_handle",
-      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t04_fourbar_pump_handle_s20268614",
-      "task_id": "fourbar_linkage_t04_fourbar_pump_handle_s20268614",
+      "source_family": "fourbar_crank_rocker_sweep",
+      "source_generator": "fourbar_crank_rocker_sweep",
+      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t04_fourbar_crank_rocker_sweep_s20268614",
+      "task_id": "fourbar_linkage_t04_fourbar_crank_rocker_sweep_s20268614",
       "verifier_level": 2
     },
     {
@@ -5321,13 +5318,13 @@
     },
     {
       "family": "fourbar_linkage",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20268619,
-      "source_family": "fourbar_pump_handle",
-      "source_generator": "fourbar_pump_handle",
-      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t09_fourbar_pump_handle_s20268619",
-      "task_id": "fourbar_linkage_t09_fourbar_pump_handle_s20268619",
+      "source_family": "fourbar_crank_rocker_sweep",
+      "source_generator": "fourbar_crank_rocker_sweep",
+      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619",
+      "task_id": "fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619",
       "verifier_level": 2
     },
     {
