@@ -287,9 +287,11 @@ class RackPinionConversionGenerator(TaskGenerator):
             f"{pitch_radius_mm} mm.\n\n"
             f"* Declare `params.declared_linear_per_rev_mm` = "
             f"2π · pitch_radius = {linear_per_rev_mm} mm.\n"
+            f"* The observed output/input velocity ratio must be "
+            f"pitch_radius = {pitch_radius_mm} mm/rad.\n"
             "* Ports: `input_port` (revolute_joint), `output_port` "
             "(prismatic_joint).\n"
-            "* Mobility = 2 (ungeared analytic tier).\n"
+            "* Mobility = 2 (kinematic rack-pinion tier).\n"
         )
 
         task_toml: dict[str, Any] = {
@@ -315,7 +317,11 @@ class RackPinionConversionGenerator(TaskGenerator):
             },
         }
 
-        def _cfg(target: float, tol_pct: float) -> dict[str, Any]:
+        def _cfg(
+            target: float,
+            velocity_ratio: float,
+            tol_pct: float,
+        ) -> dict[str, Any]:
             return {
                 "probes": [
                     {"id": "mobility", "type": "dof_grubler",
@@ -334,13 +340,25 @@ class RackPinionConversionGenerator(TaskGenerator):
                      "tolerance_pct": float(tol_pct),
                      "failure_code": "wrong_ratio",
                      "weight": 1.0, "severity": "major"},
+                    {"id": "linear_velocity", "type": "port_velocity_ratio",
+                     "input_port": "input_port",
+                     "output_port": "output_port",
+                     "expected": float(velocity_ratio),
+                     "tolerance_pct": float(tol_pct),
+                     "min_abs_input_velocity": 1e-6,
+                     "weight": 1.0, "severity": "major"},
                 ],
                 "feedback": {
                     "public_metrics": [
                         "mobility.observed", "linear_per_rev.observed",
                         "linear_per_rev.expected",
+                        "linear_velocity.ratio_observed",
+                        "linear_velocity.ratio_expected",
                     ],
-                    "hidden_metrics": ["linear_per_rev.error_pct"],
+                    "hidden_metrics": [
+                        "linear_per_rev.error_pct",
+                        "linear_velocity.ratio_error_pct",
+                    ],
                 },
                 "hard_gate": {"require": ["mobility", "ports"]},
             }
@@ -355,6 +373,11 @@ class RackPinionConversionGenerator(TaskGenerator):
             "missing_port": _negative_overlay(
                 "    del ir['ports']['input_port']"
             ),
+            "wrong_pinion_geometry": _negative_overlay(
+                "    for part in ir['parts']:\n"
+                "        if part['id'] == 'pinion':\n"
+                "            part['params']['pitch_radius_mm'] *= 0.7"
+            ),
         }
         expected = {
             "description": "Tier 2 rack_pinion_conversion negatives.",
@@ -364,7 +387,7 @@ class RackPinionConversionGenerator(TaskGenerator):
                     "submission": "negative_solutions/wrong_ratio",
                     "expected_failure_codes": ["wrong_ratio"],
                     "expected_hard_gate_passed": True,
-                    "expected_score_below": 0.5,
+                    "expected_score_below": 0.51,
                 },
                 {
                     "id": "missing_port",
@@ -373,14 +396,23 @@ class RackPinionConversionGenerator(TaskGenerator):
                     "expected_hard_gate_passed": False,
                     "expected_score_below": 0.001,
                 },
+                {
+                    "id": "wrong_pinion_geometry",
+                    "submission": "negative_solutions/wrong_pinion_geometry",
+                    "expected_failure_codes": ["wrong_ratio"],
+                    "expected_hard_gate_passed": True,
+                    "expected_score_below": 0.8,
+                },
             ],
         }
         return GeneratedTask(
             task_id=task_id, family=self.family,
             difficulty=int(difficulty), prompt_md=prompt,
             task_toml=task_toml,
-            eval_config_toml=_cfg(linear_per_rev_mm, tol_pct=1.5),
-            eval_config_hidden_toml=_cfg(linear_per_rev_mm, tol_pct=0.8),
+            eval_config_toml=_cfg(
+                linear_per_rev_mm, pitch_radius_mm, tol_pct=1.5),
+            eval_config_hidden_toml=_cfg(
+                linear_per_rev_mm, pitch_radius_mm, tol_pct=0.8),
             fixtures={},
             reference_solution_py=ref_py,
             negative_solutions=negatives,

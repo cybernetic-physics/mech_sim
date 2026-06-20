@@ -1124,7 +1124,7 @@
     },
     {
       "family": "rack_pinion",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t00_rack_pinion_contact_stub_s20265610/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t00_rack_pinion_conversion_s20265610/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1132,13 +1132,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t00_rack_pinion_contact_stub_s20265610/eval_config.public.toml",
-      "task_id": "rack_pinion_t00_rack_pinion_contact_stub_s20265610",
-      "verifier_level": 3
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t00_rack_pinion_conversion_s20265610/eval_config.public.toml",
+      "task_id": "rack_pinion_t00_rack_pinion_conversion_s20265610",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t01_rack_pinion_contact_stub_s20265611/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t01_rack_pinion_conversion_s20265611/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1146,13 +1146,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t01_rack_pinion_contact_stub_s20265611/eval_config.public.toml",
-      "task_id": "rack_pinion_t01_rack_pinion_contact_stub_s20265611",
-      "verifier_level": 3
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t01_rack_pinion_conversion_s20265611/eval_config.public.toml",
+      "task_id": "rack_pinion_t01_rack_pinion_conversion_s20265611",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t02_rack_pinion_contact_stub_s20265612/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t02_rack_pinion_conversion_s20265612/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1160,13 +1160,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t02_rack_pinion_contact_stub_s20265612/eval_config.public.toml",
-      "task_id": "rack_pinion_t02_rack_pinion_contact_stub_s20265612",
-      "verifier_level": 3
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t02_rack_pinion_conversion_s20265612/eval_config.public.toml",
+      "task_id": "rack_pinion_t02_rack_pinion_conversion_s20265612",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t03_rack_pinion_contact_stub_s20265613/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t03_rack_pinion_conversion_s20265613/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1174,13 +1174,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t03_rack_pinion_contact_stub_s20265613/eval_config.public.toml",
-      "task_id": "rack_pinion_t03_rack_pinion_contact_stub_s20265613",
-      "verifier_level": 3
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t03_rack_pinion_conversion_s20265613/eval_config.public.toml",
+      "task_id": "rack_pinion_t03_rack_pinion_conversion_s20265613",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t04_rack_pinion_contact_stub_s20265614/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t04_rack_pinion_conversion_s20265614/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1188,13 +1188,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t04_rack_pinion_contact_stub_s20265614/eval_config.public.toml",
-      "task_id": "rack_pinion_t04_rack_pinion_contact_stub_s20265614",
-      "verifier_level": 3
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t04_rack_pinion_conversion_s20265614/eval_config.public.toml",
+      "task_id": "rack_pinion_t04_rack_pinion_conversion_s20265614",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t05_rack_pinion_contact_stub_s20265615/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t05_rack_pinion_conversion_s20265615/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1202,13 +1202,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t05_rack_pinion_contact_stub_s20265615/eval_config.public.toml",
-      "task_id": "rack_pinion_t05_rack_pinion_contact_stub_s20265615",
-      "verifier_level": 3
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t05_rack_pinion_conversion_s20265615/eval_config.public.toml",
+      "task_id": "rack_pinion_t05_rack_pinion_conversion_s20265615",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t06_rack_pinion_contact_stub_s20265616/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t06_rack_pinion_conversion_s20265616/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1216,13 +1216,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t06_rack_pinion_contact_stub_s20265616/eval_config.public.toml",
-      "task_id": "rack_pinion_t06_rack_pinion_contact_stub_s20265616",
-      "verifier_level": 3
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t06_rack_pinion_conversion_s20265616/eval_config.public.toml",
+      "task_id": "rack_pinion_t06_rack_pinion_conversion_s20265616",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t07_rack_pinion_contact_stub_s20265617/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t07_rack_pinion_conversion_s20265617/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1230,13 +1230,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t07_rack_pinion_contact_stub_s20265617/eval_config.public.toml",
-      "task_id": "rack_pinion_t07_rack_pinion_contact_stub_s20265617",
-      "verifier_level": 3
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t07_rack_pinion_conversion_s20265617/eval_config.public.toml",
+      "task_id": "rack_pinion_t07_rack_pinion_conversion_s20265617",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t08_rack_pinion_contact_stub_s20265618/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t08_rack_pinion_conversion_s20265618/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1244,13 +1244,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t08_rack_pinion_contact_stub_s20265618/eval_config.public.toml",
-      "task_id": "rack_pinion_t08_rack_pinion_contact_stub_s20265618",
-      "verifier_level": 3
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t08_rack_pinion_conversion_s20265618/eval_config.public.toml",
+      "task_id": "rack_pinion_t08_rack_pinion_conversion_s20265618",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t09_rack_pinion_contact_stub_s20265619/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t09_rack_pinion_conversion_s20265619/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1258,9 +1258,9 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t09_rack_pinion_contact_stub_s20265619/eval_config.public.toml",
-      "task_id": "rack_pinion_t09_rack_pinion_contact_stub_s20265619",
-      "verifier_level": 3
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t09_rack_pinion_conversion_s20265619/eval_config.public.toml",
+      "task_id": "rack_pinion_t09_rack_pinion_conversion_s20265619",
+      "verifier_level": 2
     },
     {
       "family": "shaft_bearing_coupling",

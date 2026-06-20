@@ -1,0 +1,20 @@
+{
+  "family": "rack_pinion",
+  "tier": "transmission_analytic",
+  "seed": 20265614,
+  "difficulty": 2,
+  "pitch_radius_mm": 13.744,
+  "target_linear_per_rev_mm": 86.3561,
+  "task_id": "rack_pinion_t04_rack_pinion_conversion_s20265614",
+  "source_task_id": "rack_pinion_conversion_s20265614",
+  "source_generator": "rack_pinion_conversion",
+  "verifier_level": 2,
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "fake_contact_oracle_allowed": false
+}

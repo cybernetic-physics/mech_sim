@@ -44,7 +44,7 @@
   "schema": "mechanism_repair_physics.verifier_manifest.v1",
   "tasks_root": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks",
   "verifier_levels": {
-    "2": 80,
-    "3": 40
+    "2": 90,
+    "3": 30
   }
 }

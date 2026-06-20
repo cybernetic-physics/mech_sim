@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import importlib.util
 import json
 import tomllib
 from pathlib import Path
@@ -74,16 +73,17 @@ def test_physics_preflight_materializes_required_families_and_manifests(
         for blocker in audit["paper_blockers"]
     )
     assert audit["family_counts"] == {family: 1 for family in REQUIRED_FAMILIES}
-    assert audit["headline_task_count"] == 5
+    assert audit["headline_task_count"] == 6
     assert audit["headline_family_counts"] == {
         "belt_drive": 1,
         "chain_drive": 1,
         "fourbar_linkage": 1,
         "lead_screw": 1,
+        "rack_pinion": 1,
         "slider_crank": 1,
     }
-    assert audit["diagnostic_task_count"] == 7
-    assert audit["level_counts"] == {"2": 8, "3": 4}
+    assert audit["diagnostic_task_count"] == 6
+    assert audit["level_counts"] == {"2": 9, "3": 3}
     assert all(
         len(task["constraint_classes"]) >= 3
         and task["negative_control_count"] >= 2
@@ -114,9 +114,10 @@ def test_physics_preflight_materializes_required_families_and_manifests(
             test_names = {
                 Path(path).name for path in split_manifest["splits"]["test"]
             }
-            assert len(test_names) == 2
+            assert len(test_names) == 3
             assert any(name.startswith("belt_drive") for name in test_names)
             assert any(name.startswith("chain_drive") for name in test_names)
+            assert any(name.startswith("rack_pinion") for name in test_names)
 
     assert methods["required_methods"] == list(REQUIRED_METHODS)
     assert methods["primary_method"] == "mechanical_evolve_ttrl_tool_verified"
@@ -154,7 +155,7 @@ def test_level2_reference_passes_trusted_asset_gate_and_negative_fails(
     assert "invalid_mass_properties" in _codes(negative)
 
 
-def test_rack_pinion_reference_places_rack_body_on_contact_line(
+def test_rack_pinion_reference_uses_pitch_radius_velocity_probe(
     tmp_path: Path,
 ) -> None:
     out_dir = tmp_path / "mechanism_repair_physics"
@@ -166,21 +167,20 @@ def test_rack_pinion_reference_places_rack_body_on_contact_line(
     )
 
     task_dir = _family_task(tasks_root, "rack_pinion")
-    design_path = task_dir / "reference_solution" / "design.py"
-    spec = importlib.util.spec_from_file_location("rack_reference", design_path)
-    assert spec is not None
-    module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
-    spec.loader.exec_module(module)
-    ir = module.build_design(tmp_path / "rack_build")
-
-    rack = next(part for part in ir["parts"] if part["id"] == "rack")
-    rack_params = rack["params"]
-    assert tuple(rack_params["initial_pose_mm"]) == (0.0, 13.0, 0.0)
-    assert tuple(rack_params["chrono_collision"]["center_mm"]) == (
-        0.0,
-        0.0,
-        0.0,
+    reference = evaluate(
+        task_dir,
+        task_dir / "reference_solution",
+        scratch_dir=out_dir / "rack_reference",
     )
-    output_axis = next(joint for joint in ir["joints"] if joint["id"] == "output_axis")
-    assert tuple(output_axis["anchor_world_mm"]) == (0.0, 13.0, 0.0)
+    assert reference.evaluation_valid
+    assert reference.hard_gate_passed
+    assert reference.score > 0.999999
+
+    negative = evaluate(
+        task_dir,
+        task_dir / "negative_solutions" / "wrong_pinion_geometry",
+        scratch_dir=out_dir / "rack_wrong_pinion_geometry",
+    )
+    assert negative.evaluation_valid
+    assert negative.hard_gate_passed
+    assert "wrong_ratio" in _codes(negative)

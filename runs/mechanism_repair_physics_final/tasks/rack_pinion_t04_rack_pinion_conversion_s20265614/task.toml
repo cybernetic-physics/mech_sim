@@ -1,0 +1,31 @@
+[task]
+id = "rack_pinion_t04_rack_pinion_conversion_s20265614"
+family = "rack_pinion"
+difficulty = 2
+units = "mm"
+tier = "cad_artifact"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 2
+max_envelope_mm = [200, 200, 50]
+
+[objective]
+description = "Rack-and-pinion: declare linear/rev = 86.3561 mm."
+allow_massless_links = false
+ground_required = true
+
+[visibility]
+public_split = ["mobility", "ports", "linear_per_rev"]
+hidden_split = ["linear_per_rev"]
+
+[mechanism_repair_physics]
+canonical_family = "rack_pinion"
+source_task_id = "rack_pinion_conversion_s20265614"
+source_generator = "rack_pinion_conversion"
+verifier_level = 2
+headline_eligible = true
+min_constraint_classes = 3
+requires_hidden_variant = true
+requires_isomorphic_variant = true
+fake_contact_oracle_allowed = false

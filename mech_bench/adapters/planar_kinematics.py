@@ -1,14 +1,15 @@
 """Analytical planar-kinematics adapter.
 
-Handles closed-loop planar four-bar, slider-crank, simple lead-screw,
-two-pulley belt, and two-sprocket chain topologies analytically from
-DesignIR topology + joint anchor data. Emits port traces, joint
-position / velocity time-series, and a shared time axis. Pure NumPy —
-no physics solver.
+Handles closed-loop planar four-bar, slider-crank, rack-pinion, simple
+lead-screw, two-pulley belt, and two-sprocket chain topologies
+analytically from DesignIR topology + joint anchor data. Emits port
+traces, joint position / velocity time-series, and a shared time axis.
+Pure NumPy — no physics solver.
 
 Topology detection is auto by default:
   * 4 parts + 4 revolutes → four-bar.
   * 4 parts + 3 revolutes + 1 prismatic → slider-crank (planar).
+  * 3 parts + 1 revolute + 1 prismatic + pitch radius → rack-pinion.
   * 3 parts + 1 revolute + 1 prismatic + lead_mm param → lead screw.
   * 3 parts + 2 revolutes + pulley diameter params → belt drive.
   * 3 parts + 2 revolutes + sprocket tooth-count params → chain drive.
@@ -456,6 +457,83 @@ def _part_float_param(part: Part, *keys: str) -> float | None:
     return None
 
 
+def _solve_rack_pinion(
+    ir: DesignIR,
+    n_samples: int,
+    *,
+    strict_geometry: bool,
+) -> dict[str, Any] | None:
+    """Rack displacement from pinion pitch radius."""
+    del strict_geometry
+    if len(ir.parts) != 3:
+        return None
+    revs = [j for j in ir.joints if j.type == "revolute"]
+    prisms = [j for j in ir.joints if j.type == "prismatic"]
+    if len(revs) != 1 or len(prisms) != 1:
+        return None
+    fixed = [p for p in ir.parts if p.fixed]
+    if len(fixed) != 1:
+        return None
+    ground = fixed[0].id
+    j_in = revs[0]
+    j_out = prisms[0]
+    if ground not in (j_in.parent, j_in.child):
+        return None
+    if ground not in (j_out.parent, j_out.child):
+        return None
+    input_port = ir.ports.get("input_port")
+    output_port = ir.ports.get("output_port")
+    if input_port is None or input_port.kind != "revolute_joint":
+        return None
+    if output_port is None or output_port.kind != "prismatic_joint":
+        return None
+    if input_port.part != j_in.id or output_port.part != j_out.id:
+        return None
+
+    parts = {part.id: part for part in ir.parts}
+    pinion_id = j_in.child if j_in.parent == ground else j_in.parent
+    rack_id = j_out.child if j_out.parent == ground else j_out.parent
+    pinion = parts.get(pinion_id)
+    rack = parts.get(rack_id)
+    if pinion is None or rack is None:
+        return None
+    role_text = f"{pinion.role} {rack.role}".lower()
+    if "pinion" not in role_text or "rack" not in role_text:
+        return None
+    pitch_radius = _part_float_param(pinion, "pitch_radius_mm")
+    if pitch_radius is None:
+        pitch_radius = _float_param(ir, "pitch_radius_mm")
+    if pitch_radius is None or pitch_radius <= 0.0:
+        return None
+
+    time_s = np.linspace(0.0, 2.0 * np.pi, n_samples,
+                         endpoint=False, dtype=float)
+    input_arr = time_s.copy()
+    output_arr = input_arr * float(pitch_radius)
+    input_vel = np.gradient(input_arr, time_s, edge_order=1)
+    output_vel = np.gradient(output_arr, time_s, edge_order=1)
+    return {
+        "port_traces": {},
+        "joint_positions": {
+            "input_port": input_arr,
+            "output_port": output_arr,
+            j_in.id: input_arr,
+            j_out.id: output_arr,
+        },
+        "joint_velocities": {
+            "input_port": input_vel,
+            "output_port": output_vel,
+            j_in.id: input_vel,
+            j_out.id: output_vel,
+        },
+        "time_s": time_s,
+        "topology": "rack_pinion",
+        "link_lengths_mm": {"pitch_radius": float(pitch_radius)},
+        "invalid_samples": 0,
+        "ratio_estimate": float(pitch_radius),
+    }
+
+
 def _solve_lead_screw(
     ir: DesignIR,
     n_samples: int,
@@ -663,6 +741,8 @@ class PlanarKinematics(SimAdapter):
             candidates.append(_solve_fourbar)
         if topology in ("auto", "slider_crank"):
             candidates.append(_solve_slider_crank)
+        if topology in ("auto", "rack_pinion"):
+            candidates.append(_solve_rack_pinion)
         if topology in ("auto", "lead_screw"):
             candidates.append(_solve_lead_screw)
         if topology in ("auto", "belt_drive", "chain_drive"):

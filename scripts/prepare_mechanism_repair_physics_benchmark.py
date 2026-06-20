@@ -69,7 +69,7 @@ FAMILY_SPECS: tuple[FamilySpec, ...] = (
     ),
     FamilySpec("belt_drive", 2, ("belt_pulley_ratio",)),
     FamilySpec("chain_drive", 2, ("chain_sprocket_ratio",)),
-    FamilySpec("rack_pinion", 3, ("rack_pinion_contact_stub",)),
+    FamilySpec("rack_pinion", 2, ("rack_pinion_conversion",)),
     FamilySpec("lead_screw", 2, ("lead_screw_linear_travel",)),
     FamilySpec(
         "slider_crank",

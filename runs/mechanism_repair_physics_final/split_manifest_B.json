@@ -1,6 +1,6 @@
 {
-  "eligible_task_count": 50,
-  "excluded_diagnostic_task_count": 70,
+  "eligible_task_count": 60,
+  "excluded_diagnostic_task_count": 60,
   "headline_only": true,
   "schema": "mechanism_repair_physics.family_split.v1",
   "seed": 20260611,
@@ -34,7 +34,17 @@
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t06_chain_sprocket_ratio_s20264616",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t07_chain_sprocket_ratio_s20264617",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t08_chain_sprocket_ratio_s20264618",
-      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t09_chain_sprocket_ratio_s20264619"
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t09_chain_sprocket_ratio_s20264619",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t00_rack_pinion_conversion_s20265610",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t01_rack_pinion_conversion_s20265611",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t02_rack_pinion_conversion_s20265612",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t03_rack_pinion_conversion_s20265613",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t04_rack_pinion_conversion_s20265614",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t05_rack_pinion_conversion_s20265615",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t06_rack_pinion_conversion_s20265616",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t07_rack_pinion_conversion_s20265617",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t08_rack_pinion_conversion_s20265618",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t09_rack_pinion_conversion_s20265619"
     ],
     "train": [
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t00_fourbar_path_s20268610",

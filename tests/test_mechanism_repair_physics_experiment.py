@@ -39,28 +39,29 @@ def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
         "chain_drive": 10,
         "fourbar_linkage": 10,
         "lead_screw": 10,
+        "rack_pinion": 10,
         "slider_crank": 10,
     }
-    assert audit["level_counts"] == {"2": 80, "3": 40}
-    assert audit["headline_task_count"] == 50
-    assert audit["diagnostic_task_count"] == 70
-    assert audit["level2plus_headline_count"] == 50
+    assert audit["level_counts"] == {"2": 90, "3": 30}
+    assert audit["headline_task_count"] == 60
+    assert audit["diagnostic_task_count"] == 60
+    assert audit["level2plus_headline_count"] == 60
     assert audit["level3_headline_count"] == 0
     assert audit["blockers"] == []
     assert audit["paper_blockers"]
     assert any(
-        "only 50 headline tasks; need 120" in blocker
+        "only 60 headline tasks; need 120" in blocker
         for blocker in audit["paper_blockers"]
     )
     assert any(
-        "70 diagnostic tasks excluded from headline result" in blocker
+        "60 diagnostic tasks excluded from headline result" in blocker
         for blocker in audit["paper_blockers"]
     )
 
     diagnostic_tasks = [
         task for task in audit["tasks"] if not task["headline_eligible"]
     ]
-    assert len(diagnostic_tasks) == 70
+    assert len(diagnostic_tasks) == 60
     assert all(task["headline_demotion_reason"] for task in diagnostic_tasks)
 
     for task in audit["tasks"]:
@@ -97,12 +98,12 @@ def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
     }
     assert {name: len(tasks) for name, tasks in plan["split_tasks"].items()} == {
         "A": 20,
-        "B": 20,
+        "B": 30,
         "external_style": 10,
-        "hidden_perturbation": 50,
+        "hidden_perturbation": 60,
     }
-    assert plan["planned_cells"] == 2400
-    assert plan["full_planned_cells"] == 2400
+    assert plan["planned_cells"] == 2880
+    assert plan["full_planned_cells"] == 2880
 
 
 def _write_json(path: Path, payload: dict) -> None:
@@ -599,7 +600,8 @@ def test_materialized_physics_prompts_are_family_specific(tmp_path: Path) -> Non
         by_family["rack_pinion"]["task_dir"], "prompt.md"
     ).read_text()
     assert "rotating pinion meshes with a translating rack" in rack_prompt
-    assert "Required contact pairs: `pinion:rack`" in rack_prompt
+    assert "observed output/input velocity ratio" in rack_prompt
+    assert "pitch_radius" in rack_prompt
     assert "`output_port`: kind `prismatic_joint`" in rack_prompt
 
 
@@ -635,7 +637,8 @@ def test_frozen_physics_benchmark_prompts_are_family_specific() -> None:
         by_family["rack_pinion"]["task_dir"], "prompt.md"
     ).read_text()
     assert "rotating pinion meshes with a translating rack" in rack_prompt
-    assert "Required contact pairs: `pinion:rack`" in rack_prompt
+    assert "observed output/input velocity ratio" in rack_prompt
+    assert "pitch_radius" in rack_prompt
     assert "`output_port`: kind `prismatic_joint`" in rack_prompt
 
 

@@ -1,0 +1,67 @@
+[feedback]
+public_metrics = ["mobility.observed", "linear_per_rev.observed", "linear_per_rev.expected", "linear_velocity.ratio_observed", "linear_velocity.ratio_expected", "trusted_asset_preflight.parts_with_required_geometry"]
+hidden_metrics = ["linear_per_rev.error_pct", "linear_velocity.ratio_error_pct", "trusted_asset_preflight.trusted_mass_properties_recomputed"]
+
+[hard_gate]
+require = ["mobility", "ports", "trusted_asset_preflight"]
+
+[mechanism_repair_physics]
+family = "rack_pinion"
+verifier_level = 2
+hidden_variant = false
+fake_contact_oracle_allowed = false
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 2
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port"]
+require_grounded = ["input_port"]
+hard_gate = true
+severity = "critical"
+
+[probes.require_kinds]
+input_port = "revolute_joint"
+output_port = "prismatic_joint"
+
+[[probes]]
+id = "linear_per_rev"
+type = "analytic_param_check"
+path = "params.declared_linear_per_rev_mm"
+expected = 79.9724
+comparator = "eq"
+tolerance_pct = 1.5
+failure_code = "wrong_ratio"
+weight = 1.0
+severity = "major"
+
+[[probes]]
+id = "linear_velocity"
+type = "port_velocity_ratio"
+input_port = "input_port"
+output_port = "output_port"
+expected = 12.728
+tolerance_pct = 1.5
+min_abs_input_velocity = 1e-06
+weight = 1.0
+severity = "major"
+
+[[probes]]
+id = "trusted_asset_preflight"
+type = "trusted_asset_preflight"
+require_geometry_roles = ["cad"]
+require_materials = true
+require_material_properties = ["density_kg_m3", "elastic_modulus_pa", "poisson_ratio", "yield_strength_pa"]
+require_provenance = true
+require_trusted_mass_properties = true
+hard_gate = true
+severity = "critical"
+weight = 0.2

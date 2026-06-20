@@ -1,7 +1,7 @@
 {
   "audit": {
     "blockers": [],
-    "diagnostic_task_count": 70,
+    "diagnostic_task_count": 60,
     "experiment_ready": false,
     "family_counts": {
       "belt_drive": 10,
@@ -22,18 +22,19 @@
       "chain_drive": 10,
       "fourbar_linkage": 10,
       "lead_screw": 10,
+      "rack_pinion": 10,
       "slider_crank": 10
     },
-    "headline_task_count": 50,
-    "level2plus_headline_count": 50,
+    "headline_task_count": 60,
+    "level2plus_headline_count": 60,
     "level3_headline_count": 0,
     "level_counts": {
-      "2": 80,
-      "3": 40
+      "2": 90,
+      "3": 30
     },
     "min_tasks_per_family": 10,
     "paper_blockers": [
-      "70 diagnostic tasks excluded from headline result",
+      "60 diagnostic tasks excluded from headline result",
       "Level-3 headline task share below 25 percent",
       "cam_follower: only 0 headline tasks; need 10",
       "cam_follower_t00_cam_follower_contact_stub_s20269610: level3_validation_skipped",
@@ -69,19 +70,8 @@
       "geneva_indexer_t07_geneva_indexing_stub_s20270617: level3_validation_skipped",
       "geneva_indexer_t08_geneva_indexing_stub_s20270618: level3_validation_skipped",
       "geneva_indexer_t09_geneva_indexing_stub_s20270619: level3_validation_skipped",
-      "only 50 headline tasks; need 120",
+      "only 60 headline tasks; need 120",
       "planetary_reducer: only 0 headline tasks; need 10",
-      "rack_pinion: only 0 headline tasks; need 10",
-      "rack_pinion_t00_rack_pinion_contact_stub_s20265610: level3_validation_skipped",
-      "rack_pinion_t01_rack_pinion_contact_stub_s20265611: level3_validation_skipped",
-      "rack_pinion_t02_rack_pinion_contact_stub_s20265612: level3_validation_skipped",
-      "rack_pinion_t03_rack_pinion_contact_stub_s20265613: level3_validation_skipped",
-      "rack_pinion_t04_rack_pinion_contact_stub_s20265614: level3_validation_skipped",
-      "rack_pinion_t05_rack_pinion_contact_stub_s20265615: level3_validation_skipped",
-      "rack_pinion_t06_rack_pinion_contact_stub_s20265616: level3_validation_skipped",
-      "rack_pinion_t07_rack_pinion_contact_stub_s20265617: level3_validation_skipped",
-      "rack_pinion_t08_rack_pinion_contact_stub_s20265618: level3_validation_skipped",
-      "rack_pinion_t09_rack_pinion_contact_stub_s20265619: level3_validation_skipped",
       "shaft_bearing_coupling: only 0 headline tasks; need 10",
       "spur_compound_gear_train: only 0 headline tasks; need 10"
     ],
@@ -2886,320 +2876,370 @@
           "cad_artifact",
           "functional_behavior",
           "interface",
-          "physics_contact"
+          "topology_mobility"
         ],
-        "effective_negative_control_count": 3,
+        "effective_negative_control_count": 5,
         "family": "rack_pinion",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
+          "dof_grubler",
           "required_ports",
-          "contact_engagement",
           "analytic_param_check",
-          "lockup",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
-        "source_generator": "rack_pinion_contact_stub",
-        "source_task_id": "rack_pinion_contact_stub_s20265610",
-        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t00_rack_pinion_contact_stub_s20265610",
-        "task_hash": "39a2b0b6544599270e0e79e2815b1c73c4044656f6fa794df69fe1479184dfd8",
-        "task_id": "rack_pinion_t00_rack_pinion_contact_stub_s20265610",
+        "source_generator": "rack_pinion_conversion",
+        "source_task_id": "rack_pinion_conversion_s20265610",
+        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t00_rack_pinion_conversion_s20265610",
+        "task_hash": "752a292825ae9b1f71985bd58acf8498c024402d82b3523d464600439ddc1d45",
+        "task_id": "rack_pinion_t00_rack_pinion_conversion_s20265610",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.9999999999999858
         },
-        "verifier_level": 3
+        "verifier_level": 2
       },
       {
         "constraint_classes": [
           "cad_artifact",
           "functional_behavior",
           "interface",
-          "physics_contact"
+          "topology_mobility"
         ],
-        "effective_negative_control_count": 3,
+        "effective_negative_control_count": 5,
         "family": "rack_pinion",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
+          "dof_grubler",
           "required_ports",
-          "contact_engagement",
           "analytic_param_check",
-          "lockup",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
-        "source_generator": "rack_pinion_contact_stub",
-        "source_task_id": "rack_pinion_contact_stub_s20265611",
-        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t01_rack_pinion_contact_stub_s20265611",
-        "task_hash": "f61940d0a4dc51a9d8e7473c2fd43cdb68465001ecb87aed9f1a591f4e335bfe",
-        "task_id": "rack_pinion_t01_rack_pinion_contact_stub_s20265611",
+        "source_generator": "rack_pinion_conversion",
+        "source_task_id": "rack_pinion_conversion_s20265611",
+        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t01_rack_pinion_conversion_s20265611",
+        "task_hash": "1e5ed59c90df8176229af6847f49eedbc9c2d801765e193b46f179343151442d",
+        "task_id": "rack_pinion_t01_rack_pinion_conversion_s20265611",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.9999999999999653
         },
-        "verifier_level": 3
+        "verifier_level": 2
       },
       {
         "constraint_classes": [
           "cad_artifact",
           "functional_behavior",
           "interface",
-          "physics_contact"
+          "topology_mobility"
         ],
-        "effective_negative_control_count": 3,
+        "effective_negative_control_count": 5,
         "family": "rack_pinion",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
+          "dof_grubler",
           "required_ports",
-          "contact_engagement",
           "analytic_param_check",
-          "lockup",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
-        "source_generator": "rack_pinion_contact_stub",
-        "source_task_id": "rack_pinion_contact_stub_s20265612",
-        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t02_rack_pinion_contact_stub_s20265612",
-        "task_hash": "872720580cfec5e09c3dfcf89324a608a8f8992864df7fa6fb5d389083061b1c",
-        "task_id": "rack_pinion_t02_rack_pinion_contact_stub_s20265612",
+        "source_generator": "rack_pinion_conversion",
+        "source_task_id": "rack_pinion_conversion_s20265612",
+        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t02_rack_pinion_conversion_s20265612",
+        "task_hash": "7188a0237aba1a0122677b92b0e43ecd67e6f27df495e61ffdc7e46e8256d3f7",
+        "task_id": "rack_pinion_t02_rack_pinion_conversion_s20265612",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.9999999999999836
         },
-        "verifier_level": 3
+        "verifier_level": 2
       },
       {
         "constraint_classes": [
           "cad_artifact",
           "functional_behavior",
           "interface",
-          "physics_contact"
+          "topology_mobility"
         ],
-        "effective_negative_control_count": 3,
+        "effective_negative_control_count": 5,
         "family": "rack_pinion",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
+          "dof_grubler",
           "required_ports",
-          "contact_engagement",
           "analytic_param_check",
-          "lockup",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
-        "source_generator": "rack_pinion_contact_stub",
-        "source_task_id": "rack_pinion_contact_stub_s20265613",
-        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t03_rack_pinion_contact_stub_s20265613",
-        "task_hash": "a64347ce048e61aed09781a4b291275faff1dd978d02f214c5eeb6c63754521a",
-        "task_id": "rack_pinion_t03_rack_pinion_contact_stub_s20265613",
+        "source_generator": "rack_pinion_conversion",
+        "source_task_id": "rack_pinion_conversion_s20265613",
+        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t03_rack_pinion_conversion_s20265613",
+        "task_hash": "da7cff6fd76ff8147e5d363aef4f1c2348ef8b5a3ddc244c9b310a1df612208d",
+        "task_id": "rack_pinion_t03_rack_pinion_conversion_s20265613",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.9999999999999488
         },
-        "verifier_level": 3
+        "verifier_level": 2
       },
       {
         "constraint_classes": [
           "cad_artifact",
           "functional_behavior",
           "interface",
-          "physics_contact"
+          "topology_mobility"
         ],
-        "effective_negative_control_count": 3,
+        "effective_negative_control_count": 5,
         "family": "rack_pinion",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
+          "dof_grubler",
           "required_ports",
-          "contact_engagement",
           "analytic_param_check",
-          "lockup",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
-        "source_generator": "rack_pinion_contact_stub",
-        "source_task_id": "rack_pinion_contact_stub_s20265614",
-        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t04_rack_pinion_contact_stub_s20265614",
-        "task_hash": "87ec5a632e573a4cdb22d8b3ee0471dedd2c258318130f9b195e50ec52e0bce0",
-        "task_id": "rack_pinion_t04_rack_pinion_contact_stub_s20265614",
+        "source_generator": "rack_pinion_conversion",
+        "source_task_id": "rack_pinion_conversion_s20265614",
+        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t04_rack_pinion_conversion_s20265614",
+        "task_hash": "80aa7c1cf1fcc6ee229ba0521c1e2abf3daca9bc38e2f21e274e5d8af84e366e",
+        "task_id": "rack_pinion_t04_rack_pinion_conversion_s20265614",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.9999999999999913
         },
-        "verifier_level": 3
+        "verifier_level": 2
       },
       {
         "constraint_classes": [
           "cad_artifact",
           "functional_behavior",
           "interface",
-          "physics_contact"
+          "topology_mobility"
         ],
-        "effective_negative_control_count": 3,
+        "effective_negative_control_count": 5,
         "family": "rack_pinion",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
+          "dof_grubler",
           "required_ports",
-          "contact_engagement",
           "analytic_param_check",
-          "lockup",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
-        "source_generator": "rack_pinion_contact_stub",
-        "source_task_id": "rack_pinion_contact_stub_s20265615",
-        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t05_rack_pinion_contact_stub_s20265615",
-        "task_hash": "09ea101241421c09fe82abbbc7343fb7016ffe9c03889e502734efc03f5dee6a",
-        "task_id": "rack_pinion_t05_rack_pinion_contact_stub_s20265615",
+        "source_generator": "rack_pinion_conversion",
+        "source_task_id": "rack_pinion_conversion_s20265615",
+        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t05_rack_pinion_conversion_s20265615",
+        "task_hash": "ba290f08c213392f84330fad03481b2398050ba426312ed5afaaff38d82bd38f",
+        "task_id": "rack_pinion_t05_rack_pinion_conversion_s20265615",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.9999999999999868
         },
-        "verifier_level": 3
+        "verifier_level": 2
       },
       {
         "constraint_classes": [
           "cad_artifact",
           "functional_behavior",
           "interface",
-          "physics_contact"
+          "topology_mobility"
         ],
-        "effective_negative_control_count": 3,
+        "effective_negative_control_count": 5,
         "family": "rack_pinion",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
+          "dof_grubler",
           "required_ports",
-          "contact_engagement",
           "analytic_param_check",
-          "lockup",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
-        "source_generator": "rack_pinion_contact_stub",
-        "source_task_id": "rack_pinion_contact_stub_s20265616",
-        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t06_rack_pinion_contact_stub_s20265616",
-        "task_hash": "6fd11830d71428858be1adba6b83e020319705177f5497bcd30dc25d1f732503",
-        "task_id": "rack_pinion_t06_rack_pinion_contact_stub_s20265616",
+        "source_generator": "rack_pinion_conversion",
+        "source_task_id": "rack_pinion_conversion_s20265616",
+        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t06_rack_pinion_conversion_s20265616",
+        "task_hash": "cf2e4fc735b00056801930e2c83a7fdb0a7c8c3e03e6ea37c0c2e9e1ba248563",
+        "task_id": "rack_pinion_t06_rack_pinion_conversion_s20265616",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.9999999999999896
         },
-        "verifier_level": 3
+        "verifier_level": 2
       },
       {
         "constraint_classes": [
           "cad_artifact",
           "functional_behavior",
           "interface",
-          "physics_contact"
+          "topology_mobility"
         ],
-        "effective_negative_control_count": 3,
+        "effective_negative_control_count": 5,
         "family": "rack_pinion",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
+          "dof_grubler",
           "required_ports",
-          "contact_engagement",
           "analytic_param_check",
-          "lockup",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
-        "source_generator": "rack_pinion_contact_stub",
-        "source_task_id": "rack_pinion_contact_stub_s20265617",
-        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t07_rack_pinion_contact_stub_s20265617",
-        "task_hash": "a0a7a024659b1453df96495e7be47e7f0e865b24de28a77d524479dcebe3392b",
-        "task_id": "rack_pinion_t07_rack_pinion_contact_stub_s20265617",
+        "source_generator": "rack_pinion_conversion",
+        "source_task_id": "rack_pinion_conversion_s20265617",
+        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t07_rack_pinion_conversion_s20265617",
+        "task_hash": "8bd161756b8089ef781802b574567d351ae68bfb28308fd767f8e132e469c2dd",
+        "task_id": "rack_pinion_t07_rack_pinion_conversion_s20265617",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 1.0
         },
-        "verifier_level": 3
+        "verifier_level": 2
       },
       {
         "constraint_classes": [
           "cad_artifact",
           "functional_behavior",
           "interface",
-          "physics_contact"
+          "topology_mobility"
         ],
-        "effective_negative_control_count": 3,
+        "effective_negative_control_count": 5,
         "family": "rack_pinion",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
+          "dof_grubler",
           "required_ports",
-          "contact_engagement",
           "analytic_param_check",
-          "lockup",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
-        "source_generator": "rack_pinion_contact_stub",
-        "source_task_id": "rack_pinion_contact_stub_s20265618",
-        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t08_rack_pinion_contact_stub_s20265618",
-        "task_hash": "0ec1b6c008cc2f6fe5da8e059a1b4c0a09584be282c45858ecb0b48ed2db96bb",
-        "task_id": "rack_pinion_t08_rack_pinion_contact_stub_s20265618",
+        "source_generator": "rack_pinion_conversion",
+        "source_task_id": "rack_pinion_conversion_s20265618",
+        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t08_rack_pinion_conversion_s20265618",
+        "task_hash": "8e4ea4b5a794c642bbfe26b027d99f8f0e2c672af606d8f239e8c5d8c8347222",
+        "task_id": "rack_pinion_t08_rack_pinion_conversion_s20265618",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.9999999999999438
         },
-        "verifier_level": 3
+        "verifier_level": 2
       },
       {
         "constraint_classes": [
           "cad_artifact",
           "functional_behavior",
           "interface",
-          "physics_contact"
+          "topology_mobility"
         ],
-        "effective_negative_control_count": 3,
+        "effective_negative_control_count": 5,
         "family": "rack_pinion",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
+          "dof_grubler",
           "required_ports",
-          "contact_engagement",
           "analytic_param_check",
-          "lockup",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
-        "source_generator": "rack_pinion_contact_stub",
-        "source_task_id": "rack_pinion_contact_stub_s20265619",
-        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t09_rack_pinion_contact_stub_s20265619",
-        "task_hash": "0a53b3ac0994753dd1b1ad7731b1f8eee5e7257526ea9cf8764a75034132c017",
-        "task_id": "rack_pinion_t09_rack_pinion_contact_stub_s20265619",
+        "source_generator": "rack_pinion_conversion",
+        "source_task_id": "rack_pinion_conversion_s20265619",
+        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t09_rack_pinion_conversion_s20265619",
+        "task_hash": "a7b1a4f59edcfbe9ea01c4c73bf1f7b16440a5cb181c6ea5d8d5400d7c90b7e5",
+        "task_id": "rack_pinion_t09_rack_pinion_conversion_s20265619",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "reason": "level3_validation_skipped",
-          "skipped": true
+          "negative_failures": [],
+          "reference_codes": [],
+          "reference_evaluation_valid": true,
+          "reference_hard_gate_passed": true,
+          "reference_oracle_is_synthetic": false,
+          "reference_passed": true,
+          "reference_score": 0.9999999999999916
         },
-        "verifier_level": 3
+        "verifier_level": 2
       },
       {
         "constraint_classes": [
@@ -4308,8 +4348,8 @@
   "goals_contract": "goals.md",
   "hidden_variant_manifest_path": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/hidden_variant_manifest.json",
   "level_counts": {
-    "2": 80,
-    "3": 40
+    "2": 90,
+    "3": 30
   },
   "level_manifest_path": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/level_manifest.json",
   "method_manifest_path": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/method_manifest.json",
@@ -4914,113 +4954,113 @@
     },
     {
       "family": "rack_pinion",
-      "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20265610,
-      "source_family": "rack_pinion_contact_stub",
-      "source_generator": "rack_pinion_contact_stub",
-      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t00_rack_pinion_contact_stub_s20265610",
-      "task_id": "rack_pinion_t00_rack_pinion_contact_stub_s20265610",
-      "verifier_level": 3
+      "source_family": "rack_pinion_conversion",
+      "source_generator": "rack_pinion_conversion",
+      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t00_rack_pinion_conversion_s20265610",
+      "task_id": "rack_pinion_t00_rack_pinion_conversion_s20265610",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20265611,
-      "source_family": "rack_pinion_contact_stub",
-      "source_generator": "rack_pinion_contact_stub",
-      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t01_rack_pinion_contact_stub_s20265611",
-      "task_id": "rack_pinion_t01_rack_pinion_contact_stub_s20265611",
-      "verifier_level": 3
+      "source_family": "rack_pinion_conversion",
+      "source_generator": "rack_pinion_conversion",
+      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t01_rack_pinion_conversion_s20265611",
+      "task_id": "rack_pinion_t01_rack_pinion_conversion_s20265611",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20265612,
-      "source_family": "rack_pinion_contact_stub",
-      "source_generator": "rack_pinion_contact_stub",
-      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t02_rack_pinion_contact_stub_s20265612",
-      "task_id": "rack_pinion_t02_rack_pinion_contact_stub_s20265612",
-      "verifier_level": 3
+      "source_family": "rack_pinion_conversion",
+      "source_generator": "rack_pinion_conversion",
+      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t02_rack_pinion_conversion_s20265612",
+      "task_id": "rack_pinion_t02_rack_pinion_conversion_s20265612",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20265613,
-      "source_family": "rack_pinion_contact_stub",
-      "source_generator": "rack_pinion_contact_stub",
-      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t03_rack_pinion_contact_stub_s20265613",
-      "task_id": "rack_pinion_t03_rack_pinion_contact_stub_s20265613",
-      "verifier_level": 3
+      "source_family": "rack_pinion_conversion",
+      "source_generator": "rack_pinion_conversion",
+      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t03_rack_pinion_conversion_s20265613",
+      "task_id": "rack_pinion_t03_rack_pinion_conversion_s20265613",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20265614,
-      "source_family": "rack_pinion_contact_stub",
-      "source_generator": "rack_pinion_contact_stub",
-      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t04_rack_pinion_contact_stub_s20265614",
-      "task_id": "rack_pinion_t04_rack_pinion_contact_stub_s20265614",
-      "verifier_level": 3
+      "source_family": "rack_pinion_conversion",
+      "source_generator": "rack_pinion_conversion",
+      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t04_rack_pinion_conversion_s20265614",
+      "task_id": "rack_pinion_t04_rack_pinion_conversion_s20265614",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20265615,
-      "source_family": "rack_pinion_contact_stub",
-      "source_generator": "rack_pinion_contact_stub",
-      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t05_rack_pinion_contact_stub_s20265615",
-      "task_id": "rack_pinion_t05_rack_pinion_contact_stub_s20265615",
-      "verifier_level": 3
+      "source_family": "rack_pinion_conversion",
+      "source_generator": "rack_pinion_conversion",
+      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t05_rack_pinion_conversion_s20265615",
+      "task_id": "rack_pinion_t05_rack_pinion_conversion_s20265615",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20265616,
-      "source_family": "rack_pinion_contact_stub",
-      "source_generator": "rack_pinion_contact_stub",
-      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t06_rack_pinion_contact_stub_s20265616",
-      "task_id": "rack_pinion_t06_rack_pinion_contact_stub_s20265616",
-      "verifier_level": 3
+      "source_family": "rack_pinion_conversion",
+      "source_generator": "rack_pinion_conversion",
+      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t06_rack_pinion_conversion_s20265616",
+      "task_id": "rack_pinion_t06_rack_pinion_conversion_s20265616",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20265617,
-      "source_family": "rack_pinion_contact_stub",
-      "source_generator": "rack_pinion_contact_stub",
-      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t07_rack_pinion_contact_stub_s20265617",
-      "task_id": "rack_pinion_t07_rack_pinion_contact_stub_s20265617",
-      "verifier_level": 3
+      "source_family": "rack_pinion_conversion",
+      "source_generator": "rack_pinion_conversion",
+      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t07_rack_pinion_conversion_s20265617",
+      "task_id": "rack_pinion_t07_rack_pinion_conversion_s20265617",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20265618,
-      "source_family": "rack_pinion_contact_stub",
-      "source_generator": "rack_pinion_contact_stub",
-      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t08_rack_pinion_contact_stub_s20265618",
-      "task_id": "rack_pinion_t08_rack_pinion_contact_stub_s20265618",
-      "verifier_level": 3
+      "source_family": "rack_pinion_conversion",
+      "source_generator": "rack_pinion_conversion",
+      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t08_rack_pinion_conversion_s20265618",
+      "task_id": "rack_pinion_t08_rack_pinion_conversion_s20265618",
+      "verifier_level": 2
     },
     {
       "family": "rack_pinion",
-      "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20265619,
-      "source_family": "rack_pinion_contact_stub",
-      "source_generator": "rack_pinion_contact_stub",
-      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t09_rack_pinion_contact_stub_s20265619",
-      "task_id": "rack_pinion_t09_rack_pinion_contact_stub_s20265619",
-      "verifier_level": 3
+      "source_family": "rack_pinion_conversion",
+      "source_generator": "rack_pinion_conversion",
+      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t09_rack_pinion_conversion_s20265619",
+      "task_id": "rack_pinion_t09_rack_pinion_conversion_s20265619",
+      "verifier_level": 2
     },
     {
       "family": "lead_screw",

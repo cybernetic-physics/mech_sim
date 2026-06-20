@@ -803,6 +803,86 @@
     },
     {
       "budget": 32,
+      "family": "rack_pinion",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "rack_pinion_t06_rack_pinion_conversion_s20265616",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "rack_pinion",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "rack_pinion_t06_rack_pinion_conversion_s20265616",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "rack_pinion",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "rack_pinion_t06_rack_pinion_conversion_s20265616",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "rack_pinion",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "rack_pinion_t06_rack_pinion_conversion_s20265616",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "rack_pinion",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "rack_pinion_t06_rack_pinion_conversion_s20265616",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "rack_pinion",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "rack_pinion_t06_rack_pinion_conversion_s20265616",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "rack_pinion",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "rack_pinion_t06_rack_pinion_conversion_s20265616",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "rack_pinion",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "rack_pinion_t06_rack_pinion_conversion_s20265616",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
       "family": "lead_screw",
       "method": "frozen_model",
       "seed": 20260610,
@@ -1119,6 +1199,86 @@
       "split": "hidden_perturbation",
       "split_kind": "anti_shortcut",
       "task_id": "lead_screw_t03_lead_screw_linear_travel_s20266613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "rack_pinion",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "rack_pinion_t08_rack_pinion_conversion_s20265618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "rack_pinion",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "rack_pinion_t08_rack_pinion_conversion_s20265618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "rack_pinion",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "rack_pinion_t08_rack_pinion_conversion_s20265618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "rack_pinion",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "rack_pinion_t08_rack_pinion_conversion_s20265618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "rack_pinion",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "rack_pinion_t08_rack_pinion_conversion_s20265618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "rack_pinion",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "rack_pinion_t08_rack_pinion_conversion_s20265618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "rack_pinion",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "rack_pinion_t08_rack_pinion_conversion_s20265618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "rack_pinion",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "rack_pinion_t08_rack_pinion_conversion_s20265618",
       "verifier_level": 2
     },
     {
@@ -1282,10 +1442,10 @@
       "verifier_level": 2
     }
   ],
-  "full_planned_cells": 2400,
+  "full_planned_cells": 2880,
   "num_shards": 24,
   "out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
-  "planned_cells": 128,
+  "planned_cells": 144,
   "replay_args": [
     "--benchmark-dir",
     "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
