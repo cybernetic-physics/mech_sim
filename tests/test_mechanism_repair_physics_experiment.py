@@ -93,8 +93,18 @@ def _write_complete_negative_stats(out_dir: Path) -> None:
     _write_json(
         out_dir / "stats.json",
         {
+            "analysis_contract": {
+                "schema": "mechanism_repair_physics.analysis_contract.v1",
+                "primary_method": "mechanical_evolve_ttrl_tool_verified",
+                "primary_baseline": "llm_evolve_no_update",
+                "primary_budget": PRIMARY_BUDGET,
+            },
             "headline_metric_filter": "verifier_level>=2",
             "headline_metric_rows": 1,
+            "primary_method": "mechanical_evolve_ttrl_tool_verified",
+            "primary_baseline": "llm_evolve_no_update",
+            "primary_budget_verifier_calls": PRIMARY_BUDGET,
+            "n_paired_cells": 1,
             "evidence_audit": {"required_min_trace_pairs": 1},
             "primary_comparison": {
                 "success_delta_pct": 0.0,
@@ -934,6 +944,42 @@ def test_missing_external_style_anti_shortcut_analysis_blocks_goal_completion(
     assert (
         "anti_shortcut_comparison.splits: external_style"
         in audit["claim_audit"]["missing_analysis_requirements"]
+    )
+
+
+def test_wrong_primary_comparison_metadata_blocks_goal_completion(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    _write_complete_physics_rows(out_dir, plan, lambda _cell: (1, 1))
+    stats_path = out_dir / "stats.json"
+    stats = json.loads(stats_path.read_text())
+    stats["primary_method"] = "mechanical_evolve_ttrl"
+    stats["analysis_contract"]["primary_method"] = "mechanical_evolve_ttrl"
+    _write_json(stats_path, stats)
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert "primary_method" in (
+        audit["claim_audit"]["missing_analysis_requirements"]
+    )
+    assert "analysis_contract.primary_method" in (
+        audit["claim_audit"]["missing_analysis_requirements"]
     )
 
 

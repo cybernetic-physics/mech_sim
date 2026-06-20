@@ -939,6 +939,24 @@ def analysis_requirement_blockers(out_dir: Path) -> list[str]:
         blockers.append("headline_metric_filter.verifier_level>=2")
     if int_value(stats.get("headline_metric_rows", 0)) <= 0:
         blockers.append("headline_metric_rows")
+    if stats.get("primary_method") != PRIMARY_METHOD:
+        blockers.append("primary_method")
+    if stats.get("primary_baseline") != PRIMARY_BASELINE:
+        blockers.append("primary_baseline")
+    if int_value(stats.get("primary_budget_verifier_calls", 0)) != PRIMARY_BUDGET:
+        blockers.append("primary_budget_verifier_calls")
+    if int_value(stats.get("n_paired_cells", 0)) <= 0:
+        blockers.append("n_paired_cells")
+    contract = stats.get("analysis_contract") or {}
+    if not isinstance(contract, dict):
+        contract = {}
+        blockers.append("analysis_contract")
+    if contract.get("primary_method") != PRIMARY_METHOD:
+        blockers.append("analysis_contract.primary_method")
+    if contract.get("primary_baseline") != PRIMARY_BASELINE:
+        blockers.append("analysis_contract.primary_baseline")
+    if int_value(contract.get("primary_budget", 0)) != PRIMARY_BUDGET:
+        blockers.append("analysis_contract.primary_budget")
     comparison = stats.get("primary_comparison") or {}
     for key in (
         "success_delta_pct",
