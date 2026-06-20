@@ -37,6 +37,7 @@ MIN_TASKS_PER_FAMILY = 10
 MIN_FINAL_TASKS = 120
 MIN_LEVEL2PLUS_FRACTION = 0.40
 MIN_LEVEL3_FRACTION = 0.25
+MIN_POSITIVE_FAMILIES = 8
 TTRL_METHODS = {
     "mechanical_evolve_ttrl",
     "mechanical_evolve_ttrl_tool_verified",
@@ -1067,12 +1068,83 @@ def analysis_requirement_blockers(out_dir: Path) -> list[str]:
         if not isinstance(goal_counts, list):
             blockers.append("repair_taxonomy.goal_dimension_counts")
     claim = stats.get("analysis_claim_audit") or {}
-    if claim.get("claim_status") not in {
+    claim_status = claim.get("claim_status")
+    if claim_status not in {
         "supports_primary_hypothesis",
         "does_not_support_primary_hypothesis",
     }:
         blockers.append("analysis_claim_audit.claim_status")
+    else:
+        explicit_status = stats.get("claim_status")
+        if explicit_status and explicit_status != claim_status:
+            blockers.append("claim_status disagrees with analysis_claim_audit")
+        if claim_status == "supports_primary_hypothesis":
+            positive_blockers = positive_claim_support_blockers(stats)
+            if positive_blockers:
+                blockers.append(
+                    "analysis_claim_audit.unsupported_positive_claim: "
+                    + ", ".join(positive_blockers)
+                )
     return blockers
+
+
+def positive_claim_support_blockers(stats: dict[str, Any]) -> list[str]:
+    blockers: list[str] = []
+    comparison = stats.get("primary_comparison") or {}
+    delta = float_value(comparison.get("success_delta_pct", 0.0))
+    if delta < SUCCESS_DELTA_PCT:
+        blockers.append("primary_comparison.success_delta_pct")
+    ci_low = ci_low_value(comparison.get("success_delta_ci95"))
+    p_value = float_value(comparison.get("success_sign_test_p_one_sided", 1.0))
+    if ci_low <= 0.0 or p_value > 0.05:
+        blockers.append("primary_comparison.statistical_support")
+    if float_value(comparison.get("reward_delta_mean", 0.0)) <= 0.0:
+        blockers.append("primary_comparison.reward_delta_mean")
+    hidden_delta = split_success_delta(stats, "hidden_perturbation")
+    if hidden_delta is None or hidden_delta <= 0.0:
+        blockers.append("split_deltas.hidden_perturbation.success_delta")
+    anti = stats.get("anti_shortcut_comparison") or {}
+    if float_value(anti.get("anti_shortcut_pass_rate_delta", 0.0)) <= 0.0:
+        blockers.append("anti_shortcut_comparison.anti_shortcut_pass_rate_delta")
+    paired = stats.get("paired_method_comparisons") or {}
+    for method in ("adaptive_evolution", "verifier_gated_search"):
+        method_row = paired.get(method) or {}
+        if method_row.get("primary_beats_on_success") is not True:
+            blockers.append(
+                f"paired_method_comparisons.{method}.primary_beats_on_success"
+            )
+    family_deltas = stats.get("family_deltas") or []
+    positive_families = sum(
+        1
+        for row in family_deltas
+        if isinstance(row, dict) and float_value(row.get("success_delta", 0.0)) > 0.0
+    )
+    if positive_families < MIN_POSITIVE_FAMILIES:
+        blockers.append("family_deltas.positive_success_delta_count")
+    leave_one = stats.get("leave_one_family_out") or []
+    if not leave_one or any(
+        not isinstance(row, dict)
+        or row.get("keeps_positive_success_delta") is not True
+        for row in leave_one
+    ):
+        blockers.append("leave_one_family_out.keeps_positive_success_delta")
+    return blockers
+
+
+def ci_low_value(raw_ci: Any) -> float:
+    if isinstance(raw_ci, dict):
+        return float_value(raw_ci.get("low", 0.0))
+    if isinstance(raw_ci, list) and raw_ci:
+        return float_value(raw_ci[0])
+    return 0.0
+
+
+def split_success_delta(stats: dict[str, Any], split: str) -> float | None:
+    split_deltas = stats.get("split_deltas") or []
+    for row in split_deltas:
+        if isinstance(row, dict) and row.get("split") == split:
+            return float_value(row.get("success_delta", 0.0))
+    return None
 
 
 def missing_evidence_for_row(
