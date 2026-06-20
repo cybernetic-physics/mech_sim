@@ -89,11 +89,14 @@ ANALYSIS_SLURM_ERROR="${ANALYSIS_SLURM_ERROR:-auto}"
 
 usage() {
   cat <<EOF
-Usage: $0 [--submit]
+Usage: $0 [--submit] [--finalize-only]
 
 Stages the requested git ref, including the frozen MechanismRepair-Physics
 benchmark, to MATX, writes a Slurm array over shard_0000..shard_N, and writes a
 dependent merge/audit job.
+
+Use --finalize-only after all required shard outputs are present. It writes and
+optionally submits only CPU merge/analysis jobs; it does not submit a GPU array.
 
 Useful overrides:
   REMOTE_HOST=$REMOTE_HOST
@@ -137,21 +140,26 @@ EOF
 }
 
 submit=0
-case "${1:-}" in
-  --submit)
-    submit=1
-    ;;
-  -h|--help)
-    usage
-    exit 0
-    ;;
-  "")
-    ;;
-  *)
-    usage >&2
-    exit 2
-    ;;
-esac
+finalize_only=0
+while (($#)); do
+  case "$1" in
+    --submit)
+      submit=1
+      ;;
+    --finalize-only)
+      finalize_only=1
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 remote_repo="$REMOTE_ROOT/repo"
@@ -238,7 +246,9 @@ if [[ -n "$SHARD_INDICES" ]]; then
   done
 fi
 if [[ "$SUBMIT_DEPENDENTS" == "auto" ]]; then
-  if [[ -n "$SHARD_INDICES" ]]; then
+  if (( finalize_only )); then
+    SUBMIT_DEPENDENTS=0
+  elif [[ -n "$SHARD_INDICES" ]]; then
     SUBMIT_DEPENDENTS=0
   else
     SUBMIT_DEPENDENTS=1
@@ -249,7 +259,9 @@ if [[ "$SUBMIT_DEPENDENTS" != "0" && "$SUBMIT_DEPENDENTS" != "1" ]]; then
   exit 2
 fi
 if [[ "$RESTAGE_REMOTE_REPO" == "auto" ]]; then
-  if [[ -n "$SHARD_INDICES" ]]; then
+  if (( finalize_only )); then
+    RESTAGE_REMOTE_REPO=0
+  elif [[ -n "$SHARD_INDICES" ]]; then
     RESTAGE_REMOTE_REPO=0
   else
     RESTAGE_REMOTE_REPO=1
@@ -263,7 +275,18 @@ if [[ "$ALLOW_DESTRUCTIVE_RESTAGE" != "0" && "$ALLOW_DESTRUCTIVE_RESTAGE" != "1"
   echo "ALLOW_DESTRUCTIVE_RESTAGE must be 0 or 1" >&2
   exit 2
 fi
-if [[ "$GRES" == *gpu* && "$ARRAY_CONCURRENCY" != "1" && "$ALLOW_HIGH_CLUSTER_USAGE" != "1" ]]; then
+if (( finalize_only )) && [[ "$RESTAGE_REMOTE_REPO" == "1" ]]; then
+  cat >&2 <<EOF
+Refusing finalize-only restage.
+
+--finalize-only is only valid after shard outputs already exist in the remote
+run tree. Restaging would delete or replace the evidence that merge/analysis
+must consume. Use RESTAGE_REMOTE_REPO=0, or run a normal selected-shard submit
+for deliberate GPU reruns.
+EOF
+  exit 2
+fi
+if (( ! finalize_only )) && [[ "$GRES" == *gpu* && "$ARRAY_CONCURRENCY" != "1" && "$ALLOW_HIGH_CLUSTER_USAGE" != "1" ]]; then
   cat >&2 <<EOF
 Refusing to submit multiple concurrent GPU shards.
 
@@ -277,7 +300,7 @@ that higher concurrency is explicitly acceptable.
 EOF
   exit 2
 fi
-if [[ -n "$SHARD_INDICES" && "$RESTAGE_REMOTE_REPO" == "1" && "$ALLOW_DESTRUCTIVE_RESTAGE" != "1" ]]; then
+if (( ! finalize_only )) && [[ -n "$SHARD_INDICES" && "$RESTAGE_REMOTE_REPO" == "1" && "$ALLOW_DESTRUCTIVE_RESTAGE" != "1" ]]; then
   cat >&2 <<EOF
 Refusing destructive selected-shard resume.
 
@@ -292,7 +315,7 @@ ALLOW_DESTRUCTIVE_RESTAGE=1 only for a deliberate fresh root.
 EOF
   exit 2
 fi
-if [[ "$GRES" == *gpu* ]] && (( array_task_count > MAX_ARRAY_TASKS )) && [[ "$ALLOW_HIGH_CLUSTER_USAGE" != "1" ]]; then
+if (( ! finalize_only )) && [[ "$GRES" == *gpu* ]] && (( array_task_count > MAX_ARRAY_TASKS )) && [[ "$ALLOW_HIGH_CLUSTER_USAGE" != "1" ]]; then
   cat >&2 <<EOF
 Refusing to submit a broad GPU array.
 
@@ -320,8 +343,9 @@ else
   ssh "$REMOTE_HOST" "test -d '$remote_repo' && mkdir -p '$remote_logs' '$REMOTE_ROOT/locks' '$REMOTE_ROOT/venvs'"
 fi
 
-tmp_sbatch="$(mktemp)"
-cat >"$tmp_sbatch" <<EOF
+if (( ! finalize_only )); then
+  tmp_sbatch="$(mktemp)"
+  cat >"$tmp_sbatch" <<EOF
 #!/usr/bin/env bash
 #SBATCH --job-name=$JOB_NAME
 #SBATCH --account=$ACCOUNT
@@ -634,8 +658,9 @@ exec env CUDA_VISIBLE_DEVICES="\$train_cuda_visible_devices" \\
   "\${dry_run_args[@]}"
 EOF
 
-scp "$tmp_sbatch" "$REMOTE_HOST:$remote_sbatch"
-rm -f "$tmp_sbatch"
+  scp "$tmp_sbatch" "$REMOTE_HOST:$remote_sbatch"
+  rm -f "$tmp_sbatch"
+fi
 
 tmp_merge="$(mktemp)"
 cat >"$tmp_merge" <<EOF
@@ -843,29 +868,46 @@ if [[ "$RESTAGE_REMOTE_REPO" == "1" ]]; then
 else
   echo "Preserved existing remote repo at $REMOTE_HOST:$remote_repo"
 fi
-echo "Wrote array Slurm script at $REMOTE_HOST:$remote_sbatch"
+if (( ! finalize_only )); then
+  echo "Wrote array Slurm script at $REMOTE_HOST:$remote_sbatch"
+else
+  echo "Finalize-only mode: no GPU array Slurm script was written"
+fi
 echo "Wrote merge Slurm script at $REMOTE_HOST:$remote_merge_sbatch"
 echo "Wrote analysis Slurm script at $REMOTE_HOST:$remote_analysis_sbatch"
 if (( submit )); then
-  array_job_raw="$(ssh "$REMOTE_HOST" "sbatch --parsable '$remote_sbatch'")"
-  array_job="${array_job_raw%%;*}"
-  echo "Submitted array job: $array_job_raw"
-  if [[ "$SUBMIT_DEPENDENTS" == "1" ]]; then
-    merge_job_raw="$(ssh "$REMOTE_HOST" "sbatch --parsable --dependency=afterok:$array_job '$remote_merge_sbatch'")"
+  if (( finalize_only )); then
+    merge_job_raw="$(ssh "$REMOTE_HOST" "sbatch --parsable '$remote_merge_sbatch'")"
     merge_job="${merge_job_raw%%;*}"
-    echo "Submitted dependent merge job: $merge_job_raw"
+    echo "Submitted finalize merge job: $merge_job_raw"
     analysis_job_raw="$(ssh "$REMOTE_HOST" "sbatch --parsable --dependency=afterok:$merge_job '$remote_analysis_sbatch'")"
-    echo "Submitted dependent analysis/audit job: $analysis_job_raw"
+    echo "Submitted finalize analysis/audit job: $analysis_job_raw"
   else
-    echo "Skipped dependent merge/analysis submission because SUBMIT_DEPENDENTS=$SUBMIT_DEPENDENTS"
+    array_job_raw="$(ssh "$REMOTE_HOST" "sbatch --parsable '$remote_sbatch'")"
+    array_job="${array_job_raw%%;*}"
+    echo "Submitted array job: $array_job_raw"
+    if [[ "$SUBMIT_DEPENDENTS" == "1" ]]; then
+      merge_job_raw="$(ssh "$REMOTE_HOST" "sbatch --parsable --dependency=afterok:$array_job '$remote_merge_sbatch'")"
+      merge_job="${merge_job_raw%%;*}"
+      echo "Submitted dependent merge job: $merge_job_raw"
+      analysis_job_raw="$(ssh "$REMOTE_HOST" "sbatch --parsable --dependency=afterok:$merge_job '$remote_analysis_sbatch'")"
+      echo "Submitted dependent analysis/audit job: $analysis_job_raw"
+    else
+      echo "Skipped dependent merge/analysis submission because SUBMIT_DEPENDENTS=$SUBMIT_DEPENDENTS"
+    fi
   fi
 else
   echo "Submit with:"
-  echo "  array_job=\\\$(ssh $REMOTE_HOST sbatch --parsable '$remote_sbatch')"
-  if [[ "$SUBMIT_DEPENDENTS" == "1" ]]; then
-    echo "  merge_job=\\\$(ssh $REMOTE_HOST sbatch --parsable --dependency=afterok:\\\${array_job%%;*} '$remote_merge_sbatch')"
+  if (( finalize_only )); then
+    echo "  merge_job=\\\$(ssh $REMOTE_HOST sbatch --parsable '$remote_merge_sbatch')"
     echo "  ssh $REMOTE_HOST sbatch --dependency=afterok:\\\${merge_job%%;*} '$remote_analysis_sbatch'"
   else
-    echo "  # SUBMIT_DEPENDENTS=$SUBMIT_DEPENDENTS; submit merge/analysis only after all shards are complete"
+    echo "  array_job=\\\$(ssh $REMOTE_HOST sbatch --parsable '$remote_sbatch')"
+    if [[ "$SUBMIT_DEPENDENTS" == "1" ]]; then
+      echo "  merge_job=\\\$(ssh $REMOTE_HOST sbatch --parsable --dependency=afterok:\\\${array_job%%;*} '$remote_merge_sbatch')"
+      echo "  ssh $REMOTE_HOST sbatch --dependency=afterok:\\\${merge_job%%;*} '$remote_analysis_sbatch'"
+    else
+      echo "  # SUBMIT_DEPENDENTS=$SUBMIT_DEPENDENTS; submit merge/analysis only after all shards are complete"
+    fi
   fi
 fi
