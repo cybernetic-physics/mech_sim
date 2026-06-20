@@ -92,6 +92,8 @@ def _write_complete_negative_stats(out_dir: Path) -> None:
     _write_json(
         out_dir / "stats.json",
         {
+            "headline_metric_filter": "verifier_level>=2",
+            "headline_metric_rows": 1,
             "primary_comparison": {
                 "success_delta_pct": 0.0,
                 "success_delta_ci95": {"low": 0.0, "high": 0.0},
@@ -905,7 +907,12 @@ def test_incomplete_stats_blocks_goal_completion(tmp_path: Path) -> None:
     audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
 
     assert audit["claim_audit"]["goal_complete"] is False
-    assert audit["claim_audit"]["missing_analysis_requirements"]
+    assert "headline_metric_filter.verifier_level>=2" in (
+        audit["claim_audit"]["missing_analysis_requirements"]
+    )
+    assert "headline_metric_rows" in (
+        audit["claim_audit"]["missing_analysis_requirements"]
+    )
     assert any(
         "compute required primary" in item
         for item in audit["claim_audit"]["blockers"]

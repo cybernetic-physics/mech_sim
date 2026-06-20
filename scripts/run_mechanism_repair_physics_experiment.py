@@ -862,6 +862,10 @@ def analysis_requirement_blockers(out_dir: Path) -> list[str]:
         return []
     stats = read_json(stats_path)
     blockers: list[str] = []
+    if stats.get("headline_metric_filter") != "verifier_level>=2":
+        blockers.append("headline_metric_filter.verifier_level>=2")
+    if int_value(stats.get("headline_metric_rows", 0)) <= 0:
+        blockers.append("headline_metric_rows")
     comparison = stats.get("primary_comparison") or {}
     for key in (
         "success_delta_pct",
