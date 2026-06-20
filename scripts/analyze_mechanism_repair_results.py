@@ -27,26 +27,41 @@ from scripts.prepare_mechanism_repair_benchmark import (
     SUCCESS_DELTA_PCT as LEGACY_SUCCESS_DELTA_PCT,
 )
 
-SECONDARY_METRIC_FIELDS = (
+GOAL_SECONDARY_METRIC_FIELDS = (
+    "cad_valid_rate",
+    "chrono_valid_rate",
     "first_valid_verifier_call",
-    "strict_score_pass_rate",
-    "wrong_mobility_rate",
-    "missing_port_rate",
-    "ungrounded_port_rate",
+    "mobility_repair_success",
+    "port_grounding_repair_success",
+    "artifact_validity_repair_success",
+    "contact_repair_success",
+    "max_penetration_mm",
+    "contact_force_rms_N",
+    "ratio_error_pct",
+    "stroke_error_mm",
+    "path_chamfer_error",
+    "lockup_rate",
     "invalid_topology_rate",
     "invalid_artifact_rate",
+    "missing_port_rate",
+    "ungrounded_port_rate",
+    "wrong_mobility_rate",
+    "adapter_updates",
+    "rl_datums",
+    "trained_tokens",
+    "rl_trained_tokens",
+)
+LEGACY_SECONDARY_METRIC_FIELDS = (
+    "strict_score_pass_rate",
     "cad_pass_rate",
     "chrono_real_geometry_rate",
     "no_procedural_fallback_rate",
-    "lockup_rate",
     "contact_lockup_rate",
     "best_ratio_error_pct",
+    "best_stroke_error_mm",
     "best_path_trace_error",
     "best_max_penetration_mm",
     "best_contact_force_rms_N",
-    "adapter_updates",
-    "trained_tokens",
-    "rl_trained_tokens",
     "n_rl_datums",
     "sampler_error_count",
     "sampler_http_400_count",
@@ -54,6 +69,9 @@ SECONDARY_METRIC_FIELDS = (
     "invalid_artifact_count",
     "timeout_count",
     "audit_retry_count",
+)
+SECONDARY_METRIC_FIELDS = tuple(
+    dict.fromkeys([*GOAL_SECONDARY_METRIC_FIELDS, *LEGACY_SECONDARY_METRIC_FIELDS])
 )
 
 PHYSICS_HIDDEN_VARIANT_SPLIT = "hidden_perturbation"
@@ -471,6 +489,77 @@ def summarize_metric_field(
 ) -> dict[str, Any]:
     values: list[float] = []
     for row in rows:
+        raw = secondary_metric_value(row, field)
+        if raw is None:
+            continue
+        values.append(raw)
+    return {
+        "n_present": len(values),
+        "mean": mean(values) if values else None,
+    }
+
+
+def secondary_metric_value(row: dict[str, Any], field: str) -> float | None:
+    if field == "cad_valid_rate":
+        return first_numeric(row, ("cad_valid_rate", "cad_pass_rate"))
+    if field == "chrono_valid_rate":
+        return first_numeric(row, ("chrono_valid_rate", "chrono_real_geometry_rate"))
+    if field == "mobility_repair_success":
+        explicit = first_numeric(row, ("mobility_repair_success",))
+        if explicit is not None:
+            return explicit
+        failure = first_numeric(row, ("wrong_mobility_rate",))
+        return 1.0 - failure if failure is not None else None
+    if field == "port_grounding_repair_success":
+        explicit = first_numeric(row, ("port_grounding_repair_success",))
+        if explicit is not None:
+            return explicit
+        failures = [
+            value for value in (
+                first_numeric(row, ("missing_port_rate",)),
+                first_numeric(row, ("ungrounded_port_rate",)),
+            )
+            if value is not None
+        ]
+        return 1.0 - max(failures) if failures else None
+    if field == "artifact_validity_repair_success":
+        explicit = first_numeric(row, ("artifact_validity_repair_success",))
+        if explicit is not None:
+            return explicit
+        failure = first_numeric(row, ("invalid_artifact_rate",))
+        return 1.0 - failure if failure is not None else None
+    if field == "contact_repair_success":
+        explicit = first_numeric(row, ("contact_repair_success",))
+        if explicit is not None:
+            return explicit
+        failures = [
+            value for value in (
+                first_numeric(row, ("lockup_rate",)),
+                first_numeric(row, ("contact_lockup_rate",)),
+            )
+            if value is not None
+        ]
+        return 1.0 - max(failures) if failures else None
+    aliases = {
+        "max_penetration_mm": ("max_penetration_mm", "best_max_penetration_mm"),
+        "contact_force_rms_N": (
+            "contact_force_rms_N",
+            "best_contact_force_rms_N",
+        ),
+        "ratio_error_pct": ("ratio_error_pct", "best_ratio_error_pct"),
+        "stroke_error_mm": ("stroke_error_mm", "best_stroke_error_mm"),
+        "path_chamfer_error": (
+            "path_chamfer_error",
+            "path_trace_error",
+            "best_path_trace_error",
+        ),
+        "rl_datums": ("rl_datums", "n_rl_datums"),
+    }
+    return first_numeric(row, aliases.get(field, (field,)))
+
+
+def first_numeric(row: dict[str, Any], fields: tuple[str, ...]) -> float | None:
+    for field in fields:
         raw = row.get(field)
         if raw is None or raw == "":
             continue
@@ -479,11 +568,8 @@ def summarize_metric_field(
         except (TypeError, ValueError):
             continue
         if math.isfinite(value):
-            values.append(value)
-    return {
-        "n_present": len(values),
-        "mean": mean(values) if values else None,
-    }
+            return value
+    return None
 
 
 def paired_primary_rows(

@@ -61,6 +61,30 @@ REQUIRED_RUN_DIRS = (
     "training_logs",
     "adapter_checkpoints",
 )
+REQUIRED_SECONDARY_METRICS = (
+    "cad_valid_rate",
+    "chrono_valid_rate",
+    "first_valid_verifier_call",
+    "mobility_repair_success",
+    "port_grounding_repair_success",
+    "artifact_validity_repair_success",
+    "contact_repair_success",
+    "max_penetration_mm",
+    "contact_force_rms_N",
+    "ratio_error_pct",
+    "stroke_error_mm",
+    "path_chamfer_error",
+    "lockup_rate",
+    "invalid_topology_rate",
+    "invalid_artifact_rate",
+    "missing_port_rate",
+    "ungrounded_port_rate",
+    "wrong_mobility_rate",
+    "adapter_updates",
+    "rl_datums",
+    "trained_tokens",
+    "rl_trained_tokens",
+)
 
 
 def main() -> int:
@@ -898,6 +922,28 @@ def analysis_requirement_blockers(out_dir: Path) -> list[str]:
         if missing_table_fields:
             blockers.append(
                 "primary_result_table fields: " + ", ".join(missing_table_fields)
+            )
+    method_summary = stats.get("method_summary") or {}
+    if not isinstance(method_summary, dict) or not method_summary:
+        blockers.append("method_summary")
+    else:
+        missing_secondary = sorted({
+            metric
+            for summary in method_summary.values()
+            if isinstance(summary, dict)
+            for metrics in [summary.get("secondary_metrics") or {}]
+            for metric in REQUIRED_SECONDARY_METRICS
+            if (
+                metric not in metrics
+                or not isinstance(metrics.get(metric), dict)
+                or "n_present" not in metrics[metric]
+                or "mean" not in metrics[metric]
+            )
+        })
+        if missing_secondary:
+            blockers.append(
+                "method_summary.secondary_metrics: "
+                + ", ".join(missing_secondary)
             )
     split_deltas = stats.get("split_deltas")
     if not isinstance(split_deltas, list) or not any(

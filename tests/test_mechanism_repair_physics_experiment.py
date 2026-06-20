@@ -113,6 +113,15 @@ def _write_complete_negative_stats(out_dir: Path) -> None:
                 }
                 for method in REQUIRED_METHODS
             ],
+            "method_summary": {
+                method: {
+                    "secondary_metrics": {
+                        metric: {"n_present": 1, "mean": 0.0}
+                        for metric in physics.REQUIRED_SECONDARY_METRICS
+                    }
+                }
+                for method in REQUIRED_METHODS
+            },
             "split_deltas": [
                 {
                     "split": "hidden_perturbation",
@@ -650,6 +659,38 @@ def test_missing_result_bundle_blocks_goal_completion(tmp_path: Path) -> None:
     )
 
 
+def test_missing_secondary_metric_blocks_goal_completion(tmp_path: Path) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    _write_complete_physics_rows(out_dir, plan, lambda _cell: (1, 1))
+    stats_path = out_dir / "stats.json"
+    stats = json.loads(stats_path.read_text())
+    first_method = next(iter(stats["method_summary"]))
+    del stats["method_summary"][first_method]["secondary_metrics"]["cad_valid_rate"]
+    _write_json(stats_path, stats)
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert any(
+        "method_summary.secondary_metrics: cad_valid_rate" == item
+        for item in audit["claim_audit"]["missing_analysis_requirements"]
+    )
+
+
 def test_unreached_cad_chrono_obligation_evidence_is_not_budget_mismatch(
     tmp_path: Path,
 ) -> None:
@@ -911,6 +952,9 @@ def test_incomplete_stats_blocks_goal_completion(tmp_path: Path) -> None:
         audit["claim_audit"]["missing_analysis_requirements"]
     )
     assert "headline_metric_rows" in (
+        audit["claim_audit"]["missing_analysis_requirements"]
+    )
+    assert "method_summary" in (
         audit["claim_audit"]["missing_analysis_requirements"]
     )
     assert any(

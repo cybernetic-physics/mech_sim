@@ -56,7 +56,13 @@ def _support_rows(tmp_path: Path | None = None) -> list[dict]:
                     "cad_pass_rate": 1.0,
                     "chrono_real_geometry_rate": 0.0,
                     "no_procedural_fallback_rate": 1.0,
+                    "lockup_rate": 0.0,
+                    "contact_lockup_rate": 0.0,
                     "best_ratio_error_pct": 0.0 if success else 12.0,
+                    "best_stroke_error_mm": 0.0 if success else 3.0,
+                    "best_path_trace_error": 0.0 if success else 1.5,
+                    "best_max_penetration_mm": 0.05 if success else 0.8,
+                    "best_contact_force_rms_N": 10.0 if success else 0.0,
                 }
                 if tmp_path is not None:
                     evidence_dir = tmp_path / method / task_id / str(seed)
@@ -502,6 +508,18 @@ def test_mechanism_repair_analysis_summarizes_secondary_metrics(
         "secondary_metrics"
     ]
     assert ttrl_metrics["first_valid_verifier_call"]["n_present"] == 8
+    assert ttrl_metrics["cad_valid_rate"]["mean"] == 1.0
+    assert ttrl_metrics["chrono_valid_rate"]["mean"] == 0.0
+    assert ttrl_metrics["mobility_repair_success"]["mean"] == 1.0
+    assert ttrl_metrics["port_grounding_repair_success"]["mean"] == 1.0
+    assert ttrl_metrics["artifact_validity_repair_success"]["mean"] == 1.0
+    assert ttrl_metrics["contact_repair_success"]["mean"] == 1.0
+    assert ttrl_metrics["ratio_error_pct"]["mean"] == 0.0
+    assert ttrl_metrics["stroke_error_mm"]["mean"] == 0.0
+    assert ttrl_metrics["path_chamfer_error"]["mean"] == 0.0
+    assert ttrl_metrics["max_penetration_mm"]["mean"] == 0.05
+    assert ttrl_metrics["contact_force_rms_N"]["mean"] == 10.0
+    assert ttrl_metrics["rl_datums"]["mean"] == 32
     assert ttrl_metrics["strict_score_pass_rate"]["mean"] == 1.0
     assert ttrl_metrics["adapter_updates"]["mean"] == 32
     assert stats["family_method_summary"]
