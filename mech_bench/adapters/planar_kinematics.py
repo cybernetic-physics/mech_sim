@@ -1,15 +1,17 @@
 """Analytical planar-kinematics adapter.
 
 Handles closed-loop planar four-bar, slider-crank, simple lead-screw,
-and two-pulley belt topologies analytically from DesignIR topology +
-joint anchor data. Emits port traces, joint position / velocity
-time-series, and a shared time axis. Pure NumPy — no physics solver.
+two-pulley belt, and two-sprocket chain topologies analytically from
+DesignIR topology + joint anchor data. Emits port traces, joint
+position / velocity time-series, and a shared time axis. Pure NumPy —
+no physics solver.
 
 Topology detection is auto by default:
   * 4 parts + 4 revolutes → four-bar.
   * 4 parts + 3 revolutes + 1 prismatic → slider-crank (planar).
   * 3 parts + 1 revolute + 1 prismatic + lead_mm param → lead screw.
   * 3 parts + 2 revolutes + pulley diameter params → belt drive.
+  * 3 parts + 2 revolutes + sprocket tooth-count params → chain drive.
 
 Anything outside these returns an empty trace (and probes downstream
 surface ``SIMULATOR_DIVERGENCE`` or ``LOCKUP`` as appropriate).
@@ -533,13 +535,13 @@ def _solve_lead_screw(
     }
 
 
-def _solve_belt_drive(
+def _solve_belt_or_chain_drive(
     ir: DesignIR,
     n_samples: int,
     *,
     strict_geometry: bool,
 ) -> dict[str, Any] | None:
-    """No-slip belt kinematics for two grounded revolute pulley axes."""
+    """No-slip belt/chain kinematics for two grounded revolute axes."""
     del strict_geometry
     if len(ir.parts) != 3:
         return None
@@ -573,17 +575,35 @@ def _solve_belt_drive(
     if input_part is None or output_part is None:
         return None
     role_text = f"{input_part.role} {output_part.role}".lower()
-    if "pulley" not in role_text:
+    is_pulley = "pulley" in role_text
+    is_sprocket = "sprocket" in role_text
+    if not (is_pulley or is_sprocket):
         return None
     d_in = _part_float_param(input_part, "diameter_mm", "pitch_diameter_mm")
     d_out = _part_float_param(output_part, "diameter_mm", "pitch_diameter_mm")
-    if d_in is None or d_out is None or d_in <= 0.0 or d_out <= 0.0:
+    teeth_in = _part_float_param(input_part, "teeth", "tooth_count")
+    teeth_out = _part_float_param(output_part, "teeth", "tooth_count")
+    if d_in is not None and d_out is not None and d_in > 0.0 and d_out > 0.0:
+        speed_ratio = float(d_in / d_out)
+        size_metrics = {
+            "drive_diameter": float(d_in),
+            "driven_diameter": float(d_out),
+        }
+    elif (
+        teeth_in is not None and teeth_out is not None
+        and teeth_in > 0.0 and teeth_out > 0.0
+    ):
+        speed_ratio = float(teeth_in / teeth_out)
+        size_metrics = {
+            "drive_teeth": float(teeth_in),
+            "driven_teeth": float(teeth_out),
+        }
+    else:
         return None
 
     time_s = np.linspace(0.0, 2.0 * np.pi, n_samples,
                          endpoint=False, dtype=float)
     input_arr = time_s.copy()
-    speed_ratio = float(d_in / d_out)
     output_arr = input_arr * speed_ratio
     return {
         "port_traces": {},
@@ -598,11 +618,8 @@ def _solve_belt_drive(
             "output_port": np.gradient(output_arr, time_s, edge_order=1),
         },
         "time_s": time_s,
-        "topology": "belt_drive",
-        "link_lengths_mm": {
-            "drive_diameter": float(d_in),
-            "driven_diameter": float(d_out),
-        },
+        "topology": "chain_drive" if is_sprocket and not is_pulley else "belt_drive",
+        "link_lengths_mm": size_metrics,
         "invalid_samples": 0,
         "ratio_estimate": speed_ratio,
     }
@@ -648,8 +665,8 @@ class PlanarKinematics(SimAdapter):
             candidates.append(_solve_slider_crank)
         if topology in ("auto", "lead_screw"):
             candidates.append(_solve_lead_screw)
-        if topology in ("auto", "belt_drive"):
-            candidates.append(_solve_belt_drive)
+        if topology in ("auto", "belt_drive", "chain_drive"):
+            candidates.append(_solve_belt_or_chain_drive)
         for solver in candidates:
             solved = solver(ir, n_samples, strict_geometry=strict_geometry)
             if solved is not None:

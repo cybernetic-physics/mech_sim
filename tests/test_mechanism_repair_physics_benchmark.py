@@ -74,14 +74,15 @@ def test_physics_preflight_materializes_required_families_and_manifests(
         for blocker in audit["paper_blockers"]
     )
     assert audit["family_counts"] == {family: 1 for family in REQUIRED_FAMILIES}
-    assert audit["headline_task_count"] == 4
+    assert audit["headline_task_count"] == 5
     assert audit["headline_family_counts"] == {
         "belt_drive": 1,
+        "chain_drive": 1,
         "fourbar_linkage": 1,
         "lead_screw": 1,
         "slider_crank": 1,
     }
-    assert audit["diagnostic_task_count"] == 8
+    assert audit["diagnostic_task_count"] == 7
     assert audit["level_counts"] == {"2": 8, "3": 4}
     assert all(
         len(task["constraint_classes"]) >= 3
@@ -113,8 +114,9 @@ def test_physics_preflight_materializes_required_families_and_manifests(
             test_names = {
                 Path(path).name for path in split_manifest["splits"]["test"]
             }
-            assert len(test_names) == 1
+            assert len(test_names) == 2
             assert any(name.startswith("belt_drive") for name in test_names)
+            assert any(name.startswith("chain_drive") for name in test_names)
 
     assert methods["required_methods"] == list(REQUIRED_METHODS)
     assert methods["primary_method"] == "mechanical_evolve_ttrl_tool_verified"

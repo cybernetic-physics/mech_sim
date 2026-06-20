@@ -4,8 +4,8 @@
     "hidden_perturbation",
     "external_style"
   ],
-  "expected_anti_shortcut_cells": 1200,
-  "missing_anti_shortcut_cells": 1200,
+  "expected_anti_shortcut_cells": 1440,
+  "missing_anti_shortcut_cells": 1440,
   "sample_missing_anti_shortcut_cells": [
     {
       "budget": 32,

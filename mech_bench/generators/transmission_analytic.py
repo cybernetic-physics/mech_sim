@@ -877,6 +877,10 @@ class ChainSprocketRatioGenerator(TaskGenerator):
 
         parts, joints, ports = _basic_pair_design(
             "sprocket_in", "sprocket_out", 80.0)
+        parts[1]["role"] = "sprocket_driver"
+        parts[1]["params"] = {"teeth": driver}
+        parts[2]["role"] = "sprocket_driven"
+        parts[2]["params"] = {"teeth": driven}
         params = {
             "driver_teeth": driver, "driven_teeth": driven,
             "declared_ratio": ratio,
@@ -884,9 +888,12 @@ class ChainSprocketRatioGenerator(TaskGenerator):
         prompt = (
             "# Chain sprocket ratio\n\n"
             f"Ratio = driven/driver = {driven}/{driver} = {ratio}.\n"
+            f"The observed output/input angular velocity ratio must be "
+            f"driver/driven = {round(driver / driven, 6)}.\n"
         )
 
         def _cfg(tol_pct: float) -> dict[str, Any]:
+            speed_ratio = 1.0 / ratio
             return {
                 "probes": [
                     dof_probe(expected=2),
@@ -899,11 +906,28 @@ class ChainSprocketRatioGenerator(TaskGenerator):
                         tolerance_pct=tol_pct,
                         failure_code="wrong_ratio",
                     ),
+                    {
+                        "id": "speed_ratio",
+                        "type": "port_velocity_ratio",
+                        "input_port": "input_port",
+                        "output_port": "output_port",
+                        "expected": float(speed_ratio),
+                        "tolerance_pct": float(tol_pct),
+                        "min_abs_input_velocity": 1e-6,
+                        "weight": 1.0,
+                        "severity": "major",
+                    },
                 ],
                 "feedback": {
                     "public_metrics": [
-                        "ratio.observed", "ratio.expected"],
-                    "hidden_metrics": ["ratio.error_pct"],
+                        "ratio.observed", "ratio.expected",
+                        "speed_ratio.ratio_observed",
+                        "speed_ratio.ratio_expected",
+                    ],
+                    "hidden_metrics": [
+                        "ratio.error_pct",
+                        "speed_ratio.ratio_error_pct",
+                    ],
                 },
                 "hard_gate": {"require": ["mobility", "ports"]},
             }
@@ -914,8 +938,14 @@ class ChainSprocketRatioGenerator(TaskGenerator):
                 f"    ir['params']['declared_ratio'] = "
                 f"{round(ratio * 0.3, 6)}"
             ),
-            "missing_chain_param": make_negative_overlay(
-                "    del ir['params']['driver_teeth']"
+            "missing_output_port": make_negative_overlay(
+                "    del ir['ports']['output_port']"
+            ),
+            "wrong_sprocket_geometry": make_negative_overlay(
+                "    for part in ir['parts']:\n"
+                "        if part['id'] == 'sprocket_out':\n"
+                "            part['params']['teeth'] = max(\n"
+                "                1, int(part['params']['teeth'] * 0.5))"
             ),
         }
         expected = make_expected_failures(
@@ -924,11 +954,15 @@ class ChainSprocketRatioGenerator(TaskGenerator):
                 {"id": "wrong_ratio",
                  "expected_failure_codes": ["wrong_ratio"],
                  "expected_hard_gate_passed": True,
-                 "expected_score_below": 0.5},
-                {"id": "missing_chain_param",
-                 "expected_failure_codes": [],
+                 "expected_score_below": 0.51},
+                {"id": "missing_output_port",
+                 "expected_failure_codes": ["missing_port"],
+                 "expected_hard_gate_passed": False,
+                 "expected_score_below": 0.001},
+                {"id": "wrong_sprocket_geometry",
+                 "expected_failure_codes": ["wrong_ratio"],
                  "expected_hard_gate_passed": True,
-                 "expected_score_below": 1.01},
+                 "expected_score_below": 0.8},
             ],
         )
         task_toml = {

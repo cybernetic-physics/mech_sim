@@ -247,7 +247,7 @@
         "topology_mobility"
       ],
       "family": "chain_drive",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "chain_drive_t00_chain_sprocket_ratio_s20264610",
       "verifier_level": 2
     },
@@ -259,7 +259,7 @@
         "topology_mobility"
       ],
       "family": "chain_drive",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
       "verifier_level": 2
     },
@@ -271,7 +271,7 @@
         "topology_mobility"
       ],
       "family": "chain_drive",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "chain_drive_t02_chain_sprocket_ratio_s20264612",
       "verifier_level": 2
     },
@@ -283,7 +283,7 @@
         "topology_mobility"
       ],
       "family": "chain_drive",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "chain_drive_t03_chain_sprocket_ratio_s20264613",
       "verifier_level": 2
     },
@@ -295,7 +295,7 @@
         "topology_mobility"
       ],
       "family": "chain_drive",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "chain_drive_t04_chain_sprocket_ratio_s20264614",
       "verifier_level": 2
     },
@@ -307,7 +307,7 @@
         "topology_mobility"
       ],
       "family": "chain_drive",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "chain_drive_t05_chain_sprocket_ratio_s20264615",
       "verifier_level": 2
     },
@@ -319,7 +319,7 @@
         "topology_mobility"
       ],
       "family": "chain_drive",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "chain_drive_t06_chain_sprocket_ratio_s20264616",
       "verifier_level": 2
     },
@@ -331,7 +331,7 @@
         "topology_mobility"
       ],
       "family": "chain_drive",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "chain_drive_t07_chain_sprocket_ratio_s20264617",
       "verifier_level": 2
     },
@@ -343,7 +343,7 @@
         "topology_mobility"
       ],
       "family": "chain_drive",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "chain_drive_t08_chain_sprocket_ratio_s20264618",
       "verifier_level": 2
     },
@@ -355,7 +355,7 @@
         "topology_mobility"
       ],
       "family": "chain_drive",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "chain_drive_t09_chain_sprocket_ratio_s20264619",
       "verifier_level": 2
     },

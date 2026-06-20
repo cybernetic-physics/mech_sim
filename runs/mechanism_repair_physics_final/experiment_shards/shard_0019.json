@@ -403,6 +403,326 @@
     },
     {
       "budget": 32,
+      "family": "chain_drive",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t00_chain_sprocket_ratio_s20264610",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t00_chain_sprocket_ratio_s20264610",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t00_chain_sprocket_ratio_s20264610",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t00_chain_sprocket_ratio_s20264610",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t00_chain_sprocket_ratio_s20264610",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t00_chain_sprocket_ratio_s20264610",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t00_chain_sprocket_ratio_s20264610",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t00_chain_sprocket_ratio_s20264610",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t04_chain_sprocket_ratio_s20264614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t04_chain_sprocket_ratio_s20264614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t04_chain_sprocket_ratio_s20264614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t04_chain_sprocket_ratio_s20264614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t04_chain_sprocket_ratio_s20264614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t04_chain_sprocket_ratio_s20264614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t04_chain_sprocket_ratio_s20264614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "chain_drive_t04_chain_sprocket_ratio_s20264614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
       "family": "slider_crank",
       "method": "frozen_model",
       "seed": 20260611,
@@ -962,10 +1282,10 @@
       "verifier_level": 2
     }
   ],
-  "full_planned_cells": 1920,
+  "full_planned_cells": 2400,
   "num_shards": 24,
   "out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
-  "planned_cells": 96,
+  "planned_cells": 128,
   "replay_args": [
     "--benchmark-dir",
     "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",

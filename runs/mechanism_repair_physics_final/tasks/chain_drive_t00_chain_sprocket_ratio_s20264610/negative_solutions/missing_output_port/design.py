@@ -14,5 +14,5 @@ def build_design(out_dir: Path) -> dict:
     finally:
         sys.path.pop(0)
     ir = ref.build_design(out_dir)
-    del ir['params']['driver_teeth']
+    del ir['ports']['output_port']
     return ir

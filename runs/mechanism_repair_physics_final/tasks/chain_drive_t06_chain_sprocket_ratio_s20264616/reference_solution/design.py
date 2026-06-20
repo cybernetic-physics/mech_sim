@@ -13,15 +13,21 @@ def _base_build_design(out_dir: Path) -> dict:
     },
     {
         'id': 'sprocket_in',
-        'role': 'input',
+        'role': 'sprocket_driver',
         'mass_kg': 0.02,
         'com_local_mm': (0.0, 0.0, 0.0),
+        'params': {
+            'teeth': 12,
+        },
     },
     {
         'id': 'sprocket_out',
-        'role': 'output',
+        'role': 'sprocket_driven',
         'mass_kg': 0.05,
         'com_local_mm': (0.0, 0.0, 0.0),
+        'params': {
+            'teeth': 36,
+        },
     },
 ]
     joints = [

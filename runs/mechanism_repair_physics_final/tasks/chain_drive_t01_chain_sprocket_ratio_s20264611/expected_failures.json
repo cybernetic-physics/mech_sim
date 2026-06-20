@@ -7,15 +7,26 @@
         "wrong_ratio"
       ],
       "expected_hard_gate_passed": true,
-      "expected_score_below": 0.5,
+      "expected_score_below": 0.51,
       "submission": "negative_solutions/wrong_ratio"
     },
     {
-      "id": "missing_chain_param",
-      "expected_failure_codes": [],
+      "id": "missing_output_port",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001,
+      "submission": "negative_solutions/missing_output_port"
+    },
+    {
+      "id": "wrong_sprocket_geometry",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
       "expected_hard_gate_passed": true,
-      "expected_score_below": 1.01,
-      "submission": "negative_solutions/missing_chain_param"
+      "expected_score_below": 0.8,
+      "submission": "negative_solutions/wrong_sprocket_geometry"
     },
     {
       "id": "missing_required_port_physics",

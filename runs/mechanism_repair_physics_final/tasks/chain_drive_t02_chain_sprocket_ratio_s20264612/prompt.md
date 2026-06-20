@@ -1,6 +1,7 @@
 # Chain sprocket ratio
 
 Ratio = driven/driver = 64/16 = 4.0.
+The observed output/input angular velocity ratio must be driver/driven = 0.25.
 
 ## MechanismRepair-Physics canonical contract
 
