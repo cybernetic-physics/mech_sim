@@ -142,8 +142,15 @@ def main() -> int:
     parser.add_argument(
         "--rollout-backend",
         default="sglang_chat",
-        choices=["sglang_chat", "worldlines_sampling"],
+        choices=["sglang_chat", "worldlines_sampling", "transformers_local"],
     )
+    parser.add_argument("--local-device", default="cpu")
+    parser.add_argument(
+        "--local-torch-dtype",
+        default="auto",
+        choices=["auto", "float32", "float16", "bfloat16"],
+    )
+    parser.add_argument("--local-trust-remote-code", action="store_true")
     parser.add_argument(
         "--methods",
         default=None,
@@ -809,6 +816,29 @@ def build_runtime_preflight(
                     "worldlines_sampling requested but package 'worldlines' "
                     "is not importable"
                 )
+        elif str(args.rollout_backend) == "transformers_local":
+            required = ["torch", "transformers"]
+            if method_set & SFT_METHODS:
+                required.append("peft")
+            missing = [
+                package
+                for package in required
+                if importlib.util.find_spec(package) is None
+            ]
+            checks["transformers_local"] = {
+                "required": True,
+                "ok": not missing,
+                "missing": missing,
+                "packages": required,
+                "device": str(getattr(args, "local_device", "cpu")),
+                "torch_dtype": str(getattr(args, "local_torch_dtype", "auto")),
+                "methods": sampler_methods,
+            }
+            if missing:
+                blockers.append(
+                    "transformers_local packages missing: "
+                    + ", ".join(sorted(missing))
+                )
         else:
             blockers.append(f"unknown rollout backend: {args.rollout_backend}")
     else:
@@ -1456,6 +1486,10 @@ def run_or_load_eval_summary(
         str(args.base_model),
         "--rollout-backend",
         str(args.rollout_backend),
+        "--local-device",
+        str(getattr(args, "local_device", "cpu")),
+        "--local-torch-dtype",
+        str(getattr(args, "local_torch_dtype", "auto")),
         "--tasks",
         str(tasks_root),
         "--report-dir",
@@ -1483,6 +1517,11 @@ def run_or_load_eval_summary(
         "--split-file",
         str(test_file),
     ]
+    add_flag(
+        cmd,
+        bool(getattr(args, "local_trust_remote_code", False)),
+        "--local-trust-remote-code",
+    )
     if method.adapter_kind == "sft":
         manifest_path = sft_manifest or (
             report_dir.parent / "sft_train" / "run_manifest.json"

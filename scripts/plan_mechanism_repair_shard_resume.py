@@ -47,6 +47,19 @@ def main() -> int:
         default=DEFAULT_PYTHON,
         help="Python executable to put in generated local commands",
     )
+    parser.add_argument(
+        "--rollout-backend",
+        default="sglang_chat",
+        choices=("sglang_chat", "worldlines_sampling", "transformers_local"),
+        help="rollout backend to put in generated local shard commands",
+    )
+    parser.add_argument("--local-device", default="cpu")
+    parser.add_argument(
+        "--local-torch-dtype",
+        default="auto",
+        choices=("auto", "float32", "float16", "bfloat16"),
+    )
+    parser.add_argument("--local-trust-remote-code", action="store_true")
     args = parser.parse_args()
 
     run_dir = Path(args.run_dir).expanduser().resolve()
@@ -54,6 +67,10 @@ def main() -> int:
         run_dir=run_dir,
         default_budget=int(args.default_budget),
         python_executable=str(args.python),
+        rollout_backend=str(args.rollout_backend),
+        local_device=str(args.local_device),
+        local_torch_dtype=str(args.local_torch_dtype),
+        local_trust_remote_code=bool(args.local_trust_remote_code),
     )
     text = json.dumps(report, indent=2, sort_keys=True) + "\n"
     print(text, end="")
@@ -69,6 +86,10 @@ def build_report(
     run_dir: Path,
     default_budget: int = DEFAULT_BUDGET,
     python_executable: str = DEFAULT_PYTHON,
+    rollout_backend: str = "sglang_chat",
+    local_device: str = "cpu",
+    local_torch_dtype: str = "auto",
+    local_trust_remote_code: bool = False,
 ) -> dict[str, Any]:
     shard_dir = run_dir / "experiment_shards"
     shard_files = sorted(shard_dir.glob("shard_*.json"))
@@ -103,6 +124,10 @@ def build_report(
             run_dir=run_dir,
             shard_index=next_shard_index,
             python_executable=python_executable,
+            rollout_backend=rollout_backend,
+            local_device=local_device,
+            local_torch_dtype=local_torch_dtype,
+            local_trust_remote_code=local_trust_remote_code,
         )
         if next_shard_index is not None
         else None
@@ -302,9 +327,13 @@ def local_shard_command(
     run_dir: Path,
     shard_index: int,
     python_executable: str,
+    rollout_backend: str = "sglang_chat",
+    local_device: str = "cpu",
+    local_torch_dtype: str = "auto",
+    local_trust_remote_code: bool = False,
 ) -> list[str]:
     shard_name = f"shard_{int(shard_index):04d}"
-    return [
+    cmd = [
         python_executable,
         "scripts/run_mechanism_repair_online_experiment.py",
         "--benchmark-dir",
@@ -323,6 +352,18 @@ def local_shard_command(
         "bundled",
         "--require-runtime-preflight",
     ]
+    if rollout_backend != "sglang_chat":
+        cmd.extend(["--rollout-backend", rollout_backend])
+    if rollout_backend == "transformers_local":
+        cmd.extend([
+            "--local-device",
+            local_device,
+            "--local-torch-dtype",
+            local_torch_dtype,
+        ])
+        if local_trust_remote_code:
+            cmd.append("--local-trust-remote-code")
+    return cmd
 
 
 def merge_shards_command(

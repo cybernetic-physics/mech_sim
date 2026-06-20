@@ -120,6 +120,32 @@ def test_runtime_preflight_does_not_probe_sampler_when_not_needed(
     assert report["checks"]["sampler"] == {"required": False, "ok": True}
 
 
+def test_runtime_preflight_accepts_local_transformers_sampler(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fake_find_spec(name: str):
+        return object() if name in {"torch", "transformers"} else None
+
+    monkeypatch.setattr(online.importlib.util, "find_spec", fake_find_spec)
+    args = Namespace(
+        rollout_backend="transformers_local",
+        local_device="cpu",
+        local_torch_dtype="auto",
+        ttrl_rollout_openai=False,
+    )
+
+    report = build_runtime_preflight(
+        args=args,
+        requested_methods=["frozen_model"],
+        needs_sft=False,
+        method_contract={"is_physics": False},
+    )
+
+    assert report["ready"] is True
+    assert report["checks"]["transformers_local"]["ok"] is True
+    assert report["checks"]["transformers_local"]["device"] == "cpu"
+
+
 def test_build_plan_filters_to_shard_cells_and_normalizes_paths(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -1374,6 +1400,56 @@ def test_eval_summary_runner_does_not_emit_none_budget(
     assert "--max-verifier-calls-per-task" in cmd
     assert cmd[cmd.index("--max-verifier-calls-per-task") + 1] == "32"
     assert "None" not in cmd
+
+
+def test_eval_summary_runner_passes_local_transformers_options(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    captured: dict[str, list[str]] = {}
+    report_dir = tmp_path / "report"
+
+    def fake_run(cmd: list[str], *, timeout: float) -> None:
+        captured["cmd"] = cmd
+        report_dir.mkdir(parents=True)
+        (report_dir / "smoke_summary.json").write_text(
+            json.dumps({"all_samples": []})
+        )
+
+    monkeypatch.setattr(online, "run", fake_run)
+
+    args = Namespace(
+        runner_python="python",
+        sglang_base_url="http://127.0.0.1:30000",
+        api_key="dummy",
+        base_model="base",
+        rollout_backend="transformers_local",
+        local_device="cpu",
+        local_torch_dtype="float32",
+        local_trust_remote_code=True,
+        max_tokens=512,
+        timeout=180.0,
+        concurrency=1,
+        audit_retries=0,
+        eval_timeout_s=60.0,
+        budget=None,
+    )
+
+    run_or_load_eval_summary(
+        args=args,
+        method=EvalMethod("frozen_model", 32, 1, 0.2, 0.95),
+        report_dir=report_dir,
+        tasks_root=tmp_path / "tasks",
+        test_file=tmp_path / "split.txt",
+        seed=20260607,
+        resume_existing=False,
+    )
+
+    cmd = captured["cmd"]
+    assert cmd[cmd.index("--rollout-backend") + 1] == "transformers_local"
+    assert cmd[cmd.index("--local-device") + 1] == "cpu"
+    assert cmd[cmd.index("--local-torch-dtype") + 1] == "float32"
+    assert "--local-trust-remote-code" in cmd
 
 
 def test_eval_summary_runner_uses_explicit_sft_manifest(

@@ -128,6 +128,25 @@ def test_resume_plan_selects_first_missing_output_shard(tmp_path: Path) -> None:
     assert report["shards"][0]["status"] == "missing_output"
 
 
+def test_resume_plan_can_emit_local_transformers_command(tmp_path: Path) -> None:
+    run_dir = tmp_path / "run"
+    _write_shard(run_dir, 0, [_cell("task_a", "frozen_model")])
+
+    report = build_report(
+        run_dir=run_dir,
+        rollout_backend="transformers_local",
+        local_device="cpu",
+        local_torch_dtype="float32",
+        local_trust_remote_code=True,
+    )
+
+    cmd = report["local_shard_command"]
+    assert cmd[cmd.index("--rollout-backend") + 1] == "transformers_local"
+    assert cmd[cmd.index("--local-device") + 1] == "cpu"
+    assert cmd[cmd.index("--local-torch-dtype") + 1] == "float32"
+    assert "--local-trust-remote-code" in cmd
+
+
 def test_resume_plan_marks_partial_shard(tmp_path: Path) -> None:
     run_dir = tmp_path / "run"
     cells = [_cell("task_a", "frozen_model"), _cell("task_a", "llm_evolve_no_update")]

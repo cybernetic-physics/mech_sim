@@ -129,6 +129,11 @@ conflicting example in the system prompt.
 
 
 _PARAM_RE = re.compile(r"params\.([A-Za-z_][A-Za-z0-9_]*)")
+_LOCAL_TRANSFORMERS_CACHE: dict[
+    tuple[str, str | None, str, str, bool],
+    tuple[Any, Any, Any],
+] = {}
+_LOCAL_TRANSFORMERS_LOCK = threading.Lock()
 
 
 # --------------------------------------------------------------------- #
@@ -527,6 +532,260 @@ def sample_from_worldlines(
 
 
 # --------------------------------------------------------------------- #
+# Local Transformers sampler                                             #
+# --------------------------------------------------------------------- #
+
+
+def _get_local_transformers(
+    *,
+    base_model: str,
+    lora_path: str | None,
+    local_device: str,
+    local_torch_dtype: str,
+    local_trust_remote_code: bool,
+) -> tuple[Any, Any, Any]:
+    """Return cached (tokenizer, model, torch) for local no-server sampling."""
+    key = (
+        str(base_model),
+        str(lora_path) if lora_path else None,
+        str(local_device),
+        str(local_torch_dtype),
+        bool(local_trust_remote_code),
+    )
+    with _LOCAL_TRANSFORMERS_LOCK:
+        cached = _LOCAL_TRANSFORMERS_CACHE.get(key)
+        if cached is not None:
+            return cached
+        import torch  # type: ignore[import-not-found]
+        from transformers import AutoModelForCausalLM  # type: ignore[import-not-found]
+        from transformers import AutoTokenizer  # type: ignore[import-not-found]
+
+        tokenizer = AutoTokenizer.from_pretrained(
+            base_model,
+            trust_remote_code=bool(local_trust_remote_code),
+        )
+        model_kwargs: dict[str, Any] = {
+            "trust_remote_code": bool(local_trust_remote_code),
+        }
+        dtype = _local_torch_dtype(
+            torch,
+            local_torch_dtype=local_torch_dtype,
+            local_device=local_device,
+        )
+        if dtype is not None:
+            model_kwargs["torch_dtype"] = dtype
+        model = AutoModelForCausalLM.from_pretrained(base_model, **model_kwargs)
+        if lora_path:
+            from peft import PeftModel  # type: ignore[import-not-found]
+
+            model = PeftModel.from_pretrained(model, lora_path)
+        if local_device != "auto":
+            model = model.to(local_device)
+        model.eval()
+        cached = (tokenizer, model, torch)
+        _LOCAL_TRANSFORMERS_CACHE[key] = cached
+        return cached
+
+
+def _local_torch_dtype(
+    torch: Any,
+    *,
+    local_torch_dtype: str,
+    local_device: str,
+) -> Any | None:
+    if local_torch_dtype == "auto":
+        return None if local_device == "cpu" else getattr(torch, "float16", None)
+    if local_torch_dtype == "float32":
+        return torch.float32
+    if local_torch_dtype == "float16":
+        return torch.float16
+    if local_torch_dtype == "bfloat16":
+        return torch.bfloat16
+    raise ValueError(f"unknown local torch dtype: {local_torch_dtype}")
+
+
+def _local_model_device(model: Any, fallback: str) -> Any:
+    try:
+        return next(model.parameters()).device
+    except Exception:  # noqa: BLE001 - best effort for fake/test models
+        return fallback
+
+
+def sample_from_local_transformers(
+    *,
+    base_model: str,
+    lora_path: str | None,
+    local_device: str,
+    local_torch_dtype: str,
+    local_trust_remote_code: bool,
+    messages: list[dict[str, str]],
+    assistant_prefill: str | None,
+    max_tokens: int = 1536,
+    temperature: float = 0.7,
+    top_p: float = 0.95,
+    seed: int | None = None,
+) -> tuple[str, dict[str, int | str]]:
+    tokenizer, model, torch = _get_local_transformers(
+        base_model=base_model,
+        lora_path=lora_path,
+        local_device=local_device,
+        local_torch_dtype=local_torch_dtype,
+        local_trust_remote_code=local_trust_remote_code,
+    )
+    prompt_text = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True,
+    )
+    if assistant_prefill:
+        prompt_text += assistant_prefill
+    encoded = tokenizer(prompt_text, return_tensors="pt")
+    device = _local_model_device(model, local_device)
+    encoded = {
+        key: value.to(device) if hasattr(value, "to") else value
+        for key, value in encoded.items()
+    }
+    if seed is not None:
+        torch.manual_seed(int(seed))
+    input_ids = encoded["input_ids"]
+    prompt_tokens = int(input_ids.shape[-1])
+    do_sample = float(temperature) > 0.0
+    gen_kwargs: dict[str, Any] = {
+        **encoded,
+        "max_new_tokens": int(max_tokens),
+        "do_sample": do_sample,
+        "pad_token_id": (
+            tokenizer.pad_token_id
+            if tokenizer.pad_token_id is not None
+            else tokenizer.eos_token_id
+        ),
+    }
+    if do_sample:
+        gen_kwargs["temperature"] = float(temperature)
+        gen_kwargs["top_p"] = float(top_p)
+    with torch.no_grad():
+        out = model.generate(**gen_kwargs)
+    new_ids = out[0][prompt_tokens:]
+    continuation = tokenizer.decode(new_ids, skip_special_tokens=True)
+    text = (assistant_prefill or "") + str(continuation)
+    usage: dict[str, int | str] = {
+        "input_tokens": prompt_tokens,
+        "output_tokens": int(len(new_ids)),
+        "stop_reason": "stop",
+    }
+    return text, usage
+
+
+def run_local_transformers_rollout(
+    *,
+    base_model: str,
+    lora_path: str | None,
+    local_device: str,
+    local_torch_dtype: str,
+    local_trust_remote_code: bool,
+    task: SimpleNamespace,
+    system_prompt: str,
+    user_prompt: str,
+    max_turns: int,
+    max_tokens_per_turn: int,
+    temperature: float,
+    top_p: float,
+    parse_bonus: float,
+    seed: int | None,
+    stop_on_pass: bool,
+) -> Any:
+    import rl.mech_env as env  # noqa: E402
+
+    started = time.perf_counter()
+    messages: list[dict[str, str]] = [
+        {"role": "system", "content": system_prompt},
+        {
+            "role": "user",
+            "content": _append_strict_fenced_instruction(user_prompt),
+        },
+    ]
+    rollout = cr.Rollout(task_id=task.task_id, messages=messages)
+    for turn_idx in range(max_turns):
+        try:
+            assistant_text, usage = sample_from_local_transformers(
+                base_model=base_model,
+                lora_path=lora_path,
+                local_device=local_device,
+                local_torch_dtype=local_torch_dtype,
+                local_trust_remote_code=local_trust_remote_code,
+                messages=messages,
+                assistant_prefill=ASSISTANT_CODE_PREFILL,
+                max_tokens=max_tokens_per_turn,
+                temperature=temperature,
+                top_p=top_p,
+                seed=None if seed is None else seed + turn_idx,
+            )
+        except Exception as exc:  # noqa: BLE001 - sampler firewall
+            rollout.turns.append(cr.TurnTrace(
+                turn_idx=turn_idx,
+                assistant_text=(
+                    f"[sampler_error: {type(exc).__name__}: {exc}]"
+                ),
+                score=0.0,
+                dense_pct=0.0,
+                passed=False,
+                parsed_ok=False,
+                failure_codes=["sampler_error"],
+                feedback=[],
+                evaluation_valid=False,
+                completion_tokens=0,
+                stop_reason="error",
+            ))
+            break
+        completion_tokens = int(usage.get("output_tokens", 0) or 0)
+        rollout.total_tokens_in += int(usage.get("input_tokens", 0) or 0)
+        rollout.total_tokens_out += completion_tokens
+
+        ep = env.score(task, assistant_text, parse_bonus=parse_bonus)
+        ep.completion_tokens = completion_tokens
+        turn = cr.TurnTrace(
+            turn_idx=turn_idx,
+            assistant_text=assistant_text,
+            score=ep.score,
+            dense_pct=ep.dense_pct,
+            passed=ep.passed,
+            parsed_ok=ep.parsed_ok,
+            failure_codes=ep.failure_codes,
+            feedback=ep.feedback,
+            evaluation_valid=ep.evaluation_valid,
+            cad_audits=ep.cad_audits,
+            chrono_audits=ep.chrono_audits,
+            physical_metrics=dict(ep.physical_metrics),
+            no_procedural_fallback=ep.no_procedural_fallback,
+            completion_tokens=completion_tokens,
+            stop_reason=str(usage.get("stop_reason") or "stop"),
+        )
+        rollout.turns.append(turn)
+        if ep.score > rollout.best_score:
+            rollout.best_score = ep.score
+            rollout.best_turn = turn_idx
+        if ep.dense_pct > rollout.best_dense_pct:
+            rollout.best_dense_pct = ep.dense_pct
+        messages.append({"role": "assistant", "content": assistant_text})
+        if ep.passed and stop_on_pass:
+            break
+        if turn_idx == max_turns - 1:
+            break
+        messages.append({
+            "role": "user",
+            "content": cr._format_verifier_feedback(turn),
+        })
+    if rollout.turns:
+        last = rollout.turns[-1]
+        rollout.final_score = last.score
+        rollout.final_dense_pct = last.dense_pct
+        rollout.final_passed = last.passed
+    rollout.wall_clock_s = time.perf_counter() - started
+    rollout.messages = messages
+    return rollout
+
+
+# --------------------------------------------------------------------- #
 # Per-task driver                                                       #
 # --------------------------------------------------------------------- #
 
@@ -614,6 +873,9 @@ def run_one(
     model_path: str | None,
     sglang_lora_path: str | None,
     rollout_backend: str,
+    local_device: str,
+    local_torch_dtype: str,
+    local_trust_remote_code: bool,
     system_prompt: str,
     out_root: Path,
     max_tokens: int,
@@ -728,6 +990,66 @@ def run_one(
                     int(getattr(turn, "sampler_retry_count", 0) or 0)
                     for turn in getattr(rollout, "turns", []) or []
                 )
+                usage = {
+                    "input_tokens": rollout.total_tokens_in,
+                    "output_tokens": rollout.total_tokens_out,
+                }
+        elif rollout_backend == "transformers_local":
+            if model_path:
+                raise ValueError(
+                    "--model-path is only valid with worldlines_sampling; "
+                    "use --sglang-lora-path for local PEFT adapter paths"
+                )
+            if max_turns <= 1:
+                text, usage = sample_from_local_transformers(
+                    base_model=base_model,
+                    lora_path=sglang_lora_path,
+                    local_device=local_device,
+                    local_torch_dtype=local_torch_dtype,
+                    local_trust_remote_code=local_trust_remote_code,
+                    messages=_sglang_one_turn_messages(
+                        system_prompt=system_prompt,
+                        user_prompt=user_prompt,
+                    )[:2],
+                    assistant_prefill=ASSISTANT_CODE_PREFILL,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    top_p=top_p,
+                    seed=seed,
+                )
+            else:
+                task = SimpleNamespace(
+                    task_id=task_dir.name,
+                    prompt=(task_dir / "prompt.md").read_text(),
+                    task_toml=(task_dir / "task.toml").read_text(),
+                    task_dir=task_dir,
+                )
+                rollout = run_local_transformers_rollout(
+                    base_model=base_model,
+                    lora_path=sglang_lora_path,
+                    local_device=local_device,
+                    local_torch_dtype=local_torch_dtype,
+                    local_trust_remote_code=local_trust_remote_code,
+                    task=task,
+                    system_prompt=system_prompt,
+                    user_prompt=user_prompt,
+                    max_turns=max_turns,
+                    max_tokens_per_turn=max_tokens,
+                    temperature=temperature,
+                    top_p=top_p,
+                    parse_bonus=0.0,
+                    seed=seed,
+                    stop_on_pass=False,
+                )
+                text = (
+                    rollout.turns[-1].assistant_text
+                    if rollout.turns else ""
+                )
+                verifier_calls_before_final = _rollout_verifier_calls(rollout)
+                rollout_reward = _reward_from_rollout_best_turn(rollout)
+                turn_traces = _rollout_turn_trace_dicts(rollout)
+                if rollout_reward is not None:
+                    _apply_rollout_audit_totals(rollout_reward, rollout)
                 usage = {
                     "input_tokens": rollout.total_tokens_in,
                     "output_tokens": rollout.total_tokens_out,
@@ -1095,10 +1417,21 @@ def main(argv: list[str] | None = None) -> int:
                    help="optional loaded SGLang LoRA adapter name/path for "
                         "adapter-aware sglang_chat rollouts")
     p.add_argument("--rollout-backend", default="worldlines_sampling",
-                   choices=["worldlines_sampling", "sglang_chat"],
+                   choices=[
+                       "worldlines_sampling",
+                       "sglang_chat",
+                       "transformers_local",
+                   ],
                    help="sampling path. sglang_chat uses an "
                         "OpenAI-compatible /v1/chat/completions endpoint "
-                        "and cannot load worldlines:// adapter checkpoints")
+                        "and cannot load worldlines:// adapter checkpoints; "
+                        "transformers_local samples directly from the local "
+                        "Transformers runtime")
+    p.add_argument("--local-device", default="cpu",
+                   help="device for transformers_local; defaults to cpu")
+    p.add_argument("--local-torch-dtype", default="auto",
+                   choices=["auto", "float32", "float16", "bfloat16"])
+    p.add_argument("--local-trust-remote-code", action="store_true")
     p.add_argument("--tasks", default="tasks")
     p.add_argument("--report-dir", required=True)
     p.add_argument("--system-prompt-file", default=str(SYSTEM_PROMPT_PATH))
@@ -1239,6 +1572,9 @@ def main(argv: list[str] | None = None) -> int:
                         model_path=args.model_path,
                         sglang_lora_path=args.sglang_lora_path,
                         rollout_backend=args.rollout_backend,
+                        local_device=args.local_device,
+                        local_torch_dtype=args.local_torch_dtype,
+                        local_trust_remote_code=bool(args.local_trust_remote_code),
                         system_prompt=system_prompt,
                         out_root=out_root_k,
                         max_tokens=run_max_tokens,
@@ -1395,11 +1731,14 @@ def main(argv: list[str] | None = None) -> int:
 
     summary = {
         "version": "mech_bench.local_rl_smoke.v1",
-        "agent": "worldlines",
+        "agent": args.rollout_backend,
         "model": args.base_model,
         "model_path": args.model_path,
         "sglang_lora_path": args.sglang_lora_path,
         "rollout_backend": args.rollout_backend,
+        "local_device": args.local_device,
+        "local_torch_dtype": args.local_torch_dtype,
+        "local_trust_remote_code": bool(args.local_trust_remote_code),
         "seed": args.seed,
         "temperature": args.temperature,
         "top_p": args.top_p,

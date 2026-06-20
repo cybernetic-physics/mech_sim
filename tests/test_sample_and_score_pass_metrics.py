@@ -130,6 +130,126 @@ def test_sglang_one_turn_messages_continue_code_prefill() -> None:
     ]
 
 
+def test_local_transformers_sampler_continues_code_prefill(monkeypatch) -> None:
+    import torch
+
+    class FakeTokenizer:
+        pad_token_id = 0
+        eos_token_id = 0
+
+        def apply_chat_template(self, messages, **_kwargs):
+            assert messages == [{"role": "user", "content": "task"}]
+            return "<chat>"
+
+        def __call__(self, text, return_tensors):
+            assert text == "<chat>" + ASSISTANT_CODE_PREFILL
+            assert return_tensors == "pt"
+            return {"input_ids": torch.tensor([[1, 2, 3]])}
+
+        def decode(self, ids, skip_special_tokens):
+            assert skip_special_tokens is True
+            assert list(ids) == [4, 5]
+            return "continuation"
+
+    class FakeModel:
+        def parameters(self):
+            return iter([torch.nn.Parameter(torch.tensor(0.0))])
+
+        def generate(self, **_kwargs):
+            return torch.tensor([[1, 2, 3, 4, 5]])
+
+    monkeypatch.setattr(
+        sample_and_score,
+        "_get_local_transformers",
+        lambda **_kwargs: (FakeTokenizer(), FakeModel(), torch),
+    )
+
+    text, usage = sample_and_score.sample_from_local_transformers(
+        base_model="base",
+        lora_path=None,
+        local_device="cpu",
+        local_torch_dtype="auto",
+        local_trust_remote_code=False,
+        messages=[{"role": "user", "content": "task"}],
+        assistant_prefill=ASSISTANT_CODE_PREFILL,
+        max_tokens=2,
+        temperature=0.0,
+        top_p=1.0,
+        seed=123,
+    )
+
+    assert text == ASSISTANT_CODE_PREFILL + "continuation"
+    assert usage == {
+        "input_tokens": 3,
+        "output_tokens": 2,
+        "stop_reason": "stop",
+    }
+
+
+def test_run_one_uses_local_transformers_backend(monkeypatch, tmp_path) -> None:
+    task_dir = tmp_path / "task_a"
+    task_dir.mkdir()
+    (task_dir / "prompt.md").write_text("prompt")
+    (task_dir / "task.toml").write_text('family = "fam"\ntier = "tier"\n')
+    seen: dict[str, object] = {}
+
+    def fake_sample(**kwargs):
+        seen.update(kwargs)
+        return "```python\nx = 1\n```", {
+            "input_tokens": 7,
+            "output_tokens": 3,
+        }
+
+    monkeypatch.setattr(
+        sample_and_score,
+        "sample_from_local_transformers",
+        fake_sample,
+    )
+    monkeypatch.setattr(
+        sample_and_score,
+        "score_completion",
+        lambda *_args, **_kwargs: RewardResult(
+            score=0.5,
+            verified_score=0.0,
+            hard_gate_passed=False,
+            evaluation_valid=True,
+            failure_codes=["missing_port"],
+            design_py_extracted=True,
+        ),
+    )
+
+    outcome = sample_and_score.run_one(
+        task_dir,
+        base_url="unused",
+        api_key="unused",
+        base_model="base",
+        model_path=None,
+        sglang_lora_path=None,
+        rollout_backend="transformers_local",
+        local_device="cpu",
+        local_torch_dtype="auto",
+        local_trust_remote_code=False,
+        system_prompt="system",
+        out_root=tmp_path / "out",
+        max_tokens=64,
+        temperature=0.0,
+        top_p=1.0,
+        seed=123,
+        timeout_s=1.0,
+        pass_threshold=1.0,
+        max_turns=1,
+        sample_idx=0,
+    )
+
+    assert outcome.error == ""
+    assert outcome.verifier_calls == 1
+    assert outcome.sample_tokens_in == 7
+    assert outcome.sample_tokens_out == 3
+    assert seen["base_model"] == "base"
+    assert seen["local_device"] == "cpu"
+    assert seen["assistant_prefill"] == ASSISTANT_CODE_PREFILL
+
+
 def test_prefill_mass_properties_accept_optional_chrono_shape() -> None:
     for prefill in (ASSISTANT_CODE_PREFILL, TRAIN_ASSISTANT_CODE_PREFILL):
         namespace: dict[str, object] = {}
