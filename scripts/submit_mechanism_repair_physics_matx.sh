@@ -24,6 +24,9 @@ ANALYSIS_TIME="${ANALYSIS_TIME:-04:00:00}"
 NUM_SHARDS="${NUM_SHARDS:-24}"
 ARRAY_CONCURRENCY="${ARRAY_CONCURRENCY:-1}"
 ALLOW_HIGH_CLUSTER_USAGE="${ALLOW_HIGH_CLUSTER_USAGE:-0}"
+MAX_ARRAY_TASKS="${MAX_ARRAY_TASKS:-1}"
+SHARD_INDICES="${SHARD_INDICES:-}"
+SUBMIT_DEPENDENTS="${SUBMIT_DEPENDENTS:-auto}"
 OUT_DIR="${OUT_DIR:-runs/mechanism_repair_physics_final}"
 METHODS="${METHODS-}"
 SPLITS="${SPLITS-}"
@@ -104,6 +107,9 @@ Useful overrides:
   NUM_SHARDS=$NUM_SHARDS
   ARRAY_CONCURRENCY=$ARRAY_CONCURRENCY
   ALLOW_HIGH_CLUSTER_USAGE=$ALLOW_HIGH_CLUSTER_USAGE
+  MAX_ARRAY_TASKS=$MAX_ARRAY_TASKS
+  SHARD_INDICES=$SHARD_INDICES
+  SUBMIT_DEPENDENTS=$SUBMIT_DEPENDENTS
   GRES=$GRES
   BASE_MODEL=$BASE_MODEL
   SGLANG_MODEL=$SGLANG_MODEL
@@ -188,6 +194,56 @@ if (( NUM_SHARDS < 1 )); then
   echo "NUM_SHARDS must be >= 1" >&2
   exit 2
 fi
+if [[ ! "$ARRAY_CONCURRENCY" =~ ^[1-9][0-9]*$ ]]; then
+  echo "ARRAY_CONCURRENCY must be a positive integer" >&2
+  exit 2
+fi
+if [[ ! "$MAX_ARRAY_TASKS" =~ ^[1-9][0-9]*$ ]]; then
+  echo "MAX_ARRAY_TASKS must be a positive integer" >&2
+  exit 2
+fi
+array_range="0-$array_end"
+array_task_count="$NUM_SHARDS"
+if [[ -n "$SHARD_INDICES" ]]; then
+  if [[ ! "$SHARD_INDICES" =~ ^[0-9]+(-[0-9]+)?(,[0-9]+(-[0-9]+)?)*$ ]]; then
+    echo "SHARD_INDICES must use Slurm index/range syntax like 0,3,5-7" >&2
+    exit 2
+  fi
+  array_range="$SHARD_INDICES"
+  array_task_count=0
+  IFS=',' read -r -a shard_parts <<< "$SHARD_INDICES"
+  for shard_part in "${shard_parts[@]}"; do
+    if [[ "$shard_part" == *-* ]]; then
+      shard_start="${shard_part%-*}"
+      shard_stop="${shard_part#*-}"
+    else
+      shard_start="$shard_part"
+      shard_stop="$shard_part"
+    fi
+    shard_start_num=$((10#$shard_start))
+    shard_stop_num=$((10#$shard_stop))
+    if (( shard_start_num > shard_stop_num )); then
+      echo "SHARD_INDICES range starts after it ends: $shard_part" >&2
+      exit 2
+    fi
+    if (( shard_start_num < 0 || shard_stop_num > array_end )); then
+      echo "SHARD_INDICES out of range for NUM_SHARDS=$NUM_SHARDS: $shard_part" >&2
+      exit 2
+    fi
+    array_task_count=$((array_task_count + shard_stop_num - shard_start_num + 1))
+  done
+fi
+if [[ "$SUBMIT_DEPENDENTS" == "auto" ]]; then
+  if [[ -n "$SHARD_INDICES" ]]; then
+    SUBMIT_DEPENDENTS=0
+  else
+    SUBMIT_DEPENDENTS=1
+  fi
+fi
+if [[ "$SUBMIT_DEPENDENTS" != "0" && "$SUBMIT_DEPENDENTS" != "1" ]]; then
+  echo "SUBMIT_DEPENDENTS must be 0, 1, or auto" >&2
+  exit 2
+fi
 if [[ "$GRES" == *gpu* && "$ARRAY_CONCURRENCY" != "1" && "$ALLOW_HIGH_CLUSTER_USAGE" != "1" ]]; then
   cat >&2 <<EOF
 Refusing to submit multiple concurrent GPU shards.
@@ -202,6 +258,24 @@ that higher concurrency is explicitly acceptable.
 EOF
   exit 2
 fi
+if (( submit )) && [[ "$GRES" == *gpu* ]] && (( array_task_count > MAX_ARRAY_TASKS )) && [[ "$ALLOW_HIGH_CLUSTER_USAGE" != "1" ]]; then
+  cat >&2 <<EOF
+Refusing to submit a broad GPU array.
+
+Requested:
+  GRES=$GRES
+  SHARD_INDICES=${SHARD_INDICES:-0-$array_end}
+  array_task_count=$array_task_count
+  MAX_ARRAY_TASKS=$MAX_ARRAY_TASKS
+
+Default policy is surgical GPU submission: one selected shard at a time, with
+no large pending array. Set SHARD_INDICES to a single shard such as
+SHARD_INDICES=7. Coordinate with the lab and set ALLOW_HIGH_CLUSTER_USAGE=1
+only when a broader array is explicitly acceptable.
+EOF
+  exit 2
+fi
+array_spec="$array_range%$ARRAY_CONCURRENCY"
 
 ssh "$REMOTE_HOST" "rm -rf '$remote_repo' && mkdir -p '$remote_repo' '$remote_logs' '$REMOTE_ROOT/locks' '$REMOTE_ROOT/venvs'"
 git -C "$repo_root" archive --format=tar "$source_commit" \
@@ -219,7 +293,7 @@ cat >"$tmp_sbatch" <<EOF
 #SBATCH --cpus-per-task=$CPUS_PER_TASK
 #SBATCH --mem=$MEM
 #SBATCH --time=$TIME
-#SBATCH --array=0-$array_end%$ARRAY_CONCURRENCY
+#SBATCH --array=$array_spec
 #SBATCH --output=$SLURM_OUTPUT
 #SBATCH --error=$SLURM_ERROR
 
@@ -734,14 +808,22 @@ if (( submit )); then
   array_job_raw="$(ssh "$REMOTE_HOST" "sbatch --parsable '$remote_sbatch'")"
   array_job="${array_job_raw%%;*}"
   echo "Submitted array job: $array_job_raw"
-  merge_job_raw="$(ssh "$REMOTE_HOST" "sbatch --parsable --dependency=afterok:$array_job '$remote_merge_sbatch'")"
-  merge_job="${merge_job_raw%%;*}"
-  echo "Submitted dependent merge job: $merge_job_raw"
-  analysis_job_raw="$(ssh "$REMOTE_HOST" "sbatch --parsable --dependency=afterok:$merge_job '$remote_analysis_sbatch'")"
-  echo "Submitted dependent analysis/audit job: $analysis_job_raw"
+  if [[ "$SUBMIT_DEPENDENTS" == "1" ]]; then
+    merge_job_raw="$(ssh "$REMOTE_HOST" "sbatch --parsable --dependency=afterok:$array_job '$remote_merge_sbatch'")"
+    merge_job="${merge_job_raw%%;*}"
+    echo "Submitted dependent merge job: $merge_job_raw"
+    analysis_job_raw="$(ssh "$REMOTE_HOST" "sbatch --parsable --dependency=afterok:$merge_job '$remote_analysis_sbatch'")"
+    echo "Submitted dependent analysis/audit job: $analysis_job_raw"
+  else
+    echo "Skipped dependent merge/analysis submission because SUBMIT_DEPENDENTS=$SUBMIT_DEPENDENTS"
+  fi
 else
   echo "Submit with:"
   echo "  array_job=\\\$(ssh $REMOTE_HOST sbatch --parsable '$remote_sbatch')"
-  echo "  merge_job=\\\$(ssh $REMOTE_HOST sbatch --parsable --dependency=afterok:\\\${array_job%%;*} '$remote_merge_sbatch')"
-  echo "  ssh $REMOTE_HOST sbatch --dependency=afterok:\\\${merge_job%%;*} '$remote_analysis_sbatch'"
+  if [[ "$SUBMIT_DEPENDENTS" == "1" ]]; then
+    echo "  merge_job=\\\$(ssh $REMOTE_HOST sbatch --parsable --dependency=afterok:\\\${array_job%%;*} '$remote_merge_sbatch')"
+    echo "  ssh $REMOTE_HOST sbatch --dependency=afterok:\\\${merge_job%%;*} '$remote_analysis_sbatch'"
+  else
+    echo "  # SUBMIT_DEPENDENTS=$SUBMIT_DEPENDENTS; submit merge/analysis only after all shards are complete"
+  fi
 fi

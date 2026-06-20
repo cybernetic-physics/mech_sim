@@ -32,6 +32,9 @@ Cluster GPU usage must also be conservative by default:
 - Do not launch broad GPU arrays or high-concurrency shard runs by default.
 - For MATX physics runs, default to one GPU shard at a time unless the user
   explicitly authorizes higher concurrency after coordinating with the lab.
+- Resume partial MATX physics runs by submitting explicit single-shard jobs
+  with `SHARD_INDICES=<n>` and no dependent merge/analysis jobs until all
+  shards required by the final audit are present.
 - If a run needs more than one concurrent GPU shard, record the intended GPU
   count, job IDs, and expected duration before launch.
 - If lab mates or cluster staff report pressure, cancel pending GPU work first
