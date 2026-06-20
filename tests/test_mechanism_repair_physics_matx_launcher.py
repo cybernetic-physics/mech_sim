@@ -9,6 +9,9 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = PROJECT_ROOT / "scripts" / "submit_mechanism_repair_physics_matx.sh"
+SYNC_SCRIPT = (
+    PROJECT_ROOT / "scripts" / "sync_mechanism_repair_physics_shard_from_matx.sh"
+)
 
 
 def run_launcher(*args: str, **env_overrides: str) -> subprocess.CompletedProcess[str]:
@@ -34,6 +37,28 @@ def test_launcher_is_valid_bash() -> None:
     )
 
     assert proc.returncode == 0, proc.stderr
+
+
+def test_sync_helper_is_valid_bash() -> None:
+    proc = subprocess.run(
+        ["bash", "-n", str(SYNC_SCRIPT)],
+        cwd=PROJECT_ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert proc.returncode == 0, proc.stderr
+
+
+def test_sync_helper_documents_single_shard_audit() -> None:
+    text = SYNC_SCRIPT.read_text(encoding="utf-8")
+
+    assert "This script does not query Slurm" in text
+    assert 'SHARD_INDEX="${SHARD_INDEX:-0}"' in text
+    assert "rsync -az --delete" in text
+    assert "scripts/plan_mechanism_repair_shard_resume.py" in text
+    assert "--out-json" in text
 
 
 def test_help_documents_finalize_only() -> None:
