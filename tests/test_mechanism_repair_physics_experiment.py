@@ -127,6 +127,50 @@ def _write_result_artifacts(out_dir: Path, rows: list[dict]) -> None:
             })
 
 
+def _method_contract_fields(cell: dict) -> dict:
+    method = cell["method"]
+    budget = int(cell["budget"])
+    fields: dict = {}
+    if method in physics.SAMPLE_METHOD_IMPLEMENTATIONS:
+        fields.update(
+            {
+                "method_implementation": physics.SAMPLE_METHOD_IMPLEMENTATIONS[method],
+                "samples_per_task": budget,
+                "sampling_top_p": 0.95,
+                "archive_feedback": False,
+            }
+        )
+        if method == "adaptive_evolution":
+            fields.update(
+                {
+                    "max_turns": 4,
+                    "sampling_temperature": 0.9,
+                    "archive_feedback": True,
+                }
+            )
+        elif method == "llm_evolve_no_update":
+            fields.update({"max_turns": 4, "sampling_temperature": 0.7})
+        elif method == "verifier_gated_search":
+            fields.update({"max_turns": 1, "sampling_temperature": 0.8})
+        else:
+            fields.update({"max_turns": 1, "sampling_temperature": 0.2})
+    elif method in physics.TTRL_METHODS:
+        fields.update(
+            {
+                "method_implementation": physics.TTRL_METHOD_IMPLEMENTATION,
+                "reward_channel": physics.expected_ttrl_reward_channel(
+                    method,
+                    default="artifact_progress",
+                ),
+                "samples_per_task": budget,
+                "sampling_temperature": 0.7,
+                "sampling_top_p": 0.95,
+                "archive_feedback": False,
+            }
+        )
+    return fields
+
+
 def _write_complete_negative_stats(out_dir: Path) -> None:
     _write_json(
         out_dir / "stats.json",
@@ -528,6 +572,7 @@ def _write_complete_physics_rows(out_dir: Path, plan: dict, audit_counts) -> Non
             "cad_artifact_paths": [str(cad.relative_to(out_dir))],
             "chrono_output_paths": [str(chrono.relative_to(out_dir))],
         }
+        row.update(_method_contract_fields(cell))
         if cell["method"] in physics.LEARNING_METHODS:
             log = out_dir / "training_logs" / f"{prefix}.log"
             ckpt = out_dir / "adapter_checkpoints" / prefix
@@ -753,6 +798,7 @@ def test_complete_synthetic_evidence_gets_binary_claim_status(
             "cad_artifact_paths": [str(cad.relative_to(out_dir))],
             "chrono_output_paths": [str(chrono.relative_to(out_dir))],
         }
+        row.update(_method_contract_fields(cell))
         if cell["method"] in physics.LEARNING_METHODS:
             log = out_dir / "training_logs" / f"{prefix}.log"
             ckpt = out_dir / "adapter_checkpoints" / prefix
@@ -968,6 +1014,82 @@ def test_extra_unplanned_result_cell_blocks_goal_completion(
         "unplanned" in item
         for item in audit["claim_audit"]["blockers"]
     )
+
+
+def test_adaptive_evolution_without_archive_feedback_blocks_goal_completion(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=["adaptive_evolution"],
+        splits=["A"],
+        anti_shortcut_splits=[],
+        seeds=[20260610],
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    _write_complete_physics_rows(out_dir, plan, lambda _cell: (1, 1))
+    rows = [
+        json.loads(line)
+        for line in (out_dir / "cell_results.jsonl").read_text().splitlines()
+        if line.strip()
+    ]
+    rows[0]["archive_feedback"] = False
+    _write_result_artifacts(out_dir, rows)
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["budget_audit"]["method_implementation_error_count"] == 1
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert audit["claim_audit"]["sample_method_implementation_errors"][0][
+        "errors"
+    ] == ["archive_feedback_not_enabled"]
+    assert any(
+        "method implementations" in item
+        for item in audit["claim_audit"]["blockers"]
+    )
+
+
+def test_verifier_gated_deterministic_sampling_blocks_goal_completion(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=["verifier_gated_search"],
+        splits=["A"],
+        anti_shortcut_splits=[],
+        seeds=[20260610],
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    _write_complete_physics_rows(out_dir, plan, lambda _cell: (1, 1))
+    rows = [
+        json.loads(line)
+        for line in (out_dir / "cell_results.jsonl").read_text().splitlines()
+        if line.strip()
+    ]
+    rows[0]["sampling_temperature"] = 0.0
+    _write_result_artifacts(out_dir, rows)
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["budget_audit"]["method_implementation_error_count"] == 1
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert audit["claim_audit"]["sample_method_implementation_errors"][0][
+        "errors"
+    ] == ["verifier_gated_search_requires_diverse_sampling"]
 
 
 def test_missing_external_style_anti_shortcut_analysis_blocks_goal_completion(
@@ -1491,6 +1613,7 @@ def test_unreached_cad_chrono_obligation_evidence_is_not_budget_mismatch(
             "cad_artifact_paths": [str(cad.relative_to(out_dir))],
             "chrono_output_paths": [str(chrono.relative_to(out_dir))],
         }
+        row.update(_method_contract_fields(cell))
         if cell["method"] in physics.LEARNING_METHODS:
             log = out_dir / "training_logs" / f"{prefix}.log"
             ckpt = out_dir / "adapter_checkpoints" / prefix
@@ -1652,6 +1775,7 @@ def test_incomplete_stats_blocks_goal_completion(tmp_path: Path) -> None:
             "cad_artifact_paths": [str(cad.relative_to(out_dir))],
             "chrono_output_paths": [str(chrono.relative_to(out_dir))],
         }
+        row.update(_method_contract_fields(cell))
         if cell["method"] in physics.LEARNING_METHODS:
             log = out_dir / "training_logs" / f"{prefix}.log"
             ckpt = out_dir / "adapter_checkpoints" / prefix
@@ -1765,6 +1889,7 @@ def test_ttrl_learning_evidence_requires_adapter_weights(tmp_path: Path) -> None
         "n_rl_datums": 4,
         "rl_trained_tokens": 16,
     }
+    row.update(_method_contract_fields(cell))
     (out_dir / "cell_results.jsonl").write_text(json.dumps(row) + "\n")
     for name in ("failure_analysis.json", "trace_pairs.json", "repair_taxonomy.json"):
         _write_json(out_dir / name, {"schema": "test"})
@@ -1849,6 +1974,7 @@ def test_sft_learning_evidence_accepts_adjacent_manifest_for_legacy_rows(
         "adapter_updates": 4,
         "trained_tokens": 16,
     }
+    row.update(_method_contract_fields(cell))
     (out_dir / "cell_results.jsonl").write_text(json.dumps(row) + "\n")
 
     audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)

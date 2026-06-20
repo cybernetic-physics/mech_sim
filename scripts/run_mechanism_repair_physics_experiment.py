@@ -50,6 +50,14 @@ TTRL_METHODS = {
 }
 SFT_METHODS = {"sft_seen_family"}
 LEARNING_METHODS = TTRL_METHODS | SFT_METHODS
+SAMPLE_METHOD_IMPLEMENTATIONS = {
+    "frozen_model": "frozen_model_one_turn_sampled",
+    "sft_seen_family": "sft_seen_family_one_turn_sampled",
+    "llm_evolve_no_update": "multi_turn_verifier_feedback_no_update",
+    "adaptive_evolution": "archive_feedback_search_no_update",
+    "verifier_gated_search": "diverse_verifier_gated_best_of_k",
+}
+TTRL_METHOD_IMPLEMENTATION = "online_grpo_lora_verifier_reward"
 ANALYSIS_ARTIFACTS = (
     "stats.json",
     "failure_analysis.json",
@@ -553,6 +561,7 @@ def audit_existing_experiment(
     missing_evidence: list[dict[str, Any]] = []
     missing_learning: list[dict[str, Any]] = []
     missing_accounting: list[dict[str, Any]] = []
+    method_implementation_errors: list[dict[str, Any]] = []
     for cell in plan["expected_cells"]:
         key = (
             str(cell["split"]),
@@ -593,6 +602,19 @@ def audit_existing_experiment(
         # explicit Level-2/Level-3 evidence paths documenting the unreached
         # audit obligation; missing_evidence_for_row enforces those paths.
         missing_evidence.extend(missing_evidence_for_row(out_dir, cell, row))
+        implementation_errors = method_implementation_errors_for_row(
+            out_dir=out_dir,
+            cell=cell,
+            row=row,
+            default_ttrl_reward_channel=str(
+                plan.get("ttrl_reward_channel") or "artifact_progress"
+            ),
+        )
+        if implementation_errors:
+            method_implementation_errors.append({
+                "cell": cell,
+                "errors": implementation_errors,
+            })
         method = str(cell["method"])
         if method in LEARNING_METHODS:
             learning_missing = missing_learning_evidence(
@@ -692,6 +714,7 @@ def audit_existing_experiment(
             len(primary_expensive_budget_excesses)
         ),
         "missing_accounting_count": len(missing_accounting),
+        "method_implementation_error_count": len(method_implementation_errors),
         "budget_matched": (
             not missing_cells
             and not extra_keys
@@ -699,6 +722,7 @@ def audit_existing_experiment(
             and not budget_mismatches
             and not primary_expensive_budget_excesses
             and not missing_accounting
+            and not method_implementation_errors
         ),
         "sample_missing_cells": missing_cells[:25],
         "sample_extra_cells": extra_keys[:25],
@@ -708,6 +732,7 @@ def audit_existing_experiment(
             primary_expensive_budget_excesses[:25]
         ),
         "sample_missing_accounting": missing_accounting[:25],
+        "sample_method_implementation_errors": method_implementation_errors[:25],
     }
     anti_shortcut_audit = {
         "schema": "mechanism_repair_physics.anti_shortcut_audit.v1",
@@ -722,6 +747,7 @@ def audit_existing_experiment(
         anti_shortcut_audit=anti_shortcut_audit,
         missing_evidence=missing_evidence,
         missing_learning=missing_learning,
+        method_implementation_errors=method_implementation_errors,
         missing_result_artifacts=missing_result_artifacts,
         result_bundle_audit=result_bundle_audit,
         missing_run_dirs=missing_run_dirs,
@@ -748,6 +774,7 @@ def audit_existing_experiment(
         "missing_before_paper_claim": blockers,
         "missing_evidence_count": len(missing_evidence),
         "missing_learning_count": len(missing_learning),
+        "method_implementation_error_count": len(method_implementation_errors),
         "missing_result_artifacts": missing_result_artifacts,
         "result_bundle_audit": result_bundle_audit,
         "missing_run_dirs": missing_run_dirs,
@@ -755,6 +782,7 @@ def audit_existing_experiment(
         "missing_analysis_requirements": missing_analysis_requirements,
         "sample_missing_evidence": missing_evidence[:25],
         "sample_missing_learning": missing_learning[:25],
+        "sample_method_implementation_errors": method_implementation_errors[:25],
     }
     if not blockers:
         claim_audit["claim_status"] = infer_claim_status(out_dir)
@@ -917,6 +945,7 @@ def build_blockers(
     anti_shortcut_audit: dict[str, Any],
     missing_evidence: list[dict[str, Any]],
     missing_learning: list[dict[str, Any]],
+    method_implementation_errors: list[dict[str, Any]],
     missing_result_artifacts: list[str],
     result_bundle_audit: dict[str, Any],
     missing_run_dirs: list[str],
@@ -942,6 +971,8 @@ def build_blockers(
         blockers.append("record raw completions and verifier/CAD/Chrono outputs")
     if missing_learning:
         blockers.append("preserve training logs and adapter checkpoints for TTRL cells")
+    if method_implementation_errors:
+        blockers.append("prove method implementations match the goals.md contract")
     if (
         missing_result_artifacts
         or missing_run_dirs
@@ -1284,6 +1315,213 @@ def split_success_delta(stats: dict[str, Any], split: str) -> float | None:
         if isinstance(row, dict) and row.get("split") == split:
             return float_value(row.get("success_delta", 0.0))
     return None
+
+
+def method_implementation_errors_for_row(
+    *,
+    out_dir: Path,
+    cell: dict[str, Any],
+    row: dict[str, Any],
+    default_ttrl_reward_channel: str,
+) -> list[str]:
+    method = str(cell["method"])
+    budget = int(cell["budget"])
+    errors: list[str] = []
+    if method in SAMPLE_METHOD_IMPLEMENTATIONS:
+        summary = load_row_summary(out_dir, row)
+        expected_impl = SAMPLE_METHOD_IMPLEMENTATIONS[method]
+        impl = str(row.get("method_implementation") or "")
+        if impl and impl != expected_impl:
+            errors.append(
+                f"method_implementation={impl}; expected {expected_impl}"
+            )
+        elif not impl and not summary:
+            errors.append("method_implementation_or_summary_path")
+        if method == "adaptive_evolution":
+            archive_feedback = bool_value(source_value(
+                row,
+                summary,
+                row_keys=("archive_feedback",),
+                summary_keys=("archive_feedback",),
+                default=False,
+            ))
+            if not archive_feedback:
+                errors.append("archive_feedback_not_enabled")
+            max_turns = int_value(source_value(
+                row,
+                summary,
+                row_keys=("max_turns",),
+                summary_keys=("max_turns",),
+                default=0,
+            ))
+            if max_turns <= 1:
+                errors.append("adaptive_evolution_requires_multi_turn_feedback")
+            samples_per_task = int_value(source_value(
+                row,
+                summary,
+                row_keys=("samples_per_task", "candidate_count", "n_candidates"),
+                summary_keys=("samples_per_task",),
+                default=0,
+            ))
+            if samples_per_task < budget:
+                errors.append("adaptive_evolution_samples_per_task_below_budget")
+        elif method == "verifier_gated_search":
+            max_turns = int_value(source_value(
+                row,
+                summary,
+                row_keys=("max_turns",),
+                summary_keys=("max_turns",),
+                default=0,
+            ))
+            if max_turns != 1:
+                errors.append("verifier_gated_search_must_be_one_turn")
+            samples_per_task = int_value(source_value(
+                row,
+                summary,
+                row_keys=("samples_per_task", "candidate_count", "n_candidates"),
+                summary_keys=("samples_per_task",),
+                default=0,
+            ))
+            if samples_per_task < budget:
+                errors.append("verifier_gated_search_samples_per_task_below_budget")
+            temperature = float_value(source_value(
+                row,
+                summary,
+                row_keys=("sampling_temperature", "temperature"),
+                summary_keys=("temperature",),
+                default=0.0,
+            ))
+            if temperature <= 0.0:
+                errors.append("verifier_gated_search_requires_diverse_sampling")
+            top_p = float_value(source_value(
+                row,
+                summary,
+                row_keys=("sampling_top_p", "top_p"),
+                summary_keys=("top_p",),
+                default=0.0,
+            ))
+            if top_p <= 0.0 or top_p > 1.0:
+                errors.append("verifier_gated_search_invalid_top_p")
+        elif method == "llm_evolve_no_update":
+            archive_feedback = bool_value(source_value(
+                row,
+                summary,
+                row_keys=("archive_feedback",),
+                summary_keys=("archive_feedback",),
+                default=False,
+            ))
+            if archive_feedback:
+                errors.append("llm_evolve_no_update_must_not_use_archive_feedback")
+            max_turns = int_value(source_value(
+                row,
+                summary,
+                row_keys=("max_turns",),
+                summary_keys=("max_turns",),
+                default=0,
+            ))
+            if max_turns <= 1:
+                errors.append("llm_evolve_no_update_requires_feedback_turns")
+    elif method in TTRL_METHODS:
+        manifest = load_ttrl_manifest(out_dir, row)
+        impl = str(row.get("method_implementation") or "")
+        if impl and impl != TTRL_METHOD_IMPLEMENTATION:
+            errors.append(
+                f"method_implementation={impl}; expected {TTRL_METHOD_IMPLEMENTATION}"
+            )
+        elif not impl and not manifest:
+            errors.append("method_implementation_or_training_manifest")
+        expected_reward = expected_ttrl_reward_channel(
+            method,
+            default=default_ttrl_reward_channel,
+        )
+        reward_channel = str(
+            row.get("reward_channel")
+            or manifest.get("reward_channel")
+            or ""
+        )
+        if reward_channel != expected_reward:
+            errors.append(
+                f"reward_channel={reward_channel or '<missing>'}; "
+                f"expected {expected_reward}"
+            )
+        algorithm = str(manifest.get("algorithm") or "")
+        if manifest and algorithm != "trl.GRPOTrainer":
+            errors.append(f"algorithm={algorithm or '<missing>'}; expected trl.GRPOTrainer")
+    return errors
+
+
+def load_row_summary(out_dir: Path, row: dict[str, Any]) -> dict[str, Any]:
+    for raw_path in collect_paths(row, "summary_paths", "summary_path"):
+        path = resolve_path(out_dir, raw_path)
+        if not path.is_file():
+            continue
+        try:
+            payload = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        if isinstance(payload, dict):
+            return payload
+    return {}
+
+
+def load_ttrl_manifest(out_dir: Path, row: dict[str, Any]) -> dict[str, Any]:
+    candidates: list[Path] = []
+    for raw_path in collect_paths(
+        row,
+        "training_manifest_paths",
+        "training_manifest_path",
+    ):
+        candidates.append(resolve_path(out_dir, raw_path))
+    run_dir = row.get("run_dir")
+    if run_dir:
+        candidates.append(resolve_path(out_dir, str(run_dir)) / "run_manifest.json")
+    for raw_path in collect_paths(row, "training_log_paths", "training_log_path"):
+        path = resolve_path(out_dir, raw_path)
+        if path.name == "run_manifest.json":
+            candidates.append(path)
+    for path in candidates:
+        if not path.is_file():
+            continue
+        try:
+            payload = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        if isinstance(payload, dict):
+            return payload
+    return {}
+
+
+def expected_ttrl_reward_channel(method: str, *, default: str) -> str:
+    if method == "mechanical_evolve_ttrl_confidence":
+        return "verified_score"
+    if method == "mechanical_evolve_ttrl_tool_verified":
+        return "artifact_progress"
+    return default
+
+
+def source_value(
+    row: dict[str, Any],
+    payload: dict[str, Any],
+    *,
+    row_keys: tuple[str, ...],
+    summary_keys: tuple[str, ...],
+    default: Any,
+) -> Any:
+    for key in row_keys:
+        if key in row and row[key] is not None and row[key] != "":
+            return row[key]
+    for key in summary_keys:
+        if key in payload and payload[key] is not None and payload[key] != "":
+            return payload[key]
+    return default
+
+
+def bool_value(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "y"}
+    return bool(value)
 
 
 def missing_evidence_for_row(

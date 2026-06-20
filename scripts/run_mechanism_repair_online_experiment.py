@@ -71,6 +71,17 @@ TTRL_METHODS = {
 }
 SFT_METHODS = {"sft_model", "sft_seen_family"}
 BASELINE_FEEDBACK_METHODS = {"llm_evolve_no_update"}
+SAMPLE_METHOD_IMPLEMENTATIONS = {
+    "frozen_model": "frozen_model_one_turn_sampled",
+    "sft_model": "sft_seen_family_one_turn_sampled",
+    "sft_seen_family": "sft_seen_family_one_turn_sampled",
+    "llm_evolve_no_update": "multi_turn_verifier_feedback_no_update",
+    "adaptive_evolution": "archive_feedback_search_no_update",
+    "verifier_gated": "diverse_verifier_gated_best_of_k",
+    "verifier_gated_search": "diverse_verifier_gated_best_of_k",
+    "no_update_search": "diverse_no_update_best_of_k",
+}
+TTRL_METHOD_IMPLEMENTATION = "online_grpo_lora_verifier_reward"
 ADAPTER_WEIGHT_FILE_NAMES = {
     "adapter_model.safetensors",
     "adapter_model.bin",
@@ -2006,6 +2017,11 @@ def rows_from_sample_summary(
     evidence_layout: str = "files",
     sft_manifest: Path | None = None,
 ) -> list[dict[str, Any]]:
+    method_metadata = sample_method_implementation_metadata(
+        method=method,
+        summary=summary,
+        budget=budget,
+    )
     by_task: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in summary.get("all_samples", []) or []:
         by_task[str(row.get("task_id") or "")].append(dict(row))
@@ -2055,6 +2071,7 @@ def rows_from_sample_summary(
         out.append({
             "method": method,
             "method_variant": method,
+            **method_metadata,
             "split": split,
             "task_id": task_id,
             "family": family_by_task.get(task_id, str(best.get("family") or "")),
@@ -2136,6 +2153,25 @@ def rows_from_sample_summary(
     return out
 
 
+def sample_method_implementation_metadata(
+    *,
+    method: str,
+    summary: dict[str, Any],
+    budget: int,
+) -> dict[str, Any]:
+    return {
+        "method_implementation": SAMPLE_METHOD_IMPLEMENTATIONS.get(
+            method,
+            "sample_and_score_evaluation",
+        ),
+        "rollout_backend": str(summary.get("rollout_backend") or ""),
+        "samples_per_task": int(summary.get("samples_per_task", budget) or budget),
+        "sampling_temperature": float(summary.get("temperature", 0.0) or 0.0),
+        "sampling_top_p": float(summary.get("top_p", 1.0) or 1.0),
+        "archive_feedback": bool(summary.get("archive_feedback", False)),
+    }
+
+
 def row_from_ttrl_reward_log(
     *,
     reward_log: Path,
@@ -2197,6 +2233,16 @@ def row_from_ttrl_reward_log(
     return {
         "method": method,
         "method_variant": method,
+        "method_implementation": TTRL_METHOD_IMPLEMENTATION,
+        "reward_channel": (
+            training["reward_channel"]
+            or reward_channel_for_method(method, default="artifact_progress")
+        ),
+        "rollout_backend": training["rollout_backend"],
+        "samples_per_task": int(budget),
+        "sampling_temperature": training["sampling_temperature"],
+        "sampling_top_p": training["sampling_top_p"],
+        "archive_feedback": False,
         "split": split,
         "task_id": task_id,
         "family": family,
@@ -2221,7 +2267,12 @@ def row_from_ttrl_reward_log(
         "actual_chrono_calls": chrono_audits,
         "failure_codes": best.get("failure_codes", []),
         "trace_path": str(reward_log),
-        "training_log_paths": [str(reward_log)],
+        "training_log_paths": list(dict.fromkeys([
+            str(reward_log),
+            *training["training_log_paths"],
+        ])),
+        "training_manifest_path": str(run_dir / "run_manifest.json"),
+        "training_manifest_paths": [str(run_dir / "run_manifest.json")],
         "raw_completion_paths": raw_paths,
         "verifier_output_paths": verifier_paths,
         "cad_artifact_paths": cad_paths,
@@ -3100,6 +3151,14 @@ def training_metadata_from_manifest(path: Path) -> dict[str, Any]:
         "trained_tokens": int(payload.get("trained_tokens", 0) or 0),
         "rl_trained_tokens": int(payload.get("rl_trained_tokens", 0) or 0),
         "n_rl_datums": int(payload.get("n_rl_datums", 0) or 0),
+        "reward_channel": str(payload.get("reward_channel") or ""),
+        "rollout_backend": (
+            "sglang_chat"
+            if payload.get("rollout_openai_base_url")
+            else str(payload.get("rollout_backend") or "")
+        ),
+        "sampling_temperature": float(payload.get("temperature", 0.0) or 0.0),
+        "sampling_top_p": float(payload.get("top_p", 1.0) or 1.0),
         "adapter_path": adapter_path,
         "adapter_checkpoint_paths": adapter_checkpoint_paths,
         "training_log_paths": training_log_paths,
@@ -3124,6 +3183,10 @@ def empty_training_metadata() -> dict[str, Any]:
         "trained_tokens": 0,
         "rl_trained_tokens": 0,
         "n_rl_datums": 0,
+        "reward_channel": "",
+        "rollout_backend": "",
+        "sampling_temperature": 0.0,
+        "sampling_top_p": 1.0,
         "adapter_path": "",
         "adapter_checkpoint_paths": [],
         "training_log_paths": [],

@@ -677,6 +677,11 @@ def test_rows_from_sample_summary_uses_total_budget_and_canonical_family(
 ) -> None:
     summary = {
         "max_turns": 4,
+        "rollout_backend": "sglang_chat",
+        "samples_per_task": 32,
+        "temperature": 0.7,
+        "top_p": 0.95,
+        "archive_feedback": False,
         "all_samples": [
             {
                 "task_id": "planet_task",
@@ -722,6 +727,55 @@ def test_rows_from_sample_summary_uses_total_budget_and_canonical_family(
     assert row["best_verified_reward_at_32"] == 1.0
     assert row["verifier_calls"] == 32
     assert row["actual_budget_matches_primary"] is True
+    assert row["method_implementation"] == "multi_turn_verifier_feedback_no_update"
+    assert row["rollout_backend"] == "sglang_chat"
+    assert row["samples_per_task"] == 32
+    assert row["sampling_temperature"] == 0.7
+    assert row["sampling_top_p"] == 0.95
+    assert row["archive_feedback"] is False
+
+
+def test_rows_from_sample_summary_records_archive_feedback_method(
+    tmp_path: Path,
+) -> None:
+    summary = {
+        "max_turns": 4,
+        "rollout_backend": "sglang_chat",
+        "samples_per_task": 32,
+        "temperature": 0.9,
+        "top_p": 0.95,
+        "archive_feedback": True,
+        "all_samples": [
+            {
+                "task_id": "planet_task",
+                "family": "planetary_fixed_ring_ratio_analytic",
+                "sample_idx": 0,
+                "verified_score": 1.0,
+                "evaluation_valid": True,
+                "hard_gate_passed": True,
+                "failure_codes": [],
+                "verifier_calls": 32,
+                "cad_audits": 0,
+                "chrono_audits": 0,
+            },
+        ],
+    }
+
+    rows = rows_from_sample_summary(
+        summary=summary,
+        method="adaptive_evolution",
+        split="A",
+        seed=20260607,
+        budget=32,
+        trace_root=tmp_path / "trace",
+        family_by_task={"planet_task": "planetary"},
+    )
+
+    row = rows[0]
+    assert row["method_implementation"] == "archive_feedback_search_no_update"
+    assert row["archive_feedback"] is True
+    assert row["samples_per_task"] == 32
+    assert row["sampling_temperature"] == 0.9
 
 
 def test_rows_from_sample_summary_uses_explicit_sft_manifest(
@@ -2056,7 +2110,11 @@ def test_ttrl_metadata_retention_keeps_checkpoint_provenance(
     assert manifest["omitted_redundant_non_weight_files"] == ["tokenizer.json"]
     assert not (run_dir / "final_adapter").exists()
     assert row["adapter_checkpoint_paths"] == [str(adapter_path)]
-    assert row["training_log_paths"] == [str(run_dir / "reward_log.jsonl")]
+    assert row["training_log_paths"] == [
+        str(run_dir / "reward_log.jsonl"),
+        str(run_dir / "run_manifest.json"),
+    ]
+    assert row["training_manifest_path"] == str(run_dir / "run_manifest.json")
 
 
 def test_optional_file_lock_enters_and_exits(tmp_path: Path) -> None:
