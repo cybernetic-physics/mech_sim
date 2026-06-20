@@ -17,6 +17,7 @@ import argparse
 import csv
 import fcntl
 import hashlib
+import importlib.util
 import json
 import os
 import shutil
@@ -24,6 +25,8 @@ import shlex
 import subprocess
 import sys
 import time
+import urllib.error
+import urllib.request
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -183,6 +186,21 @@ def main() -> int:
     parser.add_argument("--limit-tasks", type=int, default=0)
     parser.add_argument("--resume-existing", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--require-runtime-preflight",
+        action="store_true",
+        help=(
+            "check local sampler/training/physics runtime prerequisites before "
+            "starting the shard and fail without writing result rows if they "
+            "are unavailable"
+        ),
+    )
+    parser.add_argument(
+        "--runtime-preflight-only",
+        action="store_true",
+        help="print runtime preflight JSON and exit without running cells",
+    )
+    parser.add_argument("--preflight-timeout-s", type=float, default=3.0)
     parser.add_argument("--skip-analysis", action="store_true")
     parser.add_argument(
         "--evidence-layout",
@@ -426,6 +444,20 @@ def main() -> int:
         shard_cells=shard_cells,
         sft_training_splits=sft_training_splits,
     )
+    if args.require_runtime_preflight or args.runtime_preflight_only:
+        runtime_preflight = build_runtime_preflight(
+            args=args,
+            requested_methods=requested_methods,
+            needs_sft=needs_sft_for_run,
+            method_contract=method_contract,
+        )
+        if args.runtime_preflight_only:
+            print(json.dumps(runtime_preflight, indent=2, sort_keys=True))
+            return 0 if runtime_preflight["ready"] else 2
+        if not runtime_preflight["ready"]:
+            blockers = "; ".join(runtime_preflight["blockers"])
+            raise SystemExit(f"runtime preflight failed: {blockers}")
+        plan["runtime_preflight"] = runtime_preflight
     write_json(out_dir / "online_experiment_plan.json", plan)
     if args.dry_run:
         print(json.dumps(plan, indent=2, sort_keys=True))
@@ -725,6 +757,146 @@ def methods_need_sft(
         bool(init_online_from_sft)
         and bool(method_set & (BASELINE_FEEDBACK_METHODS | TTRL_METHODS))
     )
+
+
+def build_runtime_preflight(
+    *,
+    args: argparse.Namespace,
+    requested_methods: list[str],
+    needs_sft: bool,
+    method_contract: dict[str, Any],
+) -> dict[str, Any]:
+    """Return local runtime readiness for a real shard execution.
+
+    This intentionally checks only local prerequisites. It never contacts a
+    cluster or launches a model server.
+    """
+    checks: dict[str, Any] = {}
+    blockers: list[str] = []
+    method_set = set(requested_methods)
+    sampler_methods = sorted(method_set - TTRL_METHODS)
+    needs_chat_sampler = bool(sampler_methods) or bool(
+        method_set & TTRL_METHODS and getattr(args, "ttrl_rollout_openai", False)
+    )
+
+    if needs_chat_sampler:
+        if str(args.rollout_backend) == "sglang_chat":
+            ok, detail = probe_openai_chat_server(
+                str(args.sglang_base_url),
+                timeout_s=float(args.preflight_timeout_s),
+            )
+            checks["sglang_chat"] = {
+                "required": True,
+                "base_url": str(args.sglang_base_url),
+                "ok": ok,
+                "detail": detail,
+                "methods": sampler_methods,
+            }
+            if not ok:
+                blockers.append(
+                    f"sglang_chat server unavailable at {args.sglang_base_url}: "
+                    f"{detail}"
+                )
+        elif str(args.rollout_backend) == "worldlines_sampling":
+            ok = importlib.util.find_spec("worldlines") is not None
+            checks["worldlines_sampling"] = {
+                "required": True,
+                "ok": ok,
+                "methods": sampler_methods,
+            }
+            if not ok:
+                blockers.append(
+                    "worldlines_sampling requested but package 'worldlines' "
+                    "is not importable"
+                )
+        else:
+            blockers.append(f"unknown rollout backend: {args.rollout_backend}")
+    else:
+        checks["sampler"] = {"required": False, "ok": True}
+
+    training_packages = ("torch", "transformers", "peft", "trl")
+    needs_training = needs_sft or bool(method_set & TTRL_METHODS)
+    if needs_training:
+        missing = [
+            package
+            for package in training_packages
+            if importlib.util.find_spec(package) is None
+        ]
+        checks["training_packages"] = {
+            "required": True,
+            "ok": not missing,
+            "missing": missing,
+            "packages": list(training_packages),
+        }
+        if missing:
+            blockers.append(
+                "training packages missing: " + ", ".join(sorted(missing))
+            )
+    else:
+        checks["training_packages"] = {"required": False, "ok": True}
+
+    if bool(method_contract.get("is_physics")):
+        try:
+            from mech_bench.adapters.chrono_contact import chrono_diagnostic
+
+            chrono = chrono_diagnostic()
+            chrono_ok = chrono.get("status") == "available"
+            checks["chrono_contact"] = {
+                "required": True,
+                "ok": chrono_ok,
+                "status": chrono.get("status"),
+                "runner_status": chrono.get("runner_status"),
+                "pychrono_importable": chrono.get("pychrono_importable"),
+                "_chrono_impl_importable": chrono.get("_chrono_impl_importable"),
+                "reason": chrono.get("reason"),
+            }
+            if not chrono_ok:
+                blockers.append(
+                    "chrono_contact unavailable: "
+                    f"{chrono.get('reason') or chrono.get('status')}"
+                )
+        except Exception as exc:  # noqa: BLE001 - preflight boundary
+            checks["chrono_contact"] = {
+                "required": True,
+                "ok": False,
+                "error": f"{type(exc).__name__}: {exc}",
+            }
+            blockers.append(f"chrono diagnostic failed: {exc}")
+    else:
+        checks["chrono_contact"] = {"required": False, "ok": True}
+
+    return {
+        "schema": "mechanism_repair_ttrl.runtime_preflight.v1",
+        "ready": not blockers,
+        "blockers": blockers,
+        "checks": checks,
+    }
+
+
+def probe_openai_chat_server(
+    base_url: str,
+    *,
+    timeout_s: float,
+) -> tuple[bool, str]:
+    """Probe an OpenAI-compatible chat server without sampling tokens."""
+    url = base_url.rstrip("/") + "/v1/models"
+    request = urllib.request.Request(
+        url,
+        headers={"Authorization": "Bearer dummy"},
+        method="GET",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=max(0.1, timeout_s)) as rsp:
+            status = int(getattr(rsp, "status", 0) or 0)
+            if 200 <= status < 400:
+                return True, f"HTTP {status}"
+            return False, f"HTTP {status}"
+    except urllib.error.HTTPError as exc:
+        if int(exc.code) in {401, 403}:
+            return True, f"HTTP {exc.code}: auth required"
+        return False, f"HTTP {exc.code}: {exc.reason}"
+    except Exception as exc:  # noqa: BLE001 - diagnostic boundary
+        return False, f"{type(exc).__name__}: {exc}"
 
 
 def resolve_sft_training_splits(

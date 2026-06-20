@@ -11,6 +11,7 @@ from scripts import run_mechanism_repair_online_experiment as online
 from scripts.run_mechanism_repair_online_experiment import (
     EvalMethod,
     build_plan,
+    build_runtime_preflight,
     expensive_budget_caps_for_ttrl,
     order_methods_for_budget_dependencies,
     require_learning_manifest,
@@ -65,6 +66,58 @@ def test_ttrl_steps_per_generation_for_budget_enforces_matched_rollouts() -> Non
     assert ttrl_steps_per_generation_for_budget(budget=32, num_generations=4) == 4
     with pytest.raises(SystemExit, match="must divide evenly"):
         ttrl_steps_per_generation_for_budget(budget=30, num_generations=4)
+
+
+def test_runtime_preflight_rejects_missing_sglang_sampler(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        online,
+        "probe_openai_chat_server",
+        lambda _base_url, *, timeout_s: (False, "connection refused"),
+    )
+    args = Namespace(
+        rollout_backend="sglang_chat",
+        sglang_base_url="http://127.0.0.1:30000",
+        preflight_timeout_s=0.1,
+        ttrl_rollout_openai=False,
+    )
+
+    report = build_runtime_preflight(
+        args=args,
+        requested_methods=["frozen_model"],
+        needs_sft=False,
+        method_contract={"is_physics": False},
+    )
+
+    assert report["ready"] is False
+    assert "sglang_chat server unavailable" in report["blockers"][0]
+    assert report["checks"]["sglang_chat"]["ok"] is False
+
+
+def test_runtime_preflight_does_not_probe_sampler_when_not_needed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fail_probe(_base_url: str, *, timeout_s: float) -> tuple[bool, str]:
+        raise AssertionError("sampler probe should not run")
+
+    monkeypatch.setattr(online, "probe_openai_chat_server", fail_probe)
+    args = Namespace(
+        rollout_backend="sglang_chat",
+        sglang_base_url="http://127.0.0.1:30000",
+        preflight_timeout_s=0.1,
+        ttrl_rollout_openai=False,
+    )
+
+    report = build_runtime_preflight(
+        args=args,
+        requested_methods=[],
+        needs_sft=False,
+        method_contract={"is_physics": False},
+    )
+
+    assert report["ready"] is True
+    assert report["checks"]["sampler"] == {"required": False, "ok": True}
 
 
 def test_build_plan_filters_to_shard_cells_and_normalizes_paths(

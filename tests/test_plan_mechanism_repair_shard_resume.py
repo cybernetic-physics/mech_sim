@@ -120,6 +120,7 @@ def test_resume_plan_selects_first_missing_output_shard(tmp_path: Path) -> None:
         "0",
         "--evidence-layout",
         "bundled",
+        "--require-runtime-preflight",
     ]
     assert "run_mechanism_repair_online_experiment.py" in (
         report["local_shard_command_text"]

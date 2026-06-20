@@ -321,6 +321,7 @@ def local_shard_command(
         "0",
         "--evidence-layout",
         "bundled",
+        "--require-runtime-preflight",
     ]
 
 
