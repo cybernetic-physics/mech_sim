@@ -151,11 +151,32 @@ def _read_task_meta(task_dir: Path) -> tuple[str, str]:
 def _read_split_file(path: Path | None) -> set[str] | None:
     if path is None:
         return None
-    return {
-        line.strip()
-        for line in path.read_text().splitlines()
-        if line.strip() and not line.strip().startswith("#")
-    }
+    names: set[str] = set()
+    for line in path.read_text().splitlines():
+        entry = line.strip()
+        if not entry or entry.startswith("#"):
+            continue
+        names.add(entry)
+        names.add(Path(entry).name)
+    return names
+
+
+def _read_explicit_split_dirs(path: Path | None) -> list[Path]:
+    if path is None:
+        return []
+    out: list[Path] = []
+    for line in path.read_text().splitlines():
+        entry = line.strip()
+        if not entry or entry.startswith("#"):
+            continue
+        candidate = Path(entry).expanduser()
+        if (
+            candidate.is_absolute()
+            and candidate.is_dir()
+            and (candidate / "task.toml").is_file()
+        ):
+            out.append(candidate.resolve())
+    return out
 
 
 def _collect_param_paths(raw: Any) -> set[str]:
@@ -1125,14 +1146,28 @@ def main(argv: list[str] | None = None) -> int:
     split = _read_split_file(
         Path(args.split_file).resolve() if args.split_file else None
     )
+    explicit_split_dirs = _read_explicit_split_dirs(
+        Path(args.split_file).resolve() if args.split_file else None
+    )
     families = (
         set(s.strip() for s in args.families.split(",") if s.strip())
         if args.families else None
     )
 
     task_dirs: list[Path] = []
+    explicit_task_names: set[str] = set()
+    for task_dir in explicit_split_dirs:
+        family, _ = _read_task_meta(task_dir)
+        if only and task_dir.name not in only:
+            continue
+        if families and family not in families:
+            continue
+        task_dirs.append(task_dir)
+        explicit_task_names.add(task_dir.name)
     for child in sorted(tasks_root.iterdir()):
         if not child.is_dir() or not (child / "task.toml").exists():
+            continue
+        if child.name in explicit_task_names:
             continue
         family, _ = _read_task_meta(child)
         if only and child.name not in only:

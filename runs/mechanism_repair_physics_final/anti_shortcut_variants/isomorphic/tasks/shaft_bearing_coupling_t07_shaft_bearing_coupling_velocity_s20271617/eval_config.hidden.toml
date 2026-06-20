@@ -1,0 +1,104 @@
+[feedback]
+public_metrics = ["input_shaft_diameter.observed", "output_shaft_diameter.observed", "coupling_bore.observed", "speed_ratio.ratio_observed", "speed_ratio.ratio_expected", "trusted_asset_preflight.parts_with_required_geometry"]
+hidden_metrics = ["output_shaft_diameter.error_abs", "coupling_bore.error_abs", "key_width.error_abs", "speed_ratio.ratio_error_pct", "trusted_asset_preflight.trusted_mass_properties_recomputed"]
+
+[hard_gate]
+require = ["mobility", "ports", "trusted_asset_preflight"]
+
+[mechanism_repair_physics]
+family = "shaft_bearing_coupling"
+verifier_level = 2
+hidden_variant = true
+fake_contact_oracle_allowed = false
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 2
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["input_port", "output_port"]
+
+[probes.require_kinds]
+input_port = "revolute_joint"
+output_port = "revolute_joint"
+
+[[probes]]
+id = "input_shaft_diameter"
+type = "analytic_param_check"
+path = "parts.input_shaft.params.shaft_diameter_mm"
+expected = 20.0
+comparator = "eq"
+failure_code = "invalid_artifact"
+weight = 0.3
+severity = "major"
+hard_gate = false
+tolerance_abs = 0.05
+
+[[probes]]
+id = "output_shaft_diameter"
+type = "analytic_param_check"
+path = "parts.output_shaft.params.shaft_diameter_mm"
+expected = 20.0
+comparator = "eq"
+failure_code = "invalid_artifact"
+weight = 0.3
+severity = "major"
+hard_gate = false
+tolerance_abs = 0.05
+
+[[probes]]
+id = "coupling_bore"
+type = "analytic_param_check"
+path = "params.coupling_bore_mm"
+expected = 20.0
+comparator = "eq"
+failure_code = "invalid_artifact"
+weight = 0.2
+severity = "major"
+hard_gate = false
+tolerance_abs = 0.05
+
+[[probes]]
+id = "key_width"
+type = "analytic_param_check"
+path = "parts.output_shaft.params.key_width_mm"
+expected = 5.0
+comparator = "eq"
+failure_code = "invalid_artifact"
+weight = 0.2
+severity = "major"
+hard_gate = false
+tolerance_abs = 0.05
+
+[[probes]]
+id = "speed_ratio"
+type = "port_velocity_ratio"
+input_port = "input_port"
+output_port = "output_port"
+expected = 1.0
+tolerance_pct = 0.5
+min_abs_input_velocity = 1e-06
+weight = 1.0
+severity = "major"
+
+[[probes]]
+id = "trusted_asset_preflight"
+type = "trusted_asset_preflight"
+require_geometry_roles = ["cad"]
+require_materials = true
+require_material_properties = ["density_kg_m3", "elastic_modulus_pa", "poisson_ratio", "yield_strength_pa"]
+require_provenance = true
+require_trusted_mass_properties = true
+hard_gate = true
+severity = "critical"
+weight = 0.2

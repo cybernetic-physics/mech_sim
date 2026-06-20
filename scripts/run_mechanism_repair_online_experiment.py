@@ -467,7 +467,12 @@ def main() -> int:
             split=split,
             limit=max(0, int(args.limit_tasks)),
         )
-        task_ids = read_ids(test_file)
+        task_entries = read_split_entries(test_file)
+        task_ids = [task_id for task_id, _entry in task_entries]
+        task_entry_by_id = {
+            task_id: entry
+            for task_id, entry in task_entries
+        }
         for seed in seeds:
             sft_adapter = None
             sft_manifest_path: Path | None = None
@@ -506,7 +511,11 @@ def main() -> int:
                         if key in seen_keys:
                             continue
                         task_split = write_one_task_split(
-                            run_root, split, seed, task_id
+                            run_root,
+                            split,
+                            seed,
+                            task_id,
+                            task_entry=task_entry_by_id.get(task_id),
                         )
                         run_dir = (
                             run_root / split / str(seed) / method / task_id
@@ -584,6 +593,7 @@ def main() -> int:
                         seed=seed,
                         method=method,
                         task_ids=missing,
+                        task_entry_by_id=task_entry_by_id,
                     )
                     if shard_filter is not None
                     else test_file
@@ -2983,10 +2993,10 @@ def make_eval_split_file(
     source = split_dir / "test.txt"
     if limit <= 0:
         return source
-    ids = read_ids(source)[:limit]
+    entries = [entry for _task_id, entry in read_split_entries(source)[:limit]]
     path = run_root / split / f"test_limit_{limit}.txt"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(ids) + "\n")
+    path.write_text("\n".join(entries) + "\n")
     return path
 
 
@@ -2995,10 +3005,12 @@ def write_one_task_split(
     split: str,
     seed: int,
     task_id: str,
+    *,
+    task_entry: str | None = None,
 ) -> Path:
     path = run_root / split / str(seed) / "one_task_splits" / f"{task_id}.txt"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(task_id + "\n")
+    path.write_text(str(task_entry or task_id) + "\n")
     return path
 
 
@@ -3009,6 +3021,7 @@ def write_task_subset_split(
     seed: int,
     method: str,
     task_ids: list[str],
+    task_entry_by_id: dict[str, str] | None = None,
 ) -> Path:
     path = (
         run_root
@@ -3018,16 +3031,26 @@ def write_task_subset_split(
         / f"{method}.txt"
     )
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(task_ids) + "\n")
+    task_entry_by_id = task_entry_by_id or {}
+    path.write_text(
+        "\n".join(str(task_entry_by_id.get(task_id) or task_id) for task_id in task_ids)
+        + "\n"
+    )
     return path
 
 
+def read_split_entries(path: Path) -> list[tuple[str, str]]:
+    entries: list[tuple[str, str]] = []
+    for line in path.read_text().splitlines():
+        entry = line.strip()
+        if not entry or entry.startswith("#"):
+            continue
+        entries.append((Path(entry).name, entry))
+    return entries
+
+
 def read_ids(path: Path) -> list[str]:
-    return [
-        Path(line.strip()).name
-        for line in path.read_text().splitlines()
-        if line.strip() and not line.strip().startswith("#")
-    ]
+    return [task_id for task_id, _entry in read_split_entries(path)]
 
 
 def parse_csv(value: str) -> list[str]:

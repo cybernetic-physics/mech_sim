@@ -1,0 +1,8 @@
+{
+  "active_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/anti_shortcut_variants/hidden_perturbation/tasks/rack_pinion_t03_rack_pinion_conversion_s20265613/eval_config.toml",
+  "active_eval_variant": "hidden",
+  "schema": "mechanism_repair_physics.anti_shortcut_variant.v1",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t03_rack_pinion_conversion_s20265613",
+  "source_task_id": "rack_pinion_t03_rack_pinion_conversion_s20265613",
+  "split_name": "hidden_perturbation"
+}

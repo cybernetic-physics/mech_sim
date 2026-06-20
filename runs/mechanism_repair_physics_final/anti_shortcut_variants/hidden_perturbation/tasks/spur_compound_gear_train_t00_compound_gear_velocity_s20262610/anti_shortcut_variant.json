@@ -1,0 +1,8 @@
+{
+  "active_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/anti_shortcut_variants/hidden_perturbation/tasks/spur_compound_gear_train_t00_compound_gear_velocity_s20262610/eval_config.toml",
+  "active_eval_variant": "hidden",
+  "schema": "mechanism_repair_physics.anti_shortcut_variant.v1",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t00_compound_gear_velocity_s20262610",
+  "source_task_id": "spur_compound_gear_train_t00_compound_gear_velocity_s20262610",
+  "split_name": "hidden_perturbation"
+}

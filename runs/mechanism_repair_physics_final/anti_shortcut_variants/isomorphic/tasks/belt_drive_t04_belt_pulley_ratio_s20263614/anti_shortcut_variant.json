@@ -1,0 +1,8 @@
+{
+  "active_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/anti_shortcut_variants/isomorphic/tasks/belt_drive_t04_belt_pulley_ratio_s20263614/eval_config.toml",
+  "active_eval_variant": "hidden",
+  "schema": "mechanism_repair_physics.anti_shortcut_variant.v1",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t04_belt_pulley_ratio_s20263614",
+  "source_task_id": "belt_drive_t04_belt_pulley_ratio_s20263614",
+  "split_name": "isomorphic"
+}

@@ -1,0 +1,22 @@
+{
+  "active_eval_variant": "hidden",
+  "anti_shortcut_variant": "hidden_perturbation",
+  "difficulty": 2,
+  "fake_contact_oracle_allowed": false,
+  "family": "lead_screw",
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "lead_mm": 8.643,
+  "seed": 20266618,
+  "source_generator": "lead_screw_linear_travel",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t08_lead_screw_linear_travel_s20266618",
+  "source_task_id": "lead_screw_t08_lead_screw_linear_travel_s20266618",
+  "task_id": "lead_screw_t08_lead_screw_linear_travel_s20266618",
+  "tier": "transmission_analytic",
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "verifier_level": 2
+}

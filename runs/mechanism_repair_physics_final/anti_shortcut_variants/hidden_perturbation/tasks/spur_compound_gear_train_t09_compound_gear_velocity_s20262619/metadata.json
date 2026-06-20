@@ -1,0 +1,30 @@
+{
+  "active_eval_variant": "hidden",
+  "anti_shortcut_variant": "hidden_perturbation",
+  "difficulty": 2,
+  "fake_contact_oracle_allowed": false,
+  "family": "spur_compound_gear_train",
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "module_mm": 2.0,
+  "reduction": 8.0,
+  "seed": 20262619,
+  "source_generator": "compound_gear_velocity",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t09_compound_gear_velocity_s20262619",
+  "source_task_id": "spur_compound_gear_train_t09_compound_gear_velocity_s20262619",
+  "speed_ratio": 0.125,
+  "task_id": "spur_compound_gear_train_t09_compound_gear_velocity_s20262619",
+  "teeth": [
+    14,
+    56,
+    16,
+    32
+  ],
+  "tier": "planar_kinematics",
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "verifier_level": 2
+}

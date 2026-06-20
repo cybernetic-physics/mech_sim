@@ -1,0 +1,8 @@
+{
+  "active_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/anti_shortcut_variants/hidden_perturbation/tasks/lead_screw_t02_lead_screw_linear_travel_s20266612/eval_config.toml",
+  "active_eval_variant": "hidden",
+  "schema": "mechanism_repair_physics.anti_shortcut_variant.v1",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t02_lead_screw_linear_travel_s20266612",
+  "source_task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
+  "split_name": "hidden_perturbation"
+}

@@ -1,0 +1,68 @@
+[feedback]
+public_metrics = ["reduction.observed", "speed_ratio.ratio_observed", "speed_ratio.ratio_expected", "trusted_asset_preflight.parts_with_required_geometry"]
+hidden_metrics = ["reduction.error_pct", "speed_ratio.ratio_error_pct", "trusted_asset_preflight.trusted_mass_properties_recomputed"]
+
+[hard_gate]
+require = ["mobility", "ports", "trusted_asset_preflight"]
+
+[mechanism_repair_physics]
+family = "planetary_reducer"
+verifier_level = 2
+hidden_variant = true
+fake_contact_oracle_allowed = false
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 3
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port"]
+hard_gate = true
+severity = "critical"
+require_grounded = ["input_port", "output_port"]
+
+[probes.require_kinds]
+input_port = "revolute_joint"
+output_port = "revolute_joint"
+
+[[probes]]
+id = "reduction"
+type = "analytic_param_check"
+path = "params.declared_reduction_ratio"
+expected = 3.428571
+comparator = "eq"
+failure_code = "wrong_ratio"
+weight = 0.5
+severity = "major"
+hard_gate = false
+tolerance_pct = 1.0
+
+[[probes]]
+id = "speed_ratio"
+type = "port_velocity_ratio"
+input_port = "input_port"
+output_port = "output_port"
+expected = 0.2916667
+tolerance_pct = 1.0
+min_abs_input_velocity = 1e-06
+weight = 1.0
+severity = "major"
+
+[[probes]]
+id = "trusted_asset_preflight"
+type = "trusted_asset_preflight"
+require_geometry_roles = ["cad"]
+require_materials = true
+require_material_properties = ["density_kg_m3", "elastic_modulus_pa", "poisson_ratio", "yield_strength_pa"]
+require_provenance = true
+require_trusted_mass_properties = true
+hard_gate = true
+severity = "critical"
+weight = 0.2

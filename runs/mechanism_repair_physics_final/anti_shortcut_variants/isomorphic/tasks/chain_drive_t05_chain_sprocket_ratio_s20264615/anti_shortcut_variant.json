@@ -1,0 +1,8 @@
+{
+  "active_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/anti_shortcut_variants/isomorphic/tasks/chain_drive_t05_chain_sprocket_ratio_s20264615/eval_config.toml",
+  "active_eval_variant": "hidden",
+  "schema": "mechanism_repair_physics.anti_shortcut_variant.v1",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t05_chain_sprocket_ratio_s20264615",
+  "source_task_id": "chain_drive_t05_chain_sprocket_ratio_s20264615",
+  "split_name": "isomorphic"
+}

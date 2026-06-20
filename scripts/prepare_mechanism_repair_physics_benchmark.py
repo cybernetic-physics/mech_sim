@@ -2030,7 +2030,16 @@ def freeze_required_splits(
             "n_test": len(manifest["splits"]["test"]),
         }
 
-    hidden_manifest = build_hidden_split_manifest(records=records, seed=split_seed + 99)
+    hidden_records = materialize_anti_shortcut_variant_records(
+        records=records,
+        out_dir=out_dir,
+        split_name="hidden_perturbation",
+        eval_variant="hidden",
+    )
+    hidden_manifest = build_hidden_split_manifest(
+        records=hidden_records,
+        seed=split_seed + 99,
+    )
     hidden_path = out_dir / "split_manifest_hidden_perturbation.json"
     write_json(hidden_path, hidden_manifest)
     write_split_files(hidden_manifest, out_dir / "splits_hidden_perturbation")
@@ -2039,8 +2048,14 @@ def freeze_required_splits(
         "split_dir": str(out_dir / "splits_hidden_perturbation"),
         "n_test": len(hidden_manifest["splits"]["test"]),
     }
-    isomorphic_manifest = build_isomorphic_split_manifest(
+    isomorphic_records = materialize_anti_shortcut_variant_records(
         records=records,
+        out_dir=out_dir,
+        split_name="isomorphic",
+        eval_variant="hidden",
+    )
+    isomorphic_manifest = build_isomorphic_split_manifest(
+        records=isomorphic_records,
         seed=split_seed + 149,
     )
     isomorphic_path = out_dir / "split_manifest_isomorphic.json"
@@ -2108,6 +2123,65 @@ def build_split_manifest(
             "test": sorted(test),
         },
     }
+
+
+def materialize_anti_shortcut_variant_records(
+    *,
+    records: list[dict[str, Any]],
+    out_dir: Path,
+    split_name: str,
+    eval_variant: str,
+) -> list[dict[str, Any]]:
+    target_root = out_dir / "anti_shortcut_variants" / split_name / "tasks"
+    if target_root.exists():
+        shutil.rmtree(target_root)
+    target_root.mkdir(parents=True, exist_ok=True)
+    variant_records: list[dict[str, Any]] = []
+    for record in records:
+        if not bool(record.get("headline_eligible", True)):
+            continue
+        source_dir = Path(str(record["task_dir"]))
+        target_dir = target_root / source_dir.name
+        shutil.copytree(
+            source_dir,
+            target_dir,
+            copy_function=shutil.copy2,
+            ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+        )
+        variant_cfg = source_dir / f"eval_config.{eval_variant}.toml"
+        if not variant_cfg.is_file():
+            variant_cfg = source_dir / "eval_config.toml"
+        cfg_text = variant_cfg.read_text()
+        (target_dir / "eval_config.toml").write_text(cfg_text)
+        (target_dir / f"eval_config.{eval_variant}.toml").write_text(cfg_text)
+        metadata_path = target_dir / "metadata.json"
+        metadata = (
+            json.loads(metadata_path.read_text())
+            if metadata_path.is_file()
+            else {}
+        )
+        metadata.update({
+            "anti_shortcut_variant": split_name,
+            "active_eval_variant": eval_variant,
+            "source_task_id": source_dir.name,
+            "source_task_dir": str(source_dir),
+        })
+        write_json(metadata_path, metadata)
+        write_json(
+            target_dir / "anti_shortcut_variant.json",
+            {
+                "schema": "mechanism_repair_physics.anti_shortcut_variant.v1",
+                "split_name": split_name,
+                "active_eval_variant": eval_variant,
+                "source_task_id": source_dir.name,
+                "source_task_dir": str(source_dir),
+                "active_eval_config": str(target_dir / "eval_config.toml"),
+            },
+        )
+        variant_record = dict(record)
+        variant_record["task_dir"] = str(target_dir)
+        variant_records.append(variant_record)
+    return variant_records
 
 
 def build_hidden_split_manifest(
@@ -2308,21 +2382,45 @@ def build_hidden_variant_manifest(
     audit: dict[str, Any],
 ) -> dict[str, Any]:
     rows = []
+    out_dir = tasks_root.parent
     for task in audit["tasks"]:
+        task_id = task["task_id"]
+        hidden_variant_dir = (
+            out_dir
+            / "anti_shortcut_variants"
+            / "hidden_perturbation"
+            / "tasks"
+            / task_id
+        )
+        isomorphic_variant_dir = (
+            out_dir
+            / "anti_shortcut_variants"
+            / "isomorphic"
+            / "tasks"
+            / task_id
+        )
         rows.append(
             {
-                "task_id": task["task_id"],
+                "task_id": task_id,
                 "family": task["family"],
                 "verifier_level": task["verifier_level"],
                 "public_eval_config": str(Path(task["task_dir"]) / "eval_config.public.toml"),
                 "hidden_eval_config": str(Path(task["task_dir"]) / "eval_config.hidden.toml"),
+                "hidden_variant_task_dir": str(hidden_variant_dir),
+                "hidden_variant_active_eval_config": str(
+                    hidden_variant_dir / "eval_config.toml"
+                ),
+                "isomorphic_variant_task_dir": str(isomorphic_variant_dir),
+                "isomorphic_variant_active_eval_config": str(
+                    isomorphic_variant_dir / "eval_config.toml"
+                ),
                 "hidden_variant_present": task["has_hidden_variant"],
                 "perturbations": [
                     "tighter tolerance or target perturbation",
                     "hidden metric withholding",
                     "isomorphic renaming required by audit",
                 ],
-                "isomorphic_variant_status": "manifested_in_isomorphic_split",
+                "isomorphic_variant_status": "materialized_in_isomorphic_split",
             }
         )
     return {

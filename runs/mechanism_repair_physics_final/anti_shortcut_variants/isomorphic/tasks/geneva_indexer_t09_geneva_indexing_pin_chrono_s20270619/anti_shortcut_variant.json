@@ -1,0 +1,8 @@
+{
+  "active_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/anti_shortcut_variants/isomorphic/tasks/geneva_indexer_t09_geneva_indexing_pin_chrono_s20270619/eval_config.toml",
+  "active_eval_variant": "hidden",
+  "schema": "mechanism_repair_physics.anti_shortcut_variant.v1",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t09_geneva_indexing_pin_chrono_s20270619",
+  "source_task_id": "geneva_indexer_t09_geneva_indexing_pin_chrono_s20270619",
+  "split_name": "isomorphic"
+}

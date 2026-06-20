@@ -1,0 +1,8 @@
+{
+  "active_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/anti_shortcut_variants/isomorphic/tasks/shaft_bearing_coupling_t09_shaft_bearing_coupling_velocity_s20271619/eval_config.toml",
+  "active_eval_variant": "hidden",
+  "schema": "mechanism_repair_physics.anti_shortcut_variant.v1",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t09_shaft_bearing_coupling_velocity_s20271619",
+  "source_task_id": "shaft_bearing_coupling_t09_shaft_bearing_coupling_velocity_s20271619",
+  "split_name": "isomorphic"
+}

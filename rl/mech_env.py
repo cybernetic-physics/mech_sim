@@ -118,6 +118,47 @@ def _read_task_toml_lite(task_dir: Path) -> tuple[str, str]:
     return family, tier
 
 
+def _split_selection(split_file: Path | None) -> tuple[set[str] | None, list[Path]]:
+    if split_file is None or not Path(split_file).exists():
+        return None, []
+    names: set[str] = set()
+    explicit_dirs: list[Path] = []
+    for line in Path(split_file).read_text().splitlines():
+        entry = line.strip()
+        if not entry or entry.startswith("#"):
+            continue
+        names.add(entry)
+        path = Path(entry).expanduser()
+        if path.is_absolute() and path.is_dir() and (path / "task.toml").is_file():
+            explicit_dirs.append(path.resolve())
+        # Frozen benchmark splits may contain absolute paths from the
+        # machine that materialized the benchmark. Archives copied to a
+        # cluster must still match by stable task directory name when the
+        # absolute path does not exist locally.
+        names.add(Path(entry).name)
+    return names, explicit_dirs
+
+
+def _task_info_from_dir(task_dir: Path) -> TaskInfo:
+    meta = _read_metadata(task_dir)
+    family = str(meta.get("family") or "")
+    tier = str(meta.get("tier") or "")
+    if not family or not tier:
+        f2, t2 = _read_task_toml_lite(task_dir)
+        family = family or f2
+        tier = tier or t2
+    prompt = (task_dir / "prompt.md").read_text()
+    task_toml = (task_dir / "task.toml").read_text()
+    return TaskInfo(
+        task_id=task_dir.name,
+        family=family or task_dir.name,
+        tier=tier or "unknown",
+        prompt=prompt,
+        task_toml=task_toml,
+        task_dir=task_dir,
+    )
+
+
 def list_tasks(
     root: Path | None = None,
     *,
@@ -134,45 +175,30 @@ def list_tasks(
     root = root or TASKS_DIR
     fams = set(families) if families else None
     ts = set(tiers) if tiers else None
-    split: set[str] | None = None
-    if split_file is not None and Path(split_file).exists():
-        split = set()
-        for line in Path(split_file).read_text().splitlines():
-            entry = line.strip()
-            if not entry or entry.startswith("#"):
-                continue
-            split.add(entry)
-            # Frozen benchmark splits may contain absolute paths from the
-            # machine that materialized the benchmark.  Archives copied to a
-            # cluster must still match by stable task directory name.
-            split.add(Path(entry).name)
+    split, explicit_dirs = _split_selection(split_file)
     out: list[TaskInfo] = []
+    explicit_names: set[str] = set()
+    for task_dir in explicit_dirs:
+        task = _task_info_from_dir(task_dir)
+        if fams is not None and task.family not in fams:
+            continue
+        if ts is not None and task.tier not in ts:
+            continue
+        out.append(task)
+        explicit_names.add(task.task_id)
     for child in sorted(Path(root).iterdir()):
         if not child.is_dir() or not (child / "task.toml").exists():
             continue
-        meta = _read_metadata(child)
-        family = str(meta.get("family") or "")
-        tier = str(meta.get("tier") or "")
-        if not family or not tier:
-            f2, t2 = _read_task_toml_lite(child)
-            family = family or f2
-            tier = tier or t2
-        if fams is not None and family not in fams:
+        if child.name in explicit_names:
             continue
-        if ts is not None and tier not in ts:
+        task = _task_info_from_dir(child)
+        if fams is not None and task.family not in fams:
+            continue
+        if ts is not None and task.tier not in ts:
             continue
         if split is not None and child.name not in split:
             continue
-        prompt = (child / "prompt.md").read_text()
-        task_toml = (child / "task.toml").read_text()
-        out.append(TaskInfo(
-            task_id=child.name,
-            family=family or child.name,
-            tier=tier or "unknown",
-            prompt=prompt,
-            task_toml=task_toml,
-            task_dir=child,
-        ))
+        out.append(task)
     return out
 
 

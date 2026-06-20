@@ -1,0 +1,27 @@
+{
+  "active_eval_variant": "hidden",
+  "anti_shortcut_variant": "hidden_perturbation",
+  "asset_id": "pins10_ratio9",
+  "difficulty": 3,
+  "fake_contact_oracle_allowed": false,
+  "family": "cycloidal_reducer",
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "line_segment_count": 42,
+  "requires_adapter": "rigid_body_dynamics+contact_forces",
+  "requires_cached_cad_fixture": true,
+  "ring_pins": 10,
+  "seed": 20260610,
+  "source_generator": "cycloidal_real_geometry_chrono",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+  "source_task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+  "target_ratio": 9.0,
+  "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+  "tier": "contact_dynamics",
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "verifier_level": 3
+}

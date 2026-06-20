@@ -1,0 +1,24 @@
+{
+  "active_eval_variant": "hidden",
+  "anti_shortcut_variant": "hidden_perturbation",
+  "difficulty": 2,
+  "drive_d_mm": 37.18,
+  "driven_d_mm": 148.72,
+  "fake_contact_oracle_allowed": false,
+  "family": "belt_drive",
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "ratio": 4.0,
+  "seed": 20263611,
+  "source_generator": "belt_pulley_ratio",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t01_belt_pulley_ratio_s20263611",
+  "source_task_id": "belt_drive_t01_belt_pulley_ratio_s20263611",
+  "task_id": "belt_drive_t01_belt_pulley_ratio_s20263611",
+  "tier": "transmission_analytic",
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "verifier_level": 2
+}

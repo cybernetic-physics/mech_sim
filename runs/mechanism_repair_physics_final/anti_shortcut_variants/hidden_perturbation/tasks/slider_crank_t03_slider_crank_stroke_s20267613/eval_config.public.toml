@@ -1,0 +1,66 @@
+[feedback]
+public_metrics = ["mobility.observed", "mobility.expected", "stroke.observed", "stroke.expected", "slider_path.chamfer", "slider_path.n_observed", "slider_path.n_target", "trusted_asset_preflight.parts_with_required_geometry"]
+hidden_metrics = ["stroke.error_pct", "slider_path.chamfer", "trusted_asset_preflight.trusted_mass_properties_recomputed"]
+
+[hard_gate]
+require = ["mobility", "ports", "trusted_asset_preflight"]
+
+[mechanism_repair_physics]
+family = "slider_crank"
+verifier_level = 2
+hidden_variant = false
+fake_contact_oracle_allowed = false
+
+[[probes]]
+id = "mobility"
+type = "dof_grubler"
+space = "planar"
+expected = 1
+tolerance = 0
+hard_gate = true
+severity = "critical"
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port"]
+require_grounded = ["input_port"]
+hard_gate = true
+severity = "critical"
+
+[probes.require_kinds]
+input_port = "revolute_joint"
+output_port = "prismatic_joint"
+
+[[probes]]
+id = "stroke"
+type = "analytic_param_check"
+path = "params.declared_stroke_mm"
+expected = 48.54
+comparator = "eq"
+tolerance_pct = 2.0
+failure_code = "wrong_ratio"
+weight = 1.0
+severity = "major"
+
+[[probes]]
+id = "slider_path"
+type = "path_trace_chamfer"
+moving_frame = "output_port"
+target_csv = "target_slider_path.csv"
+normalize = false
+max_chamfer = 0.35
+weight = 1.0
+severity = "major"
+
+[[probes]]
+id = "trusted_asset_preflight"
+type = "trusted_asset_preflight"
+require_geometry_roles = ["cad"]
+require_materials = true
+require_material_properties = ["density_kg_m3", "elastic_modulus_pa", "poisson_ratio", "yield_strength_pa"]
+require_provenance = true
+require_trusted_mass_properties = true
+hard_gate = true
+severity = "critical"
+weight = 0.2

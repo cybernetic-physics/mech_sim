@@ -1,0 +1,24 @@
+{
+  "active_eval_variant": "hidden",
+  "anti_shortcut_variant": "isomorphic",
+  "contact_pair": "driver:geneva",
+  "difficulty": 3,
+  "fake_contact_oracle_allowed": false,
+  "family": "geneva_indexer",
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "index_count": 6,
+  "requires_adapter": "rigid_body_dynamics+contact_forces",
+  "seed": 20270615,
+  "source_generator": "geneva_indexing_pin_chrono",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t05_geneva_indexing_pin_chrono_s20270615",
+  "source_task_id": "geneva_indexer_t05_geneva_indexing_pin_chrono_s20270615",
+  "task_id": "geneva_indexer_t05_geneva_indexing_pin_chrono_s20270615",
+  "tier": "contact_dynamics",
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "verifier_level": 3
+}

@@ -1,0 +1,29 @@
+{
+  "active_eval_variant": "hidden",
+  "anti_shortcut_variant": "isomorphic",
+  "coupler_mm": 86.92,
+  "coupler_offset_mm": [
+    51.37,
+    -16.42
+  ],
+  "crank_mm": 28.76,
+  "difficulty": 2,
+  "fake_contact_oracle_allowed": false,
+  "family": "fourbar_linkage",
+  "ground_mm": 97.68,
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "rocker_mm": 94.09,
+  "seed": 20268615,
+  "source_generator": "fourbar_path",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t05_fourbar_path_s20268615",
+  "source_task_id": "fourbar_linkage_t05_fourbar_path_s20268615",
+  "task_id": "fourbar_linkage_t05_fourbar_path_s20268615",
+  "tier": "planar_kinematics",
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "verifier_level": 2
+}

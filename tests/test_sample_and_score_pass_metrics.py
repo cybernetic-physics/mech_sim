@@ -39,6 +39,64 @@ def _outcome(reward: RewardResult) -> SampleOutcome:
     )
 
 
+def test_sample_and_score_prefers_absolute_split_task_dir(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    tasks = tmp_path / "tasks"
+    root_task = tasks / "shared_task"
+    root_task.mkdir(parents=True)
+    (root_task / "prompt.md").write_text("public prompt")
+    (root_task / "task.toml").write_text(
+        'family = "public_family"\n'
+        'tier = "public"\n'
+    )
+    variant_task = tmp_path / "variants" / "shared_task"
+    variant_task.mkdir(parents=True)
+    (variant_task / "prompt.md").write_text("variant prompt")
+    (variant_task / "task.toml").write_text(
+        'family = "variant_family"\n'
+        'tier = "hidden"\n'
+    )
+    split = tmp_path / "hidden.txt"
+    split.write_text(f"{variant_task}\n")
+    system_prompt = tmp_path / "system.md"
+    system_prompt.write_text("system")
+    report_dir = tmp_path / "report"
+    seen_task_dirs = []
+
+    def fake_run_one(task_dir, **_kwargs):
+        seen_task_dirs.append(task_dir)
+        outcome = _outcome(
+            RewardResult(
+                score=1.0,
+                verified_score=1.0,
+                hard_gate_passed=True,
+                evaluation_valid=True,
+                failure_codes=[],
+            )
+        )
+        outcome.task_id = task_dir.name
+        outcome.family = "variant_family"
+        outcome.tier = "hidden"
+        return outcome
+
+    monkeypatch.setattr(sample_and_score, "run_one", fake_run_one)
+
+    rc = sample_and_score.main([
+        "--tasks", str(tasks),
+        "--report-dir", str(report_dir),
+        "--system-prompt-file", str(system_prompt),
+        "--split-file", str(split),
+        "--samples-per-task", "1",
+    ])
+
+    assert rc == 0
+    assert seen_task_dirs == [variant_task.resolve()]
+    summary = json.loads((report_dir / "smoke_summary.json").read_text())
+    assert summary["all_samples"][0]["family"] == "variant_family"
+
+
 def test_verifier_valid_pass_can_have_subunit_continuous_score() -> None:
     outcome = _outcome(
         RewardResult(

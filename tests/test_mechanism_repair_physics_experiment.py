@@ -376,7 +376,7 @@ def _write_fake_benchmark(root: Path) -> None:
                     "verifier_level": verifier_level,
                     "hidden_variant_present": True,
                     "perturbations": ["rename", "retarget", "reframe"],
-                    "isomorphic_variant_status": "manifested_in_isomorphic_split",
+                    "isomorphic_variant_status": "materialized_in_isomorphic_split",
                 }
             )
     family_counts = {

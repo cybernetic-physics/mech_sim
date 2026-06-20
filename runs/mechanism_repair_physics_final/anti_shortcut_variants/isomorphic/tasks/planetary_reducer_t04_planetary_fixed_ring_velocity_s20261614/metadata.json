@@ -1,0 +1,26 @@
+{
+  "active_eval_variant": "hidden",
+  "anti_shortcut_variant": "isomorphic",
+  "difficulty": 2,
+  "fake_contact_oracle_allowed": false,
+  "family": "planetary_reducer",
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "planet": 10,
+  "reduction": 3.428571,
+  "ring": 34,
+  "seed": 20261614,
+  "source_generator": "planetary_fixed_ring_velocity",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t04_planetary_fixed_ring_velocity_s20261614",
+  "source_task_id": "planetary_reducer_t04_planetary_fixed_ring_velocity_s20261614",
+  "speed_ratio": 0.2916667,
+  "sun": 14,
+  "task_id": "planetary_reducer_t04_planetary_fixed_ring_velocity_s20261614",
+  "tier": "planar_kinematics",
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "verifier_level": 2
+}

@@ -1,0 +1,24 @@
+{
+  "active_eval_variant": "hidden",
+  "anti_shortcut_variant": "hidden_perturbation",
+  "coupler_mm": 61.4,
+  "crank_mm": 24.89,
+  "declared_stroke_mm": 49.78,
+  "difficulty": 2,
+  "fake_contact_oracle_allowed": false,
+  "family": "slider_crank",
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "seed": 20267614,
+  "source_generator": "slider_crank_stroke_precision",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t04_slider_crank_stroke_precision_s20267614",
+  "source_task_id": "slider_crank_t04_slider_crank_stroke_precision_s20267614",
+  "task_id": "slider_crank_t04_slider_crank_stroke_precision_s20267614",
+  "tier": "planar_kinematics",
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "verifier_level": 2
+}

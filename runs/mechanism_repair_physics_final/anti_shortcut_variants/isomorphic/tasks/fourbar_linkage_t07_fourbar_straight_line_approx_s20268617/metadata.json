@@ -1,0 +1,25 @@
+{
+  "active_eval_variant": "hidden",
+  "anti_shortcut_variant": "isomorphic",
+  "coupler_offset_mm": [
+    47.15,
+    5.42
+  ],
+  "difficulty": 2,
+  "fake_contact_oracle_allowed": false,
+  "family": "fourbar_linkage",
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "seed": 20268617,
+  "source_generator": "fourbar_straight_line_approx",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t07_fourbar_straight_line_approx_s20268617",
+  "source_task_id": "fourbar_linkage_t07_fourbar_straight_line_approx_s20268617",
+  "task_id": "fourbar_linkage_t07_fourbar_straight_line_approx_s20268617",
+  "tier": "planar_kinematics",
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "verifier_level": 2
+}

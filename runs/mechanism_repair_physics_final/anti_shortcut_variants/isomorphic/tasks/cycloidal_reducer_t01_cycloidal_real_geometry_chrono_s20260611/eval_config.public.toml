@@ -1,0 +1,93 @@
+[feedback]
+public_metrics = ["ports.ports_required", "ratio.observed", "contact.contact.pinDisk:cycloidalDisk1.rms_N", "contact.contact.driverDisk:cycloidalDisk1.rms_N", "trusted_asset_preflight.parts_with_required_geometry"]
+hidden_metrics = ["contact.worst_pair_score", "lockup.lockup_detected", "trusted_asset_preflight.trusted_mass_properties_recomputed"]
+
+[hard_gate]
+require = ["ports", "contact", "trusted_asset_preflight"]
+
+[adapters.chrono_contact]
+contact_model = "nsc"
+procedural_cycloidal_fallback = false
+collision_filter_named_pairs = true
+samples = 61
+duration_s = 0.2
+dt = 2.5e-05
+timestep = 2.5e-05
+input_speed_rad_s = 10.0
+output_load_Nm = 0.75
+output_load_start_s = 0.02
+output_load_ramp_s = 0.05
+contact_margin_m = 2e-05
+contact_envelope_m = 5e-05
+normal_stiffness_N_m = 50000000.0
+normal_damping_N_s_m = 2500.0
+friction_mu = 0.02
+restitution = 0.0
+young_modulus_pa = 30000000.0
+smc_use_material_properties = true
+solver_iterations = 800
+solver_max_iterations = 800
+solver_tolerance = 1e-08
+
+[mechanism_repair_physics]
+family = "cycloidal_reducer"
+verifier_level = 3
+hidden_variant = false
+fake_contact_oracle_allowed = false
+
+[[probes]]
+id = "ports"
+type = "required_ports"
+ports = ["input_port", "output_port"]
+require_grounded = ["input_port", "output_port"]
+hard_gate = true
+severity = "critical"
+
+[probes.require_kinds]
+input_port = "revolute_joint"
+output_port = "revolute_joint"
+
+[[probes]]
+id = "ratio"
+type = "analytic_param_check"
+path = "params.declared_ratio"
+expected = 11.0
+comparator = "eq"
+tolerance_pct = 1.0
+failure_code = "wrong_ratio"
+weight = 0.3
+severity = "major"
+
+[[probes]]
+id = "contact"
+type = "contact_engagement"
+required_pairs = ["pinDisk:cycloidalDisk1", "driverDisk:cycloidalDisk1"]
+min_rms_force_N = 0.1
+min_engagement_fraction = 0.005
+adapter = "chrono_contact"
+hard_gate = true
+weight = 1.0
+severity = "critical"
+
+[[probes]]
+id = "lockup"
+type = "lockup"
+input_port = "input_port"
+output_port = "output_port"
+min_output_motion_rad = 0.005
+min_output_velocity_rad_s = 0.001
+adapter = "chrono_contact"
+weight = 0.5
+severity = "critical"
+
+[[probes]]
+id = "trusted_asset_preflight"
+type = "trusted_asset_preflight"
+require_geometry_roles = ["cad"]
+require_materials = true
+require_material_properties = ["density_kg_m3", "elastic_modulus_pa", "poisson_ratio", "yield_strength_pa"]
+require_provenance = true
+require_trusted_mass_properties = true
+hard_gate = true
+severity = "critical"
+weight = 0.2

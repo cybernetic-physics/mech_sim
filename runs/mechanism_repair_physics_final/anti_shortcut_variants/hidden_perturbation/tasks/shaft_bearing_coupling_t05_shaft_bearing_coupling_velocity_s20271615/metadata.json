@@ -1,0 +1,25 @@
+{
+  "active_eval_variant": "hidden",
+  "anti_shortcut_variant": "hidden_perturbation",
+  "bearing_outer_diameter_mm": 20.0,
+  "difficulty": 2,
+  "fake_contact_oracle_allowed": false,
+  "family": "shaft_bearing_coupling",
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "key_width_mm": 2.5,
+  "seed": 20271615,
+  "shaft_diameter_mm": 10.0,
+  "source_generator": "shaft_bearing_coupling_velocity",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t05_shaft_bearing_coupling_velocity_s20271615",
+  "source_task_id": "shaft_bearing_coupling_t05_shaft_bearing_coupling_velocity_s20271615",
+  "speed_ratio": 1.0,
+  "task_id": "shaft_bearing_coupling_t05_shaft_bearing_coupling_velocity_s20271615",
+  "tier": "planar_kinematics",
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "verifier_level": 2
+}

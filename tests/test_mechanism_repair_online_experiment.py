@@ -119,6 +119,42 @@ def test_build_plan_filters_to_shard_cells_and_normalizes_paths(
     assert plan["cell_shard_file"] == str(shard_path.resolve())
 
 
+def test_split_file_writers_preserve_variant_paths(tmp_path: Path) -> None:
+    split_dir = tmp_path / "splits_hidden_perturbation"
+    split_dir.mkdir()
+    variant_a = tmp_path / "variants" / "hidden_perturbation" / "tasks" / "task_a"
+    variant_b = tmp_path / "variants" / "hidden_perturbation" / "tasks" / "task_b"
+    variant_a.mkdir(parents=True)
+    variant_b.mkdir(parents=True)
+    (split_dir / "test.txt").write_text(f"{variant_a}\n{variant_b}\n")
+
+    limited = online.make_eval_split_file(
+        split_dir=split_dir,
+        run_root=tmp_path / "run",
+        split="hidden_perturbation",
+        limit=1,
+    )
+    one = online.write_one_task_split(
+        tmp_path / "run",
+        "hidden_perturbation",
+        20260610,
+        "task_a",
+        task_entry=str(variant_a),
+    )
+    subset = online.write_task_subset_split(
+        run_root=tmp_path / "run",
+        split="hidden_perturbation",
+        seed=20260610,
+        method="frozen_model",
+        task_ids=["task_b"],
+        task_entry_by_id={"task_b": str(variant_b)},
+    )
+
+    assert limited.read_text().splitlines() == [str(variant_a)]
+    assert one.read_text().splitlines() == [str(variant_a)]
+    assert subset.read_text().splitlines() == [str(variant_b)]
+
+
 def test_append_new_requested_rows_rejects_stale_summary_cells(
     tmp_path: Path,
 ) -> None:

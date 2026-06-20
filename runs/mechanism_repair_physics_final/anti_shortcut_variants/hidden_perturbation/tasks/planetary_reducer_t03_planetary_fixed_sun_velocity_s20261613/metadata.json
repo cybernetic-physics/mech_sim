@@ -1,0 +1,26 @@
+{
+  "active_eval_variant": "hidden",
+  "anti_shortcut_variant": "hidden_perturbation",
+  "difficulty": 2,
+  "fake_contact_oracle_allowed": false,
+  "family": "planetary_reducer",
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "planet": 20,
+  "reciprocal_ratio": 0.777778,
+  "ring": 56,
+  "seed": 20261613,
+  "source_generator": "planetary_fixed_sun_velocity",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t03_planetary_fixed_sun_velocity_s20261613",
+  "source_task_id": "planetary_reducer_t03_planetary_fixed_sun_velocity_s20261613",
+  "speed_ratio": 1.28571429,
+  "sun": 16,
+  "task_id": "planetary_reducer_t03_planetary_fixed_sun_velocity_s20261613",
+  "tier": "planar_kinematics",
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "verifier_level": 2
+}

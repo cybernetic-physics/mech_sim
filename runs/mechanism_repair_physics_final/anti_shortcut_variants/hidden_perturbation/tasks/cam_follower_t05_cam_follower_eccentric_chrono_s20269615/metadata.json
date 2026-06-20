@@ -1,0 +1,24 @@
+{
+  "active_eval_variant": "hidden",
+  "anti_shortcut_variant": "hidden_perturbation",
+  "contact_pair": "cam:follower",
+  "difficulty": 3,
+  "fake_contact_oracle_allowed": false,
+  "family": "cam_follower",
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "requires_adapter": "rigid_body_dynamics+contact_forces",
+  "seed": 20269615,
+  "source_generator": "cam_follower_eccentric_chrono",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+  "source_task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+  "target_lift_mm": 20.0,
+  "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+  "tier": "contact_dynamics",
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "verifier_level": 3
+}

@@ -1,0 +1,8 @@
+{
+  "active_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/anti_shortcut_variants/hidden_perturbation/tasks/cam_follower_t09_cam_follower_eccentric_chrono_s20269619/eval_config.toml",
+  "active_eval_variant": "hidden",
+  "schema": "mechanism_repair_physics.anti_shortcut_variant.v1",
+  "source_task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t09_cam_follower_eccentric_chrono_s20269619",
+  "source_task_id": "cam_follower_t09_cam_follower_eccentric_chrono_s20269619",
+  "split_name": "hidden_perturbation"
+}

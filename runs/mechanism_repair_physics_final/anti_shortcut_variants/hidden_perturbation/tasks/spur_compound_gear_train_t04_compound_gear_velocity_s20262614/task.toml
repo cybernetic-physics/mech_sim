@@ -1,0 +1,26 @@
+[task]
+id = "spur_compound_gear_train_t04_compound_gear_velocity_s20262614"
+family = "spur_compound_gear_train"
+difficulty = 2
+units = "mm"
+tier = "cad_artifact"
+
+[requirements]
+required_ports = ["input_port", "output_port"]
+expected_mobility = 3
+max_envelope_mm = [260, 120, 80]
+
+[objective]
+description = "Two-stage compound spur train velocity ratio 0.16666667."
+ground_required = true
+
+[mechanism_repair_physics]
+canonical_family = "spur_compound_gear_train"
+source_task_id = "compound_gear_velocity_s20262614"
+source_generator = "compound_gear_velocity"
+verifier_level = 2
+headline_eligible = true
+min_constraint_classes = 3
+requires_hidden_variant = true
+requires_isomorphic_variant = true
+fake_contact_oracle_allowed = false

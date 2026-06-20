@@ -140,6 +140,18 @@ def test_physics_preflight_materializes_required_families_and_manifests(
     assert isomorphic_manifest["headline_only"] is True
     assert len(isomorphic_manifest["splits"]["test"]) == len(audit["tasks"])
     assert isomorphic_manifest["isomorphic_transform_contract"]
+    for split_name in ("hidden_perturbation", "isomorphic"):
+        split_manifest = json.loads(
+            Path(splits[split_name]["manifest_path"]).read_text()
+        )
+        variant_path = Path(split_manifest["splits"]["test"][0])
+        assert "anti_shortcut_variants" in variant_path.parts
+        assert variant_path.name in {
+            Path(task["task_dir"]).name for task in audit["tasks"]
+        }
+        assert (variant_path / "anti_shortcut_variant.json").is_file()
+        active_eval = (variant_path / "eval_config.toml").read_text()
+        assert "hidden_variant = true" in active_eval
 
     assert methods["required_methods"] == list(REQUIRED_METHODS)
     assert methods["primary_method"] == "mechanical_evolve_ttrl_tool_verified"
