@@ -6,7 +6,7 @@
       "family": "belt_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t00_belt_pulley_ratio_s20263610/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -20,7 +20,7 @@
       "family": "belt_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t01_belt_pulley_ratio_s20263611/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -34,7 +34,7 @@
       "family": "belt_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t02_belt_pulley_ratio_s20263612/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -48,7 +48,7 @@
       "family": "belt_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t03_belt_pulley_ratio_s20263613/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -62,7 +62,7 @@
       "family": "belt_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t04_belt_pulley_ratio_s20263614/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -76,7 +76,7 @@
       "family": "belt_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t05_belt_pulley_ratio_s20263615/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -90,7 +90,7 @@
       "family": "belt_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t06_belt_pulley_ratio_s20263616/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -104,7 +104,7 @@
       "family": "belt_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t07_belt_pulley_ratio_s20263617/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -118,7 +118,7 @@
       "family": "belt_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t08_belt_pulley_ratio_s20263618/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -132,7 +132,7 @@
       "family": "belt_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t09_belt_pulley_ratio_s20263619/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -146,7 +146,7 @@
       "family": "cam_follower",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t00_cam_follower_eccentric_chrono_s20269610/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -160,7 +160,7 @@
       "family": "cam_follower",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t01_cam_follower_eccentric_chrono_s20269611/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -174,7 +174,7 @@
       "family": "cam_follower",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t02_cam_follower_eccentric_chrono_s20269612/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -188,7 +188,7 @@
       "family": "cam_follower",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t03_cam_follower_eccentric_chrono_s20269613/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -202,7 +202,7 @@
       "family": "cam_follower",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t04_cam_follower_eccentric_chrono_s20269614/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -216,7 +216,7 @@
       "family": "cam_follower",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t05_cam_follower_eccentric_chrono_s20269615/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -230,7 +230,7 @@
       "family": "cam_follower",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t06_cam_follower_eccentric_chrono_s20269616/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -244,7 +244,7 @@
       "family": "cam_follower",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t07_cam_follower_eccentric_chrono_s20269617/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -258,7 +258,7 @@
       "family": "cam_follower",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t08_cam_follower_eccentric_chrono_s20269618/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -272,7 +272,7 @@
       "family": "cam_follower",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t09_cam_follower_eccentric_chrono_s20269619/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -286,7 +286,7 @@
       "family": "chain_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t00_chain_sprocket_ratio_s20264610/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -300,7 +300,7 @@
       "family": "chain_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t01_chain_sprocket_ratio_s20264611/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -314,7 +314,7 @@
       "family": "chain_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t02_chain_sprocket_ratio_s20264612/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -328,7 +328,7 @@
       "family": "chain_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t03_chain_sprocket_ratio_s20264613/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -342,7 +342,7 @@
       "family": "chain_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t04_chain_sprocket_ratio_s20264614/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -356,7 +356,7 @@
       "family": "chain_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t05_chain_sprocket_ratio_s20264615/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -370,7 +370,7 @@
       "family": "chain_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t06_chain_sprocket_ratio_s20264616/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -384,7 +384,7 @@
       "family": "chain_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t07_chain_sprocket_ratio_s20264617/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -398,7 +398,7 @@
       "family": "chain_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t08_chain_sprocket_ratio_s20264618/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -412,7 +412,7 @@
       "family": "chain_drive",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/chain_drive_t09_chain_sprocket_ratio_s20264619/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -426,7 +426,7 @@
       "family": "cycloidal_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -440,7 +440,7 @@
       "family": "cycloidal_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t01_cycloidal_real_geometry_chrono_s20260611/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -454,7 +454,7 @@
       "family": "cycloidal_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -468,7 +468,7 @@
       "family": "cycloidal_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -482,7 +482,7 @@
       "family": "cycloidal_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t04_cycloidal_real_geometry_chrono_s20260614/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -496,7 +496,7 @@
       "family": "cycloidal_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t05_cycloidal_real_geometry_chrono_s20260615/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -510,7 +510,7 @@
       "family": "cycloidal_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t06_cycloidal_real_geometry_chrono_s20260616/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -524,7 +524,7 @@
       "family": "cycloidal_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t07_cycloidal_real_geometry_chrono_s20260617/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -538,7 +538,7 @@
       "family": "cycloidal_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t08_cycloidal_real_geometry_chrono_s20260618/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -552,7 +552,7 @@
       "family": "cycloidal_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t09_cycloidal_real_geometry_chrono_s20260619/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -566,7 +566,7 @@
       "family": "fourbar_linkage",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t00_fourbar_path_s20268610/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -580,7 +580,7 @@
       "family": "fourbar_linkage",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t01_fourbar_wiper_arc_s20268611/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -594,7 +594,7 @@
       "family": "fourbar_linkage",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t02_fourbar_straight_line_approx_s20268612/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -608,7 +608,7 @@
       "family": "fourbar_linkage",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t03_fourbar_dwell_path_s20268613/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -622,7 +622,7 @@
       "family": "fourbar_linkage",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t04_fourbar_crank_rocker_sweep_s20268614/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -636,7 +636,7 @@
       "family": "fourbar_linkage",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t05_fourbar_path_s20268615/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -650,7 +650,7 @@
       "family": "fourbar_linkage",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t06_fourbar_wiper_arc_s20268616/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -664,7 +664,7 @@
       "family": "fourbar_linkage",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t07_fourbar_straight_line_approx_s20268617/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -678,7 +678,7 @@
       "family": "fourbar_linkage",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t08_fourbar_dwell_path_s20268618/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -692,7 +692,7 @@
       "family": "fourbar_linkage",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -706,7 +706,7 @@
       "family": "geneva_indexer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t00_geneva_indexing_pin_chrono_s20270610/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -720,7 +720,7 @@
       "family": "geneva_indexer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -734,7 +734,7 @@
       "family": "geneva_indexer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t02_geneva_indexing_pin_chrono_s20270612/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -748,7 +748,7 @@
       "family": "geneva_indexer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t03_geneva_indexing_pin_chrono_s20270613/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -762,7 +762,7 @@
       "family": "geneva_indexer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t04_geneva_indexing_pin_chrono_s20270614/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -776,7 +776,7 @@
       "family": "geneva_indexer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t05_geneva_indexing_pin_chrono_s20270615/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -790,7 +790,7 @@
       "family": "geneva_indexer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t06_geneva_indexing_pin_chrono_s20270616/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -804,7 +804,7 @@
       "family": "geneva_indexer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t07_geneva_indexing_pin_chrono_s20270617/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -818,7 +818,7 @@
       "family": "geneva_indexer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -832,7 +832,7 @@
       "family": "geneva_indexer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t09_geneva_indexing_pin_chrono_s20270619/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -846,7 +846,7 @@
       "family": "lead_screw",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t00_lead_screw_linear_travel_s20266610/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -860,7 +860,7 @@
       "family": "lead_screw",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t01_lead_screw_linear_travel_s20266611/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -874,7 +874,7 @@
       "family": "lead_screw",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t02_lead_screw_linear_travel_s20266612/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -888,7 +888,7 @@
       "family": "lead_screw",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t03_lead_screw_linear_travel_s20266613/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -902,7 +902,7 @@
       "family": "lead_screw",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t04_lead_screw_linear_travel_s20266614/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -916,7 +916,7 @@
       "family": "lead_screw",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t05_lead_screw_linear_travel_s20266615/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -930,7 +930,7 @@
       "family": "lead_screw",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t06_lead_screw_linear_travel_s20266616/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -944,7 +944,7 @@
       "family": "lead_screw",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t07_lead_screw_linear_travel_s20266617/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -958,7 +958,7 @@
       "family": "lead_screw",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t08_lead_screw_linear_travel_s20266618/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -972,7 +972,7 @@
       "family": "lead_screw",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t09_lead_screw_linear_travel_s20266619/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -986,7 +986,7 @@
       "family": "planetary_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t00_planetary_fixed_ring_velocity_s20261610/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1000,7 +1000,7 @@
       "family": "planetary_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t01_planetary_fixed_sun_velocity_s20261611/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1014,7 +1014,7 @@
       "family": "planetary_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t02_planetary_fixed_ring_velocity_s20261612/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1028,7 +1028,7 @@
       "family": "planetary_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t03_planetary_fixed_sun_velocity_s20261613/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1042,7 +1042,7 @@
       "family": "planetary_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t04_planetary_fixed_ring_velocity_s20261614/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1056,7 +1056,7 @@
       "family": "planetary_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1070,7 +1070,7 @@
       "family": "planetary_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t06_planetary_fixed_ring_velocity_s20261616/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1084,7 +1084,7 @@
       "family": "planetary_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1098,7 +1098,7 @@
       "family": "planetary_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t08_planetary_fixed_ring_velocity_s20261618/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1112,7 +1112,7 @@
       "family": "planetary_reducer",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t09_planetary_fixed_sun_velocity_s20261619/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1126,7 +1126,7 @@
       "family": "rack_pinion",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t00_rack_pinion_conversion_s20265610/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1140,7 +1140,7 @@
       "family": "rack_pinion",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t01_rack_pinion_conversion_s20265611/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1154,7 +1154,7 @@
       "family": "rack_pinion",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t02_rack_pinion_conversion_s20265612/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1168,7 +1168,7 @@
       "family": "rack_pinion",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t03_rack_pinion_conversion_s20265613/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1182,7 +1182,7 @@
       "family": "rack_pinion",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t04_rack_pinion_conversion_s20265614/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1196,7 +1196,7 @@
       "family": "rack_pinion",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t05_rack_pinion_conversion_s20265615/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1210,7 +1210,7 @@
       "family": "rack_pinion",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t06_rack_pinion_conversion_s20265616/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1224,7 +1224,7 @@
       "family": "rack_pinion",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t07_rack_pinion_conversion_s20265617/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1238,7 +1238,7 @@
       "family": "rack_pinion",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t08_rack_pinion_conversion_s20265618/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1252,7 +1252,7 @@
       "family": "rack_pinion",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t09_rack_pinion_conversion_s20265619/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1266,7 +1266,7 @@
       "family": "shaft_bearing_coupling",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t00_shaft_bearing_coupling_velocity_s20271610/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1280,7 +1280,7 @@
       "family": "shaft_bearing_coupling",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1294,7 +1294,7 @@
       "family": "shaft_bearing_coupling",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t02_shaft_bearing_coupling_velocity_s20271612/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1308,7 +1308,7 @@
       "family": "shaft_bearing_coupling",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t03_shaft_bearing_coupling_velocity_s20271613/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1322,7 +1322,7 @@
       "family": "shaft_bearing_coupling",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t04_shaft_bearing_coupling_velocity_s20271614/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1336,7 +1336,7 @@
       "family": "shaft_bearing_coupling",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t05_shaft_bearing_coupling_velocity_s20271615/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1350,7 +1350,7 @@
       "family": "shaft_bearing_coupling",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t06_shaft_bearing_coupling_velocity_s20271616/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1364,7 +1364,7 @@
       "family": "shaft_bearing_coupling",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1378,7 +1378,7 @@
       "family": "shaft_bearing_coupling",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t08_shaft_bearing_coupling_velocity_s20271618/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1392,7 +1392,7 @@
       "family": "shaft_bearing_coupling",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t09_shaft_bearing_coupling_velocity_s20271619/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1406,7 +1406,7 @@
       "family": "slider_crank",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t00_slider_crank_stroke_s20267610/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1420,7 +1420,7 @@
       "family": "slider_crank",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t01_slider_crank_stroke_precision_s20267611/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1434,7 +1434,7 @@
       "family": "slider_crank",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t02_reciprocating_pump_plunger_s20267612/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1448,7 +1448,7 @@
       "family": "slider_crank",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t03_slider_crank_stroke_s20267613/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1462,7 +1462,7 @@
       "family": "slider_crank",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t04_slider_crank_stroke_precision_s20267614/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1476,7 +1476,7 @@
       "family": "slider_crank",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t05_reciprocating_pump_plunger_s20267615/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1490,7 +1490,7 @@
       "family": "slider_crank",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t06_slider_crank_stroke_s20267616/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1504,7 +1504,7 @@
       "family": "slider_crank",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t07_slider_crank_stroke_precision_s20267617/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1518,7 +1518,7 @@
       "family": "slider_crank",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t08_reciprocating_pump_plunger_s20267618/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1532,7 +1532,7 @@
       "family": "slider_crank",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t09_slider_crank_stroke_s20267619/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1546,7 +1546,7 @@
       "family": "spur_compound_gear_train",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t00_compound_gear_velocity_s20262610/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1560,7 +1560,7 @@
       "family": "spur_compound_gear_train",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t01_compound_gear_velocity_s20262611/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1574,7 +1574,7 @@
       "family": "spur_compound_gear_train",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t02_compound_gear_velocity_s20262612/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1588,7 +1588,7 @@
       "family": "spur_compound_gear_train",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t03_compound_gear_velocity_s20262613/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1602,7 +1602,7 @@
       "family": "spur_compound_gear_train",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t04_compound_gear_velocity_s20262614/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1616,7 +1616,7 @@
       "family": "spur_compound_gear_train",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t05_compound_gear_velocity_s20262615/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1630,7 +1630,7 @@
       "family": "spur_compound_gear_train",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t06_compound_gear_velocity_s20262616/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1644,7 +1644,7 @@
       "family": "spur_compound_gear_train",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t07_compound_gear_velocity_s20262617/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1658,7 +1658,7 @@
       "family": "spur_compound_gear_train",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t08_compound_gear_velocity_s20262618/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",
@@ -1672,7 +1672,7 @@
       "family": "spur_compound_gear_train",
       "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t09_compound_gear_velocity_s20262619/eval_config.hidden.toml",
       "hidden_variant_present": true,
-      "isomorphic_variant_status": "manifested_not_executed",
+      "isomorphic_variant_status": "manifested_in_isomorphic_split",
       "perturbations": [
         "tighter tolerance or target perturbation",
         "hidden metric withholding",

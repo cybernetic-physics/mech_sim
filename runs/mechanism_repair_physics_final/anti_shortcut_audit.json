@@ -2,10 +2,11 @@
   "anti_shortcut_executed": false,
   "anti_shortcut_splits": [
     "hidden_perturbation",
-    "external_style"
+    "external_style",
+    "isomorphic"
   ],
-  "expected_anti_shortcut_cells": 3600,
-  "missing_anti_shortcut_cells": 3600,
+  "expected_anti_shortcut_cells": 6480,
+  "missing_anti_shortcut_cells": 6480,
   "sample_missing_anti_shortcut_cells": [
     {
       "budget": 32,

@@ -2400,12 +2400,972 @@
       "split_kind": "anti_shortcut",
       "task_id": "shaft_bearing_coupling_t03_shaft_bearing_coupling_velocity_s20271613",
       "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t01_planetary_fixed_sun_velocity_s20261611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t01_planetary_fixed_sun_velocity_s20261611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t01_planetary_fixed_sun_velocity_s20261611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t01_planetary_fixed_sun_velocity_s20261611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t01_planetary_fixed_sun_velocity_s20261611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t01_planetary_fixed_sun_velocity_s20261611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t01_planetary_fixed_sun_velocity_s20261611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t01_planetary_fixed_sun_velocity_s20261611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t03_chain_sprocket_ratio_s20264613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t03_chain_sprocket_ratio_s20264613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t03_chain_sprocket_ratio_s20264613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t03_chain_sprocket_ratio_s20264613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t03_chain_sprocket_ratio_s20264613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t03_chain_sprocket_ratio_s20264613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t03_chain_sprocket_ratio_s20264613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t03_chain_sprocket_ratio_s20264613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t04_cam_follower_eccentric_chrono_s20269614",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t04_cam_follower_eccentric_chrono_s20269614",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t04_cam_follower_eccentric_chrono_s20269614",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t04_cam_follower_eccentric_chrono_s20269614",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t04_cam_follower_eccentric_chrono_s20269614",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t04_cam_follower_eccentric_chrono_s20269614",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t04_cam_follower_eccentric_chrono_s20269614",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t04_cam_follower_eccentric_chrono_s20269614",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t07_slider_crank_stroke_precision_s20267617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t07_slider_crank_stroke_precision_s20267617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t07_slider_crank_stroke_precision_s20267617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t07_slider_crank_stroke_precision_s20267617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t07_slider_crank_stroke_precision_s20267617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t07_slider_crank_stroke_precision_s20267617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t07_slider_crank_stroke_precision_s20267617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t07_slider_crank_stroke_precision_s20267617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t00_fourbar_path_s20268610",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t00_fourbar_path_s20268610",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t00_fourbar_path_s20268610",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t00_fourbar_path_s20268610",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t00_fourbar_path_s20268610",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t00_fourbar_path_s20268610",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t00_fourbar_path_s20268610",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t00_fourbar_path_s20268610",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t05_cycloidal_real_geometry_chrono_s20260615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t05_cycloidal_real_geometry_chrono_s20260615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t05_cycloidal_real_geometry_chrono_s20260615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t05_cycloidal_real_geometry_chrono_s20260615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t05_cycloidal_real_geometry_chrono_s20260615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t05_cycloidal_real_geometry_chrono_s20260615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t05_cycloidal_real_geometry_chrono_s20260615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t05_cycloidal_real_geometry_chrono_s20260615",
+      "verifier_level": 3
     }
   ],
-  "full_planned_cells": 6480,
+  "full_planned_cells": 9360,
   "num_shards": 24,
   "out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
-  "planned_cells": 240,
+  "planned_cells": 336,
   "replay_args": [
     "--benchmark-dir",
     "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
@@ -2416,7 +3376,7 @@
     "--splits",
     "A,B",
     "--anti-shortcut-splits",
-    "hidden_perturbation,external_style",
+    "hidden_perturbation,external_style,isomorphic",
     "--eval-seeds",
     "20260610,20260611,20260612",
     "--budgets",

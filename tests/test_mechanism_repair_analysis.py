@@ -272,7 +272,7 @@ def test_physics_analysis_uses_manifest_primary_and_learning_variants(
     }))
     contract = load_analysis_contract(benchmark_dir)
     rows = []
-    for split in ["A", "B", "hidden_perturbation", "external_style"]:
+    for split in ["A", "B", "hidden_perturbation", "external_style", "isomorphic"]:
         for idx in range(12):
             family = f"family_{idx:02d}"
             task_id = f"{split}_task_{idx:02d}"
@@ -332,13 +332,13 @@ def test_physics_analysis_uses_manifest_primary_and_learning_variants(
     assert stats["primary_method"] == "mechanical_evolve_ttrl_tool_verified"
     assert stats["primary_baseline"] == "llm_evolve_no_update"
     assert stats["required_methods_present"] is True
-    assert stats["n_paired_cells"] == 48
+    assert stats["n_paired_cells"] == 60
     assert stats["evidence_audit"]["required_min_trace_pairs"] == 24
     assert (
         stats["evidence_audit"]["matched_ttrl_vs_no_update_trace_pairs_with_evidence"]
-        == 48
+        == 60
     )
-    assert stats["learning_audit"]["ttrl_rows"] == 144
+    assert stats["learning_audit"]["ttrl_rows"] == 180
     assert stats["learning_audit"]["ttrl_learning_evidence_complete"] is True
     hidden_delta = next(
         row for row in stats["split_deltas"]
@@ -349,6 +349,11 @@ def test_physics_analysis_uses_manifest_primary_and_learning_variants(
         stats["anti_shortcut_comparison"]["anti_shortcut_pass_rate_delta"]
         == 1.0
     )
+    assert stats["anti_shortcut_comparison"]["splits"] == [
+        "external_style",
+        "hidden_perturbation",
+        "isomorphic",
+    ]
     assert (
         stats["paired_method_comparisons"]["adaptive_evolution"]
         ["primary_beats_on_success"]

@@ -4598,7 +4598,8 @@
     "A": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/split_manifest_A.json",
     "B": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/split_manifest_B.json",
     "external_style": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/split_manifest_external_style.json",
-    "hidden_perturbation": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/split_manifest_hidden_perturbation.json"
+    "hidden_perturbation": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/split_manifest_hidden_perturbation.json",
+    "isomorphic": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/split_manifest_isomorphic.json"
   },
   "task_count": 120,
   "tasks": [

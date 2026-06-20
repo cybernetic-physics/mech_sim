@@ -91,7 +91,13 @@ def test_physics_preflight_materializes_required_families_and_manifests(
         for task in audit["tasks"]
     )
 
-    assert set(splits) == {"A", "B", "hidden_perturbation", "external_style"}
+    assert set(splits) == {
+        "A",
+        "B",
+        "hidden_perturbation",
+        "external_style",
+        "isomorphic",
+    }
     for split_name in ("A", "B"):
         split_manifest = json.loads(Path(splits[split_name]["manifest_path"]).read_text())
         assert split_manifest["seen_families"] == sorted(SPLITS[split_name]["seen"])
@@ -126,6 +132,14 @@ def test_physics_preflight_materializes_required_families_and_manifests(
                 for name in test_names
             )
             assert any(name.startswith("geneva_indexer") for name in test_names)
+
+    isomorphic_manifest = json.loads(
+        Path(splits["isomorphic"]["manifest_path"]).read_text()
+    )
+    assert isomorphic_manifest["split_name"] == "isomorphic"
+    assert isomorphic_manifest["headline_only"] is True
+    assert len(isomorphic_manifest["splits"]["test"]) == len(audit["tasks"])
+    assert isomorphic_manifest["isomorphic_transform_contract"]
 
     assert methods["required_methods"] == list(REQUIRED_METHODS)
     assert methods["primary_method"] == "mechanical_evolve_ttrl_tool_verified"

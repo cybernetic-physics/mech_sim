@@ -80,21 +80,27 @@ def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
     assert plan["methods"] == list(REQUIRED_METHODS)
     assert plan["seeds"] == list(EVAL_SEEDS)
     assert plan["budgets"] == [PRIMARY_BUDGET]
-    assert plan["anti_shortcut_splits"] == ["hidden_perturbation", "external_style"]
+    assert plan["anti_shortcut_splits"] == [
+        "hidden_perturbation",
+        "external_style",
+        "isomorphic",
+    ]
     assert plan["split_tasks"].keys() == {
         "A",
         "B",
         "external_style",
         "hidden_perturbation",
+        "isomorphic",
     }
     assert {name: len(tasks) for name, tasks in plan["split_tasks"].items()} == {
         "A": 60,
         "B": 60,
         "external_style": 30,
         "hidden_perturbation": 120,
+        "isomorphic": 120,
     }
-    assert plan["planned_cells"] == 6480
-    assert plan["full_planned_cells"] == 6480
+    assert plan["planned_cells"] == 9360
+    assert plan["full_planned_cells"] == 9360
 
 
 def _write_json(path: Path, payload: dict) -> None:
@@ -370,7 +376,7 @@ def _write_fake_benchmark(root: Path) -> None:
                     "verifier_level": verifier_level,
                     "hidden_variant_present": True,
                     "perturbations": ["rename", "retarget", "reframe"],
-                    "isomorphic_variant_status": "manifested_not_executed",
+                    "isomorphic_variant_status": "manifested_in_isomorphic_split",
                 }
             )
     family_counts = {
@@ -455,6 +461,7 @@ def _write_fake_benchmark(root: Path) -> None:
         },
         "hidden_perturbation": {"seen": [], "unseen": list(REQUIRED_FAMILIES)},
         "external_style": {"seen": [], "unseen": list(REQUIRED_FAMILIES[:3])},
+        "isomorphic": {"seen": [], "unseen": list(REQUIRED_FAMILIES)},
     }
     for split, spec in split_specs.items():
         split_dir = root / f"splits_{split}"

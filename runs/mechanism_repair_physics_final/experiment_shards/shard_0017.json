@@ -3200,12 +3200,1212 @@
       "split_kind": "anti_shortcut",
       "task_id": "spur_compound_gear_train_t06_compound_gear_velocity_s20262616",
       "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "chain_drive",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "chain_drive_t01_chain_sprocket_ratio_s20264611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t06_slider_crank_stroke_s20267616",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t06_slider_crank_stroke_s20267616",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t06_slider_crank_stroke_s20267616",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t06_slider_crank_stroke_s20267616",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t06_slider_crank_stroke_s20267616",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t06_slider_crank_stroke_s20267616",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t06_slider_crank_stroke_s20267616",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t06_slider_crank_stroke_s20267616",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t02_belt_pulley_ratio_s20263612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t02_belt_pulley_ratio_s20263612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t02_belt_pulley_ratio_s20263612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t02_belt_pulley_ratio_s20263612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t02_belt_pulley_ratio_s20263612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t02_belt_pulley_ratio_s20263612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t02_belt_pulley_ratio_s20263612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t02_belt_pulley_ratio_s20263612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t02_compound_gear_velocity_s20262612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t02_compound_gear_velocity_s20262612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t02_compound_gear_velocity_s20262612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t02_compound_gear_velocity_s20262612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t02_compound_gear_velocity_s20262612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t02_compound_gear_velocity_s20262612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t02_compound_gear_velocity_s20262612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t02_compound_gear_velocity_s20262612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t09_belt_pulley_ratio_s20263619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t09_belt_pulley_ratio_s20263619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t09_belt_pulley_ratio_s20263619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t09_belt_pulley_ratio_s20263619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t09_belt_pulley_ratio_s20263619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t09_belt_pulley_ratio_s20263619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t09_belt_pulley_ratio_s20263619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t09_belt_pulley_ratio_s20263619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t05_reciprocating_pump_plunger_s20267615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t05_reciprocating_pump_plunger_s20267615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t05_reciprocating_pump_plunger_s20267615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t05_reciprocating_pump_plunger_s20267615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t05_reciprocating_pump_plunger_s20267615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t05_reciprocating_pump_plunger_s20267615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t05_reciprocating_pump_plunger_s20267615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "slider_crank",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "slider_crank_t05_reciprocating_pump_plunger_s20267615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t00_cam_follower_eccentric_chrono_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t00_cam_follower_eccentric_chrono_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t00_cam_follower_eccentric_chrono_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t00_cam_follower_eccentric_chrono_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t00_cam_follower_eccentric_chrono_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t00_cam_follower_eccentric_chrono_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t00_cam_follower_eccentric_chrono_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t00_cam_follower_eccentric_chrono_s20269610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t04_lead_screw_linear_travel_s20266614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t04_lead_screw_linear_travel_s20266614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t04_lead_screw_linear_travel_s20266614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t04_lead_screw_linear_travel_s20266614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t04_lead_screw_linear_travel_s20266614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t04_lead_screw_linear_travel_s20266614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t04_lead_screw_linear_travel_s20266614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t04_lead_screw_linear_travel_s20266614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t06_cam_follower_eccentric_chrono_s20269616",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t06_cam_follower_eccentric_chrono_s20269616",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t06_cam_follower_eccentric_chrono_s20269616",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t06_cam_follower_eccentric_chrono_s20269616",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t06_cam_follower_eccentric_chrono_s20269616",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t06_cam_follower_eccentric_chrono_s20269616",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t06_cam_follower_eccentric_chrono_s20269616",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t06_cam_follower_eccentric_chrono_s20269616",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t09_cam_follower_eccentric_chrono_s20269619",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t09_cam_follower_eccentric_chrono_s20269619",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t09_cam_follower_eccentric_chrono_s20269619",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t09_cam_follower_eccentric_chrono_s20269619",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t09_cam_follower_eccentric_chrono_s20269619",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t09_cam_follower_eccentric_chrono_s20269619",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t09_cam_follower_eccentric_chrono_s20269619",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t09_cam_follower_eccentric_chrono_s20269619",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t01_fourbar_wiper_arc_s20268611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t01_fourbar_wiper_arc_s20268611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t01_fourbar_wiper_arc_s20268611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t01_fourbar_wiper_arc_s20268611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t01_fourbar_wiper_arc_s20268611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t01_fourbar_wiper_arc_s20268611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t01_fourbar_wiper_arc_s20268611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "fourbar_linkage",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "isomorphic",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t01_fourbar_wiper_arc_s20268611",
+      "verifier_level": 2
     }
   ],
-  "full_planned_cells": 6480,
+  "full_planned_cells": 9360,
   "num_shards": 24,
   "out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
-  "planned_cells": 320,
+  "planned_cells": 440,
   "replay_args": [
     "--benchmark-dir",
     "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
@@ -3216,7 +4416,7 @@
     "--splits",
     "A,B",
     "--anti-shortcut-splits",
-    "hidden_perturbation,external_style",
+    "hidden_perturbation,external_style,isomorphic",
     "--eval-seeds",
     "20260610,20260611,20260612",
     "--budgets",

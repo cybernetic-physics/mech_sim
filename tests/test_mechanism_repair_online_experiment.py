@@ -244,6 +244,7 @@ def test_physics_contract_defaults_include_anti_shortcut_splits(
         "B",
         "hidden_perturbation",
         "external_style",
+        "isomorphic",
     ]
 
 
@@ -281,16 +282,18 @@ def test_validate_physics_benchmark_requires_anti_shortcut_manifests(
     (tmp_path / "verifier_manifest.json").write_text("{}\n")
     (tmp_path / "split_manifest_A.json").write_text("{}\n")
     (tmp_path / "split_manifest_B.json").write_text("{}\n")
+    (tmp_path / "split_manifest_hidden_perturbation.json").write_text("{}\n")
+    (tmp_path / "split_manifest_external_style.json").write_text("{}\n")
     (tmp_path / "tasks").mkdir()
 
-    with pytest.raises(SystemExit, match="split_manifest_hidden_perturbation"):
+    with pytest.raises(SystemExit, match="split_manifest_isomorphic"):
         online.validate_benchmark(tmp_path)
 
 
 def test_physics_anti_shortcut_splits_reuse_nonempty_sft_source(
     tmp_path: Path,
 ) -> None:
-    for split in ("A", "hidden_perturbation", "external_style"):
+    for split in ("A", "hidden_perturbation", "external_style", "isomorphic"):
         split_dir = tmp_path / f"splits_{split}"
         split_dir.mkdir()
         (split_dir / "test.txt").write_text("task_eval\n")
@@ -300,7 +303,7 @@ def test_physics_anti_shortcut_splits_reuse_nonempty_sft_source(
 
     mapping = online.resolve_sft_training_splits(
         benchmark_dir=tmp_path,
-        splits=["A", "hidden_perturbation", "external_style"],
+        splits=["A", "hidden_perturbation", "external_style", "isomorphic"],
         contract={"is_physics": True},
     )
 
@@ -308,6 +311,7 @@ def test_physics_anti_shortcut_splits_reuse_nonempty_sft_source(
         "A": "A",
         "hidden_perturbation": "A",
         "external_style": "A",
+        "isomorphic": "A",
     }
 
 

@@ -2039,6 +2039,18 @@ def freeze_required_splits(
         "split_dir": str(out_dir / "splits_hidden_perturbation"),
         "n_test": len(hidden_manifest["splits"]["test"]),
     }
+    isomorphic_manifest = build_isomorphic_split_manifest(
+        records=records,
+        seed=split_seed + 149,
+    )
+    isomorphic_path = out_dir / "split_manifest_isomorphic.json"
+    write_json(isomorphic_path, isomorphic_manifest)
+    write_split_files(isomorphic_manifest, out_dir / "splits_isomorphic")
+    split_outputs["isomorphic"] = {
+        "manifest_path": str(isomorphic_path),
+        "split_dir": str(out_dir / "splits_isomorphic"),
+        "n_test": len(isomorphic_manifest["splits"]["test"]),
+    }
     external_manifest = build_external_style_split_manifest(records=records, seed=split_seed + 199)
     external_path = out_dir / "split_manifest_external_style.json"
     write_json(external_path, external_manifest)
@@ -2127,6 +2139,41 @@ def build_hidden_split_manifest(
             "dimension and target perturbation",
             "tighter hidden tolerance",
             "renamed/isomorphic semantic audit manifest",
+        ],
+        "splits": {"train": [], "val": [], "test": tests},
+    }
+
+
+def build_isomorphic_split_manifest(
+    *,
+    records: list[dict[str, Any]],
+    seed: int,
+) -> dict[str, Any]:
+    eligible_records = [
+        record for record in records if bool(record.get("headline_eligible", True))
+    ]
+    tests = [
+        str(r["task_dir"])
+        for r in sorted(
+            eligible_records,
+            key=lambda row: stable_shuffle_key(row["task_id"], seed),
+        )
+    ]
+    return {
+        "schema": "mechanism_repair_physics.isomorphic_split.v1",
+        "split_name": "isomorphic",
+        "seed": int(seed),
+        "seen_families": [],
+        "unseen_families": list(REQUIRED_FAMILIES),
+        "eval_config": "eval_config.hidden.toml",
+        "headline_only": True,
+        "eligible_task_count": len(eligible_records),
+        "excluded_diagnostic_task_count": len(records) - len(eligible_records),
+        "isomorphic_transform_contract": [
+            "same kinematic graph with renamed nodes and ports",
+            "same physical objective under changed coordinate convention",
+            "same assembly with equivalent reference construction",
+            "same function with mechanically equivalent parameterization",
         ],
         "splits": {"train": [], "val": [], "test": tests},
     }
@@ -2275,7 +2322,7 @@ def build_hidden_variant_manifest(
                     "hidden metric withholding",
                     "isomorphic renaming required by audit",
                 ],
-                "isomorphic_variant_status": "manifested_not_executed",
+                "isomorphic_variant_status": "manifested_in_isomorphic_split",
             }
         )
     return {

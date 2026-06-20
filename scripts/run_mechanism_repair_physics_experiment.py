@@ -32,7 +32,11 @@ from scripts.prepare_mechanism_repair_physics_benchmark import (
 
 DEFAULT_BENCHMARK_DIR = "runs/mechanism_repair_physics_final"
 DEFAULT_HEADLINE_SPLITS = ("A", "B")
-DEFAULT_ANTI_SHORTCUT_SPLITS = ("hidden_perturbation", "external_style")
+DEFAULT_ANTI_SHORTCUT_SPLITS = (
+    "hidden_perturbation",
+    "external_style",
+    "isomorphic",
+)
 MIN_TASKS_PER_FAMILY = 10
 MIN_FINAL_TASKS = 120
 MIN_LEVEL2PLUS_FRACTION = 0.40
@@ -652,7 +656,10 @@ def audit_existing_experiment(
     missing_analysis = [
         name for name in ANALYSIS_ARTIFACTS if not (out_dir / name).is_file()
     ]
-    missing_analysis_requirements = analysis_requirement_blockers(out_dir)
+    missing_analysis_requirements = analysis_requirement_blockers(
+        out_dir,
+        anti_shortcut_splits=plan.get("anti_shortcut_splits") or [],
+    )
     anti_cells = [
         cell for cell in plan["expected_cells"]
         if cell["split"] in set(plan["anti_shortcut_splits"])
@@ -943,7 +950,11 @@ def build_blockers(
     return blockers
 
 
-def analysis_requirement_blockers(out_dir: Path) -> list[str]:
+def analysis_requirement_blockers(
+    out_dir: Path,
+    *,
+    anti_shortcut_splits: list[str] | tuple[str, ...] | None = None,
+) -> list[str]:
     stats_path = out_dir / "stats.json"
     if not stats_path.is_file():
         return []
@@ -1054,14 +1065,18 @@ def analysis_requirement_blockers(out_dir: Path) -> list[str]:
         for row in split_deltas
         if isinstance(row, dict) and "success_delta" in row
     }
-    for split in DEFAULT_ANTI_SHORTCUT_SPLITS:
+    required_anti_shortcut_splits = tuple(
+        str(split)
+        for split in (anti_shortcut_splits or DEFAULT_ANTI_SHORTCUT_SPLITS)
+    )
+    for split in required_anti_shortcut_splits:
         if split not in reported_split_deltas:
             blockers.append(f"split_deltas.{split}.success_delta")
     anti = stats.get("anti_shortcut_comparison") or {}
     if "anti_shortcut_pass_rate_delta" not in anti:
         blockers.append("anti_shortcut_comparison.anti_shortcut_pass_rate_delta")
     anti_splits = {str(split) for split in anti.get("splits", []) or []}
-    missing_anti_splits = sorted(set(DEFAULT_ANTI_SHORTCUT_SPLITS) - anti_splits)
+    missing_anti_splits = sorted(set(required_anti_shortcut_splits) - anti_splits)
     if missing_anti_splits:
         blockers.append(
             "anti_shortcut_comparison.splits: "

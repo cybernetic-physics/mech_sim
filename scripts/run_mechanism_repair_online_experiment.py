@@ -74,7 +74,11 @@ ADAPTER_WEIGHT_FILE_NAMES = {
     "pytorch_model.bin",
 }
 LEGACY_DEFAULT_SPLITS = ("A", "B")
-PHYSICS_ANTI_SHORTCUT_SPLITS = ("hidden_perturbation", "external_style")
+PHYSICS_ANTI_SHORTCUT_SPLITS = (
+    "hidden_perturbation",
+    "external_style",
+    "isomorphic",
+)
 PHYSICS_DEFAULT_SPLITS = ("A", "B", *PHYSICS_ANTI_SHORTCUT_SPLITS)
 
 

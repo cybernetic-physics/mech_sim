@@ -75,7 +75,11 @@ SECONDARY_METRIC_FIELDS = tuple(
 )
 
 PHYSICS_HIDDEN_VARIANT_SPLIT = "hidden_perturbation"
-PHYSICS_ANTI_SHORTCUT_SPLITS = ("hidden_perturbation", "external_style")
+PHYSICS_ANTI_SHORTCUT_SPLITS = (
+    "hidden_perturbation",
+    "external_style",
+    "isomorphic",
+)
 PHYSICS_MIN_POSITIVE_FAMILIES = 8
 GOAL_REPAIR_TAXONOMY_DIMENSIONS = (
     "topology_repair",
