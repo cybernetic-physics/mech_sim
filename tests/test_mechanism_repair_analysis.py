@@ -284,6 +284,7 @@ def test_physics_analysis_uses_manifest_primary_and_learning_variants(
                     "task_id": task_id,
                     "seed": 20260610,
                     "method": method,
+                    "verifier_level": 2,
                     "verified_repair_success": success,
                     "verified_score": reward,
                     "actual_verifier_calls": 32,
@@ -343,6 +344,74 @@ def test_physics_analysis_uses_manifest_primary_and_learning_variants(
     )
     assert audit["primary_method"] == "mechanical_evolve_ttrl_tool_verified"
     assert audit["claim_status"] == "supports_primary_hypothesis"
+
+
+def test_physics_headline_metric_excludes_level1_diagnostics(
+    tmp_path: Path,
+) -> None:
+    benchmark_dir = tmp_path / "physics"
+    benchmark_dir.mkdir()
+    methods = [
+        "llm_evolve_no_update",
+        "mechanical_evolve_ttrl_tool_verified",
+    ]
+    (benchmark_dir / "method_manifest.json").write_text(json.dumps({
+        "schema": "mechanism_repair_physics.method_manifest.v1",
+        "primary_method": "mechanical_evolve_ttrl_tool_verified",
+        "primary_baseline": "llm_evolve_no_update",
+        "primary_budget_expensive_verifier_calls": 32,
+        "eval_seeds": [20260610],
+        "required_methods": methods,
+        "success_threshold": {"level23_success_abs_delta_pct": 15.0},
+    }))
+    contract = load_analysis_contract(benchmark_dir)
+    rows = []
+    for task_id, verifier_level in (("level1_diag", 1), ("level2_claim", 2)):
+        for method in methods:
+            primary = method == "mechanical_evolve_ttrl_tool_verified"
+            success = primary if verifier_level >= 2 else not primary
+            rows.append({
+                "split": "A",
+                "family": "family_a",
+                "task_id": task_id,
+                "seed": 20260610,
+                "method": method,
+                "verifier_level": verifier_level,
+                "verified_repair_success": success,
+                "verified_score": 1.0 if success else 0.0,
+                "actual_verifier_calls": 32,
+                "actual_cad_calls": 1,
+                "actual_chrono_calls": 0,
+                "raw_completion_paths": [],
+                "verifier_output_paths": [],
+            })
+
+    stats = analyze_rows(
+        normalize_rows(rows),
+        bootstrap_samples=200,
+        seed=7,
+        contract=contract,
+    )
+
+    assert stats["headline_metric_filter"] == "verifier_level>=2"
+    assert stats["headline_metric_rows"] == 2
+    assert stats["non_headline_metric_rows"] == 2
+    assert stats["n_paired_cells"] == 1
+    assert stats["primary_comparison"]["success_delta_pct"] == 100.0
+    table = {
+        row["method"]: row
+        for row in stats["primary_result_table"]
+    }
+    assert (
+        table["mechanical_evolve_ttrl_tool_verified"]
+        ["level23_verified_repair_success_at_32"]
+        == 1.0
+    )
+    assert (
+        table["llm_evolve_no_update"]
+        ["level23_verified_repair_success_at_32"]
+        == 0.0
+    )
 
 
 def test_mechanism_repair_analysis_summarizes_secondary_metrics(

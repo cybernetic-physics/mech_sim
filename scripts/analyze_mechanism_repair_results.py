@@ -246,6 +246,7 @@ def normalize_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         task_id = str(row.get("task_id") or "")
         family = str(row.get("family") or row.get("canonical_family") or "")
         seed = int(float(row.get("seed", 0)))
+        verifier_level = int(float(row.get("verifier_level", 0) or 0))
         success = bool_value(
             row.get("verified_repair_success_at_32",
                     row.get("verified_repair_success",
@@ -273,6 +274,7 @@ def normalize_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "task_id": task_id,
             "family": family,
             "seed": seed,
+            "verifier_level": verifier_level,
             "verified_repair_success_at_32": success,
             "best_verified_reward_at_32": reward,
             "verifier_calls": verifier_calls,
@@ -281,6 +283,23 @@ def normalize_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "_pair_key": (split, family, task_id, seed),
         })
     return normalized
+
+
+def is_physics_contract(contract: AnalysisContract) -> bool:
+    return str(contract.schema).startswith("mechanism_repair_physics.")
+
+
+def headline_metric_rows(
+    rows: list[dict[str, Any]],
+    *,
+    contract: AnalysisContract,
+) -> list[dict[str, Any]]:
+    if not is_physics_contract(contract):
+        return rows
+    return [
+        row for row in rows
+        if int(row.get("verifier_level", 0) or 0) >= 2
+    ]
 
 
 def analyze_rows(
@@ -292,15 +311,16 @@ def analyze_rows(
     benchmark_readiness: dict[str, Any] | None = None,
     contract: AnalysisContract = DEFAULT_CONTRACT,
 ) -> dict[str, Any]:
+    headline_rows = headline_metric_rows(rows, contract=contract)
     by_method: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    for row in rows:
+    for row in headline_rows:
         by_method[row["method"]].append(row)
 
     method_summary = {
         method: summarize_method(items)
         for method, items in sorted(by_method.items())
     }
-    paired = paired_primary_rows(rows, contract=contract)
+    paired = paired_primary_rows(headline_rows, contract=contract)
     success_deltas = [
         float(p["primary_success"]) - float(p["baseline_success"])
         for p in paired
@@ -318,13 +338,16 @@ def analyze_rows(
     leave_one = leave_one_family_out(paired)
     split_rows = split_delta_rows(paired)
     anti_shortcut = anti_shortcut_comparison(paired)
-    method_comparisons = paired_method_comparisons(rows, contract=contract)
+    method_comparisons = paired_method_comparisons(headline_rows, contract=contract)
     budget_audit = audit_budget(rows, contract=contract)
     evidence_audit = audit_evidence(rows, contract=contract)
     learning_audit = audit_ttrl_learning(rows, contract=contract)
     coverage_audit = audit_expected_coverage(rows, expected_coverage)
-    family_method_summary = summarize_family_methods(rows)
-    primary_result_table = build_primary_result_table(rows, contract=contract)
+    family_method_summary = summarize_family_methods(headline_rows)
+    primary_result_table = build_primary_result_table(
+        headline_rows,
+        contract=contract,
+    )
     required_present = all(
         method in by_method for method in contract.required_methods
     )
@@ -353,6 +376,13 @@ def analyze_rows(
         "primary_budget_verifier_calls": contract.primary_budget,
         "eval_seeds_expected": list(contract.eval_seeds),
         "n_rows": len(rows),
+        "headline_metric_rows": len(headline_rows),
+        "non_headline_metric_rows": len(rows) - len(headline_rows),
+        "headline_metric_filter": (
+            "verifier_level>=2"
+            if is_physics_contract(contract)
+            else "all_rows"
+        ),
         "n_paired_cells": len(paired),
         "method_summary": method_summary,
         "family_method_summary": family_method_summary,
