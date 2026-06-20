@@ -102,6 +102,10 @@ FAMILY_SPECS: tuple[FamilySpec, ...] = (
 
 REQUIRED_FAMILIES = tuple(spec.name for spec in FAMILY_SPECS)
 FAMILY_BY_NAME = {spec.name: spec for spec in FAMILY_SPECS}
+FORBIDDEN_HEADLINE_SOURCE_TERMS = frozenset({"stub", "analytic", "proxy"})
+STATIC_FIT_HEADLINE_SOURCE_GENERATORS = frozenset(
+    {"keyed_shaft_hub_fit", "bearing_seat_clearance"}
+)
 
 SPLITS = {
     "A": {
@@ -1622,6 +1626,9 @@ def audit_benchmark(
         structural_blockers.append("Level-3 task share below 25 percent")
 
     for task in task_audits:
+        headline_blocker = paper_headline_source_blocker(task)
+        if headline_blocker:
+            paper_blockers.append(headline_blocker)
         if len(task["constraint_classes"]) < 3:
             structural_blockers.append(
                 f"{task['task_id']}: only {task['constraint_classes']} "
@@ -1721,9 +1728,38 @@ def load_task_records(tasks_root: Path) -> list[dict[str, Any]]:
                 "verifier_level": level,
                 "headline_eligible": bool(physics.get("headline_eligible", True)),
                 "source_generator": str(physics.get("source_generator", "")),
+                "source_task_id": str(physics.get("source_task_id", "")),
             }
         )
     return records
+
+
+def paper_headline_source_blocker(task: dict[str, Any]) -> str | None:
+    if not bool(task.get("headline_eligible", True)):
+        return None
+    if int(task.get("verifier_level", 0)) < 2:
+        return None
+    source_generator = str(task.get("source_generator", ""))
+    source_task_id = str(task.get("source_task_id", ""))
+    task_id = str(task.get("task_id", ""))
+    haystack = " ".join([source_generator, source_task_id, task_id]).lower()
+    terms = {
+        term
+        for term in re.split(r"[^a-z0-9]+", haystack)
+        if term
+    }
+    forbidden_terms = sorted(FORBIDDEN_HEADLINE_SOURCE_TERMS & terms)
+    if forbidden_terms:
+        return (
+            f"{task_id}: headline source_generator '{source_generator}' "
+            "is toy/stub/analytic/proxy evidence"
+        )
+    if source_generator in STATIC_FIT_HEADLINE_SOURCE_GENERATORS:
+        return (
+            f"{task_id}: static-fit source_generator '{source_generator}' "
+            "cannot carry the headline result"
+        )
+    return None
 
 
 def audit_task(task_dir: Path) -> dict[str, Any]:
@@ -2191,6 +2227,15 @@ def build_claim_audit(audit: dict[str, Any]) -> dict[str, Any]:
         missing.insert(
             2,
             "run Level-3 tasks with a registered real chrono_contact adapter",
+        )
+    if any(
+        "source_generator" in blocker
+        or "toy/stub/analytic/proxy evidence" in blocker
+        for blocker in audit.get("paper_blockers", [])
+    ):
+        missing.insert(
+            0,
+            "replace or demote toy/stub/analytic/proxy/static-fit headline tasks",
         )
     return {
         "schema": "mechanism_repair_physics.claim_audit.v1",

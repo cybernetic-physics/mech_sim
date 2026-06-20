@@ -158,7 +158,7 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     ensure_run_scaffold(out_dir)
 
-    validate_benchmark(benchmark_dir)
+    benchmark_readiness_blockers = validate_benchmark(benchmark_dir)
     methods = parse_csv(args.methods)
     unknown_methods = sorted(set(methods) - set(REQUIRED_METHODS))
     if unknown_methods:
@@ -208,7 +208,11 @@ def main() -> int:
             num_shards=int(args.write_shard_files),
         )
     write_json(out_dir / "physics_experiment_plan.json", public_plan(plan))
-    audit = audit_existing_experiment(out_dir=out_dir, plan=plan)
+    audit = audit_existing_experiment(
+        out_dir=out_dir,
+        plan=plan,
+        benchmark_readiness_blockers=benchmark_readiness_blockers,
+    )
     write_json(out_dir / "budget_audit.json", audit["budget_audit"])
     write_json(out_dir / "anti_shortcut_audit.json", audit["anti_shortcut_audit"])
     write_json(out_dir / "claim_audit.json", audit["claim_audit"])
@@ -226,7 +230,7 @@ def main() -> int:
     return 0
 
 
-def validate_benchmark(benchmark_dir: Path) -> None:
+def validate_benchmark(benchmark_dir: Path) -> list[str]:
     required = [
         "benchmark_manifest.json",
         "method_manifest.json",
@@ -406,11 +410,7 @@ def validate_benchmark(benchmark_dir: Path) -> None:
     ):
         blockers.append("verifier_manifest.json must require real PyChrono")
 
-    if blockers:
-        raise SystemExit(
-            "prepared physics benchmark does not satisfy goals.md: "
-            + json.dumps(blockers[:50], sort_keys=True)
-        )
+    return blockers
 
 
 def build_plan(
@@ -503,7 +503,13 @@ def build_plan(
     }
 
 
-def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[str, Any]:
+def audit_existing_experiment(
+    *,
+    out_dir: Path,
+    plan: dict[str, Any],
+    benchmark_readiness_blockers: list[str] | None = None,
+) -> dict[str, Any]:
+    benchmark_readiness_blockers = list(benchmark_readiness_blockers or [])
     rows = load_rows(out_dir / "cell_results.jsonl")
     row_map: dict[tuple[str, str, int, str, int], dict[str, Any]] = {}
     duplicate_keys: list[str] = []
@@ -713,10 +719,13 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
         blockers.insert(0, "execute all required methods, not a smoke subset")
     if plan.get("missing_required_seeds"):
         blockers.insert(0, "execute all required evaluation seeds")
+    if benchmark_readiness_blockers:
+        blockers.insert(0, "fix benchmark readiness before claiming paper result")
     claim_audit = {
         "schema": "mechanism_repair_physics.experiment_claim_audit.v1",
         "goal_complete": not blockers,
         "benchmark_dir": plan["benchmark_dir"],
+        "benchmark_readiness_blockers": benchmark_readiness_blockers,
         "planned_cells": int(plan["planned_cells"]),
         "full_planned_cells": int(plan.get("full_planned_cells", plan["planned_cells"])),
         "shard_index": int(plan.get("shard_index", 0)),

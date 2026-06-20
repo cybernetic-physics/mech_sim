@@ -1,6 +1,12 @@
 {
   "benchmark_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
+  "benchmark_readiness_blockers": [
+    "benchmark_manifest.json does not mark experiment_ready=true",
+    "benchmark audit does not mark experiment_ready=true",
+    "benchmark audit still has paper_blockers"
+  ],
   "blockers": [
+    "fix benchmark readiness before claiming paper result",
     "execute all required methods for all planned seeds/splits/tasks",
     "write final result bundle files and artifact directories",
     "run hidden/isomorphic anti-shortcut variants",
@@ -16,6 +22,7 @@
   ],
   "missing_analysis_requirements": [],
   "missing_before_paper_claim": [
+    "fix benchmark readiness before claiming paper result",
     "execute all required methods for all planned seeds/splits/tasks",
     "write final result bundle files and artifact directories",
     "run hidden/isomorphic anti-shortcut variants",

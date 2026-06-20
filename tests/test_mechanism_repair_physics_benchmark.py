@@ -63,10 +63,16 @@ def test_physics_preflight_materializes_required_families_and_manifests(
     assert audit["structural_passes"] is True
     assert audit["passes"] is True
     assert audit["experiment_ready"] is False
-    assert audit["paper_blockers"] == [
-        "chrono_level3_validation_not_run",
-        "reference_and_negative_validation_not_run",
-    ]
+    assert "chrono_level3_validation_not_run" in audit["paper_blockers"]
+    assert "reference_and_negative_validation_not_run" in audit["paper_blockers"]
+    assert any(
+        "toy/stub/analytic/proxy evidence" in blocker
+        for blocker in audit["paper_blockers"]
+    )
+    assert any(
+        "static-fit source_generator" in blocker
+        for blocker in audit["paper_blockers"]
+    )
     assert audit["family_counts"] == {family: 1 for family in REQUIRED_FAMILIES}
     assert audit["level_counts"] == {"2": 8, "3": 4}
     assert all(

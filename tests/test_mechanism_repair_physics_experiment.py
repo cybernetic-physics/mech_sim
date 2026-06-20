@@ -5,8 +5,6 @@ import json
 import sys
 from pathlib import Path
 
-import pytest
-
 from scripts import run_mechanism_repair_physics_experiment as physics
 from scripts.prepare_mechanism_repair_physics_benchmark import (
     EVAL_SEEDS,
@@ -21,7 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 FROZEN_PHYSICS_BENCHMARK = REPO_ROOT / "runs" / "mechanism_repair_physics_final"
 
 
-def test_frozen_physics_benchmark_matches_goal_contract() -> None:
+def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
     manifest = json.loads(
         (FROZEN_PHYSICS_BENCHMARK / "benchmark_manifest.json").read_text()
     )
@@ -33,14 +31,22 @@ def test_frozen_physics_benchmark_matches_goal_contract() -> None:
     )
     audit = manifest["audit"]
 
-    assert manifest["experiment_ready"] is True
+    assert manifest["experiment_ready"] is False
     assert manifest["task_count"] == 120
     assert audit["family_counts"] == {family: 10 for family in REQUIRED_FAMILIES}
     assert audit["level_counts"] == {"2": 80, "3": 40}
     assert audit["level2plus_headline_count"] == 120
     assert audit["level3_headline_count"] == 40
     assert audit["blockers"] == []
-    assert audit["paper_blockers"] == []
+    assert audit["paper_blockers"]
+    assert any(
+        "toy/stub/analytic/proxy evidence" in blocker
+        for blocker in audit["paper_blockers"]
+    )
+    assert any(
+        "static-fit source_generator" in blocker
+        for blocker in audit["paper_blockers"]
+    )
 
     for task in audit["tasks"]:
         assert task["headline_eligible"] is True
@@ -570,7 +576,7 @@ def test_frozen_physics_benchmark_prompts_are_family_specific() -> None:
         (FROZEN_PHYSICS_BENCHMARK / "benchmark_manifest.json").read_text()
     )
     assert manifest["task_count"] == 120
-    assert manifest["experiment_ready"] is True
+    assert manifest["experiment_ready"] is False
 
     by_family = {row["family"]: row for row in manifest["tasks"]}
     assert set(by_family) == set(REQUIRED_FAMILIES)
@@ -653,8 +659,9 @@ def test_validate_benchmark_rejects_underfilled_contract(tmp_path: Path) -> None
     manifest["task_count"] = 1
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
 
-    with pytest.raises(SystemExit, match="need at least 120"):
-        physics.validate_benchmark(benchmark)
+    blockers = physics.validate_benchmark(benchmark)
+
+    assert any("need at least 120" in blocker for blocker in blockers)
 
 
 def test_complete_synthetic_evidence_gets_binary_claim_status(
