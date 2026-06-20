@@ -250,16 +250,21 @@ if [[ -n "$SHARD_INDICES" ]]; then
   done
 fi
 if [[ "$SUBMIT_DEPENDENTS" == "auto" ]]; then
-  if (( finalize_only )); then
-    SUBMIT_DEPENDENTS=0
-  elif [[ -n "$SHARD_INDICES" ]]; then
-    SUBMIT_DEPENDENTS=0
-  else
-    SUBMIT_DEPENDENTS=1
-  fi
+  SUBMIT_DEPENDENTS=0
 fi
 if [[ "$SUBMIT_DEPENDENTS" != "0" && "$SUBMIT_DEPENDENTS" != "1" ]]; then
   echo "SUBMIT_DEPENDENTS must be 0, 1, or auto" >&2
+  exit 2
+fi
+if (( ! finalize_only )) && [[ "$SUBMIT_DEPENDENTS" == "1" ]]; then
+  cat >&2 <<EOF
+Refusing dependent merge/analysis submission before shard audit.
+
+GPU shard runs must not submit final merge/analysis jobs directly. Run
+scripts/plan_mechanism_repair_shard_resume.py locally after shard outputs are
+present, then use --finalize-only with FINALIZE_AUDIT_JSON once merge_ready is
+true.
+EOF
   exit 2
 fi
 if [[ "$RESTAGE_REMOTE_REPO" == "auto" ]]; then

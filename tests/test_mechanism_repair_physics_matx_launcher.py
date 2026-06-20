@@ -60,6 +60,25 @@ def test_default_refuses_broad_gpu_array_before_remote_contact() -> None:
     assert "array_task_count=24" in proc.stderr
 
 
+def test_auto_dependents_are_disabled_until_finalize_only() -> None:
+    text = SCRIPT.read_text(encoding="utf-8")
+    auto_block = text.split(
+        'if [[ "$SUBMIT_DEPENDENTS" == "auto" ]]',
+        1,
+    )[1].split("fi", 1)[0]
+
+    assert 'SUBMIT_DEPENDENTS=0' in text
+    assert "SUBMIT_DEPENDENTS=1" not in auto_block
+
+
+def test_non_finalize_refuses_dependent_merge_before_remote_contact() -> None:
+    proc = run_launcher(SHARD_INDICES="0", SUBMIT_DEPENDENTS="1")
+
+    assert proc.returncode == 2
+    assert "Refusing dependent merge/analysis submission" in proc.stderr
+    assert "--finalize-only" in proc.stderr
+
+
 def test_finalize_only_refuses_restaging_before_remote_contact() -> None:
     proc = run_launcher("--finalize-only", RESTAGE_REMOTE_REPO="1")
 
