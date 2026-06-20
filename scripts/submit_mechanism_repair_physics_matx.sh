@@ -11,7 +11,7 @@ JOB_RUNTIME_ROOT="${JOB_RUNTIME_ROOT:-auto}"
 ACCOUNT="${ACCOUNT:-matx}"
 PARTITION="${PARTITION:-matx}"
 QOS="${QOS:-normal}"
-GRES="${GRES:-gpu:l40s:2}"
+GRES="${GRES:-gpu:l40s:1}"
 CPUS_PER_TASK="${CPUS_PER_TASK:-16}"
 MEM="${MEM:-160G}"
 TIME="${TIME:-4-00:00:00}"
@@ -345,6 +345,39 @@ $finalize_audit_check
 EOF
     exit 2
   fi
+fi
+requested_gpu_count="$("$LOCAL_PYTHON" - "$GRES" <<'PY'
+import re
+import sys
+
+gres = sys.argv[1]
+total = 0
+for item in (part.strip() for part in gres.split(",")):
+    if not item or "gpu" not in item:
+        continue
+    fields = item.split(":")
+    if fields[0] != "gpu" and not fields[0].endswith("/gpu"):
+        continue
+    if fields[-1].isdigit():
+        total += int(fields[-1])
+    else:
+        total += 1
+print(total)
+PY
+)"
+if (( ! finalize_only )) && (( requested_gpu_count > 1 )); then
+  cat >&2 <<EOF
+Refusing multi-GPU MATX physics run.
+
+Requested:
+  GRES=$GRES
+  requested_gpu_count=$requested_gpu_count
+
+The current goals.md contract allows at most one L40 GPU total for this
+project at any time. Use GRES=gpu:l40s:1, submit only one selected shard, and
+do not queue additional GPU jobs.
+EOF
+  exit 2
 fi
 if (( ! finalize_only )) && [[ "$GRES" == *gpu* && "$ARRAY_CONCURRENCY" != "1" && "$ALLOW_HIGH_CLUSTER_USAGE" != "1" ]]; then
   cat >&2 <<EOF

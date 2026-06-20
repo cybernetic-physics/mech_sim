@@ -52,6 +52,20 @@ def test_launcher_defaults_to_no_replacement_audit_retries() -> None:
     assert "--audit-retries \"$AUDIT_RETRIES\"" in text
 
 
+def test_launcher_defaults_to_one_l40() -> None:
+    text = SCRIPT.read_text(encoding="utf-8")
+
+    assert 'GRES="${GRES:-gpu:l40s:1}"' in text
+
+
+def test_launcher_refuses_multi_gpu_gres() -> None:
+    proc = run_launcher(SHARD_INDICES="0", GRES="gpu:l40s:2")
+
+    assert proc.returncode == 2
+    assert "Refusing multi-GPU MATX physics run" in proc.stderr
+    assert "requested_gpu_count=2" in proc.stderr
+
+
 def test_default_refuses_broad_gpu_array_before_remote_contact() -> None:
     proc = run_launcher()
 
