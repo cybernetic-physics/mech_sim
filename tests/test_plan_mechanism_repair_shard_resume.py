@@ -59,6 +59,31 @@ def test_resume_plan_selects_first_missing_output_shard(tmp_path: Path) -> None:
     assert report["resume_env"] == (
         "SHARD_INDICES=0 RESTAGE_REMOTE_REPO=0 SUBMIT_DEPENDENTS=0"
     )
+    assert report["next_shard_file"] == str(
+        run_dir / "experiment_shards" / "shard_0000.json"
+    )
+    assert report["next_shard_output_dir"] == str(
+        run_dir / "shard_runs" / "shard_0000"
+    )
+    assert report["local_shard_command"] == [
+        ".venv/bin/python",
+        "scripts/run_mechanism_repair_online_experiment.py",
+        "--benchmark-dir",
+        str(run_dir),
+        "--out-dir",
+        str(run_dir / "shard_runs" / "shard_0000"),
+        "--cell-shard-file",
+        str(run_dir / "experiment_shards" / "shard_0000.json"),
+        "--shared-sft-root",
+        str(run_dir / "shared_sft_adapters"),
+        "--resume-existing",
+        "--skip-analysis",
+        "--evidence-layout",
+        "bundled",
+    ]
+    assert "run_mechanism_repair_online_experiment.py" in (
+        report["local_shard_command_text"]
+    )
     assert report["shards"][0]["status"] == "missing_output"
 
 
@@ -92,6 +117,20 @@ def test_resume_plan_requires_clean_complete_shards_for_merge(tmp_path: Path) ->
     assert report["merge_ready"] is True
     assert report["next_shard_index"] is None
     assert report["resume_env"] is None
+    assert report["local_shard_command"] is None
+    assert report["merge_command"] == [
+        ".venv/bin/python",
+        "scripts/merge_mechanism_repair_shards.py",
+        "--benchmark-dir",
+        str(run_dir),
+        "--out-dir",
+        str(run_dir),
+        "--shard-root",
+        str(run_dir / "shard_runs"),
+        "--require-all-shards",
+        "2",
+    ]
+    assert "merge_mechanism_repair_shards.py" in report["merge_command_text"]
     assert report["complete_shard_count"] == 2
 
 
@@ -125,3 +164,27 @@ def test_resume_plan_uses_budget_verifier_calls_when_budget_is_none(
 
     assert report["merge_ready"] is True
     assert report["missing_rows"] == 0
+
+
+def test_resume_plan_rejects_ttrl_without_same_group_baseline(
+    tmp_path: Path,
+) -> None:
+    run_dir = tmp_path / "run"
+    expected = [_cell("task_a", "mechanical_evolve_ttrl_tool_verified")]
+    _write_shard(run_dir, 0, expected)
+
+    report = build_report(run_dir=run_dir)
+
+    assert report["merge_ready"] is False
+    assert report["ttrl_baseline_group_error_count"] == 1
+    assert report["shards"][0]["status"] == "invalid"
+    assert report["shards"][0]["ttrl_baseline_group_errors"] == [
+        {
+            "split": "A",
+            "task_id": "task_a",
+            "seed": 20260610,
+            "budget": 32,
+            "ttrl_methods": ["mechanical_evolve_ttrl_tool_verified"],
+            "missing_method": "llm_evolve_no_update",
+        }
+    ]

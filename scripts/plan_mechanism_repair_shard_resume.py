@@ -10,12 +10,20 @@ from __future__ import annotations
 
 import argparse
 import json
+import shlex
 from pathlib import Path
 from typing import Any
 
 
 DEFAULT_RUN_DIR = "runs/mechanism_repair_physics_final"
 DEFAULT_BUDGET = 32
+DEFAULT_PYTHON = ".venv/bin/python"
+PRIMARY_BASELINE = "llm_evolve_no_update"
+TTRL_METHODS = {
+    "mechanical_evolve_ttrl",
+    "mechanical_evolve_ttrl_tool_verified",
+    "mechanical_evolve_ttrl_confidence",
+}
 
 
 def main() -> int:
@@ -32,10 +40,19 @@ def main() -> int:
         default=None,
         help="optional path to also write the JSON report",
     )
+    parser.add_argument(
+        "--python",
+        default=DEFAULT_PYTHON,
+        help="Python executable to put in generated local commands",
+    )
     args = parser.parse_args()
 
     run_dir = Path(args.run_dir).expanduser().resolve()
-    report = build_report(run_dir=run_dir, default_budget=int(args.default_budget))
+    report = build_report(
+        run_dir=run_dir,
+        default_budget=int(args.default_budget),
+        python_executable=str(args.python),
+    )
     text = json.dumps(report, indent=2, sort_keys=True) + "\n"
     print(text, end="")
     if args.out_json:
@@ -49,6 +66,7 @@ def build_report(
     *,
     run_dir: Path,
     default_budget: int = DEFAULT_BUDGET,
+    python_executable: str = DEFAULT_PYTHON,
 ) -> dict[str, Any]:
     shard_dir = run_dir / "experiment_shards"
     shard_files = sorted(shard_dir.glob("shard_*.json"))
@@ -78,6 +96,20 @@ def build_report(
         if next_shard_index is not None
         else None
     )
+    local_command = (
+        local_shard_command(
+            run_dir=run_dir,
+            shard_index=next_shard_index,
+            python_executable=python_executable,
+        )
+        if next_shard_index is not None
+        else None
+    )
+    merge_command = merge_shards_command(
+        run_dir=run_dir,
+        shard_count=len(shard_reports),
+        python_executable=python_executable,
+    )
     return {
         "schema": "mechanism_repair_physics.shard_resume_plan.v1",
         "run_dir": str(run_dir),
@@ -94,6 +126,29 @@ def build_report(
         "merge_ready": not incomplete,
         "next_shard_index": next_shard_index,
         "resume_env": resume_env,
+        "next_shard_file": (
+            str(run_dir / "experiment_shards" / f"shard_{next_shard_index:04d}.json")
+            if next_shard_index is not None
+            else None
+        ),
+        "next_shard_output_dir": (
+            str(run_dir / "shard_runs" / f"shard_{next_shard_index:04d}")
+            if next_shard_index is not None
+            else None
+        ),
+        "local_shard_command": local_command,
+        "local_shard_command_text": (
+            shlex.join(local_command) if local_command else None
+        ),
+        "merge_command": merge_command if not incomplete else None,
+        "merge_command_text": (
+            shlex.join(merge_command) if not incomplete else None
+        ),
+        "finalize_when_merge_ready_command": merge_command,
+        "finalize_when_merge_ready_command_text": shlex.join(merge_command),
+        "ttrl_baseline_group_error_count": sum(
+            len(item["ttrl_baseline_group_errors"]) for item in shard_reports
+        ),
         "shards": shard_reports,
     }
 
@@ -112,6 +167,10 @@ def summarize_shard(
         cell_key(cell, default_budget=default_budget)
         for cell in expected_cells
     }
+    ttrl_baseline_errors = ttrl_baseline_group_errors(
+        expected_cells,
+        default_budget=default_budget,
+    )
 
     rows_path = run_dir / "shard_runs" / shard_name / "cell_results.jsonl"
     rows = read_jsonl(rows_path) if rows_path.is_file() else []
@@ -128,6 +187,8 @@ def summarize_shard(
     blockers: list[str] = []
     if not rows_path.is_file():
         blockers.append("missing shard_runs cell_results.jsonl")
+    if ttrl_baseline_errors:
+        blockers.append("TTRL cells missing same-shard no-update baseline")
     if missing_keys:
         blockers.append("missing expected cells")
     if unexpected_keys:
@@ -139,6 +200,8 @@ def summarize_shard(
     if not rows_path.is_file():
         status = "missing_output"
     if unexpected_keys or duplicate_keys:
+        status = "invalid"
+    if ttrl_baseline_errors:
         status = "invalid"
 
     return {
@@ -156,7 +219,83 @@ def summarize_shard(
         "sample_missing": [key_text(key) for key in missing_keys[:10]],
         "sample_unexpected": [key_text(key) for key in unexpected_keys[:10]],
         "sample_duplicates": [key_text(key) for key in duplicate_keys[:10]],
+        "ttrl_baseline_group_errors": ttrl_baseline_errors[:10],
     }
+
+
+def ttrl_baseline_group_errors(
+    cells: list[dict[str, Any]],
+    *,
+    default_budget: int,
+) -> list[dict[str, Any]]:
+    methods_by_group: dict[tuple[str, str, int, int], set[str]] = {}
+    for cell in cells:
+        split, task_id, seed, method, budget = cell_key(
+            cell,
+            default_budget=default_budget,
+        )
+        group = (split, task_id, seed, budget)
+        methods_by_group.setdefault(group, set()).add(method)
+
+    errors: list[dict[str, Any]] = []
+    for group, methods in sorted(methods_by_group.items()):
+        ttrl_methods = sorted(methods & TTRL_METHODS)
+        if ttrl_methods and PRIMARY_BASELINE not in methods:
+            split, task_id, seed, budget = group
+            errors.append({
+                "split": split,
+                "task_id": task_id,
+                "seed": int(seed),
+                "budget": int(budget),
+                "ttrl_methods": ttrl_methods,
+                "missing_method": PRIMARY_BASELINE,
+            })
+    return errors
+
+
+def local_shard_command(
+    *,
+    run_dir: Path,
+    shard_index: int,
+    python_executable: str,
+) -> list[str]:
+    shard_name = f"shard_{int(shard_index):04d}"
+    return [
+        python_executable,
+        "scripts/run_mechanism_repair_online_experiment.py",
+        "--benchmark-dir",
+        str(run_dir),
+        "--out-dir",
+        str(run_dir / "shard_runs" / shard_name),
+        "--cell-shard-file",
+        str(run_dir / "experiment_shards" / f"{shard_name}.json"),
+        "--shared-sft-root",
+        str(run_dir / "shared_sft_adapters"),
+        "--resume-existing",
+        "--skip-analysis",
+        "--evidence-layout",
+        "bundled",
+    ]
+
+
+def merge_shards_command(
+    *,
+    run_dir: Path,
+    shard_count: int,
+    python_executable: str,
+) -> list[str]:
+    return [
+        python_executable,
+        "scripts/merge_mechanism_repair_shards.py",
+        "--benchmark-dir",
+        str(run_dir),
+        "--out-dir",
+        str(run_dir),
+        "--shard-root",
+        str(run_dir / "shard_runs"),
+        "--require-all-shards",
+        str(int(shard_count)),
+    ]
 
 
 def cell_key(
