@@ -122,7 +122,7 @@ def test_selected_shard_refreshes_code_without_restaging_outputs() -> None:
     text = SCRIPT.read_text(encoding="utf-8")
 
     assert 'REFRESH_REMOTE_CODE="${REFRESH_REMOTE_CODE:-auto}"' in text
-    assert 'if [[ "$RESTAGE_REMOTE_REPO" == "0" && ! finalize_only ]]' in text
+    assert 'if [[ "$RESTAGE_REMOTE_REPO" == "0" ]] && (( ! finalize_only ))' in text
     assert "tar -xf - -C '$remote_repo'" in text
 
 

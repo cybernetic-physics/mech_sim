@@ -307,7 +307,7 @@ if [[ "$RESTAGE_REMOTE_REPO" != "0" && "$RESTAGE_REMOTE_REPO" != "1" ]]; then
   exit 2
 fi
 if [[ "$REFRESH_REMOTE_CODE" == "auto" ]]; then
-  if [[ "$RESTAGE_REMOTE_REPO" == "0" && ! finalize_only ]]; then
+  if [[ "$RESTAGE_REMOTE_REPO" == "0" ]] && (( ! finalize_only )); then
     REFRESH_REMOTE_CODE=1
   else
     REFRESH_REMOTE_CODE=0
