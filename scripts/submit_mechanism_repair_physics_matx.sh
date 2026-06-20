@@ -22,7 +22,8 @@ ANALYSIS_CPUS_PER_TASK="${ANALYSIS_CPUS_PER_TASK:-8}"
 ANALYSIS_MEM="${ANALYSIS_MEM:-48G}"
 ANALYSIS_TIME="${ANALYSIS_TIME:-04:00:00}"
 NUM_SHARDS="${NUM_SHARDS:-24}"
-ARRAY_CONCURRENCY="${ARRAY_CONCURRENCY:-4}"
+ARRAY_CONCURRENCY="${ARRAY_CONCURRENCY:-1}"
+ALLOW_HIGH_CLUSTER_USAGE="${ALLOW_HIGH_CLUSTER_USAGE:-0}"
 OUT_DIR="${OUT_DIR:-runs/mechanism_repair_physics_final}"
 METHODS="${METHODS-}"
 SPLITS="${SPLITS-}"
@@ -102,6 +103,7 @@ Useful overrides:
   EVAL_SEEDS=$EVAL_SEEDS
   NUM_SHARDS=$NUM_SHARDS
   ARRAY_CONCURRENCY=$ARRAY_CONCURRENCY
+  ALLOW_HIGH_CLUSTER_USAGE=$ALLOW_HIGH_CLUSTER_USAGE
   GRES=$GRES
   BASE_MODEL=$BASE_MODEL
   SGLANG_MODEL=$SGLANG_MODEL
@@ -184,6 +186,20 @@ fi
 array_end=$((NUM_SHARDS - 1))
 if (( NUM_SHARDS < 1 )); then
   echo "NUM_SHARDS must be >= 1" >&2
+  exit 2
+fi
+if [[ "$GRES" == *gpu* && "$ARRAY_CONCURRENCY" != "1" && "$ALLOW_HIGH_CLUSTER_USAGE" != "1" ]]; then
+  cat >&2 <<EOF
+Refusing to submit multiple concurrent GPU shards.
+
+Requested:
+  GRES=$GRES
+  ARRAY_CONCURRENCY=$ARRAY_CONCURRENCY
+
+Default policy is one GPU shard at a time to avoid monopolizing shared MATX
+resources. Coordinate with the lab and set ALLOW_HIGH_CLUSTER_USAGE=1 only when
+that higher concurrency is explicitly acceptable.
+EOF
   exit 2
 fi
 

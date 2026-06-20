@@ -27,6 +27,16 @@ Cluster monitoring must be sparse and respectful of shared infrastructure:
 - Never create an automated SSH loop against `sc` unless the user explicitly
   authorizes it and the polling interval is acceptable under cluster policy.
 
+Cluster GPU usage must also be conservative by default:
+
+- Do not launch broad GPU arrays or high-concurrency shard runs by default.
+- For MATX physics runs, default to one GPU shard at a time unless the user
+  explicitly authorizes higher concurrency after coordinating with the lab.
+- If a run needs more than one concurrent GPU shard, record the intended GPU
+  count, job IDs, and expected duration before launch.
+- If lab mates or cluster staff report pressure, cancel pending GPU work first
+  and preserve partial artifacts for later analysis rather than continuing.
+
 ## Working Title
 
 MechanicalEvolve-Physics: Test-Time Verifier-Derived Reinforcement Learning
