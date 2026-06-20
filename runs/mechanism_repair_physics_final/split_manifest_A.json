@@ -1,6 +1,6 @@
 {
-  "eligible_task_count": 20,
-  "excluded_diagnostic_task_count": 100,
+  "eligible_task_count": 30,
+  "excluded_diagnostic_task_count": 90,
   "headline_only": true,
   "schema": "mechanism_repair_physics.family_split.v1",
   "seed": 20260610,
@@ -15,6 +15,16 @@
   "split_name": "A",
   "splits": {
     "test": [
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t00_lead_screw_linear_travel_s20266610",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t01_lead_screw_linear_travel_s20266611",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t02_lead_screw_linear_travel_s20266612",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t03_lead_screw_linear_travel_s20266613",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t04_lead_screw_linear_travel_s20266614",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t05_lead_screw_linear_travel_s20266615",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t06_lead_screw_linear_travel_s20266616",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t07_lead_screw_linear_travel_s20266617",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t08_lead_screw_linear_travel_s20266618",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t09_lead_screw_linear_travel_s20266619",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t00_slider_crank_stroke_s20267610",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t01_slider_crank_stroke_precision_s20267611",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t02_reciprocating_pump_plunger_s20267612",

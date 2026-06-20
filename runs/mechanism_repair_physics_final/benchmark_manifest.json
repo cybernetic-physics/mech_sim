@@ -1,7 +1,7 @@
 {
   "audit": {
     "blockers": [],
-    "diagnostic_task_count": 100,
+    "diagnostic_task_count": 90,
     "experiment_ready": false,
     "family_counts": {
       "belt_drive": 10,
@@ -19,10 +19,11 @@
     },
     "headline_family_counts": {
       "fourbar_linkage": 10,
+      "lead_screw": 10,
       "slider_crank": 10
     },
-    "headline_task_count": 20,
-    "level2plus_headline_count": 20,
+    "headline_task_count": 30,
+    "level2plus_headline_count": 30,
     "level3_headline_count": 0,
     "level_counts": {
       "2": 80,
@@ -30,7 +31,7 @@
     },
     "min_tasks_per_family": 10,
     "paper_blockers": [
-      "100 diagnostic tasks excluded from headline result",
+      "90 diagnostic tasks excluded from headline result",
       "Level-3 headline task share below 25 percent",
       "belt_drive: only 0 headline tasks; need 10",
       "cam_follower: only 0 headline tasks; need 10",
@@ -68,8 +69,7 @@
       "geneva_indexer_t07_geneva_indexing_stub_s20270617: level3_validation_skipped",
       "geneva_indexer_t08_geneva_indexing_stub_s20270618: level3_validation_skipped",
       "geneva_indexer_t09_geneva_indexing_stub_s20270619: level3_validation_skipped",
-      "lead_screw: only 0 headline tasks; need 10",
-      "only 20 headline tasks; need 120",
+      "only 30 headline tasks; need 120",
       "planetary_reducer: only 0 headline tasks; need 10",
       "rack_pinion: only 0 headline tasks; need 10",
       "rack_pinion_t00_rack_pinion_contact_stub_s20265610: level3_validation_skipped",
@@ -2143,22 +2143,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "lead_screw",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
         "source_generator": "lead_screw_linear_travel",
         "source_task_id": "lead_screw_linear_travel_s20266610",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t00_lead_screw_linear_travel_s20266610",
-        "task_hash": "cc42ea9091a4e473058c3cd817cc9e6cca8af1967e018d2ad2ebe8254afcd18c",
+        "task_hash": "942d188407e3871dcd797f69dbab1588ea131cd9b101b03973799d2cba809a3c",
         "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2168,7 +2169,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999999999999969
         },
         "verifier_level": 2
       },
@@ -2179,22 +2180,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "lead_screw",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
         "source_generator": "lead_screw_linear_travel",
         "source_task_id": "lead_screw_linear_travel_s20266611",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t01_lead_screw_linear_travel_s20266611",
-        "task_hash": "3187c268e0bb58295647c528912ecf1136caa355b1b32573abd5c2682b60184b",
+        "task_hash": "032d8234e15b24c053c8ae47baa4b2e6c6b444fdf014fa56cfbddb1ae7fd1bb4",
         "task_id": "lead_screw_t01_lead_screw_linear_travel_s20266611",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2204,7 +2206,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999999999999505
         },
         "verifier_level": 2
       },
@@ -2215,22 +2217,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "lead_screw",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
         "source_generator": "lead_screw_linear_travel",
         "source_task_id": "lead_screw_linear_travel_s20266612",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t02_lead_screw_linear_travel_s20266612",
-        "task_hash": "7166c7107090c60fe63e6292cc6c9ebe5370e717a0d3fcb173bb0a50d9dbca4d",
+        "task_hash": "d933d1a56db7b4c96a1cc6c35f5a3260e4aa64a6427d6cd6392487107199b0ee",
         "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2251,22 +2254,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "lead_screw",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
         "source_generator": "lead_screw_linear_travel",
         "source_task_id": "lead_screw_linear_travel_s20266613",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t03_lead_screw_linear_travel_s20266613",
-        "task_hash": "5f4659b304f88c7056f134421934f6afd0f70cfbd311fc60bc9744779e17ad37",
+        "task_hash": "e904fdb240a19a6a02592d0cf455e9845e04b4e4d92bc1b389de93302a4606e6",
         "task_id": "lead_screw_t03_lead_screw_linear_travel_s20266613",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2276,7 +2280,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999999999999578
         },
         "verifier_level": 2
       },
@@ -2287,22 +2291,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "lead_screw",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
         "source_generator": "lead_screw_linear_travel",
         "source_task_id": "lead_screw_linear_travel_s20266614",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t04_lead_screw_linear_travel_s20266614",
-        "task_hash": "419553105dcafec698dfa361f256d8862390e5116a073769bd8dfaae98bc3fea",
+        "task_hash": "c781f80d6a01254a356f3047874e3c2e7b96ece9427c74712f1ebdb1240b5ce9",
         "task_id": "lead_screw_t04_lead_screw_linear_travel_s20266614",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2312,7 +2317,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999999999999811
         },
         "verifier_level": 2
       },
@@ -2323,22 +2328,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "lead_screw",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
         "source_generator": "lead_screw_linear_travel",
         "source_task_id": "lead_screw_linear_travel_s20266615",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t05_lead_screw_linear_travel_s20266615",
-        "task_hash": "99e38325f97f9c04a384f24b91cba21094e0f2c0177838c3fcd4d58388774694",
+        "task_hash": "c6f6ea09772adb074d833bf952c74cc258a62c9054810b612465e2634c9a4dd2",
         "task_id": "lead_screw_t05_lead_screw_linear_travel_s20266615",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2348,7 +2354,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999999999999944
         },
         "verifier_level": 2
       },
@@ -2359,22 +2365,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "lead_screw",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
         "source_generator": "lead_screw_linear_travel",
         "source_task_id": "lead_screw_linear_travel_s20266616",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t06_lead_screw_linear_travel_s20266616",
-        "task_hash": "b5ec7b55ef46464d5347981b806b8191d7459d56655e2b9d68705320f5e85f2d",
+        "task_hash": "771a14088be5b05a25ccad4340b67220bb4b80821320525e0fa5374617242f06",
         "task_id": "lead_screw_t06_lead_screw_linear_travel_s20266616",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2384,7 +2391,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999999999999712
         },
         "verifier_level": 2
       },
@@ -2395,22 +2402,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "lead_screw",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
         "source_generator": "lead_screw_linear_travel",
         "source_task_id": "lead_screw_linear_travel_s20266617",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t07_lead_screw_linear_travel_s20266617",
-        "task_hash": "49f45ddbd69de45d77a818bf3f3ca193df7b638b85642c17e3f4db0714b7dead",
+        "task_hash": "a022282cf09c69591e75f9adb67d2d9fd66632f98506180567d3756488f1b8a2",
         "task_id": "lead_screw_t07_lead_screw_linear_travel_s20266617",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2431,22 +2439,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "lead_screw",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
         "source_generator": "lead_screw_linear_travel",
         "source_task_id": "lead_screw_linear_travel_s20266618",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t08_lead_screw_linear_travel_s20266618",
-        "task_hash": "8c78463430f354bdce487ba7bb05df9bdc0a82b0e59197476d924f32abb13af3",
+        "task_hash": "8da0cb37c49ba7da998f4746390a0ab11e4c0d0b34d98fc1e41a37678c8ac4e3",
         "task_id": "lead_screw_t08_lead_screw_linear_travel_s20266618",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2456,7 +2465,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.999999999999996
         },
         "verifier_level": 2
       },
@@ -2467,22 +2476,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "lead_screw",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "port_velocity_ratio",
           "trusted_asset_preflight"
         ],
         "source_generator": "lead_screw_linear_travel",
         "source_task_id": "lead_screw_linear_travel_s20266619",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t09_lead_screw_linear_travel_s20266619",
-        "task_hash": "4a0b1710f10cfaf63b0b8b92ca7cca4484f6d9f8ae48ff098e60e4b65e5f77cc",
+        "task_hash": "2288ace02fd3cfa9722201522094b1273c050c8975147b0958786faad21f47ff",
         "task_id": "lead_screw_t09_lead_screw_linear_travel_s20266619",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -2492,7 +2502,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999999999999641
         },
         "verifier_level": 2
       },
@@ -4999,8 +5009,8 @@
     },
     {
       "family": "lead_screw",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20266610,
       "source_family": "lead_screw_linear_travel",
       "source_generator": "lead_screw_linear_travel",
@@ -5010,8 +5020,8 @@
     },
     {
       "family": "lead_screw",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20266611,
       "source_family": "lead_screw_linear_travel",
       "source_generator": "lead_screw_linear_travel",
@@ -5021,8 +5031,8 @@
     },
     {
       "family": "lead_screw",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20266612,
       "source_family": "lead_screw_linear_travel",
       "source_generator": "lead_screw_linear_travel",
@@ -5032,8 +5042,8 @@
     },
     {
       "family": "lead_screw",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20266613,
       "source_family": "lead_screw_linear_travel",
       "source_generator": "lead_screw_linear_travel",
@@ -5043,8 +5053,8 @@
     },
     {
       "family": "lead_screw",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20266614,
       "source_family": "lead_screw_linear_travel",
       "source_generator": "lead_screw_linear_travel",
@@ -5054,8 +5064,8 @@
     },
     {
       "family": "lead_screw",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20266615,
       "source_family": "lead_screw_linear_travel",
       "source_generator": "lead_screw_linear_travel",
@@ -5065,8 +5075,8 @@
     },
     {
       "family": "lead_screw",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20266616,
       "source_family": "lead_screw_linear_travel",
       "source_generator": "lead_screw_linear_travel",
@@ -5076,8 +5086,8 @@
     },
     {
       "family": "lead_screw",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20266617,
       "source_family": "lead_screw_linear_travel",
       "source_generator": "lead_screw_linear_travel",
@@ -5087,8 +5097,8 @@
     },
     {
       "family": "lead_screw",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20266618,
       "source_family": "lead_screw_linear_travel",
       "source_generator": "lead_screw_linear_travel",
@@ -5098,8 +5108,8 @@
     },
     {
       "family": "lead_screw",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20266619,
       "source_family": "lead_screw_linear_travel",
       "source_generator": "lead_screw_linear_travel",

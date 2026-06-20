@@ -1,6 +1,7 @@
 # Lead screw linear travel
 
 Declare `params.declared_travel_per_rev_mm` = lead_mm = 2.764.
+* The observed output/input velocity ratio must be 0.439904 mm/rad.
 * Input revolute, output prismatic.
 
 ## MechanismRepair-Physics canonical contract

@@ -725,7 +725,7 @@
         "topology_mobility"
       ],
       "family": "lead_screw",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
       "verifier_level": 2
     },
@@ -737,7 +737,7 @@
         "topology_mobility"
       ],
       "family": "lead_screw",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "lead_screw_t01_lead_screw_linear_travel_s20266611",
       "verifier_level": 2
     },
@@ -749,7 +749,7 @@
         "topology_mobility"
       ],
       "family": "lead_screw",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
       "verifier_level": 2
     },
@@ -761,7 +761,7 @@
         "topology_mobility"
       ],
       "family": "lead_screw",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "lead_screw_t03_lead_screw_linear_travel_s20266613",
       "verifier_level": 2
     },
@@ -773,7 +773,7 @@
         "topology_mobility"
       ],
       "family": "lead_screw",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "lead_screw_t04_lead_screw_linear_travel_s20266614",
       "verifier_level": 2
     },
@@ -785,7 +785,7 @@
         "topology_mobility"
       ],
       "family": "lead_screw",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "lead_screw_t05_lead_screw_linear_travel_s20266615",
       "verifier_level": 2
     },
@@ -797,7 +797,7 @@
         "topology_mobility"
       ],
       "family": "lead_screw",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "lead_screw_t06_lead_screw_linear_travel_s20266616",
       "verifier_level": 2
     },
@@ -809,7 +809,7 @@
         "topology_mobility"
       ],
       "family": "lead_screw",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "lead_screw_t07_lead_screw_linear_travel_s20266617",
       "verifier_level": 2
     },
@@ -821,7 +821,7 @@
         "topology_mobility"
       ],
       "family": "lead_screw",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "lead_screw_t08_lead_screw_linear_travel_s20266618",
       "verifier_level": 2
     },
@@ -833,7 +833,7 @@
         "topology_mobility"
       ],
       "family": "lead_screw",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "lead_screw_t09_lead_screw_linear_travel_s20266619",
       "verifier_level": 2
     },

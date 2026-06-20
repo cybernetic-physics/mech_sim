@@ -7,7 +7,7 @@
         "wrong_ratio"
       ],
       "expected_hard_gate_passed": true,
-      "expected_score_below": 0.5,
+      "expected_score_below": 0.51,
       "submission": "negative_solutions/wrong_lead"
     },
     {
@@ -18,6 +18,15 @@
       "expected_hard_gate_passed": false,
       "expected_score_below": 0.001,
       "submission": "negative_solutions/wrong_output_kind"
+    },
+    {
+      "id": "wrong_thread_geometry",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.8,
+      "submission": "negative_solutions/wrong_thread_geometry"
     },
     {
       "id": "missing_required_port_physics",

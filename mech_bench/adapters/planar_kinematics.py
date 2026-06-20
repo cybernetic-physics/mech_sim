@@ -1,13 +1,14 @@
 """Analytical planar-kinematics adapter.
 
-Handles closed-loop planar four-bar and (single-DOF) slider-crank
-topologies analytically from DesignIR topology + joint anchor data.
-Emits port traces, joint position / velocity time-series, and a
-shared time axis. Pure NumPy — no physics solver.
+Handles closed-loop planar four-bar, slider-crank, and simple
+lead-screw topologies analytically from DesignIR topology + joint
+anchor data. Emits port traces, joint position / velocity time-series,
+and a shared time axis. Pure NumPy — no physics solver.
 
 Topology detection is auto by default:
   * 4 parts + 4 revolutes → four-bar.
   * 4 parts + 3 revolutes + 1 prismatic → slider-crank (planar).
+  * 3 parts + 1 revolute + 1 prismatic + lead_mm param → lead screw.
 
 Anything outside these returns an empty trace (and probes downstream
 surface ``SIMULATOR_DIVERGENCE`` or ``LOCKUP`` as appropriate).
@@ -426,6 +427,98 @@ def _solve_slider_crank(
     }
 
 
+def _float_param(ir: DesignIR, *keys: str) -> float | None:
+    for key in keys:
+        if key not in ir.params:
+            continue
+        try:
+            value = float(ir.params[key])
+        except (TypeError, ValueError):
+            continue
+        if np.isfinite(value):
+            return value
+    return None
+
+
+def _solve_lead_screw(
+    ir: DesignIR,
+    n_samples: int,
+    *,
+    strict_geometry: bool,
+) -> dict[str, Any] | None:
+    """Lead-screw kinematics from one revolute input to one prismatic output."""
+    del strict_geometry
+    if len(ir.parts) != 3:
+        return None
+    revs = [j for j in ir.joints if j.type == "revolute"]
+    prisms = [j for j in ir.joints if j.type == "prismatic"]
+    if len(revs) != 1 or len(prisms) != 1:
+        return None
+    fixed = [p for p in ir.parts if p.fixed]
+    if len(fixed) != 1:
+        return None
+    ground = fixed[0].id
+    j_in = revs[0]
+    j_out = prisms[0]
+    if ground not in (j_in.parent, j_in.child):
+        return None
+    if ground not in (j_out.parent, j_out.child):
+        return None
+    input_port = ir.ports.get("input_port")
+    output_port = ir.ports.get("output_port")
+    if input_port is None or input_port.kind != "revolute_joint":
+        return None
+    if output_port is None or output_port.kind != "prismatic_joint":
+        return None
+    if input_port.part != j_in.id or output_port.part != j_out.id:
+        return None
+    lead_mm = _float_param(
+        ir,
+        "lead_mm",
+        "lead_mm_per_rev",
+        "declared_travel_per_rev_mm",
+    )
+    if lead_mm is None or abs(lead_mm) < 1e-12:
+        return None
+
+    axis = j_out.axis_world or (1.0, 0.0, 0.0)
+    ax = np.array([axis[0], axis[1]], dtype=float)
+    n_ax = float(np.linalg.norm(ax))
+    if n_ax < 1e-9:
+        return None
+    ax = ax / n_ax
+    pr_anchor = _world_anchor(j_out)
+
+    time_s = np.linspace(0.0, 2.0 * np.pi, n_samples,
+                         endpoint=False, dtype=float)
+    input_arr = time_s.copy()
+    travel_per_rad = float(lead_mm / (2.0 * np.pi))
+    output_arr = input_arr * travel_per_rad
+    output_trace = np.stack([
+        pr_anchor[0] + output_arr * ax[0],
+        pr_anchor[1] + output_arr * ax[1],
+    ], axis=-1)
+
+    return {
+        "port_traces": {"output_port": output_trace},
+        "joint_positions": {
+            "input_port": input_arr,
+            "output_port": output_arr,
+            j_in.id: input_arr,
+            j_out.id: output_arr,
+        },
+        "joint_velocities": {
+            "input_port": np.gradient(input_arr, time_s, edge_order=1),
+            "output_port": np.gradient(output_arr, time_s, edge_order=1),
+        },
+        "time_s": time_s,
+        "topology": "lead_screw",
+        "link_lengths_mm": {"lead_per_rev": float(lead_mm)},
+        "invalid_samples": 0,
+        "ratio_estimate": travel_per_rad,
+    }
+
+
 @register_adapter
 class PlanarKinematics(SimAdapter):
     type_name = "planar_kinematics"
@@ -464,6 +557,8 @@ class PlanarKinematics(SimAdapter):
             candidates.append(_solve_fourbar)
         if topology in ("auto", "slider_crank"):
             candidates.append(_solve_slider_crank)
+        if topology in ("auto", "lead_screw"):
+            candidates.append(_solve_lead_screw)
         for solver in candidates:
             solved = solver(ir, n_samples, strict_geometry=strict_geometry)
             if solved is not None:

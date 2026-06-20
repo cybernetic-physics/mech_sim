@@ -74,12 +74,13 @@ def test_physics_preflight_materializes_required_families_and_manifests(
         for blocker in audit["paper_blockers"]
     )
     assert audit["family_counts"] == {family: 1 for family in REQUIRED_FAMILIES}
-    assert audit["headline_task_count"] == 2
+    assert audit["headline_task_count"] == 3
     assert audit["headline_family_counts"] == {
         "fourbar_linkage": 1,
+        "lead_screw": 1,
         "slider_crank": 1,
     }
-    assert audit["diagnostic_task_count"] == 10
+    assert audit["diagnostic_task_count"] == 9
     assert audit["level_counts"] == {"2": 8, "3": 4}
     assert all(
         len(task["constraint_classes"]) >= 3
@@ -101,10 +102,12 @@ def test_physics_preflight_materializes_required_families_and_manifests(
         )
         assert split_manifest["headline_only"] is True
         if split_name == "A":
-            assert len(split_manifest["splits"]["test"]) == 1
-            assert Path(split_manifest["splits"]["test"][0]).name.startswith(
-                "slider_crank"
-            )
+            test_names = {
+                Path(path).name for path in split_manifest["splits"]["test"]
+            }
+            assert len(test_names) == 2
+            assert any(name.startswith("lead_screw") for name in test_names)
+            assert any(name.startswith("slider_crank") for name in test_names)
         else:
             assert split_manifest["splits"]["test"] == []
 

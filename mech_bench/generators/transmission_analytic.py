@@ -640,10 +640,13 @@ class LeadScrewLinearTravelGenerator(TaskGenerator):
             "# Lead screw linear travel\n\n"
             f"Declare `params.declared_travel_per_rev_mm` = lead_mm = "
             f"{lead}.\n"
+            f"* The observed output/input velocity ratio must be "
+            f"{round(lead / (2.0 * math.pi), 6)} mm/rad.\n"
             "* Input revolute, output prismatic.\n"
         )
 
         def _cfg(tol_pct: float) -> dict[str, Any]:
+            velocity_ratio = lead / (2.0 * math.pi)
             return {
                 "probes": [
                     dof_probe(expected=2),
@@ -659,11 +662,26 @@ class LeadScrewLinearTravelGenerator(TaskGenerator):
                         lead, tolerance_pct=tol_pct,
                         failure_code="wrong_ratio",
                     ),
+                    {"id": "travel_velocity_ratio",
+                     "type": "port_velocity_ratio",
+                     "input_port": "input_port",
+                     "output_port": "output_port",
+                     "expected": float(velocity_ratio),
+                     "tolerance_pct": float(tol_pct),
+                     "min_abs_input_velocity": 1e-6,
+                     "weight": 1.0,
+                     "severity": "major"},
                 ],
                 "feedback": {
                     "public_metrics": [
-                        "travel.observed", "travel.expected"],
-                    "hidden_metrics": ["travel.error_pct"],
+                        "travel.observed", "travel.expected",
+                        "travel_velocity_ratio.ratio_observed",
+                        "travel_velocity_ratio.ratio_expected",
+                    ],
+                    "hidden_metrics": [
+                        "travel.error_pct",
+                        "travel_velocity_ratio.ratio_error_pct",
+                    ],
                 },
                 "hard_gate": {"require": ["mobility", "ports"]},
             }
@@ -678,6 +696,9 @@ class LeadScrewLinearTravelGenerator(TaskGenerator):
                 "    ir['ports']['output_port']['kind'] = "
                 "'revolute_joint'"
             ),
+            "wrong_thread_geometry": make_negative_overlay(
+                f"    ir['params']['lead_mm'] = {round(lead * 0.45, 4)}"
+            ),
         }
         expected = make_expected_failures(
             f"Tier 2 {self.family} negatives.",
@@ -685,11 +706,15 @@ class LeadScrewLinearTravelGenerator(TaskGenerator):
                 {"id": "wrong_lead",
                  "expected_failure_codes": ["wrong_ratio"],
                  "expected_hard_gate_passed": True,
-                 "expected_score_below": 0.5},
+                 "expected_score_below": 0.51},
                 {"id": "wrong_output_kind",
                  "expected_failure_codes": ["wrong_topology"],
                  "expected_hard_gate_passed": False,
                  "expected_score_below": 0.001},
+                {"id": "wrong_thread_geometry",
+                 "expected_failure_codes": ["wrong_ratio"],
+                 "expected_hard_gate_passed": True,
+                 "expected_score_below": 0.8},
             ],
         )
         task_toml = {
@@ -703,6 +728,8 @@ class LeadScrewLinearTravelGenerator(TaskGenerator):
             },
             "objective": {
                 "description": f"Lead screw travel/rev = {lead} mm.",
+                "output_velocity_ratio_mm_per_rad": round(
+                    lead / (2.0 * math.pi), 6),
                 "ground_required": True,
             },
         }

@@ -563,6 +563,86 @@
     },
     {
       "budget": 32,
+      "family": "lead_screw",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t03_lead_screw_linear_travel_s20266613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t03_lead_screw_linear_travel_s20266613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t03_lead_screw_linear_travel_s20266613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t03_lead_screw_linear_travel_s20266613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t03_lead_screw_linear_travel_s20266613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t03_lead_screw_linear_travel_s20266613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t03_lead_screw_linear_travel_s20266613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t03_lead_screw_linear_travel_s20266613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
       "family": "fourbar_linkage",
       "method": "frozen_model",
       "seed": 20260611,
@@ -719,6 +799,86 @@
       "split": "hidden_perturbation",
       "split_kind": "anti_shortcut",
       "task_id": "slider_crank_t04_slider_crank_stroke_precision_s20267614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "lead_screw",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "lead_screw_t02_lead_screw_linear_travel_s20266612",
       "verifier_level": 2
     },
     {
@@ -962,10 +1122,10 @@
       "verifier_level": 2
     }
   ],
-  "full_planned_cells": 960,
+  "full_planned_cells": 1440,
   "num_shards": 24,
   "out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
-  "planned_cells": 96,
+  "planned_cells": 112,
   "replay_args": [
     "--benchmark-dir",
     "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",

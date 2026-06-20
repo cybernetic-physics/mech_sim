@@ -12,6 +12,7 @@ max_envelope_mm = [200, 80, 50]
 
 [objective]
 description = "Lead screw travel/rev = 2.764 mm."
+output_velocity_ratio_mm_per_rad = 0.439904
 ground_required = true
 
 [mechanism_repair_physics]
@@ -19,9 +20,8 @@ canonical_family = "lead_screw"
 source_task_id = "lead_screw_linear_travel_s20266614"
 source_generator = "lead_screw_linear_travel"
 verifier_level = 2
-headline_eligible = false
+headline_eligible = true
 min_constraint_classes = 3
 requires_hidden_variant = true
 requires_isomorphic_variant = true
 fake_contact_oracle_allowed = false
-headline_demotion_reason = "analytic-only functional verifier"

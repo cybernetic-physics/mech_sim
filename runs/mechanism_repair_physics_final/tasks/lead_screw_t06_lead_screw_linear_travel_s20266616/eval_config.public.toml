@@ -1,6 +1,6 @@
 [feedback]
-public_metrics = ["travel.observed", "travel.expected", "trusted_asset_preflight.parts_with_required_geometry"]
-hidden_metrics = ["travel.error_pct", "trusted_asset_preflight.trusted_mass_properties_recomputed"]
+public_metrics = ["travel.observed", "travel.expected", "travel_velocity_ratio.ratio_observed", "travel_velocity_ratio.ratio_expected", "trusted_asset_preflight.parts_with_required_geometry"]
+hidden_metrics = ["travel.error_pct", "travel_velocity_ratio.ratio_error_pct", "trusted_asset_preflight.trusted_mass_properties_recomputed"]
 
 [hard_gate]
 require = ["mobility", "ports", "trusted_asset_preflight"]
@@ -43,6 +43,17 @@ weight = 1.0
 severity = "major"
 hard_gate = false
 tolerance_pct = 2.0
+
+[[probes]]
+id = "travel_velocity_ratio"
+type = "port_velocity_ratio"
+input_port = "input_port"
+output_port = "output_port"
+expected = 1.5452353424792118
+tolerance_pct = 2.0
+min_abs_input_velocity = 1e-06
+weight = 1.0
+severity = "major"
 
 [[probes]]
 id = "trusted_asset_preflight"
