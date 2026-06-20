@@ -926,6 +926,7 @@ def analysis_requirement_blockers(out_dir: Path) -> list[str]:
             blockers.append(f"primary_comparison.{key}")
     primary_table = stats.get("primary_result_table")
     required_table_fields = (
+        "method",
         "level23_verified_repair_success_at_32",
         "hidden_variant_success_at_32",
         "anti_shortcut_pass_rate_at_32",
@@ -948,10 +949,28 @@ def analysis_requirement_blockers(out_dir: Path) -> list[str]:
             blockers.append(
                 "primary_result_table fields: " + ", ".join(missing_table_fields)
             )
+        missing_table_methods = sorted(
+            set(REQUIRED_METHODS)
+            - {
+                str(row.get("method", ""))
+                for row in primary_table
+                if isinstance(row, dict)
+            }
+        )
+        if missing_table_methods:
+            blockers.append(
+                "primary_result_table methods: "
+                + ", ".join(missing_table_methods)
+            )
     method_summary = stats.get("method_summary") or {}
     if not isinstance(method_summary, dict) or not method_summary:
         blockers.append("method_summary")
     else:
+        missing_summary_methods = sorted(set(REQUIRED_METHODS) - set(method_summary))
+        if missing_summary_methods:
+            blockers.append(
+                "method_summary methods: " + ", ".join(missing_summary_methods)
+            )
         missing_secondary = sorted({
             metric
             for summary in method_summary.values()
