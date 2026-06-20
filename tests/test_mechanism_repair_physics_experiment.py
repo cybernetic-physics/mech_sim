@@ -5,6 +5,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 from scripts import run_mechanism_repair_physics_experiment as physics
 from scripts.prepare_mechanism_repair_physics_benchmark import (
     EVAL_SEEDS,
@@ -1991,3 +1993,46 @@ def test_write_shard_files_materializes_grouped_valid_shards(tmp_path: Path) -> 
     assert len(observed) == len(set(observed))
     assert by_group
     assert all(len(shards) == 1 for shards in by_group.values())
+
+
+def test_write_shard_files_preserves_existing_files_on_write_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    full = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    shard_dir = out_dir / "experiment_shards"
+    old_payload = {
+        "schema": "old",
+        "num_shards": 1,
+        "shard_index": 0,
+        "cells": [],
+    }
+    _write_json(shard_dir / "shard_0000.json", old_payload)
+
+    def fail_write(path: Path, payload: dict) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload), encoding="utf-8")
+        raise RuntimeError("disk write failed")
+
+    monkeypatch.setattr(physics, "write_json", fail_write)
+
+    with pytest.raises(RuntimeError, match="disk write failed"):
+        physics.write_shard_files(out_dir=out_dir, plan=full, num_shards=5)
+
+    assert json.loads((shard_dir / "shard_0000.json").read_text()) == old_payload
+    assert list(shard_dir.glob("*.tmp")) == []
+    assert list(shard_dir.glob(".*.tmp")) == []

@@ -14,6 +14,7 @@ import argparse
 import csv
 import hashlib
 import json
+import os
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -782,8 +783,6 @@ def write_shard_files(
         raise SystemExit("--write-shard-files must be >= 1")
     shard_dir = out_dir / "experiment_shards"
     shard_dir.mkdir(parents=True, exist_ok=True)
-    for stale in shard_dir.glob("shard_*.json"):
-        stale.unlink()
     cells = list(plan.get("expected_cells", []) or [])
     shard_payloads = []
     for shard_index in range(num_shards):
@@ -823,11 +822,25 @@ def write_shard_files(
         }
         shard_payloads.append(payload)
     validate_shard_payloads(shard_payloads)
-    for payload in shard_payloads:
-        write_json(
-            shard_dir / f"shard_{int(payload['shard_index']):04d}.json",
-            payload,
-        )
+    temp_targets: list[tuple[Path, Path]] = []
+    target_names: set[str] = set()
+    temp_token = f"{os.getpid()}-{id(shard_payloads)}"
+    try:
+        for payload in shard_payloads:
+            target = shard_dir / f"shard_{int(payload['shard_index']):04d}.json"
+            temp = shard_dir / f".{target.name}.{temp_token}.tmp"
+            temp_targets.append((temp, target))
+            target_names.add(target.name)
+            write_json(temp, payload)
+        for temp, target in temp_targets:
+            temp.replace(target)
+        for stale in shard_dir.glob("shard_*.json"):
+            if stale.name not in target_names:
+                stale.unlink()
+    finally:
+        for temp, _target in temp_targets:
+            if temp.exists():
+                temp.unlink()
 
 
 def validate_shard_payloads(payloads: list[dict[str, Any]]) -> None:
