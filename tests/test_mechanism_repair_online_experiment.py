@@ -1589,6 +1589,7 @@ def test_sft_runner_passes_kbit_preparation_flags(
         sft_load_in_8bit=False,
         sft_prepare_kbit_training=True,
         sft_prepare_kbit_training_mode="lightweight",
+        sft_use_cpu=True,
         sft_gradient_checkpointing=True,
         sft_trust_remote_code=True,
         sft_torch_dtype="bfloat16",
@@ -1614,7 +1615,69 @@ def test_sft_runner_passes_kbit_preparation_flags(
     assert cmd[cmd.index("--prepare-kbit-training-mode") + 1] == "lightweight"
     assert "--max-grad-norm" in cmd
     assert cmd[cmd.index("--max-grad-norm") + 1] == "1.0"
+    assert "--use-cpu" in cmd
     assert "--gradient-checkpointing" in cmd
+
+
+def test_sft_resume_discards_incomplete_manifest(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    captured: dict[str, list[str]] = {}
+    run_dir = tmp_path / "sft"
+    run_dir.mkdir(parents=True)
+    (run_dir / "run_manifest.json").write_text(
+        json.dumps({"schema": "incomplete"}) + "\n"
+    )
+
+    def fake_run(cmd: list[str], *, timeout: float) -> None:
+        captured["cmd"] = cmd
+        adapter = run_dir / "final_adapter"
+        adapter.mkdir(parents=True)
+        (run_dir / "run_manifest.json").write_text(
+            json.dumps({
+                "adapter_updates": 4,
+                "final_adapter": str(adapter),
+                "optimizer_guard": {
+                    "attempted_steps": 4,
+                    "successful_steps": 4,
+                },
+            })
+        )
+
+    monkeypatch.setattr(online, "run", fake_run)
+    args = Namespace(
+        sft_runner="python",
+        base_model="base",
+        sft_max_steps=4,
+        sft_learning_rate=5e-6,
+        sft_max_grad_norm=1.0,
+        sft_max_seq_length=512,
+        sft_lora_rank=16,
+        sft_load_in_4bit=False,
+        sft_load_in_8bit=False,
+        sft_prepare_kbit_training=False,
+        sft_prepare_kbit_training_mode="peft",
+        sft_use_cpu=True,
+        sft_gradient_checkpointing=False,
+        sft_trust_remote_code=False,
+        sft_torch_dtype=None,
+        sft_attn_implementation=None,
+        sft_device_map=None,
+        train_timeout_s=60.0,
+    )
+
+    adapter = run_or_load_sft(
+        args=args,
+        run_dir=run_dir,
+        tasks_root=tmp_path / "tasks",
+        train_file=tmp_path / "train.txt",
+        seed=20260607,
+        resume_existing=True,
+    )
+
+    assert captured["cmd"]
+    assert adapter == str(run_dir / "final_adapter")
 
 
 def test_non_resume_reset_removes_stale_experiment_outputs(tmp_path: Path) -> None:
@@ -1695,6 +1758,7 @@ def test_ttrl_runner_passes_lightweight_kbit_prepare_mode(
         ttrl_load_in_4bit=True,
         ttrl_load_in_8bit=False,
         ttrl_kbit_prepare_mode="lightweight",
+        ttrl_use_cpu=True,
         ttrl_gradient_checkpointing=True,
         ttrl_trust_remote_code=True,
         ttrl_bf16=True,
@@ -1732,6 +1796,7 @@ def test_ttrl_runner_passes_lightweight_kbit_prepare_mode(
     assert row["actual_budget_matches_primary"] is True
     assert "--kbit-prepare-mode" in cmd
     assert cmd[cmd.index("--kbit-prepare-mode") + 1] == "lightweight"
+    assert "--use-cpu" in cmd
     assert "--steps-per-generation" in cmd
     assert cmd[cmd.index("--steps-per-generation") + 1] == "4"
     assert "--per-device-train-batch-size" in cmd

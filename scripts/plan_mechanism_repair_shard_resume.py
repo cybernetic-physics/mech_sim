@@ -360,7 +360,11 @@ def local_shard_command(
             local_device,
             "--local-torch-dtype",
             local_torch_dtype,
+            "--concurrency",
+            "1",
         ])
+        if local_device == "cpu":
+            cmd.extend(["--sft-use-cpu", "--ttrl-use-cpu"])
         if local_trust_remote_code:
             cmd.append("--local-trust-remote-code")
     return cmd

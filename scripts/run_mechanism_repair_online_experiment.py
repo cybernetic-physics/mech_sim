@@ -255,6 +255,7 @@ def main() -> int:
     parser.add_argument("--sft-torch-dtype", default=None)
     parser.add_argument("--sft-attn-implementation", default=None)
     parser.add_argument("--sft-device-map", default=None)
+    parser.add_argument("--sft-use-cpu", action="store_true")
     parser.add_argument("--sft-gradient-checkpointing", action="store_true")
     parser.add_argument("--sft-trust-remote-code", action="store_true")
     parser.add_argument(
@@ -314,6 +315,7 @@ def main() -> int:
     parser.add_argument("--ttrl-fp16", action="store_true")
     parser.add_argument("--ttrl-device-map", default=None)
     parser.add_argument("--ttrl-max-memory", default=None)
+    parser.add_argument("--ttrl-use-cpu", action="store_true")
     parser.add_argument("--ttrl-gradient-checkpointing", action="store_true")
     parser.add_argument("--ttrl-trust-remote-code", action="store_true")
     parser.add_argument(
@@ -1380,16 +1382,24 @@ def run_or_load_sft(
 ) -> str:
     manifest = run_dir / "run_manifest.json"
     if resume_existing and manifest.is_file():
-        payload = json.loads(manifest.read_text())
-        require_learning_manifest(
-            payload,
-            manifest_path=manifest,
-            label="SFT",
-            expected_adapter_updates=int(args.sft_max_steps),
-        )
-        adapter = payload.get("final_adapter")
-        if adapter and Path(adapter).exists():
-            return str(adapter)
+        try:
+            payload = json.loads(manifest.read_text())
+            require_learning_manifest(
+                payload,
+                manifest_path=manifest,
+                label="SFT",
+                expected_adapter_updates=int(args.sft_max_steps),
+            )
+            adapter = payload.get("final_adapter")
+            if adapter and Path(adapter).exists():
+                return str(adapter)
+            raise SystemExit(f"SFT final_adapter missing in {manifest}: {adapter}")
+        except (json.JSONDecodeError, SystemExit) as exc:
+            print(
+                f"[resume] discarding incomplete SFT run: {manifest}: {exc}",
+                file=sys.stderr,
+            )
+            shutil.rmtree(run_dir, ignore_errors=True)
     if not resume_existing and run_dir.exists():
         shutil.rmtree(run_dir)
     cmd = [
@@ -1430,6 +1440,7 @@ def run_or_load_sft(
     )
     add_flag(cmd, args.sft_gradient_checkpointing, "--gradient-checkpointing")
     add_flag(cmd, args.sft_trust_remote_code, "--trust-remote-code")
+    add_flag(cmd, getattr(args, "sft_use_cpu", False), "--use-cpu")
     add_option(cmd, "--torch-dtype", args.sft_torch_dtype)
     add_option(cmd, "--attn-implementation", args.sft_attn_implementation)
     add_option(cmd, "--device-map", args.sft_device_map)
@@ -1663,6 +1674,7 @@ def run_or_load_ttrl_cell(
             add_flag(cmd, args.ttrl_trust_remote_code, "--trust-remote-code")
             add_flag(cmd, getattr(args, "ttrl_bf16", False), "--bf16")
             add_flag(cmd, getattr(args, "ttrl_fp16", False), "--fp16")
+            add_flag(cmd, getattr(args, "ttrl_use_cpu", False), "--use-cpu")
             add_option(cmd, "--torch-dtype", args.ttrl_torch_dtype)
             add_option(cmd, "--attn-implementation", args.ttrl_attn_implementation)
             add_option(cmd, "--device-map", args.ttrl_device_map)

@@ -354,6 +354,11 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--bf16", action="store_true")
     parser.add_argument("--fp16", action="store_true")
+    parser.add_argument(
+        "--use-cpu",
+        action="store_true",
+        help="force Transformers Trainer to train on CPU instead of MPS/CUDA",
+    )
     parser.add_argument("--gradient-checkpointing", action="store_true")
     parser.add_argument("--load-in-4bit", action="store_true")
     parser.add_argument("--load-in-8bit", action="store_true")
@@ -429,6 +434,7 @@ def main() -> int:
             "torch_dtype": args.torch_dtype,
             "attn_implementation": args.attn_implementation,
             "device_map": args.device_map,
+            "use_cpu": bool(args.use_cpu),
             "trust_remote_code": bool(args.trust_remote_code),
         },
     }
@@ -622,6 +628,7 @@ def main() -> int:
         "seed": int(args.seed),
         "bf16": bool(args.bf16),
         "fp16": bool(args.fp16),
+        "use_cpu": bool(args.use_cpu),
         "gradient_checkpointing": bool(args.gradient_checkpointing),
         "remove_unused_columns": False,
         "logging_nan_inf_filter": False,

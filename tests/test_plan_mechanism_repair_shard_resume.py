@@ -144,6 +144,9 @@ def test_resume_plan_can_emit_local_transformers_command(tmp_path: Path) -> None
     assert cmd[cmd.index("--rollout-backend") + 1] == "transformers_local"
     assert cmd[cmd.index("--local-device") + 1] == "cpu"
     assert cmd[cmd.index("--local-torch-dtype") + 1] == "float32"
+    assert cmd[cmd.index("--concurrency") + 1] == "1"
+    assert "--sft-use-cpu" in cmd
+    assert "--ttrl-use-cpu" in cmd
     assert "--local-trust-remote-code" in cmd
 
 
