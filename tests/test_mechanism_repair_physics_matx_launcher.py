@@ -83,6 +83,8 @@ def test_launcher_defaults_to_one_l40() -> None:
     text = SCRIPT.read_text(encoding="utf-8")
 
     assert 'GRES="${GRES:-gpu:l40s:1}"' in text
+    assert 'ALLOW_EXISTING_L40_JOB="${ALLOW_EXISTING_L40_JOB:-0}"' in text
+    assert "Refusing to submit another L40 job" in text
 
 
 def test_launcher_defaults_to_single_local_sampler_concurrency() -> None:
@@ -148,6 +150,18 @@ def test_default_refuses_broad_gpu_array_before_remote_contact() -> None:
     assert proc.returncode == 2
     assert "Refusing to submit a broad GPU array" in proc.stderr
     assert "array_task_count=24" in proc.stderr
+
+
+def test_existing_l40_guard_only_runs_on_submit() -> None:
+    text = SCRIPT.read_text(encoding="utf-8")
+
+    guard = text.split(
+        'if (( submit && ! finalize_only )) && [[ "$GRES" == *l40*',
+        1,
+    )[1].split("fi\narray_spec=", 1)[0]
+
+    assert "squeue -u" in guard
+    assert "ALLOW_EXISTING_L40_JOB" in guard
 
 
 def test_auto_dependents_are_disabled_until_finalize_only() -> None:

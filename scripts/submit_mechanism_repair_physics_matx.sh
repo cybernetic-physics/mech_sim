@@ -25,6 +25,7 @@ ANALYSIS_TIME="${ANALYSIS_TIME:-04:00:00}"
 NUM_SHARDS="${NUM_SHARDS:-24}"
 ARRAY_CONCURRENCY="${ARRAY_CONCURRENCY:-1}"
 ALLOW_HIGH_CLUSTER_USAGE="${ALLOW_HIGH_CLUSTER_USAGE:-0}"
+ALLOW_EXISTING_L40_JOB="${ALLOW_EXISTING_L40_JOB:-0}"
 MAX_ARRAY_TASKS="${MAX_ARRAY_TASKS:-1}"
 SHARD_INDICES="${SHARD_INDICES:-}"
 SUBMIT_DEPENDENTS="${SUBMIT_DEPENDENTS:-auto}"
@@ -122,6 +123,7 @@ Useful overrides:
   NUM_SHARDS=$NUM_SHARDS
   ARRAY_CONCURRENCY=$ARRAY_CONCURRENCY
   ALLOW_HIGH_CLUSTER_USAGE=$ALLOW_HIGH_CLUSTER_USAGE
+  ALLOW_EXISTING_L40_JOB=$ALLOW_EXISTING_L40_JOB
   MAX_ARRAY_TASKS=$MAX_ARRAY_TASKS
   SHARD_INDICES=$SHARD_INDICES
   SUBMIT_DEPENDENTS=$SUBMIT_DEPENDENTS
@@ -228,6 +230,10 @@ if (( NUM_SHARDS < 1 )); then
 fi
 if [[ ! "$ARRAY_CONCURRENCY" =~ ^[1-9][0-9]*$ ]]; then
   echo "ARRAY_CONCURRENCY must be a positive integer" >&2
+  exit 2
+fi
+if [[ "$ALLOW_EXISTING_L40_JOB" != "0" && "$ALLOW_EXISTING_L40_JOB" != "1" ]]; then
+  echo "ALLOW_EXISTING_L40_JOB must be 0 or 1" >&2
   exit 2
 fi
 if [[ ! "$CONCURRENCY" =~ ^[1-9][0-9]*$ ]]; then
@@ -474,6 +480,38 @@ SHARD_INDICES=7. Coordinate with the lab and set ALLOW_HIGH_CLUSTER_USAGE=1
 only when a broader array is explicitly acceptable.
 EOF
   exit 2
+fi
+if (( submit && ! finalize_only )) && [[ "$GRES" == *l40* && "$ALLOW_EXISTING_L40_JOB" != "1" ]]; then
+  if ! existing_l40_jobs="$(ssh "$REMOTE_HOST" bash -s -- "$REMOTE_USER" <<'EOS'
+set -euo pipefail
+remote_user="$1"
+squeue -u "$remote_user" -h -o '%i|%j|%T|%b' \
+  | awk -F'|' 'BEGIN { IGNORECASE = 1 } $4 ~ /l40/ { print }'
+EOS
+  )"; then
+    cat >&2 <<EOF
+Refusing L40 submit because the existing-job check failed.
+
+The goals.md contract forbids queue stacking. Retry only after confirming the
+cluster state manually, or set ALLOW_EXISTING_L40_JOB=1 if the user explicitly
+authorizes overriding this safety check.
+EOF
+    exit 2
+  fi
+  if [[ -n "$existing_l40_jobs" ]]; then
+    cat >&2 <<EOF
+Refusing to submit another L40 job while L40 work is already active or pending.
+
+Existing L40 jobs for $REMOTE_USER:
+$existing_l40_jobs
+
+The goals.md contract allows at most one active or pending L40 job total and
+forbids jamming the queue. Wait for the existing job to finish, cancel the
+extra work deliberately, or set ALLOW_EXISTING_L40_JOB=1 only if the user
+explicitly revises the one-L40 policy.
+EOF
+    exit 2
+  fi
 fi
 array_spec="$array_range%$ARRAY_CONCURRENCY"
 
