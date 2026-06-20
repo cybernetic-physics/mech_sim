@@ -58,6 +58,22 @@ def test_launcher_defaults_to_one_l40() -> None:
     assert 'GRES="${GRES:-gpu:l40s:1}"' in text
 
 
+def test_launcher_defaults_to_no_server_local_cuda_rollout() -> None:
+    text = SCRIPT.read_text(encoding="utf-8")
+
+    assert 'ROLLOUT_BACKEND="${ROLLOUT_BACKEND:-transformers_local}"' in text
+    assert 'LOCAL_DEVICE="${LOCAL_DEVICE:-cuda}"' in text
+    assert 'LOCAL_TORCH_DTYPE="${LOCAL_TORCH_DTYPE:-bfloat16}"' in text
+    assert 'if [[ "$ROLLOUT_BACKEND" == "sglang_chat" ]]; then' in text
+    assert (
+        'echo "Skipping SGLang server startup for rollout backend '
+        '$ROLLOUT_BACKEND"'
+    ) in text
+    assert '--rollout-backend "$ROLLOUT_BACKEND"' in text
+    assert '--local-device "$LOCAL_DEVICE"' in text
+    assert '--local-torch-dtype "$LOCAL_TORCH_DTYPE"' in text
+
+
 def test_launcher_refuses_multi_gpu_gres() -> None:
     proc = run_launcher(SHARD_INDICES="0", GRES="gpu:l40s:2")
 

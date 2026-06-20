@@ -36,6 +36,10 @@ SPLITS="${SPLITS-}"
 ANTI_SHORTCUT_SPLITS="${ANTI_SHORTCUT_SPLITS-__default__}"
 EVAL_SEEDS="${EVAL_SEEDS-}"
 BASE_MODEL="${BASE_MODEL:-Qwen/Qwen2.5-Coder-1.5B-Instruct}"
+ROLLOUT_BACKEND="${ROLLOUT_BACKEND:-transformers_local}"
+LOCAL_DEVICE="${LOCAL_DEVICE:-cuda}"
+LOCAL_TORCH_DTYPE="${LOCAL_TORCH_DTYPE:-bfloat16}"
+LOCAL_TRUST_REMOTE_CODE="${LOCAL_TRUST_REMOTE_CODE:-0}"
 SGLANG_MODEL="${SGLANG_MODEL:-$BASE_MODEL}"
 SGLANG_PORT="${SGLANG_PORT:-30000}"
 SGLANG_PIP_SPEC="${SGLANG_PIP_SPEC:-sglang==0.5.9}"
@@ -123,6 +127,10 @@ Useful overrides:
   ALLOW_DESTRUCTIVE_RESTAGE=$ALLOW_DESTRUCTIVE_RESTAGE
   GRES=$GRES
   BASE_MODEL=$BASE_MODEL
+  ROLLOUT_BACKEND=$ROLLOUT_BACKEND
+  LOCAL_DEVICE=$LOCAL_DEVICE
+  LOCAL_TORCH_DTYPE=$LOCAL_TORCH_DTYPE
+  LOCAL_TRUST_REMOTE_CODE=$LOCAL_TRUST_REMOTE_CODE
   SGLANG_MODEL=$SGLANG_MODEL
   SGLANG_VENV=$SGLANG_VENV
   SHARED_SFT_ROOT=$SHARED_SFT_ROOT
@@ -567,6 +575,7 @@ fi
 sglang_cuda_visible_devices="\${sglang_cuda_visible_devices:-0}"
 train_cuda_visible_devices="\${train_cuda_visible_devices:-0}"
 echo "CUDA split: sglang=\$sglang_cuda_visible_devices train=\$train_cuda_visible_devices"
+echo "Rollout backend: $ROLLOUT_BACKEND local_device=$LOCAL_DEVICE local_torch_dtype=$LOCAL_TORCH_DTYPE"
 sglang_port="$SGLANG_PORT"
 if [[ "\${SLURM_ARRAY_TASK_ID:-}" =~ ^[0-9]+$ ]]; then
   sglang_port="\$(( $SGLANG_PORT + SLURM_ARRAY_TASK_ID ))"
@@ -574,46 +583,47 @@ fi
 export SGLANG_EFFECTIVE_PORT="\$sglang_port"
 echo "SGLang port: \$sglang_port"
 
-sglang_venv="$SGLANG_VENV"
-(
-  flock 9
-  sglang_ready_marker="\$sglang_venv/.corl_sglang_ready"
-  if [[ ! -x "\$sglang_venv/bin/python" ]]; then
-    rm -rf "\$sglang_venv"
-    python3 -m venv "\$sglang_venv"
-    "\$sglang_venv/bin/python" -m pip install --upgrade pip
-    rm -f "\$sglang_ready_marker"
+if [[ "$ROLLOUT_BACKEND" == "sglang_chat" ]]; then
+  sglang_venv="$SGLANG_VENV"
+  (
+    flock 9
+    sglang_ready_marker="\$sglang_venv/.corl_sglang_ready"
+    if [[ ! -x "\$sglang_venv/bin/python" ]]; then
+      rm -rf "\$sglang_venv"
+      python3 -m venv "\$sglang_venv"
+      "\$sglang_venv/bin/python" -m pip install --upgrade pip
+      rm -f "\$sglang_ready_marker"
+    fi
+    if [[ ! -f "\$sglang_ready_marker" ]]; then
+      "\$sglang_venv/bin/python" -m pip install "$SGLANG_PIP_SPEC" $SGLANG_PIP_EXTRA
+      touch "\$sglang_ready_marker"
+    fi
+  ) 9>"$REMOTE_ROOT/locks/sglang_venv.lock"
+  export PATH="\$sglang_venv/bin:\$PATH"
+  sglang_log="$remote_logs/sglang-\${SLURM_ARRAY_JOB_ID:-manual}_\${SLURM_ARRAY_TASK_ID:-0}.log"
+  if ! ss -tln 2>/dev/null | grep -q ":\$sglang_port "; then
+    nohup env CUDA_VISIBLE_DEVICES="\$sglang_cuda_visible_devices" \\
+      "\$sglang_venv/bin/python" -m sglang.launch_server \\
+      --model-path "$SGLANG_MODEL" \\
+      --host 127.0.0.1 \\
+      --port "\$sglang_port" \\
+      --dtype bfloat16 \\
+      --tp "$SGLANG_TP" \\
+      --context-length "$SGLANG_CTX" \\
+      --max-running-requests "$SGLANG_MAX_REQS" \\
+      --mem-fraction-static "$SGLANG_MEM_FRAC" \\
+      --trust-remote-code \\
+      --served-model-name "$BASE_MODEL" \\
+      --enable-lora \\
+      --max-lora-rank 16 \\
+      --lora-target-modules q_proj k_proj v_proj o_proj \\
+      --attention-backend triton \\
+      --sampling-backend pytorch \\
+      >"\$sglang_log" 2>&1 &
   fi
-  if [[ ! -f "\$sglang_ready_marker" ]]; then
-    "\$sglang_venv/bin/python" -m pip install "$SGLANG_PIP_SPEC" $SGLANG_PIP_EXTRA
-    touch "\$sglang_ready_marker"
-  fi
-) 9>"$REMOTE_ROOT/locks/sglang_venv.lock"
-export PATH="\$sglang_venv/bin:\$PATH"
-sglang_log="$remote_logs/sglang-\${SLURM_ARRAY_JOB_ID:-manual}_\${SLURM_ARRAY_TASK_ID:-0}.log"
-if ! ss -tln 2>/dev/null | grep -q ":\$sglang_port "; then
-  nohup env CUDA_VISIBLE_DEVICES="\$sglang_cuda_visible_devices" \\
-    "\$sglang_venv/bin/python" -m sglang.launch_server \\
-    --model-path "$SGLANG_MODEL" \\
-    --host 127.0.0.1 \\
-    --port "\$sglang_port" \\
-    --dtype bfloat16 \\
-    --tp "$SGLANG_TP" \\
-    --context-length "$SGLANG_CTX" \\
-    --max-running-requests "$SGLANG_MAX_REQS" \\
-    --mem-fraction-static "$SGLANG_MEM_FRAC" \\
-    --trust-remote-code \\
-    --served-model-name "$BASE_MODEL" \\
-    --enable-lora \\
-    --max-lora-rank 16 \\
-    --lora-target-modules q_proj k_proj v_proj o_proj \\
-    --attention-backend triton \\
-    --sampling-backend pytorch \\
-    >"\$sglang_log" 2>&1 &
-fi
 
-for i in \$(seq 1 120); do
-  if python3 - <<'PY' >/dev/null 2>&1
+  for i in \$(seq 1 120); do
+    if python3 - <<'PY' >/dev/null 2>&1
 import urllib.request
 import os
 urllib.request.urlopen(
@@ -621,17 +631,20 @@ urllib.request.urlopen(
     timeout=2,
 ).read()
 PY
-  then
-    echo "SGLang is ready"
-    break
-  fi
-  if [[ "\$i" == 120 ]]; then
-    echo "SGLang did not become ready; tailing log" >&2
-    tail -200 "\$sglang_log" >&2 || true
-    exit 1
-  fi
-  sleep 10
-done
+    then
+      echo "SGLang is ready"
+      break
+    fi
+    if [[ "\$i" == 120 ]]; then
+      echo "SGLang did not become ready; tailing log" >&2
+      tail -200 "\$sglang_log" >&2 || true
+      exit 1
+    fi
+    sleep 10
+  done
+else
+  echo "Skipping SGLang server startup for rollout backend $ROLLOUT_BACKEND"
+fi
 
 shard_index="\${SLURM_ARRAY_TASK_ID:-0}"
 shard_name="\$(printf 'shard_%04d' "\$shard_index")"
@@ -723,6 +736,10 @@ ttrl_gradient_args=()
 if [[ "$TTRL_GRADIENT_CHECKPOINTING" == "1" ]]; then
   ttrl_gradient_args+=(--ttrl-gradient-checkpointing)
 fi
+local_trust_args=()
+if [[ "$LOCAL_TRUST_REMOTE_CODE" == "1" ]]; then
+  local_trust_args+=(--local-trust-remote-code)
+fi
 
 exec env CUDA_VISIBLE_DEVICES="\$train_cuda_visible_devices" \\
   "\$repo_python" scripts/run_mechanism_repair_online_experiment.py \\
@@ -731,6 +748,10 @@ exec env CUDA_VISIBLE_DEVICES="\$train_cuda_visible_devices" \\
   --cell-shard-file "\$shard_file" \\
   --runner-python "\$repo_python" \\
   --base-model "$BASE_MODEL" \\
+  --rollout-backend "$ROLLOUT_BACKEND" \\
+  --local-device "$LOCAL_DEVICE" \\
+  --local-torch-dtype "$LOCAL_TORCH_DTYPE" \\
+  "\${local_trust_args[@]}" \\
   --sglang-base-url "http://127.0.0.1:\$sglang_port" \\
   --audit-retries "$AUDIT_RETRIES" \\
   --evidence-layout "$EVIDENCE_LAYOUT" \\
