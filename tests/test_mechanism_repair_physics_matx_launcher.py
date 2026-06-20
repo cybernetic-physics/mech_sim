@@ -79,6 +79,14 @@ def test_non_finalize_refuses_dependent_merge_before_remote_contact() -> None:
     assert "--finalize-only" in proc.stderr
 
 
+def test_analysis_job_propagates_analysis_failure() -> None:
+    text = SCRIPT.read_text(encoding="utf-8")
+
+    assert 'echo "\\$analysis_rc" > "$OUT_DIR/analysis_exit_code.txt"' in text
+    assert 'if [[ "\\$analysis_rc" != "0" ]]; then' in text
+    assert 'exit "\\$analysis_rc"' in text
+
+
 def test_finalize_only_refuses_restaging_before_remote_contact() -> None:
     proc = run_launcher("--finalize-only", RESTAGE_REMOTE_REPO="1")
 

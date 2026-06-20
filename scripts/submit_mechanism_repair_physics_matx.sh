@@ -918,6 +918,9 @@ echo "\$analysis_rc" > "$OUT_DIR/analysis_exit_code.txt"
   --out-dir "$OUT_DIR" \\
   --require-complete
 echo "analysis_exit_code=\$analysis_rc"
+if [[ "\$analysis_rc" != "0" ]]; then
+  exit "\$analysis_rc"
+fi
 EOF
 
 scp "$tmp_analysis" "$REMOTE_HOST:$remote_analysis_sbatch"
