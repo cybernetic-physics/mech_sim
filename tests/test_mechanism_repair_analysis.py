@@ -7,7 +7,10 @@ from scripts.analyze_mechanism_repair_results import (
     analyze_rows,
     build_benchmark_readiness,
     build_expected_coverage,
+    build_failure_analysis,
     build_claim_audit,
+    build_repair_taxonomy,
+    build_trace_pairs,
     load_analysis_contract,
     normalize_rows,
 )
@@ -496,6 +499,84 @@ def test_physics_analysis_rejects_missing_level3_chrono_evidence(
     assert stats["evidence_audit"]["n_missing_chrono_rows"] == 2
     assert audit["claim_status"] == "does_not_support_primary_hypothesis"
     assert any("missing_chrono_rows=2" in item for item in audit["blockers"])
+
+
+def test_mechanistic_artifacts_include_goal_required_fields(
+    tmp_path: Path,
+) -> None:
+    benchmark_dir = tmp_path / "physics"
+    benchmark_dir.mkdir()
+    methods = ["llm_evolve_no_update", "mechanical_evolve_ttrl_tool_verified"]
+    (benchmark_dir / "method_manifest.json").write_text(json.dumps({
+        "schema": "mechanism_repair_physics.method_manifest.v1",
+        "primary_method": "mechanical_evolve_ttrl_tool_verified",
+        "primary_baseline": "llm_evolve_no_update",
+        "primary_budget_expensive_verifier_calls": 32,
+        "eval_seeds": [20260610],
+        "required_methods": methods,
+    }))
+    contract = load_analysis_contract(benchmark_dir)
+    rows = []
+    for method in methods:
+        evidence_dir = tmp_path / "evidence" / method
+        evidence_dir.mkdir(parents=True)
+        first = evidence_dir / "first.json"
+        final = evidence_dir / "final.json"
+        first.write_text(
+            json.dumps({
+                "failure_codes": ["wrong_mobility"],
+                "verified_score": 0.1,
+                "evaluation_valid": False,
+            })
+            + "\n"
+        )
+        final.write_text(
+            json.dumps({
+                "failure_codes": [] if method.endswith("tool_verified") else ["wrong_mobility"],
+                "verified_score": 1.0 if method.endswith("tool_verified") else 0.1,
+                "evaluation_valid": method.endswith("tool_verified"),
+                "hard_gate_passed": method.endswith("tool_verified"),
+            })
+            + "\n"
+        )
+        primary = method == "mechanical_evolve_ttrl_tool_verified"
+        rows.append({
+            "split": "hidden_perturbation",
+            "family": "cycloidal_reducer",
+            "task_id": "hidden_task",
+            "seed": 20260610,
+            "method": method,
+            "verifier_level": 2,
+            "verified_repair_success": primary,
+            "verified_score": 1.0 if primary else 0.1,
+            "actual_verifier_calls": 32,
+            "actual_cad_calls": 1,
+            "actual_chrono_calls": 0,
+            "raw_completion_paths": [str(first)] * 32,
+            "verifier_output_paths": [str(first), str(final)],
+            "failure_codes": "" if primary else "wrong_mobility",
+            "trace_path": str(first) if primary else "",
+            "adapter_path": str(evidence_dir) if primary else "",
+            "adapter_updates": 32 if primary else 0,
+            "trained_tokens": 128 if primary else 0,
+            "rl_trained_tokens": 128 if primary else 0,
+            "n_rl_datums": 32 if primary else 0,
+        })
+
+    normalized = normalize_rows(rows)
+    failure = build_failure_analysis(normalized, contract=contract)
+    pairs = build_trace_pairs(normalized, contract=contract)
+    taxonomy = build_repair_taxonomy(normalized)
+
+    assert failure["failure_code_transition_matrix"]
+    assert failure["adapter_update_timeline"]
+    assert (
+        failure["hidden_perturbation_failure_analysis"]["split"]
+        == "hidden_perturbation"
+    )
+    assert pairs and pairs[0]["same_verifier_budget"] is True
+    assert "topology_repair" in taxonomy["required_goal_dimensions"]
+    assert taxonomy["goal_dimension_counts"]
 
 
 def test_mechanism_repair_analysis_summarizes_secondary_metrics(

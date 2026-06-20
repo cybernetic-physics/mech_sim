@@ -77,6 +77,17 @@ SECONDARY_METRIC_FIELDS = tuple(
 PHYSICS_HIDDEN_VARIANT_SPLIT = "hidden_perturbation"
 PHYSICS_ANTI_SHORTCUT_SPLITS = ("hidden_perturbation", "external_style")
 PHYSICS_MIN_POSITIVE_FAMILIES = 8
+GOAL_REPAIR_TAXONOMY_DIMENSIONS = (
+    "topology_repair",
+    "port_repair",
+    "mobility_repair",
+    "ratio_stroke_path_repair",
+    "cad_artifact_repair",
+    "material_mass_property_repair",
+    "collision_clearance_repair",
+    "contact_lockup_repair",
+    "manufacturability_assembly_repair",
+)
 
 
 @dataclass(frozen=True)
@@ -1142,18 +1153,29 @@ def build_failure_analysis(
         method_family[(method, family)] += 1
         for code in parse_codes(row.get("failure_codes", "")):
             counts[(method, family, code)] += 1
+    first_final_changes = first_to_final_attempt_changes(rows)
     return {
         "schema": "mechanism_repair_ttrl.failure_analysis.v1",
         "counts": [
             {"method": method, "family": family, "failure_code": code, "n": n}
             for (method, family, code), n in sorted(counts.items())
         ],
-        "first_to_final_attempt_changes": first_to_final_attempt_changes(rows),
+        "failure_code_transition_matrix": failure_code_transition_matrix(
+            first_final_changes
+        ),
+        "first_to_final_attempt_changes": first_final_changes,
         "ttrl_vs_no_update_failure_deltas": failure_code_deltas(
             counts,
             method_family,
             primary=contract.primary_method,
             baseline=contract.primary_baseline,
+        ),
+        "adapter_update_timeline": adapter_update_timeline(
+            rows,
+            contract=contract,
+        ),
+        "hidden_perturbation_failure_analysis": hidden_perturbation_failure_analysis(
+            rows
         ),
         "repair_dimension_deltas": repair_dimension_deltas(
             rows,
@@ -1216,13 +1238,17 @@ def build_trace_pairs(
 def build_repair_taxonomy(rows: list[dict[str, Any]]) -> dict[str, Any]:
     by_method_family_dimension: Counter[tuple[str, str, str]] = Counter()
     by_dimension: Counter[str] = Counter()
+    by_goal_dimension: Counter[str] = Counter()
     resolved_by_dimension: Counter[str] = Counter()
+    resolved_by_goal_dimension: Counter[str] = Counter()
     for row in rows:
         method = str(row.get("method") or "")
         family = str(row.get("family") or "")
         for code in parse_codes(row.get("failure_codes", "")):
             dimension = repair_dimension_for_failure_code(code)
+            goal_dimension = goal_repair_dimension_for_failure_code(code)
             by_dimension[dimension] += 1
+            by_goal_dimension[goal_dimension] += 1
             by_method_family_dimension[(method, family, dimension)] += 1
         paths = parse_paths(row.get("verifier_output_paths", []))
         if len(paths) < 2:
@@ -1235,8 +1261,18 @@ def build_repair_taxonomy(rows: list[dict[str, Any]]) -> dict[str, Any]:
         final_codes = set(parse_codes(final.get("failure_codes", [])))
         for code in sorted(first_codes - final_codes):
             resolved_by_dimension[repair_dimension_for_failure_code(code)] += 1
+            resolved_by_goal_dimension[goal_repair_dimension_for_failure_code(code)] += 1
     return {
         "schema": "mechanism_repair_ttrl.repair_taxonomy.v1",
+        "required_goal_dimensions": list(GOAL_REPAIR_TAXONOMY_DIMENSIONS),
+        "goal_dimension_counts": [
+            {"dimension": dimension, "n": by_goal_dimension.get(dimension, 0)}
+            for dimension in GOAL_REPAIR_TAXONOMY_DIMENSIONS
+        ],
+        "resolved_goal_dimension_counts": [
+            {"dimension": dimension, "n": resolved_by_goal_dimension.get(dimension, 0)}
+            for dimension in GOAL_REPAIR_TAXONOMY_DIMENSIONS
+        ],
         "dimension_counts": [
             {"dimension": dimension, "n": n}
             for dimension, n in sorted(by_dimension.items())
@@ -1294,6 +1330,25 @@ def build_repair_taxonomy(rows: list[dict[str, Any]]) -> dict[str, Any]:
             "runtime_or_sampling": ["timeout", "sampler", "parse", "execution"],
         },
     }
+
+
+def goal_repair_dimension_for_failure_code(code: str) -> str:
+    text = code.lower()
+    buckets = [
+        ("port_repair", ("port", "interface", "io")),
+        ("mobility_repair", ("mobility", "dof")),
+        ("topology_repair", ("topology", "ground", "joint", "kinematic")),
+        ("ratio_stroke_path_repair", ("ratio", "stroke", "path", "timing", "travel", "index")),
+        ("cad_artifact_repair", ("cad", "artifact", "geometry", "watertight", "manifold")),
+        ("material_mass_property_repair", ("mass", "material", "inertia", "com")),
+        ("collision_clearance_repair", ("collision", "clearance", "overlap", "penetration")),
+        ("contact_lockup_repair", ("chrono", "contact", "lockup", "force", "torque", "power")),
+        ("manufacturability_assembly_repair", ("manufactur", "assembly", "fastener", "tolerance")),
+    ]
+    for dimension, needles in buckets:
+        if any(needle in text for needle in needles):
+            return dimension
+    return "topology_repair"
 
 
 def repair_dimension_for_failure_code(code: str) -> str:
@@ -1359,6 +1414,94 @@ def first_to_final_attempt_changes(rows: list[dict[str, Any]]) -> list[dict[str,
             "final_hard_gate_passed": bool_value(final.get("hard_gate_passed", False)),
         })
     return changes
+
+
+def failure_code_transition_matrix(
+    changes: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    counts: Counter[tuple[str, str, str, str, str]] = Counter()
+    for row in changes:
+        first_codes = list(row.get("first_failure_codes") or []) or ["<none>"]
+        final_codes = list(row.get("final_failure_codes") or []) or ["<none>"]
+        for first_code in first_codes:
+            for final_code in final_codes:
+                counts[(
+                    str(row.get("method") or ""),
+                    str(row.get("family") or ""),
+                    str(first_code),
+                    str(final_code),
+                    repair_dimension_for_failure_code(str(first_code)),
+                )] += 1
+    return [
+        {
+            "method": method,
+            "family": family,
+            "first_failure_code": first_code,
+            "final_failure_code": final_code,
+            "repair_dimension": dimension,
+            "n": n,
+        }
+        for (method, family, first_code, final_code, dimension), n
+        in sorted(counts.items())
+    ]
+
+
+def adapter_update_timeline(
+    rows: list[dict[str, Any]],
+    *,
+    contract: AnalysisContract = DEFAULT_CONTRACT,
+) -> list[dict[str, Any]]:
+    timeline: list[dict[str, Any]] = []
+    for row in rows:
+        if str(row.get("method") or "") not in contract.learning_methods:
+            continue
+        timeline.append({
+            "split": str(row.get("split") or ""),
+            "family": str(row.get("family") or ""),
+            "task_id": str(row.get("task_id") or ""),
+            "seed": int(row.get("seed", 0) or 0),
+            "method": str(row.get("method") or ""),
+            "adapter_updates": int(row.get("adapter_updates", 0) or 0),
+            "trained_tokens": int(row.get("trained_tokens", 0) or 0),
+            "rl_datums": int(row.get("n_rl_datums", row.get("rl_datums", 0)) or 0),
+            "rl_trained_tokens": int(row.get("rl_trained_tokens", 0) or 0),
+            "verified_repair_success_at_32": bool_value(
+                row.get("verified_repair_success_at_32", False)
+            ),
+            "best_verified_reward_at_32": float_value(
+                row.get("best_verified_reward_at_32", 0.0)
+            ),
+            "first_valid_verifier_call": row.get("first_valid_verifier_call"),
+        })
+    return timeline
+
+
+def hidden_perturbation_failure_analysis(
+    rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    hidden_rows = [
+        row for row in rows
+        if str(row.get("split") or "") == PHYSICS_HIDDEN_VARIANT_SPLIT
+    ]
+    counts: Counter[tuple[str, str]] = Counter()
+    method_counts: Counter[str] = Counter()
+    for row in hidden_rows:
+        method = str(row.get("method") or "")
+        method_counts[method] += 1
+        for code in parse_codes(row.get("failure_codes", "")) or ["<none>"]:
+            counts[(method, code)] += 1
+    return {
+        "split": PHYSICS_HIDDEN_VARIANT_SPLIT,
+        "rows": len(hidden_rows),
+        "method_counts": [
+            {"method": method, "n": n}
+            for method, n in sorted(method_counts.items())
+        ],
+        "failure_counts": [
+            {"method": method, "failure_code": code, "n": n}
+            for (method, code), n in sorted(counts.items())
+        ],
+    }
 
 
 def failure_code_deltas(

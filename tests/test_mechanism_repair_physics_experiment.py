@@ -94,6 +94,7 @@ def _write_complete_negative_stats(out_dir: Path) -> None:
         {
             "headline_metric_filter": "verifier_level>=2",
             "headline_metric_rows": 1,
+            "evidence_audit": {"required_min_trace_pairs": 1},
             "primary_comparison": {
                 "success_delta_pct": 0.0,
                 "success_delta_ci95": {"low": 0.0, "high": 0.0},
@@ -153,6 +154,81 @@ def _write_complete_negative_stats(out_dir: Path) -> None:
                 "claim_status": "does_not_support_primary_hypothesis",
                 "blockers": ["synthetic negative result"],
             },
+        },
+    )
+
+
+def _write_complete_mechanistic_analysis(out_dir: Path) -> None:
+    _write_json(
+        out_dir / "failure_analysis.json",
+        {
+            "schema": "mechanism_repair_ttrl.failure_analysis.v1",
+            "failure_code_transition_matrix": [
+                {
+                    "method": "mechanical_evolve_ttrl_tool_verified",
+                    "family": "cycloidal_reducer",
+                    "first_failure_code": "wrong_mobility",
+                    "final_failure_code": "<none>",
+                    "repair_dimension": "topology_mobility",
+                    "n": 1,
+                }
+            ],
+            "first_to_final_attempt_changes": [
+                {
+                    "split": "hidden_perturbation",
+                    "family": "cycloidal_reducer",
+                    "task_id": "task",
+                    "seed": 20260610,
+                    "method": "mechanical_evolve_ttrl_tool_verified",
+                    "attempts": 2,
+                }
+            ],
+            "ttrl_vs_no_update_failure_deltas": [],
+            "repair_dimension_deltas": [],
+            "adapter_update_timeline": [
+                {
+                    "split": "hidden_perturbation",
+                    "family": "cycloidal_reducer",
+                    "task_id": "task",
+                    "seed": 20260610,
+                    "method": "mechanical_evolve_ttrl_tool_verified",
+                    "adapter_updates": 1,
+                    "verified_repair_success_at_32": False,
+                }
+            ],
+            "hidden_perturbation_failure_analysis": {
+                "split": "hidden_perturbation",
+                "rows": 1,
+                "failure_counts": [],
+            },
+        },
+    )
+    _write_json(
+        out_dir / "trace_pairs.json",
+        {
+            "pairs": [
+                {
+                    "split": "hidden_perturbation",
+                    "family": "cycloidal_reducer",
+                    "task_id": "task",
+                    "seed": 20260610,
+                    "same_verifier_budget": True,
+                }
+            ]
+        },
+    )
+    _write_json(
+        out_dir / "repair_taxonomy.json",
+        {
+            "schema": "mechanism_repair_ttrl.repair_taxonomy.v1",
+            "required_goal_dimensions": list(
+                physics.REQUIRED_REPAIR_TAXONOMY_DIMENSIONS
+            ),
+            "goal_dimension_counts": [
+                {"dimension": dimension, "n": 0}
+                for dimension in physics.REQUIRED_REPAIR_TAXONOMY_DIMENSIONS
+            ],
+            "dimension_map": {},
         },
     )
 
@@ -391,8 +467,7 @@ def _write_complete_physics_rows(out_dir: Path, plan: dict, audit_counts) -> Non
                 row.update({"n_rl_datums": 4, "rl_trained_tokens": 16})
         rows.append(row)
     _write_result_artifacts(out_dir, rows)
-    for name in ("failure_analysis.json", "trace_pairs.json", "repair_taxonomy.json"):
-        _write_json(out_dir / name, {"schema": "test"})
+    _write_complete_mechanistic_analysis(out_dir)
     _write_complete_negative_stats(out_dir)
 
 
@@ -614,8 +689,7 @@ def test_complete_synthetic_evidence_gets_binary_claim_status(
                 row.update({"n_rl_datums": 4, "rl_trained_tokens": 16})
         rows.append(row)
     _write_result_artifacts(out_dir, rows)
-    for name in ("failure_analysis.json", "trace_pairs.json", "repair_taxonomy.json"):
-        _write_json(out_dir / name, {"schema": "test"})
+    _write_complete_mechanistic_analysis(out_dir)
     _write_complete_negative_stats(out_dir)
 
     audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
@@ -688,6 +762,38 @@ def test_missing_secondary_metric_blocks_goal_completion(tmp_path: Path) -> None
     assert any(
         "method_summary.secondary_metrics: cad_valid_rate" == item
         for item in audit["claim_audit"]["missing_analysis_requirements"]
+    )
+
+
+def test_missing_mechanistic_analysis_field_blocks_goal_completion(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    _write_complete_physics_rows(out_dir, plan, lambda _cell: (1, 1))
+    failure_path = out_dir / "failure_analysis.json"
+    failure = json.loads(failure_path.read_text())
+    del failure["adapter_update_timeline"]
+    _write_json(failure_path, failure)
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert "failure_analysis.adapter_update_timeline" in (
+        audit["claim_audit"]["missing_analysis_requirements"]
     )
 
 
@@ -770,8 +876,7 @@ def test_unreached_cad_chrono_obligation_evidence_is_not_budget_mismatch(
                 row.update({"n_rl_datums": 4, "rl_trained_tokens": 16})
         rows.append(row)
     _write_result_artifacts(out_dir, rows)
-    for name in ("failure_analysis.json", "trace_pairs.json", "repair_taxonomy.json"):
-        _write_json(out_dir / name, {"schema": "test"})
+    _write_complete_mechanistic_analysis(out_dir)
     _write_complete_negative_stats(out_dir)
 
     audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)

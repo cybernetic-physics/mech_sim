@@ -85,6 +85,17 @@ REQUIRED_SECONDARY_METRICS = (
     "trained_tokens",
     "rl_trained_tokens",
 )
+REQUIRED_REPAIR_TAXONOMY_DIMENSIONS = (
+    "topology_repair",
+    "port_repair",
+    "mobility_repair",
+    "ratio_stroke_path_repair",
+    "cad_artifact_repair",
+    "material_mass_property_repair",
+    "collision_clearance_repair",
+    "contact_lockup_repair",
+    "manufacturability_assembly_repair",
+)
 
 
 def main() -> int:
@@ -979,6 +990,49 @@ def analysis_requirement_blockers(out_dir: Path) -> list[str]:
         for row in leave_one
     ):
         blockers.append("leave_one_family_out.keeps_positive_success_delta")
+    required_trace_pairs = int_value(
+        (stats.get("evidence_audit") or {}).get("required_min_trace_pairs", 24)
+    )
+    trace_pairs_path = out_dir / "trace_pairs.json"
+    if trace_pairs_path.is_file():
+        trace_pairs = read_json(trace_pairs_path).get("pairs")
+        if not isinstance(trace_pairs, list):
+            blockers.append("trace_pairs.pairs")
+        elif len(trace_pairs) < required_trace_pairs:
+            blockers.append(f"trace_pairs at least {required_trace_pairs} pairs")
+    failure_path = out_dir / "failure_analysis.json"
+    if failure_path.is_file():
+        failure = read_json(failure_path)
+        required_failure_fields = (
+            "failure_code_transition_matrix",
+            "first_to_final_attempt_changes",
+            "ttrl_vs_no_update_failure_deltas",
+            "repair_dimension_deltas",
+            "adapter_update_timeline",
+            "hidden_perturbation_failure_analysis",
+        )
+        for field in required_failure_fields:
+            if field not in failure:
+                blockers.append(f"failure_analysis.{field}")
+        if not isinstance(failure.get("adapter_update_timeline"), list):
+            blockers.append("failure_analysis.adapter_update_timeline list")
+        hidden_failure = failure.get("hidden_perturbation_failure_analysis")
+        if not isinstance(hidden_failure, dict) or hidden_failure.get("split") != "hidden_perturbation":
+            blockers.append("failure_analysis.hidden_perturbation_failure_analysis")
+    taxonomy_path = out_dir / "repair_taxonomy.json"
+    if taxonomy_path.is_file():
+        taxonomy = read_json(taxonomy_path)
+        required_dims = set(REQUIRED_REPAIR_TAXONOMY_DIMENSIONS)
+        observed_dims = set(taxonomy.get("required_goal_dimensions") or [])
+        missing_dims = sorted(required_dims - observed_dims)
+        if missing_dims:
+            blockers.append(
+                "repair_taxonomy.required_goal_dimensions: "
+                + ", ".join(missing_dims)
+            )
+        goal_counts = taxonomy.get("goal_dimension_counts")
+        if not isinstance(goal_counts, list):
+            blockers.append("repair_taxonomy.goal_dimension_counts")
     claim = stats.get("analysis_claim_audit") or {}
     if claim.get("claim_status") not in {
         "supports_primary_hypothesis",
