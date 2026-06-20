@@ -695,6 +695,7 @@ def test_complete_synthetic_evidence_gets_binary_claim_status(
     audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
 
     assert audit["claim_audit"]["goal_complete"] is True
+    assert audit["claim_audit"]["result_bundle_audit"]["consistent"] is True
     assert (
         audit["claim_audit"]["claim_status"]
         == "does_not_support_primary_hypothesis"
@@ -727,6 +728,41 @@ def test_missing_result_bundle_blocks_goal_completion(tmp_path: Path) -> None:
 
     assert audit["claim_audit"]["goal_complete"] is False
     assert audit["claim_audit"]["missing_result_artifacts"] == ["results.csv"]
+    assert any(
+        "final result bundle" in item
+        for item in audit["claim_audit"]["blockers"]
+    )
+
+
+def test_mismatched_result_bundle_blocks_goal_completion(tmp_path: Path) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    _write_complete_physics_rows(out_dir, plan, lambda _cell: (1, 1))
+    bundle = json.loads((out_dir / "results.json").read_text())
+    bundle["rows"] = bundle["rows"][:-1]
+    _write_json(out_dir / "results.json", bundle)
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert audit["claim_audit"]["result_bundle_audit"]["consistent"] is False
+    assert (
+        audit["claim_audit"]["result_bundle_audit"]["errors"][0]["artifact"]
+        == "results.json"
+    )
     assert any(
         "final result bundle" in item
         for item in audit["claim_audit"]["blockers"]

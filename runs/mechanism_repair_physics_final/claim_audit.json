@@ -32,6 +32,14 @@
   "num_shards": 1,
   "observed_rows": 0,
   "planned_cells": 6480,
+  "result_bundle_audit": {
+    "artifacts_present": false,
+    "consistent": false,
+    "error_count": 0,
+    "errors": [],
+    "jsonl_rows": 0,
+    "schema": "mechanism_repair_physics.result_bundle_audit.v1"
+  },
   "sample_missing_evidence": [],
   "sample_missing_learning": [],
   "schema": "mechanism_repair_physics.experiment_claim_audit.v1",

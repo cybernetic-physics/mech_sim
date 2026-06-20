@@ -11,8 +11,10 @@ coverage, and analysis artifacts.
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import json
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -609,6 +611,11 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
     missing_result_artifacts = [
         name for name in RESULT_ARTIFACTS if not (out_dir / name).is_file()
     ]
+    result_bundle_audit = audit_result_bundle(
+        out_dir=out_dir,
+        rows=rows,
+        default_budget=int(plan["primary_budget"]),
+    )
     missing_run_dirs = [
         name for name in REQUIRED_RUN_DIRS if not (out_dir / name).is_dir()
     ]
@@ -675,6 +682,7 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
         missing_evidence=missing_evidence,
         missing_learning=missing_learning,
         missing_result_artifacts=missing_result_artifacts,
+        result_bundle_audit=result_bundle_audit,
         missing_run_dirs=missing_run_dirs,
         missing_analysis=missing_analysis,
         missing_analysis_requirements=missing_analysis_requirements,
@@ -697,6 +705,7 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
         "missing_evidence_count": len(missing_evidence),
         "missing_learning_count": len(missing_learning),
         "missing_result_artifacts": missing_result_artifacts,
+        "result_bundle_audit": result_bundle_audit,
         "missing_run_dirs": missing_run_dirs,
         "missing_analysis_artifacts": missing_analysis,
         "missing_analysis_requirements": missing_analysis_requirements,
@@ -853,6 +862,7 @@ def build_blockers(
     missing_evidence: list[dict[str, Any]],
     missing_learning: list[dict[str, Any]],
     missing_result_artifacts: list[str],
+    result_bundle_audit: dict[str, Any],
     missing_run_dirs: list[str],
     missing_analysis: list[str],
     missing_analysis_requirements: list[str],
@@ -874,7 +884,11 @@ def build_blockers(
         blockers.append("record raw completions and verifier/CAD/Chrono outputs")
     if missing_learning:
         blockers.append("preserve training logs and adapter checkpoints for TTRL cells")
-    if missing_result_artifacts or missing_run_dirs:
+    if (
+        missing_result_artifacts
+        or missing_run_dirs
+        or not result_bundle_audit.get("consistent", False)
+    ):
         blockers.append("write final result bundle files and artifact directories")
     if not anti_shortcut_audit["anti_shortcut_executed"]:
         blockers.append("run hidden/isomorphic anti-shortcut variants")
@@ -1186,6 +1200,94 @@ def load_rows(path: Path) -> list[dict[str, Any]]:
     if not path.is_file():
         return []
     return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+
+
+def audit_result_bundle(
+    *,
+    out_dir: Path,
+    rows: list[dict[str, Any]],
+    default_budget: int,
+) -> dict[str, Any]:
+    errors: list[dict[str, Any]] = []
+    expected_counts = row_key_counter(rows, default_budget=default_budget)
+    for artifact, path, loader in (
+        ("results.json", out_dir / "results.json", load_result_json_rows),
+        ("results.csv", out_dir / "results.csv", load_result_csv_rows),
+    ):
+        if not path.is_file():
+            continue
+        try:
+            artifact_rows = loader(path)
+        except (OSError, ValueError, csv.Error) as exc:
+            errors.append({
+                "artifact": artifact,
+                "reason": "parse_error",
+                "error": str(exc),
+            })
+            continue
+        if not isinstance(artifact_rows, list):
+            errors.append({"artifact": artifact, "reason": "rows_not_list"})
+            continue
+        artifact_counts = row_key_counter(
+            artifact_rows,
+            default_budget=default_budget,
+        )
+        if len(artifact_rows) != len(rows) or artifact_counts != expected_counts:
+            errors.append({
+                "artifact": artifact,
+                "reason": "row_key_mismatch",
+                "jsonl_rows": len(rows),
+                "artifact_rows": len(artifact_rows),
+                "missing_from_artifact": counter_sample(
+                    expected_counts - artifact_counts
+                ),
+                "extra_in_artifact": counter_sample(
+                    artifact_counts - expected_counts
+                ),
+            })
+    artifacts_present = all((out_dir / name).is_file() for name in RESULT_ARTIFACTS)
+    return {
+        "schema": "mechanism_repair_physics.result_bundle_audit.v1",
+        "artifacts_present": artifacts_present,
+        "jsonl_rows": len(rows),
+        "consistent": artifacts_present and not errors,
+        "error_count": len(errors),
+        "errors": errors[:25],
+    }
+
+
+def load_result_json_rows(path: Path) -> list[dict[str, Any]]:
+    data = json.loads(path.read_text())
+    if isinstance(data, list):
+        return [dict(row) for row in data]
+    if isinstance(data, dict) and isinstance(data.get("rows"), list):
+        return [dict(row) for row in data["rows"]]
+    raise ValueError("results JSON does not contain rows")
+
+
+def load_result_csv_rows(path: Path) -> list[dict[str, Any]]:
+    with path.open(newline="") as handle:
+        return [dict(row) for row in csv.DictReader(handle)]
+
+
+def row_key_counter(
+    rows: list[dict[str, Any]],
+    *,
+    default_budget: int,
+) -> Counter[str]:
+    return Counter(
+        cell_key_text(row_key(row, default_budget=default_budget))
+        for row in rows
+    )
+
+
+def counter_sample(counts: Counter[str], limit: int = 25) -> list[str]:
+    sample: list[str] = []
+    for key, count in sorted(counts.items()):
+        sample.extend([key] * int(count))
+        if len(sample) >= limit:
+            return sample[:limit]
+    return sample
 
 
 def row_key(
