@@ -71,6 +71,23 @@ def _write_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
 
 
+def _write_result_artifacts(out_dir: Path, rows: list[dict]) -> None:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "cell_results.jsonl").write_text(
+        "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows)
+    )
+    _write_json(out_dir / "results.json", {"rows": rows})
+    fields = sorted({key for row in rows for key in row})
+    with (out_dir / "results.csv").open("w", encoding="utf-8") as f:
+        f.write(",".join(fields) + "\n")
+        for row in rows:
+            values = (
+                json.dumps(row.get(field, ""), sort_keys=True)
+                for field in fields
+            )
+            f.write(",".join(values) + "\n")
+
+
 def _write_complete_negative_stats(out_dir: Path) -> None:
     _write_json(
         out_dir / "stats.json",
@@ -362,9 +379,7 @@ def _write_complete_physics_rows(out_dir: Path, plan: dict, audit_counts) -> Non
             if cell["method"] in physics.TTRL_METHODS:
                 row.update({"n_rl_datums": 4, "rl_trained_tokens": 16})
         rows.append(row)
-    (out_dir / "cell_results.jsonl").write_text(
-        "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows)
-    )
+    _write_result_artifacts(out_dir, rows)
     for name in ("failure_analysis.json", "trace_pairs.json", "repair_taxonomy.json"):
         _write_json(out_dir / name, {"schema": "test"})
     _write_complete_negative_stats(out_dir)
@@ -587,9 +602,7 @@ def test_complete_synthetic_evidence_gets_binary_claim_status(
             if cell["method"] in physics.TTRL_METHODS:
                 row.update({"n_rl_datums": 4, "rl_trained_tokens": 16})
         rows.append(row)
-    (out_dir / "cell_results.jsonl").write_text(
-        "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows)
-    )
+    _write_result_artifacts(out_dir, rows)
     for name in ("failure_analysis.json", "trace_pairs.json", "repair_taxonomy.json"):
         _write_json(out_dir / name, {"schema": "test"})
     _write_complete_negative_stats(out_dir)
@@ -603,6 +616,36 @@ def test_complete_synthetic_evidence_gets_binary_claim_status(
     )
     assert audit["budget_audit"]["budget_matched"] is True
     assert audit["anti_shortcut_audit"]["anti_shortcut_executed"] is True
+
+
+def test_missing_result_bundle_blocks_goal_completion(tmp_path: Path) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+
+    _write_complete_physics_rows(out_dir, plan, lambda _cell: (1, 1))
+    (out_dir / "results.csv").unlink()
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert audit["claim_audit"]["missing_result_artifacts"] == ["results.csv"]
+    assert any(
+        "final result bundle" in item
+        for item in audit["claim_audit"]["blockers"]
+    )
 
 
 def test_unreached_cad_chrono_obligation_evidence_is_not_budget_mismatch(
@@ -683,9 +726,7 @@ def test_unreached_cad_chrono_obligation_evidence_is_not_budget_mismatch(
             if cell["method"] in physics.TTRL_METHODS:
                 row.update({"n_rl_datums": 4, "rl_trained_tokens": 16})
         rows.append(row)
-    (out_dir / "cell_results.jsonl").write_text(
-        "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows)
-    )
+    _write_result_artifacts(out_dir, rows)
     for name in ("failure_analysis.json", "trace_pairs.json", "repair_taxonomy.json"):
         _write_json(out_dir / name, {"schema": "test"})
     _write_complete_negative_stats(out_dir)

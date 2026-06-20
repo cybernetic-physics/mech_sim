@@ -2,6 +2,7 @@
   "benchmark_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
   "blockers": [
     "execute all required methods for all planned seeds/splits/tasks",
+    "write final result bundle files and artifact directories",
     "run hidden/isomorphic anti-shortcut variants",
     "write statistical, failure, trace-pair, repair-taxonomy, anti-shortcut, and budget analyses"
   ],
@@ -16,11 +17,18 @@
   "missing_analysis_requirements": [],
   "missing_before_paper_claim": [
     "execute all required methods for all planned seeds/splits/tasks",
+    "write final result bundle files and artifact directories",
     "run hidden/isomorphic anti-shortcut variants",
     "write statistical, failure, trace-pair, repair-taxonomy, anti-shortcut, and budget analyses"
   ],
   "missing_evidence_count": 0,
   "missing_learning_count": 0,
+  "missing_result_artifacts": [
+    "cell_results.jsonl",
+    "results.json",
+    "results.csv"
+  ],
+  "missing_run_dirs": [],
   "num_shards": 1,
   "observed_rows": 0,
   "planned_cells": 6480,

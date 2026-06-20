@@ -48,6 +48,19 @@ ANALYSIS_ARTIFACTS = (
     "trace_pairs.json",
     "repair_taxonomy.json",
 )
+RESULT_ARTIFACTS = (
+    "cell_results.jsonl",
+    "results.json",
+    "results.csv",
+)
+REQUIRED_RUN_DIRS = (
+    "raw_completions",
+    "verifier_outputs",
+    "cad_artifacts",
+    "chrono_outputs",
+    "training_logs",
+    "adapter_checkpoints",
+)
 
 
 def main() -> int:
@@ -558,6 +571,12 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
                     "baseline_calls": baseline_calls,
                 })
 
+    missing_result_artifacts = [
+        name for name in RESULT_ARTIFACTS if not (out_dir / name).is_file()
+    ]
+    missing_run_dirs = [
+        name for name in REQUIRED_RUN_DIRS if not (out_dir / name).is_dir()
+    ]
     missing_analysis = [
         name for name in ANALYSIS_ARTIFACTS if not (out_dir / name).is_file()
     ]
@@ -620,6 +639,8 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
         anti_shortcut_audit=anti_shortcut_audit,
         missing_evidence=missing_evidence,
         missing_learning=missing_learning,
+        missing_result_artifacts=missing_result_artifacts,
+        missing_run_dirs=missing_run_dirs,
         missing_analysis=missing_analysis,
         missing_analysis_requirements=missing_analysis_requirements,
     )
@@ -640,6 +661,8 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
         "missing_before_paper_claim": blockers,
         "missing_evidence_count": len(missing_evidence),
         "missing_learning_count": len(missing_learning),
+        "missing_result_artifacts": missing_result_artifacts,
+        "missing_run_dirs": missing_run_dirs,
         "missing_analysis_artifacts": missing_analysis,
         "missing_analysis_requirements": missing_analysis_requirements,
         "sample_missing_evidence": missing_evidence[:25],
@@ -794,6 +817,8 @@ def build_blockers(
     anti_shortcut_audit: dict[str, Any],
     missing_evidence: list[dict[str, Any]],
     missing_learning: list[dict[str, Any]],
+    missing_result_artifacts: list[str],
+    missing_run_dirs: list[str],
     missing_analysis: list[str],
     missing_analysis_requirements: list[str],
 ) -> list[str]:
@@ -814,6 +839,8 @@ def build_blockers(
         blockers.append("record raw completions and verifier/CAD/Chrono outputs")
     if missing_learning:
         blockers.append("preserve training logs and adapter checkpoints for TTRL cells")
+    if missing_result_artifacts or missing_run_dirs:
+        blockers.append("write final result bundle files and artifact directories")
     if not anti_shortcut_audit["anti_shortcut_executed"]:
         blockers.append("run hidden/isomorphic anti-shortcut variants")
     if missing_analysis:
