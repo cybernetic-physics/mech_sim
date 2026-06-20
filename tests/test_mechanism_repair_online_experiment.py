@@ -119,6 +119,64 @@ def test_build_plan_filters_to_shard_cells_and_normalizes_paths(
     assert plan["cell_shard_file"] == str(shard_path.resolve())
 
 
+def test_append_new_requested_rows_rejects_stale_summary_cells(
+    tmp_path: Path,
+) -> None:
+    rows_path = tmp_path / "cell_results.jsonl"
+    rows: list[dict] = []
+    seen_keys: set[tuple[str, str, int, str]] = set()
+    shard_filter = online.cell_filter_from_shard(
+        [
+            {
+                "split": "A",
+                "task_id": "task_keep",
+                "seed": 20260610,
+                "method": "frozen_model",
+                "budget": 32,
+            }
+        ],
+        budget=32,
+    )
+    keep = {
+        "split": "A",
+        "task_id": "task_keep",
+        "seed": 20260610,
+        "method": "frozen_model",
+        "budget": 32,
+    }
+    extra_task = {
+        "split": "A",
+        "task_id": "task_extra",
+        "seed": 20260610,
+        "method": "frozen_model",
+        "budget": 32,
+    }
+    wrong_budget = {
+        "split": "A",
+        "task_id": "task_keep",
+        "seed": 20260610,
+        "method": "frozen_model",
+        "budget": 16,
+    }
+
+    counts = online.append_new_requested_rows(
+        rows_path=rows_path,
+        rows=rows,
+        seen_keys=seen_keys,
+        new_rows=[keep, extra_task, wrong_budget],
+        shard_filter=shard_filter,
+        budget=32,
+    )
+
+    assert counts == {
+        "appended": 1,
+        "duplicates": 0,
+        "skipped_unrequested": 2,
+    }
+    assert rows == [keep]
+    assert [json.loads(line) for line in rows_path.read_text().splitlines()] == [keep]
+
+
 def test_physics_method_specs_and_reward_channels() -> None:
     gated = online.method_spec(
         "verifier_gated_search",
@@ -1276,6 +1334,54 @@ def test_eval_summary_runner_uses_explicit_sft_manifest(
     cmd = captured["cmd"]
     assert "--sglang-lora-path" in cmd
     assert cmd[cmd.index("--sglang-lora-path") + 1] == str(adapter)
+
+
+def test_resume_eval_summary_reruns_when_cache_misses_requested_tasks(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    report_dir = tmp_path / "eval_frozen_model"
+    report_dir.mkdir()
+    (report_dir / "smoke_summary.json").write_text(
+        json.dumps({"all_samples": [{"task_id": "task_old"}]})
+    )
+    test_file = tmp_path / "split.txt"
+    test_file.write_text("task_new\n")
+    calls: list[list[str]] = []
+
+    def fake_run(cmd: list[str], *, timeout: float) -> None:
+        calls.append(cmd)
+        (report_dir / "smoke_summary.json").write_text(
+            json.dumps({"all_samples": [{"task_id": "task_new"}]})
+        )
+
+    monkeypatch.setattr(online, "run", fake_run)
+    args = Namespace(
+        runner_python="python",
+        sglang_base_url="http://127.0.0.1:30000",
+        api_key="dummy",
+        base_model="base",
+        rollout_backend="sglang_chat",
+        max_tokens=512,
+        timeout=180.0,
+        concurrency=2,
+        audit_retries=0,
+        eval_timeout_s=60.0,
+        budget=None,
+    )
+
+    summary = run_or_load_eval_summary(
+        args=args,
+        method=EvalMethod("frozen_model", 32, 1, 0.2, 0.95, "baseline"),
+        report_dir=report_dir,
+        tasks_root=tmp_path / "tasks",
+        test_file=test_file,
+        seed=20260610,
+        resume_existing=True,
+    )
+
+    assert len(calls) == 1
+    assert online.sample_summary_task_ids(summary) == {"task_new"}
 
 
 def test_sft_runner_passes_kbit_preparation_flags(

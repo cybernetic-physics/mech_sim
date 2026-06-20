@@ -607,13 +607,14 @@ def main() -> int:
                     evidence_layout=str(args.evidence_layout),
                     sft_manifest=sft_manifest_path,
                 )
-                for row in new_rows:
-                    key = row_key(row)
-                    if key in seen_keys:
-                        continue
-                    append_row(rows_path, row)
-                    rows.append(row)
-                    seen_keys.add(key)
+                append_new_requested_rows(
+                    rows_path=rows_path,
+                    rows=rows,
+                    seen_keys=seen_keys,
+                    new_rows=new_rows,
+                    shard_filter=shard_filter,
+                    budget=budget,
+                )
                 write_results_bundle(out_dir, rows)
             write_results_bundle(out_dir, rows)
 
@@ -800,6 +801,47 @@ def cell_wanted(
     if shard_filter is None:
         return True
     return (split, task_id, int(seed), method, int(budget)) in shard_filter
+
+
+def row_wanted(
+    shard_filter: set[tuple[str, str, int, str, int]] | None,
+    row: dict[str, Any],
+    *,
+    default_budget: int,
+) -> bool:
+    return cell_wanted(
+        shard_filter,
+        split=str(row["split"]),
+        task_id=str(row["task_id"]),
+        seed=int(row["seed"]),
+        method=str(row["method"]),
+        budget=int(row.get("budget", default_budget)),
+    )
+
+
+def append_new_requested_rows(
+    *,
+    rows_path: Path,
+    rows: list[dict[str, Any]],
+    seen_keys: set[tuple[str, str, int, str]],
+    new_rows: list[dict[str, Any]],
+    shard_filter: set[tuple[str, str, int, str, int]] | None,
+    budget: int,
+) -> dict[str, int]:
+    counts = {"appended": 0, "duplicates": 0, "skipped_unrequested": 0}
+    for row in new_rows:
+        if not row_wanted(shard_filter, row, default_budget=budget):
+            counts["skipped_unrequested"] += 1
+            continue
+        key = row_key(row)
+        if key in seen_keys:
+            counts["duplicates"] += 1
+            continue
+        append_row(rows_path, row)
+        rows.append(row)
+        seen_keys.add(key)
+        counts["appended"] += 1
+    return counts
 
 
 def build_plan(
@@ -1204,7 +1246,10 @@ def run_or_load_eval_summary(
 ) -> dict[str, Any]:
     summary_path = report_dir / "smoke_summary.json"
     if resume_existing and summary_path.is_file():
-        return json.loads(summary_path.read_text())
+        summary = json.loads(summary_path.read_text())
+        requested_tasks = set(read_ids(test_file))
+        if requested_tasks.issubset(sample_summary_task_ids(summary)):
+            return summary
     if not resume_existing and report_dir.exists():
         shutil.rmtree(report_dir)
     max_verifier_calls = (
@@ -1264,6 +1309,14 @@ def run_or_load_eval_summary(
     if not summary_path.is_file():
         raise SystemExit(f"sample_and_score did not write {summary_path}")
     return json.loads(summary_path.read_text())
+
+
+def sample_summary_task_ids(summary: dict[str, Any]) -> set[str]:
+    return {
+        str(row.get("task_id") or "")
+        for row in summary.get("all_samples", []) or []
+        if row.get("task_id")
+    }
 
 
 def run_or_load_ttrl_cell(
