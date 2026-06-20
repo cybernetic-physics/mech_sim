@@ -14,6 +14,7 @@ Topology detection is auto by default:
   * 3 parts + 1 revolute + 1 prismatic + lead_mm param → lead screw.
   * 3 parts + 2 revolutes + pulley diameter params → belt drive.
   * 3 parts + 2 revolutes + sprocket tooth-count params → chain drive.
+  * 3 parts + 2 revolutes + shaft/coupling params → shaft coupling.
   * 4 parts + 3 revolutes + compound gear tooth params → compound gear.
   * 5 parts + planetary roles + fixed sun/ring params → planetary gearset.
 
@@ -716,6 +717,102 @@ def _solve_belt_or_chain_drive(
     }
 
 
+def _solve_shaft_coupling(
+    ir: DesignIR,
+    n_samples: int,
+    *,
+    strict_geometry: bool,
+) -> dict[str, Any] | None:
+    """Rigid coaxial shaft-coupling kinematics from shaft geometry."""
+    del strict_geometry
+    if len(ir.parts) != 3:
+        return None
+    revs = [j for j in ir.joints if j.type == "revolute"]
+    if len(revs) != 2:
+        return None
+    fixed_ids = {p.id for p in ir.parts if p.fixed}
+    if len(fixed_ids) != 1:
+        return None
+    input_port = ir.ports.get("input_port")
+    output_port = ir.ports.get("output_port")
+    if input_port is None or input_port.kind != "revolute_joint":
+        return None
+    if output_port is None or output_port.kind != "revolute_joint":
+        return None
+    j_in = next((j for j in revs if j.id == input_port.part), None)
+    j_out = next((j for j in revs if j.id == output_port.part), None)
+    if j_in is None or j_out is None or j_in.id == j_out.id:
+        return None
+    if _joint_moving_part(j_in, fixed_ids) is None:
+        return None
+    if _joint_moving_part(j_out, fixed_ids) is None:
+        return None
+
+    parts = {part.id: part for part in ir.parts}
+    input_part = parts.get(_joint_moving_part(j_in, fixed_ids) or "")
+    output_part = parts.get(_joint_moving_part(j_out, fixed_ids) or "")
+    if input_part is None or output_part is None:
+        return None
+    role_text = f"{input_part.role} {output_part.role}".lower()
+    if "shaft" not in role_text or "coupling" not in role_text:
+        return None
+
+    input_d = _part_float_param(input_part, "shaft_diameter_mm")
+    output_d = _part_float_param(output_part, "shaft_diameter_mm")
+    input_key = _part_float_param(input_part, "key_width_mm")
+    output_key = _part_float_param(output_part, "key_width_mm")
+    bore = _float_param(ir, "coupling_bore_mm")
+    if any(v is None or v <= 0.0 for v in (
+        input_d, output_d, input_key, output_key, bore,
+    )):
+        return None
+    fit_tol = abs(_float_param(ir, "fit_tolerance_mm") or 0.05)
+    key_tol = abs(_float_param(ir, "key_tolerance_mm") or 0.03)
+    if abs(float(input_d) - float(output_d)) > fit_tol:
+        return None
+    if abs(float(input_key) - float(output_key)) > key_tol:
+        return None
+    if abs(float(bore) - max(float(input_d), float(output_d))) > fit_tol:
+        return None
+
+    alignment_tol = abs(_float_param(ir, "coaxial_tolerance_mm") or 0.05)
+    anchor_delta = float(np.linalg.norm(_world_anchor(j_in) - _world_anchor(j_out)))
+    if anchor_delta > alignment_tol:
+        return None
+
+    time_s = np.linspace(0.0, 2.0 * np.pi, n_samples,
+                         endpoint=False, dtype=float)
+    input_arr = time_s.copy()
+    output_arr = input_arr.copy()
+    input_vel = np.gradient(input_arr, time_s, edge_order=1)
+    output_vel = np.gradient(output_arr, time_s, edge_order=1)
+    return {
+        "port_traces": {},
+        "joint_positions": {
+            "input_port": input_arr,
+            "output_port": output_arr,
+            j_in.id: input_arr,
+            j_out.id: output_arr,
+        },
+        "joint_velocities": {
+            "input_port": input_vel,
+            "output_port": output_vel,
+            j_in.id: input_vel,
+            j_out.id: output_vel,
+        },
+        "time_s": time_s,
+        "topology": "shaft_bearing_coupling",
+        "link_lengths_mm": {
+            "shaft_diameter": float(input_d),
+            "coupling_bore": float(bore),
+            "key_width": float(input_key),
+            "anchor_delta": anchor_delta,
+        },
+        "invalid_samples": 0,
+        "ratio_estimate": 1.0,
+    }
+
+
 def _solve_compound_gear_train(
     ir: DesignIR,
     n_samples: int,
@@ -975,6 +1072,8 @@ class PlanarKinematics(SimAdapter):
             candidates.append(_solve_lead_screw)
         if topology in ("auto", "belt_drive", "chain_drive"):
             candidates.append(_solve_belt_or_chain_drive)
+        if topology in ("auto", "shaft_bearing_coupling"):
+            candidates.append(_solve_shaft_coupling)
         if topology in ("auto", "spur_compound_gear_train"):
             candidates.append(_solve_compound_gear_train)
         if topology in ("auto", "planetary_reducer"):

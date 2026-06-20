@@ -96,7 +96,7 @@ FAMILY_SPECS: tuple[FamilySpec, ...] = (
     FamilySpec(
         "shaft_bearing_coupling",
         2,
-        ("keyed_shaft_hub_fit", "bearing_seat_clearance"),
+        ("shaft_bearing_coupling_velocity",),
     ),
 )
 

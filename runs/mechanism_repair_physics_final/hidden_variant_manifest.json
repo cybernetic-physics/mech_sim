@@ -1264,7 +1264,7 @@
     },
     {
       "family": "shaft_bearing_coupling",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t00_keyed_shaft_hub_fit_s20271610/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t00_shaft_bearing_coupling_velocity_s20271610/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1272,13 +1272,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t00_keyed_shaft_hub_fit_s20271610/eval_config.public.toml",
-      "task_id": "shaft_bearing_coupling_t00_keyed_shaft_hub_fit_s20271610",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t00_shaft_bearing_coupling_velocity_s20271610/eval_config.public.toml",
+      "task_id": "shaft_bearing_coupling_t00_shaft_bearing_coupling_velocity_s20271610",
       "verifier_level": 2
     },
     {
       "family": "shaft_bearing_coupling",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t01_bearing_seat_clearance_s20271611/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1286,13 +1286,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t01_bearing_seat_clearance_s20271611/eval_config.public.toml",
-      "task_id": "shaft_bearing_coupling_t01_bearing_seat_clearance_s20271611",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611/eval_config.public.toml",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
       "verifier_level": 2
     },
     {
       "family": "shaft_bearing_coupling",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t02_keyed_shaft_hub_fit_s20271612/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t02_shaft_bearing_coupling_velocity_s20271612/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1300,13 +1300,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t02_keyed_shaft_hub_fit_s20271612/eval_config.public.toml",
-      "task_id": "shaft_bearing_coupling_t02_keyed_shaft_hub_fit_s20271612",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t02_shaft_bearing_coupling_velocity_s20271612/eval_config.public.toml",
+      "task_id": "shaft_bearing_coupling_t02_shaft_bearing_coupling_velocity_s20271612",
       "verifier_level": 2
     },
     {
       "family": "shaft_bearing_coupling",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t03_bearing_seat_clearance_s20271613/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t03_shaft_bearing_coupling_velocity_s20271613/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1314,13 +1314,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t03_bearing_seat_clearance_s20271613/eval_config.public.toml",
-      "task_id": "shaft_bearing_coupling_t03_bearing_seat_clearance_s20271613",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t03_shaft_bearing_coupling_velocity_s20271613/eval_config.public.toml",
+      "task_id": "shaft_bearing_coupling_t03_shaft_bearing_coupling_velocity_s20271613",
       "verifier_level": 2
     },
     {
       "family": "shaft_bearing_coupling",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t04_keyed_shaft_hub_fit_s20271614/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t04_shaft_bearing_coupling_velocity_s20271614/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1328,13 +1328,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t04_keyed_shaft_hub_fit_s20271614/eval_config.public.toml",
-      "task_id": "shaft_bearing_coupling_t04_keyed_shaft_hub_fit_s20271614",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t04_shaft_bearing_coupling_velocity_s20271614/eval_config.public.toml",
+      "task_id": "shaft_bearing_coupling_t04_shaft_bearing_coupling_velocity_s20271614",
       "verifier_level": 2
     },
     {
       "family": "shaft_bearing_coupling",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t05_bearing_seat_clearance_s20271615/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t05_shaft_bearing_coupling_velocity_s20271615/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1342,13 +1342,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t05_bearing_seat_clearance_s20271615/eval_config.public.toml",
-      "task_id": "shaft_bearing_coupling_t05_bearing_seat_clearance_s20271615",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t05_shaft_bearing_coupling_velocity_s20271615/eval_config.public.toml",
+      "task_id": "shaft_bearing_coupling_t05_shaft_bearing_coupling_velocity_s20271615",
       "verifier_level": 2
     },
     {
       "family": "shaft_bearing_coupling",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t06_keyed_shaft_hub_fit_s20271616/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t06_shaft_bearing_coupling_velocity_s20271616/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1356,13 +1356,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t06_keyed_shaft_hub_fit_s20271616/eval_config.public.toml",
-      "task_id": "shaft_bearing_coupling_t06_keyed_shaft_hub_fit_s20271616",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t06_shaft_bearing_coupling_velocity_s20271616/eval_config.public.toml",
+      "task_id": "shaft_bearing_coupling_t06_shaft_bearing_coupling_velocity_s20271616",
       "verifier_level": 2
     },
     {
       "family": "shaft_bearing_coupling",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t07_bearing_seat_clearance_s20271617/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1370,13 +1370,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t07_bearing_seat_clearance_s20271617/eval_config.public.toml",
-      "task_id": "shaft_bearing_coupling_t07_bearing_seat_clearance_s20271617",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617/eval_config.public.toml",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
       "verifier_level": 2
     },
     {
       "family": "shaft_bearing_coupling",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t08_keyed_shaft_hub_fit_s20271618/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t08_shaft_bearing_coupling_velocity_s20271618/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1384,13 +1384,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t08_keyed_shaft_hub_fit_s20271618/eval_config.public.toml",
-      "task_id": "shaft_bearing_coupling_t08_keyed_shaft_hub_fit_s20271618",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t08_shaft_bearing_coupling_velocity_s20271618/eval_config.public.toml",
+      "task_id": "shaft_bearing_coupling_t08_shaft_bearing_coupling_velocity_s20271618",
       "verifier_level": 2
     },
     {
       "family": "shaft_bearing_coupling",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t09_bearing_seat_clearance_s20271619/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t09_shaft_bearing_coupling_velocity_s20271619/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1398,8 +1398,8 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t09_bearing_seat_clearance_s20271619/eval_config.public.toml",
-      "task_id": "shaft_bearing_coupling_t09_bearing_seat_clearance_s20271619",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t09_shaft_bearing_coupling_velocity_s20271619/eval_config.public.toml",
+      "task_id": "shaft_bearing_coupling_t09_shaft_bearing_coupling_velocity_s20271619",
       "verifier_level": 2
     },
     {

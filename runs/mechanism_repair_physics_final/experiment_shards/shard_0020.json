@@ -963,6 +963,86 @@
     },
     {
       "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
       "family": "spur_compound_gear_train",
       "method": "frozen_model",
       "seed": 20260612,
@@ -1599,6 +1679,86 @@
       "split": "hidden_perturbation",
       "split_kind": "anti_shortcut",
       "task_id": "slider_crank_t08_reciprocating_pump_plunger_s20267618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
       "verifier_level": 2
     },
     {
@@ -1922,10 +2082,10 @@
       "verifier_level": 2
     }
   ],
-  "full_planned_cells": 4080,
+  "full_planned_cells": 4560,
   "num_shards": 24,
   "out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
-  "planned_cells": 192,
+  "planned_cells": 208,
   "replay_args": [
     "--benchmark-dir",
     "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",

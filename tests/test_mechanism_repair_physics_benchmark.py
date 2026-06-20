@@ -73,7 +73,7 @@ def test_physics_preflight_materializes_required_families_and_manifests(
         for blocker in audit["paper_blockers"]
     )
     assert audit["family_counts"] == {family: 1 for family in REQUIRED_FAMILIES}
-    assert audit["headline_task_count"] == 8
+    assert audit["headline_task_count"] == 9
     assert audit["headline_family_counts"] == {
         "belt_drive": 1,
         "chain_drive": 1,
@@ -81,10 +81,11 @@ def test_physics_preflight_materializes_required_families_and_manifests(
         "lead_screw": 1,
         "planetary_reducer": 1,
         "rack_pinion": 1,
+        "shaft_bearing_coupling": 1,
         "slider_crank": 1,
         "spur_compound_gear_train": 1,
     }
-    assert audit["diagnostic_task_count"] == 4
+    assert audit["diagnostic_task_count"] == 3
     assert audit["level_counts"] == {"2": 9, "3": 3}
     assert all(
         len(task["constraint_classes"]) >= 3
@@ -227,3 +228,34 @@ def test_gear_family_references_use_tooth_geometry_velocity_probes(
         assert negative.evaluation_valid
         assert negative.hard_gate_passed
         assert "wrong_ratio" in _codes(negative)
+
+
+def test_shaft_bearing_coupling_reference_uses_geometry_velocity_probe(
+    tmp_path: Path,
+) -> None:
+    out_dir = tmp_path / "mechanism_repair_physics"
+    tasks_root = out_dir / "tasks"
+    materialize_benchmark(
+        tasks_root=tasks_root,
+        tasks_per_family=1,
+        base_seed=20260610,
+    )
+
+    task_dir = _family_task(tasks_root, "shaft_bearing_coupling")
+    reference = evaluate(
+        task_dir,
+        task_dir / "reference_solution",
+        scratch_dir=out_dir / "shaft_reference",
+    )
+    assert reference.evaluation_valid
+    assert reference.hard_gate_passed
+    assert reference.score > 0.99
+
+    negative = evaluate(
+        task_dir,
+        task_dir / "negative_solutions" / "wrong_output_shaft_geometry",
+        scratch_dir=out_dir / "shaft_wrong_geometry",
+    )
+    assert negative.evaluation_valid
+    assert negative.hard_gate_passed
+    assert {"invalid_artifact", "simulator_divergence"} & _codes(negative)

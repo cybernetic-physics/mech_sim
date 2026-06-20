@@ -1,0 +1,22 @@
+{
+  "family": "shaft_bearing_coupling",
+  "tier": "planar_kinematics",
+  "seed": 20271619,
+  "difficulty": 2,
+  "shaft_diameter_mm": 10.0,
+  "bearing_outer_diameter_mm": 26.0,
+  "key_width_mm": 2.5,
+  "speed_ratio": 1.0,
+  "task_id": "shaft_bearing_coupling_t09_shaft_bearing_coupling_velocity_s20271619",
+  "source_task_id": "shaft_bearing_coupling_velocity_s20271619",
+  "source_generator": "shaft_bearing_coupling_velocity",
+  "verifier_level": 2,
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "fake_contact_oracle_allowed": false
+}

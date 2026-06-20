@@ -68,6 +68,7 @@ from mech_bench.generators.transmission_analytic import (
     PlanetaryFixedSunVelocityGenerator,
     PlanetaryFixedSunRatioGenerator,
     RackPinionForceDirectionGenerator,
+    ShaftBearingCouplingVelocityGenerator,
     TimingBeltCenterDistanceGenerator,
     WormGearRatioAnalyticGenerator,
 )
@@ -131,6 +132,7 @@ SUITE: list[type[TaskGenerator]] = [
     PlanetaryFixedSunVelocityGenerator,
     WormGearRatioAnalyticGenerator,
     LeadScrewLinearTravelGenerator,
+    ShaftBearingCouplingVelocityGenerator,
     BevelGearRatioAnalyticGenerator,
     ChainSprocketRatioGenerator,
     TimingBeltCenterDistanceGenerator,

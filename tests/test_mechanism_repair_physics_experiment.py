@@ -41,29 +41,30 @@ def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
         "lead_screw": 10,
         "planetary_reducer": 10,
         "rack_pinion": 10,
+        "shaft_bearing_coupling": 10,
         "slider_crank": 10,
         "spur_compound_gear_train": 10,
     }
     assert audit["level_counts"] == {"2": 90, "3": 30}
-    assert audit["headline_task_count"] == 80
-    assert audit["diagnostic_task_count"] == 40
-    assert audit["level2plus_headline_count"] == 80
+    assert audit["headline_task_count"] == 90
+    assert audit["diagnostic_task_count"] == 30
+    assert audit["level2plus_headline_count"] == 90
     assert audit["level3_headline_count"] == 0
     assert audit["blockers"] == []
     assert audit["paper_blockers"]
     assert any(
-        "only 80 headline tasks; need 120" in blocker
+        "only 90 headline tasks; need 120" in blocker
         for blocker in audit["paper_blockers"]
     )
     assert any(
-        "40 diagnostic tasks excluded from headline result" in blocker
+        "30 diagnostic tasks excluded from headline result" in blocker
         for blocker in audit["paper_blockers"]
     )
 
     diagnostic_tasks = [
         task for task in audit["tasks"] if not task["headline_eligible"]
     ]
-    assert len(diagnostic_tasks) == 40
+    assert len(diagnostic_tasks) == 30
     assert all(task["headline_demotion_reason"] for task in diagnostic_tasks)
 
     for task in audit["tasks"]:
@@ -101,11 +102,11 @@ def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
     assert {name: len(tasks) for name, tasks in plan["split_tasks"].items()} == {
         "A": 30,
         "B": 40,
-        "external_style": 20,
-        "hidden_perturbation": 80,
+        "external_style": 30,
+        "hidden_perturbation": 90,
     }
-    assert plan["planned_cells"] == 4080
-    assert plan["full_planned_cells"] == 4080
+    assert plan["planned_cells"] == 4560
+    assert plan["full_planned_cells"] == 4560
 
 
 def _write_json(path: Path, payload: dict) -> None:

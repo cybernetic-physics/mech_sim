@@ -1600,12 +1600,92 @@
       "split_kind": "anti_shortcut",
       "task_id": "fourbar_linkage_t04_fourbar_crank_rocker_sweep_s20268614",
       "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t04_shaft_bearing_coupling_velocity_s20271614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t04_shaft_bearing_coupling_velocity_s20271614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t04_shaft_bearing_coupling_velocity_s20271614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t04_shaft_bearing_coupling_velocity_s20271614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t04_shaft_bearing_coupling_velocity_s20271614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t04_shaft_bearing_coupling_velocity_s20271614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t04_shaft_bearing_coupling_velocity_s20271614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "shaft_bearing_coupling",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "shaft_bearing_coupling_t04_shaft_bearing_coupling_velocity_s20271614",
+      "verifier_level": 2
     }
   ],
-  "full_planned_cells": 4080,
+  "full_planned_cells": 4560,
   "num_shards": 24,
   "out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
-  "planned_cells": 160,
+  "planned_cells": 168,
   "replay_args": [
     "--benchmark-dir",
     "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",

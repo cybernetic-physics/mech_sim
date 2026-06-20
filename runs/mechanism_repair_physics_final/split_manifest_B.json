@@ -1,6 +1,6 @@
 {
-  "eligible_task_count": 80,
-  "excluded_diagnostic_task_count": 40,
+  "eligible_task_count": 90,
+  "excluded_diagnostic_task_count": 30,
   "headline_only": true,
   "schema": "mechanism_repair_physics.family_split.v1",
   "seed": 20260611,
@@ -81,6 +81,14 @@
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t08_planetary_fixed_ring_velocity_s20261618",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t00_shaft_bearing_coupling_velocity_s20271610",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t02_shaft_bearing_coupling_velocity_s20271612",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t03_shaft_bearing_coupling_velocity_s20271613",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t04_shaft_bearing_coupling_velocity_s20271614",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t05_shaft_bearing_coupling_velocity_s20271615",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t06_shaft_bearing_coupling_velocity_s20271616",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t08_shaft_bearing_coupling_velocity_s20271618",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t01_slider_crank_stroke_precision_s20267611",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t02_reciprocating_pump_plunger_s20267612",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t03_slider_crank_stroke_s20267613",
@@ -97,6 +105,8 @@
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t06_lead_screw_linear_travel_s20266616",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t06_planetary_fixed_ring_velocity_s20261616",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t09_planetary_fixed_sun_velocity_s20261619",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/shaft_bearing_coupling_t09_shaft_bearing_coupling_velocity_s20271619",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t00_slider_crank_stroke_s20267610",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t07_slider_crank_stroke_precision_s20267617"
     ]

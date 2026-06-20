@@ -1085,8 +1085,8 @@
         "topology_mobility"
       ],
       "family": "shaft_bearing_coupling",
-      "headline_eligible": false,
-      "task_id": "shaft_bearing_coupling_t00_keyed_shaft_hub_fit_s20271610",
+      "headline_eligible": true,
+      "task_id": "shaft_bearing_coupling_t00_shaft_bearing_coupling_velocity_s20271610",
       "verifier_level": 2
     },
     {
@@ -1097,8 +1097,8 @@
         "topology_mobility"
       ],
       "family": "shaft_bearing_coupling",
-      "headline_eligible": false,
-      "task_id": "shaft_bearing_coupling_t01_bearing_seat_clearance_s20271611",
+      "headline_eligible": true,
+      "task_id": "shaft_bearing_coupling_t01_shaft_bearing_coupling_velocity_s20271611",
       "verifier_level": 2
     },
     {
@@ -1109,8 +1109,8 @@
         "topology_mobility"
       ],
       "family": "shaft_bearing_coupling",
-      "headline_eligible": false,
-      "task_id": "shaft_bearing_coupling_t02_keyed_shaft_hub_fit_s20271612",
+      "headline_eligible": true,
+      "task_id": "shaft_bearing_coupling_t02_shaft_bearing_coupling_velocity_s20271612",
       "verifier_level": 2
     },
     {
@@ -1121,8 +1121,8 @@
         "topology_mobility"
       ],
       "family": "shaft_bearing_coupling",
-      "headline_eligible": false,
-      "task_id": "shaft_bearing_coupling_t03_bearing_seat_clearance_s20271613",
+      "headline_eligible": true,
+      "task_id": "shaft_bearing_coupling_t03_shaft_bearing_coupling_velocity_s20271613",
       "verifier_level": 2
     },
     {
@@ -1133,8 +1133,8 @@
         "topology_mobility"
       ],
       "family": "shaft_bearing_coupling",
-      "headline_eligible": false,
-      "task_id": "shaft_bearing_coupling_t04_keyed_shaft_hub_fit_s20271614",
+      "headline_eligible": true,
+      "task_id": "shaft_bearing_coupling_t04_shaft_bearing_coupling_velocity_s20271614",
       "verifier_level": 2
     },
     {
@@ -1145,8 +1145,8 @@
         "topology_mobility"
       ],
       "family": "shaft_bearing_coupling",
-      "headline_eligible": false,
-      "task_id": "shaft_bearing_coupling_t05_bearing_seat_clearance_s20271615",
+      "headline_eligible": true,
+      "task_id": "shaft_bearing_coupling_t05_shaft_bearing_coupling_velocity_s20271615",
       "verifier_level": 2
     },
     {
@@ -1157,8 +1157,8 @@
         "topology_mobility"
       ],
       "family": "shaft_bearing_coupling",
-      "headline_eligible": false,
-      "task_id": "shaft_bearing_coupling_t06_keyed_shaft_hub_fit_s20271616",
+      "headline_eligible": true,
+      "task_id": "shaft_bearing_coupling_t06_shaft_bearing_coupling_velocity_s20271616",
       "verifier_level": 2
     },
     {
@@ -1169,8 +1169,8 @@
         "topology_mobility"
       ],
       "family": "shaft_bearing_coupling",
-      "headline_eligible": false,
-      "task_id": "shaft_bearing_coupling_t07_bearing_seat_clearance_s20271617",
+      "headline_eligible": true,
+      "task_id": "shaft_bearing_coupling_t07_shaft_bearing_coupling_velocity_s20271617",
       "verifier_level": 2
     },
     {
@@ -1181,8 +1181,8 @@
         "topology_mobility"
       ],
       "family": "shaft_bearing_coupling",
-      "headline_eligible": false,
-      "task_id": "shaft_bearing_coupling_t08_keyed_shaft_hub_fit_s20271618",
+      "headline_eligible": true,
+      "task_id": "shaft_bearing_coupling_t08_shaft_bearing_coupling_velocity_s20271618",
       "verifier_level": 2
     },
     {
@@ -1193,8 +1193,8 @@
         "topology_mobility"
       ],
       "family": "shaft_bearing_coupling",
-      "headline_eligible": false,
-      "task_id": "shaft_bearing_coupling_t09_bearing_seat_clearance_s20271619",
+      "headline_eligible": true,
+      "task_id": "shaft_bearing_coupling_t09_shaft_bearing_coupling_velocity_s20271619",
       "verifier_level": 2
     },
     {

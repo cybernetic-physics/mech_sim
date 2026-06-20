@@ -1347,6 +1347,232 @@ class LeadScrewLinearTravelGenerator(TaskGenerator):
 
 
 # --------------------------------------------------------------------- #
+# 26b. shaft_bearing_coupling_velocity                                  #
+# --------------------------------------------------------------------- #
+
+
+class ShaftBearingCouplingVelocityGenerator(TaskGenerator):
+    family = "shaft_bearing_coupling_velocity"
+    tier = "planar_kinematics"
+
+    def generate(self, seed: int, difficulty: int = 2) -> GeneratedTask:
+        rng = random.Random(seed + 4666)
+        shaft_d = round(rng.choice([10.0, 12.0, 16.0, 20.0]), 3)
+        key_width = round(shaft_d * 0.25, 3)
+        bearing_od = round(shaft_d + rng.choice([10.0, 12.0, 16.0]), 3)
+        fit_tol = round(rng.choice([0.03, 0.04, 0.05]), 3)
+        task_id = make_task_id(self.family, seed)
+
+        parts = [
+            make_ground_part("frame"),
+            make_revolute_part(
+                "input_shaft",
+                "input_shaft_coupling_half",
+                0.06,
+                params={
+                    "shaft_diameter_mm": shaft_d,
+                    "bearing_inner_diameter_mm": shaft_d,
+                    "bearing_outer_diameter_mm": bearing_od,
+                    "coupling_bore_mm": shaft_d,
+                    "key_width_mm": key_width,
+                },
+            ),
+            make_revolute_part(
+                "output_shaft",
+                "output_shaft_coupling_half",
+                0.06,
+                params={
+                    "shaft_diameter_mm": shaft_d,
+                    "bearing_inner_diameter_mm": shaft_d,
+                    "bearing_outer_diameter_mm": bearing_od,
+                    "coupling_bore_mm": shaft_d,
+                    "key_width_mm": key_width,
+                },
+            ),
+        ]
+        joints = [
+            revolute_joint(
+                "input_axis", "frame", "input_shaft", (0.0, 0.0, 0.0)),
+            revolute_joint(
+                "output_axis", "frame", "output_shaft", (0.0, 0.0, 0.0)),
+        ]
+        ports = {
+            "input_port": revolute_joint_port("input_port", "input_axis"),
+            "output_port": revolute_joint_port("output_port", "output_axis"),
+        }
+        params = {
+            "coupling_bore_mm": shaft_d,
+            "fit_tolerance_mm": fit_tol,
+            "key_tolerance_mm": round(fit_tol * 0.6, 4),
+            "coaxial_tolerance_mm": fit_tol,
+            "declared_velocity_ratio": 1.0,
+        }
+        prompt = (
+            "# Shaft-bearing-coupling rotational continuity\n\n"
+            "Design a coaxial shaft-bearing-coupling assembly with input "
+            "and output shaft halves carried by bearings and joined by a "
+            "keyed coupling.\n\n"
+            f"* Shaft diameter: {shaft_d} mm; bearing ID: {shaft_d} mm; "
+            f"bearing OD: {bearing_od} mm.\n"
+            f"* Coupling bore: {shaft_d} mm; key width: {key_width} mm.\n"
+            f"* Coaxial and fit tolerance: {fit_tol} mm.\n"
+            "* `input_port` and `output_port` are grounded revolute_joint "
+            "ports on explicit shaft axes.\n"
+            "* Observed output/input angular velocity ratio must be 1.0 "
+            "when the shaft, key, bore, and coaxiality constraints agree.\n"
+        )
+
+        def _cfg(tol_pct: float) -> dict[str, Any]:
+            return {
+                "probes": [
+                    dof_probe(expected=2),
+                    required_ports_probe(
+                        "ports", ["input_port", "output_port"],
+                        require_grounded=["input_port", "output_port"],
+                        require_kinds={
+                            "input_port": "revolute_joint",
+                            "output_port": "revolute_joint",
+                        },
+                    ),
+                    param_check_probe(
+                        "input_shaft_diameter",
+                        "parts.input_shaft.params.shaft_diameter_mm",
+                        shaft_d,
+                        tolerance_abs=fit_tol,
+                        failure_code="invalid_artifact",
+                        weight=0.3,
+                    ),
+                    param_check_probe(
+                        "output_shaft_diameter",
+                        "parts.output_shaft.params.shaft_diameter_mm",
+                        shaft_d,
+                        tolerance_abs=fit_tol,
+                        failure_code="invalid_artifact",
+                        weight=0.3,
+                    ),
+                    param_check_probe(
+                        "coupling_bore",
+                        "params.coupling_bore_mm",
+                        shaft_d,
+                        tolerance_abs=fit_tol,
+                        failure_code="invalid_artifact",
+                        weight=0.2,
+                    ),
+                    param_check_probe(
+                        "key_width",
+                        "parts.output_shaft.params.key_width_mm",
+                        key_width,
+                        tolerance_abs=fit_tol,
+                        failure_code="invalid_artifact",
+                        weight=0.2,
+                    ),
+                    _velocity_ratio_probe(
+                        1.0, tol_pct=tol_pct, weight=1.0),
+                ],
+                "feedback": {
+                    "public_metrics": [
+                        "input_shaft_diameter.observed",
+                        "output_shaft_diameter.observed",
+                        "coupling_bore.observed",
+                        "speed_ratio.ratio_observed",
+                        "speed_ratio.ratio_expected",
+                    ],
+                    "hidden_metrics": [
+                        "output_shaft_diameter.error_abs",
+                        "coupling_bore.error_abs",
+                        "key_width.error_abs",
+                        "speed_ratio.ratio_error_pct",
+                    ],
+                },
+                "hard_gate": {"require": ["mobility", "ports"]},
+            }
+
+        ref_py = make_basic_design_py(parts, joints, ports, params)
+        negatives = {
+            "wrong_output_shaft_geometry": make_negative_overlay(
+                "    for part in ir['parts']:\n"
+                "        if part['id'] == 'output_shaft':\n"
+                "            part['params']['shaft_diameter_mm'] *= 0.82\n"
+                "            part['params']['coupling_bore_mm'] *= 0.82"
+            ),
+            "wrong_key_geometry": make_negative_overlay(
+                "    for part in ir['parts']:\n"
+                "        if part['id'] == 'output_shaft':\n"
+                "            part['params']['key_width_mm'] *= 1.8"
+            ),
+            "misaligned_axes": make_negative_overlay(
+                "    for joint in ir['joints']:\n"
+                "        if joint['id'] == 'output_axis':\n"
+                "            joint['anchor_world_mm'] = (1.0, 0.0, 0.0)"
+            ),
+            "missing_output_port": make_negative_overlay(
+                "    del ir['ports']['output_port']"
+            ),
+        }
+        expected = make_expected_failures(
+            f"Tier 2 {self.family} negatives.",
+            [
+                {"id": "wrong_output_shaft_geometry",
+                 "expected_failure_codes": ["invalid_artifact"],
+                 "expected_hard_gate_passed": True,
+                 "expected_score_below": 0.8},
+                {"id": "wrong_key_geometry",
+                 "expected_failure_codes": ["invalid_artifact"],
+                 "expected_hard_gate_passed": True,
+                 "expected_score_below": 0.8},
+                {"id": "misaligned_axes",
+                 "expected_failure_codes": ["simulator_divergence"],
+                 "expected_hard_gate_passed": True,
+                 "expected_score_below": 0.51},
+                {"id": "missing_output_port",
+                 "expected_failure_codes": ["missing_port"],
+                 "expected_hard_gate_passed": False,
+                 "expected_score_below": 0.001},
+            ],
+        )
+        task_toml = {
+            "task": {"id": task_id, "family": self.family,
+                     "difficulty": int(difficulty), "units": "mm",
+                     "tier": self.tier},
+            "requirements": {
+                "required_ports": ["input_port", "output_port"],
+                "expected_mobility": 2,
+                "max_envelope_mm": [220, 80, 80],
+            },
+            "objective": {
+                "description": (
+                    "Coaxial shaft-bearing-coupling rotational continuity "
+                    "with 1:1 output/input velocity."
+                ),
+                "ground_required": True,
+            },
+        }
+        return GeneratedTask(
+            task_id=task_id,
+            family=self.family,
+            difficulty=int(difficulty),
+            prompt_md=prompt,
+            task_toml=task_toml,
+            eval_config_toml=_cfg(tol_pct=1.0),
+            eval_config_hidden_toml=_cfg(tol_pct=0.5),
+            fixtures={},
+            reference_solution_py=ref_py,
+            negative_solutions=negatives,
+            expected_failures=expected,
+            metadata=common_metadata(
+                self.family,
+                self.tier,
+                seed,
+                difficulty,
+                shaft_diameter_mm=shaft_d,
+                bearing_outer_diameter_mm=bearing_od,
+                key_width_mm=key_width,
+                speed_ratio=1.0,
+            ),
+        )
+
+
+# --------------------------------------------------------------------- #
 # 27. bevel_gear_ratio_analytic                                         #
 # --------------------------------------------------------------------- #
 
