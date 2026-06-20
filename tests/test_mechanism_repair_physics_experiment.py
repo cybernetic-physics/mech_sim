@@ -37,6 +37,7 @@ def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
     assert audit["headline_family_counts"] == {
         "belt_drive": 10,
         "chain_drive": 10,
+        "cycloidal_reducer": 10,
         "fourbar_linkage": 10,
         "lead_screw": 10,
         "planetary_reducer": 10,
@@ -46,25 +47,25 @@ def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
         "spur_compound_gear_train": 10,
     }
     assert audit["level_counts"] == {"2": 90, "3": 30}
-    assert audit["headline_task_count"] == 90
-    assert audit["diagnostic_task_count"] == 30
-    assert audit["level2plus_headline_count"] == 90
-    assert audit["level3_headline_count"] == 0
+    assert audit["headline_task_count"] == 100
+    assert audit["diagnostic_task_count"] == 20
+    assert audit["level2plus_headline_count"] == 100
+    assert audit["level3_headline_count"] == 10
     assert audit["blockers"] == []
     assert audit["paper_blockers"]
     assert any(
-        "only 90 headline tasks; need 120" in blocker
+        "only 100 headline tasks; need 120" in blocker
         for blocker in audit["paper_blockers"]
     )
     assert any(
-        "30 diagnostic tasks excluded from headline result" in blocker
+        "20 diagnostic tasks excluded from headline result" in blocker
         for blocker in audit["paper_blockers"]
     )
 
     diagnostic_tasks = [
         task for task in audit["tasks"] if not task["headline_eligible"]
     ]
-    assert len(diagnostic_tasks) == 30
+    assert len(diagnostic_tasks) == 20
     assert all(task["headline_demotion_reason"] for task in diagnostic_tasks)
 
     for task in audit["tasks"]:
@@ -100,13 +101,13 @@ def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
         "hidden_perturbation",
     }
     assert {name: len(tasks) for name, tasks in plan["split_tasks"].items()} == {
-        "A": 30,
-        "B": 40,
+        "A": 40,
+        "B": 50,
         "external_style": 30,
-        "hidden_perturbation": 90,
+        "hidden_perturbation": 100,
     }
-    assert plan["planned_cells"] == 4560
-    assert plan["full_planned_cells"] == 4560
+    assert plan["planned_cells"] == 5280
+    assert plan["full_planned_cells"] == 5280
 
 
 def _write_json(path: Path, payload: dict) -> None:

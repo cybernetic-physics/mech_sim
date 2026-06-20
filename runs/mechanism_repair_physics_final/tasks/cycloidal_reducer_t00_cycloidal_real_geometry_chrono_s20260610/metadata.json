@@ -1,0 +1,24 @@
+{
+  "family": "cycloidal_reducer",
+  "tier": "contact_dynamics",
+  "seed": 20260610,
+  "difficulty": 3,
+  "asset_id": "pins10_ratio9",
+  "ring_pins": 10,
+  "target_ratio": 9.0,
+  "line_segment_count": 42,
+  "requires_adapter": "rigid_body_dynamics+contact_forces",
+  "requires_cached_cad_fixture": true,
+  "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+  "source_task_id": "cycloidal_real_geometry_chrono_s20260610",
+  "source_generator": "cycloidal_real_geometry_chrono",
+  "verifier_level": 3,
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "fake_contact_oracle_allowed": false
+}

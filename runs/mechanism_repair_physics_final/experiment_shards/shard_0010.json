@@ -1682,7 +1682,7 @@
       "verifier_level": 2
     }
   ],
-  "full_planned_cells": 4560,
+  "full_planned_cells": 5280,
   "num_shards": 24,
   "out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
   "planned_cells": 168,

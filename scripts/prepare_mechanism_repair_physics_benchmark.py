@@ -56,7 +56,7 @@ class FamilySpec:
 
 
 FAMILY_SPECS: tuple[FamilySpec, ...] = (
-    FamilySpec("cycloidal_reducer", 3, ("cycloidal_lowN_stub",)),
+    FamilySpec("cycloidal_reducer", 3, ("cycloidal_real_geometry_chrono",)),
     FamilySpec(
         "planetary_reducer",
         2,
@@ -188,7 +188,10 @@ SPLITS = {
 }
 
 DEFAULT_CONTACT_PAIRS = {
-    "cycloidal_reducer": ("housing:disc",),
+    "cycloidal_reducer": (
+        "pinDisk:cycloidalDisk1",
+        "driverDisk:cycloidalDisk1",
+    ),
     "rack_pinion": ("pinion:rack",),
     "cam_follower": ("cam:follower",),
     "geneva_indexer": ("driver:geneva",),
@@ -198,16 +201,23 @@ FAMILY_PROMPT_GUIDANCE: dict[str, dict[str, tuple[str, ...] | str]] = {
     "cycloidal_reducer": {
         "mechanism": (
             "Cycloidal speed reducer: an eccentric input shaft drives a "
-            "cycloidal disc inside a fixed housing/ring-pin set, and an "
-            "output pin carrier takes reduced rotation from the disc."
+            "CAD-backed cycloidal disc inside a fixed ring-pin set, and an "
+            "output pin carrier takes reduced rotation through driver pins."
         ),
         "roles": (
-            "fixed housing or ring-pin ground part named housing",
-            "eccentric input shaft/crank",
-            "cycloidal disc named disc",
-            "output pin carrier or output hub",
+            "fixed ring-pin ground part named pinDisk",
+            "eccentric input shaft named inputShaft",
+            "cycloidal disc named cycloidalDisk1",
+            "output driver-pin disc named driverDisk",
+            "coaxial output shaft named outputShaft",
         ),
-        "nominal_parts": ("housing", "input_shaft", "disc", "output_carrier"),
+        "nominal_parts": (
+            "pinDisk",
+            "inputShaft",
+            "cycloidalDisk1",
+            "driverDisk",
+            "outputShaft",
+        ),
         "forbidden": (
             "plain spur gear pair",
             "planetary gearbox",
@@ -1075,7 +1085,11 @@ def upgrade_task_for_physics(
             "headline_demotion_reason"
         ] = demotion_reason
     if spec.verifier_level == 3:
-        task.task_toml["chrono_contact"] = {
+        chrono_task_cfg = task.task_toml.setdefault("chrono_contact", {})
+        if not isinstance(chrono_task_cfg, dict):
+            chrono_task_cfg = {}
+            task.task_toml["chrono_contact"] = chrono_task_cfg
+        chrono_defaults = {
             "contact_model": "nsc",
             "procedural_cycloidal_fallback": False,
             "samples": 720,
@@ -1083,6 +1097,8 @@ def upgrade_task_for_physics(
             "input_speed_rad_s": 1.0,
             "output_load_Nm": 0.05,
         }
+        for key, value in chrono_defaults.items():
+            chrono_task_cfg.setdefault(key, value)
 
     task.reference_solution_py = wrap_reference_with_trusted_assets(
         task.reference_solution_py,
@@ -1391,7 +1407,8 @@ def _physics_enrich_design(ir, out_dir):
         if not isinstance(part, dict):
             continue
         part_id = _physics_safe_id(part.get("id", f"part_{{index}}"))
-        part.setdefault("material", "steel_1045")
+        if not part.get("material"):
+            part["material"] = "steel_1045"
         part.setdefault("com_local_mm", (0.0, 0.0, 0.0))
         pparams = part.setdefault("params", {{}})
         initial_pose = _physics_default_initial_pose_mm(part, {family!r})
@@ -1568,7 +1585,13 @@ def upgrade_level3_chrono_config(cfg: dict[str, Any], *, family: str) -> None:
         if isinstance(fake_cfg, dict):
             for pair in fake_cfg.get("contact_pairs", []) or []:
                 pairs.add(str(pair))
-        adapters["chrono_contact"] = {
+        chrono_cfg = adapters.setdefault("chrono_contact", {})
+        if not isinstance(chrono_cfg, dict):
+            chrono_cfg = {}
+            adapters["chrono_contact"] = chrono_cfg
+        for pair in chrono_cfg.get("contact_pairs", []) or []:
+            pairs.add(str(pair))
+        chrono_defaults = {
             "contact_model": "nsc",
             "procedural_cycloidal_fallback": False,
             "samples": 720,
@@ -1576,6 +1599,8 @@ def upgrade_level3_chrono_config(cfg: dict[str, Any], *, family: str) -> None:
             "input_speed_rad_s": 1.0,
             "output_load_Nm": 0.05,
         }
+        for key, value in chrono_defaults.items():
+            chrono_cfg.setdefault(key, value)
 
     for probe in probes:
         if not isinstance(probe, dict):

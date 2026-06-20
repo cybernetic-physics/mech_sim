@@ -1,0 +1,1981 @@
+{
+  "acceptance": {
+    "cad_datums_present": true,
+    "cad_static_contact_audit_passed": true,
+    "chrono_nsc_real_geometry_metrics": true,
+    "chrono_procedural_fallback_false": true,
+    "chrono_smc_real_geometry_metrics": true,
+    "freecad_export_ran": true,
+    "manifest_written": true,
+    "named_bodies_exported": true,
+    "nonempty_step_stl_exports": true,
+    "nsc_bad_regime_observed": false,
+    "smc_loaded_power_torque_metrics": true,
+    "smc_minimum_success_threshold": true,
+    "smc_ratio_convergence": true,
+    "smc_unloaded_ratio_near_declared": true,
+    "trusted_cad_mass_properties": true
+  },
+  "asset_generation": {
+    "all_body_step_stl_nonempty": true,
+    "all_named_bodies_present": true,
+    "bodies": {
+      "cycloidalDisk1": {
+        "bbox_mm": [
+          -35.200000000000024,
+          -36.789084274312245,
+          10.0,
+          37.6181177093679,
+          36.79067982536563,
+          15.0
+        ],
+        "step": {
+          "bytes": 131112,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/cycloidalDisk1.step",
+          "sha256": "03efc0143d3ec51803393a1c56d73a0183b2ae183c54ca63b15a57ae8e9ceb2a"
+        },
+        "stl": {
+          "bytes": 790584,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/cycloidalDisk1.stl",
+          "sha256": "147eb4f60ad2e5275fbd5e1c7e5e768c170a88ec3c99ea2a8fce86fefe375e32"
+        }
+      },
+      "cycloidalDisk2": {
+        "bbox_mm": [
+          -37.6181177093679,
+          -36.79067982536563,
+          15.0,
+          35.200000000000024,
+          36.789084274312245,
+          20.0
+        ],
+        "step": {
+          "bytes": 131112,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/cycloidalDisk2.step",
+          "sha256": "58adee50f7bbe58cf43e6ac38ffb463189e4e402b8f4cb55da0675cc3aee1715"
+        },
+        "stl": {
+          "bytes": 790584,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/cycloidalDisk2.stl",
+          "sha256": "01b7dd97536ab9bcde8078a5193b26c57b1677874661decc69634442d13cca1f"
+        }
+      },
+      "driverDisk": {
+        "bbox_mm": [
+          -33.90891512644349,
+          -33.898375625289404,
+          5.0,
+          33.90891512644349,
+          33.8983756252894,
+          25.0
+        ],
+        "step": {
+          "bytes": 15702,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/driverDisk.step",
+          "sha256": "4722f538fd29b2bef728bcfe643bc5997d9d2387f40e2b92e9d68cbf0dd071fd"
+        },
+        "stl": {
+          "bytes": 201684,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/driverDisk.stl",
+          "sha256": "6e0cc552e32c4b66747ce9e5bdc68f29ba05a1c712ba128fa2f72f211fe7b529"
+        }
+      },
+      "eccentricKey": {
+        "bbox_mm": [
+          -8.5,
+          -6.499233041191021,
+          10.0,
+          8.5,
+          6.499233041191021,
+          20.0
+        ],
+        "step": {
+          "bytes": 10427,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/eccentricKey.step",
+          "sha256": "3ea3ea70f0b3eef027bbcaefebbd1fc11405a929b23cfd7e41ad1889154db19b"
+        },
+        "stl": {
+          "bytes": 78134,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/eccentricKey.stl",
+          "sha256": "98a45c1e9f7498dd3dee21e250a4e7287b0ee2e1318ccf50e666c7efa563cedb"
+        }
+      },
+      "inputShaft": {
+        "bbox_mm": [
+          -7.5,
+          -7.497668865006122,
+          0.0,
+          7.5,
+          7.497668865006124,
+          15.0
+        ],
+        "step": {
+          "bytes": 14379,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/inputShaft.step",
+          "sha256": "9079c33a5c78b13372dc47f3455b5e7f6ec40f30f0cf1e2cae4fc23fbd372178"
+        },
+        "stl": {
+          "bytes": 89684,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/inputShaft.stl",
+          "sha256": "1827604285baffd58ba398796e14a2adf6a6013655da19179aa24720a6239b12"
+        }
+      },
+      "outputShaft": {
+        "bbox_mm": [
+          -33.90891512644349,
+          -33.898375625289404,
+          20.0,
+          33.90891512644349,
+          33.8983756252894,
+          40.0
+        ],
+        "step": {
+          "bytes": 15796,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/outputShaft.step",
+          "sha256": "f51a626e8e9de32298dad473cbf2e4b535f548ea1e02a29bdfe054859c3ec5f1"
+        },
+        "stl": {
+          "bytes": 199684,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/outputShaft.stl",
+          "sha256": "e1e7e647c9efb42eab0b130ef648d6281d78a8f0ec2b4bfc20063f6442b52860"
+        }
+      },
+      "pinDisk": {
+        "bbox_mm": [
+          -47.5,
+          -47.48523614503878,
+          0.0,
+          47.5,
+          47.48523614503877,
+          30.0
+        ],
+        "step": {
+          "bytes": 65007,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/pinDisk.step",
+          "sha256": "25a1b86b3bf873265d46f7d1ba38c49ef17e4ad2a4acc4377b2c115b549ee891"
+        },
+        "stl": {
+          "bytes": 831684,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/pinDisk.stl",
+          "sha256": "75d3fd301548fc7dec54774a51295b70faf04dbef499fe305a8318694435c754"
+        }
+      }
+    },
+    "body_names": [
+      "cycloidalDisk1",
+      "cycloidalDisk2",
+      "driverDisk",
+      "eccentricKey",
+      "inputShaft",
+      "outputShaft",
+      "pinDisk"
+    ],
+    "collision_meshes": {
+      "driverPins": {
+        "bbox_mm": [
+          -30.0,
+          -26.64908100461505,
+          5.0,
+          30.0,
+          26.64908100461505,
+          25.0
+        ],
+        "step": {
+          "bytes": 13730,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/driverPinsCollision.step",
+          "sha256": "045e0dbbe741c4fcaa2e5b6b9ea0126285410ca2b526b24f539ca20b579aa6d4"
+        },
+        "stl": {
+          "bytes": 150084,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/driverPinsCollision.stl",
+          "sha256": "943c9412b0193a6b007213dbacf2b0c0e5801d38876bb97c4be6a548bce6d1d9"
+        }
+      },
+      "ringPins": {
+        "bbox_mm": [
+          -45.300000000000004,
+          -43.311433716987075,
+          0.0,
+          45.300000000000004,
+          43.311433716987075,
+          25.0
+        ],
+        "step": {
+          "bytes": 22688,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/ringPinsCollision.step",
+          "sha256": "032e4b6abd8b175b75c9a76fab58e45ea5884770148bfecd232eb687830a85d9"
+        },
+        "stl": {
+          "bytes": 250084,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/ringPinsCollision.stl",
+          "sha256": "e20bf5ce6bf7f9eec2920d7e5dc7e0396617a97fb755048304c18b400cf5729b"
+        }
+      }
+    },
+    "collision_primitives": [
+      "cycloidalDisk1",
+      "cycloidalDisk2"
+    ],
+    "feature_frame_counts": {
+      "cycloidalDisk1_output_holes": 6,
+      "cycloidalDisk2_output_holes": 6,
+      "driver_pins": 6,
+      "ring_pins": 10
+    },
+    "manifest": {
+      "bytes": 2420233,
+      "exists": true,
+      "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_assets_manifest.json",
+      "sha256": "75a6d29a6c5293d128d6635952208a37e8e161a209c13884c99f6ba33156244e"
+    },
+    "manifest_schema": "cycloidal_freecad_assets.v1",
+    "parameters": {
+      "clearance": 0.6,
+      "declared_ratio": 9.0,
+      "driver_disk_hole_count": 6,
+      "ring_pin_count": 10,
+      "roller_circle_diameter": 80,
+      "roller_diameter": 9.4,
+      "tooth_count": 9
+    },
+    "ran": true,
+    "root": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing",
+    "source": {
+      "commit": "0d608077cf4a68cd736cd3dd585e17d5c6d00aea",
+      "generator": "iplayfast/CycloidGearBox",
+      "kernel": "FreeCAD/OCCT",
+      "path": "/Users/nataliakokoromyti/Projects/corl/.external/src/CycloidGearBox",
+      "url": "https://github.com/iplayfast/CycloidGearBox"
+    },
+    "static_audit": {
+      "driver_pins_to_cycloidalDisk1_distance_mm": 0.0,
+      "driver_pins_to_cycloidalDisk1_output_holes": {
+        "max_radial_clearance_mm": 0.6800000000000086,
+        "mean_radial_clearance_mm": 0.6799999999999997,
+        "min_radial_clearance_mm": 0.6799999999999908,
+        "pair_count": 6,
+        "pairs": [
+          {
+            "center_distance_mm": 2.0,
+            "hole": "cycloidalDisk1_output_hole_03",
+            "pin": "driver_pin_00",
+            "radial_clearance_mm": 0.6799999999999997
+          },
+          {
+            "center_distance_mm": 1.9999999999999911,
+            "hole": "cycloidalDisk1_output_hole_04",
+            "pin": "driver_pin_01",
+            "radial_clearance_mm": 0.6800000000000086
+          },
+          {
+            "center_distance_mm": 2.0000000000000053,
+            "hole": "cycloidalDisk1_output_hole_05",
+            "pin": "driver_pin_02",
+            "radial_clearance_mm": 0.6799999999999944
+          },
+          {
+            "center_distance_mm": 2.0,
+            "hole": "cycloidalDisk1_output_hole_00",
+            "pin": "driver_pin_03",
+            "radial_clearance_mm": 0.6799999999999997
+          },
+          {
+            "center_distance_mm": 1.9999999999999947,
+            "hole": "cycloidalDisk1_output_hole_01",
+            "pin": "driver_pin_04",
+            "radial_clearance_mm": 0.680000000000005
+          },
+          {
+            "center_distance_mm": 2.000000000000009,
+            "hole": "cycloidalDisk1_output_hole_02",
+            "pin": "driver_pin_05",
+            "radial_clearance_mm": 0.6799999999999908
+          }
+        ],
+        "status": "ok"
+      },
+      "driver_pins_to_cycloidalDisk2_distance_mm": 0.0,
+      "driver_pins_to_cycloidalDisk2_output_holes": {
+        "max_radial_clearance_mm": 0.6799999999999997,
+        "mean_radial_clearance_mm": 0.6799999999999997,
+        "min_radial_clearance_mm": 0.6799999999999997,
+        "pair_count": 6,
+        "pairs": [
+          {
+            "center_distance_mm": 2.0,
+            "hole": "cycloidalDisk2_output_hole_00",
+            "pin": "driver_pin_00",
+            "radial_clearance_mm": 0.6799999999999997
+          },
+          {
+            "center_distance_mm": 2.0,
+            "hole": "cycloidalDisk2_output_hole_01",
+            "pin": "driver_pin_01",
+            "radial_clearance_mm": 0.6799999999999997
+          },
+          {
+            "center_distance_mm": 2.0,
+            "hole": "cycloidalDisk2_output_hole_02",
+            "pin": "driver_pin_02",
+            "radial_clearance_mm": 0.6799999999999997
+          },
+          {
+            "center_distance_mm": 2.0,
+            "hole": "cycloidalDisk2_output_hole_03",
+            "pin": "driver_pin_03",
+            "radial_clearance_mm": 0.6799999999999997
+          },
+          {
+            "center_distance_mm": 2.0,
+            "hole": "cycloidalDisk2_output_hole_04",
+            "pin": "driver_pin_04",
+            "radial_clearance_mm": 0.6799999999999997
+          },
+          {
+            "center_distance_mm": 2.0,
+            "hole": "cycloidalDisk2_output_hole_05",
+            "pin": "driver_pin_05",
+            "radial_clearance_mm": 0.6799999999999997
+          }
+        ],
+        "status": "ok"
+      },
+      "ring_pins_to_cycloidalDisk1_distance_mm": 0.5250988258746289,
+      "ring_pins_to_cycloidalDisk2_distance_mm": 0.525098825874625
+    }
+  },
+  "asset_out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing",
+  "claim": "FreeCAD/OCCT geometry-backed cycloidal reducer runs in Chrono NSC and SMC without procedural fallback.",
+  "convergence": {
+    "max_penetration_mm_max": 0.24601081531727687,
+    "ok": true,
+    "ratio_error_pct_max": 13.664375783851964,
+    "ratio_observed_span": 0.794871211024132,
+    "ratio_observed_values": [
+      10.229793820546677,
+      10.1522930228995,
+      9.434922609522545
+    ],
+    "runs": [
+      {
+        "build_meta": {
+          "n_bodies": 6,
+          "n_contacts_reported": 10,
+          "n_joints": 4,
+          "n_loads": 1,
+          "n_motors": 1
+        },
+        "capability_unavailable": false,
+        "chrono_version": "unknown",
+        "contact_config": {
+          "cad_body_frame": "legacy",
+          "cad_reference_frames": false,
+          "collision_filter_named_pairs": true,
+          "contact_envelope_m": 5e-05,
+          "contact_margin_m": 2e-05,
+          "contact_model": "smc",
+          "damping_N_s_m": 2500.0,
+          "friction": 0.02,
+          "normal_stiffness_N_m": 50000000.0,
+          "restitution": 0.0,
+          "smc_use_material_properties": true,
+          "solver_iterations": 800.0,
+          "timestep": 2.5e-05,
+          "use_visual_geometry_as_collision": false,
+          "young_modulus_pa": 30000000.0
+        },
+        "contact_model_requested": "smc",
+        "execution_mode": null,
+        "failure_mode": "none",
+        "metadata_contact_method": "SMC",
+        "metadata_contact_model": "smc",
+        "metrics": {
+          "all_contact_force_rms_N": 24.251400876066885,
+          "all_top_contact_pairs": [
+            {
+              "active_sample_count": 40.0,
+              "max_force_N": 112.96380046184325,
+              "max_penetration_mm": 0.2431151588098146,
+              "pair": "cycloidalDisk1:driverDisk",
+              "rms_force_N": 34.22776918134197,
+              "rms_penetration_mm": 0.11724487884921057
+            },
+            {
+              "active_sample_count": 4.0,
+              "max_force_N": 16.96919144623588,
+              "max_penetration_mm": 0.017766251403372735,
+              "pair": "cycloidalDisk1:pinDisk",
+              "rms_force_N": 2.17271852115553,
+              "rms_penetration_mm": 0.002629291591667106
+            }
+          ],
+          "contact_force_rms_N": 24.251400876066885,
+          "contact_pair_max_penetration_mm": {
+            "cycloidalDisk1:driverDisk": 0.2431151588098146,
+            "cycloidalDisk1:pinDisk": 0.017766251403372735
+          },
+          "contact_pair_rms_force_N": {
+            "cycloidalDisk1:driverDisk": 34.22776918134197,
+            "cycloidalDisk1:pinDisk": 2.17271852115553
+          },
+          "in_omega_med": 10.0,
+          "input_power_W_mean": 0.2596654931313396,
+          "kinetic_energy_rate_W_mean": 0.004236477776350599,
+          "lockup_detected": 0.0,
+          "max_constraint_error_mm": 5.097768681733026e-07,
+          "max_penetration_mm": 0.2431151588098146,
+          "mechanical_efficiency_pct": 0.0,
+          "n_contacts_max": 23.0,
+          "out_omega_fit_rad_s": 1.4799370533059648,
+          "out_omega_med": 0.9775368082116052,
+          "out_omega_med_raw": 0.9775368082116052,
+          "output_power_W_mean": 0.0,
+          "output_torque_Nm_mean": 0.0,
+          "output_torque_Nm_signed_mean": 0.0,
+          "power_balance_error_pct": 100.0,
+          "power_balance_residual_pct": 98.36848642256528,
+          "ratio_error_pct": 13.664375783851964,
+          "ratio_observed": 10.229793820546677,
+          "top_contact_pairs": [
+            {
+              "active_sample_count": 40.0,
+              "max_force_N": 112.96380046184325,
+              "max_penetration_mm": 0.2431151588098146,
+              "pair": "cycloidalDisk1:driverDisk",
+              "rms_force_N": 34.22776918134197,
+              "rms_penetration_mm": 0.11724487884921057
+            },
+            {
+              "active_sample_count": 4.0,
+              "max_force_N": 16.96919144623588,
+              "max_penetration_mm": 0.017766251403372735,
+              "pair": "cycloidalDisk1:pinDisk",
+              "rms_force_N": 2.17271852115553,
+              "rms_penetration_mm": 0.002629291591667106
+            }
+          ],
+          "torque_ripple_pct": 363.7023667104501,
+          "unaccounted_power_W_mean": 0.25542901535498896,
+          "unmonitored_contact_pair_count": 0.0,
+          "unmonitored_top_contact_pairs": []
+        },
+        "missing_metric_keys": [],
+        "ok": true,
+        "output_load_Nm": 0.0,
+        "passed": true,
+        "preflight_issues": [],
+        "procedural_cycloidal_fallback": false,
+        "samples": 61,
+        "solver_diverged": 0.0,
+        "timestep": 2.5e-05
+      },
+      {
+        "build_meta": {
+          "n_bodies": 6,
+          "n_contacts_reported": 19,
+          "n_joints": 4,
+          "n_loads": 1,
+          "n_motors": 1
+        },
+        "capability_unavailable": false,
+        "chrono_version": "unknown",
+        "contact_config": {
+          "cad_body_frame": "legacy",
+          "cad_reference_frames": false,
+          "collision_filter_named_pairs": true,
+          "contact_envelope_m": 5e-05,
+          "contact_margin_m": 2e-05,
+          "contact_model": "smc",
+          "damping_N_s_m": 2500.0,
+          "friction": 0.02,
+          "normal_stiffness_N_m": 50000000.0,
+          "restitution": 0.0,
+          "smc_use_material_properties": true,
+          "solver_iterations": 800.0,
+          "timestep": 2.5e-05,
+          "use_visual_geometry_as_collision": false,
+          "young_modulus_pa": 30000000.0
+        },
+        "contact_model_requested": "smc",
+        "execution_mode": null,
+        "failure_mode": "none",
+        "metadata_contact_method": "SMC",
+        "metadata_contact_model": "smc",
+        "metrics": {
+          "all_contact_force_rms_N": 22.308122808509797,
+          "all_top_contact_pairs": [
+            {
+              "active_sample_count": 51.0,
+              "max_force_N": 116.72038737077926,
+              "max_penetration_mm": 0.24601081531727687,
+              "pair": "cycloidalDisk1:driverDisk",
+              "rms_force_N": 31.520593930927692,
+              "rms_penetration_mm": 0.11054093224657242
+            },
+            {
+              "active_sample_count": 6.0,
+              "max_force_N": 9.986169853101325,
+              "max_penetration_mm": 0.05239579331828281,
+              "pair": "cycloidalDisk1:pinDisk",
+              "rms_force_N": 1.3254601920369573,
+              "rms_penetration_mm": 0.006189075696268966
+            }
+          ],
+          "contact_force_rms_N": 22.308122808509797,
+          "contact_pair_max_penetration_mm": {
+            "cycloidalDisk1:driverDisk": 0.24601081531727687,
+            "cycloidalDisk1:pinDisk": 0.05239579331828281
+          },
+          "contact_pair_rms_force_N": {
+            "cycloidalDisk1:driverDisk": 31.520593930927692,
+            "cycloidalDisk1:pinDisk": 1.3254601920369573
+          },
+          "in_omega_med": 10.0,
+          "input_power_W_mean": 0.1723578712254974,
+          "kinetic_energy_rate_W_mean": 0.004041464293446748,
+          "lockup_detected": 0.0,
+          "max_constraint_error_mm": 3.2547145072534087e-07,
+          "max_penetration_mm": 0.24601081531727687,
+          "mechanical_efficiency_pct": 0.0,
+          "n_contacts_max": 22.0,
+          "out_omega_fit_rad_s": 1.482959271002003,
+          "out_omega_med": 0.9849991501864666,
+          "out_omega_med_raw": 0.9849991501864666,
+          "output_power_W_mean": 0.0,
+          "output_torque_Nm_mean": 0.0,
+          "output_torque_Nm_signed_mean": 0.0,
+          "power_balance_error_pct": 100.0,
+          "power_balance_residual_pct": 97.65519017802252,
+          "ratio_error_pct": 12.803255809994438,
+          "ratio_observed": 10.1522930228995,
+          "top_contact_pairs": [
+            {
+              "active_sample_count": 51.0,
+              "max_force_N": 116.72038737077926,
+              "max_penetration_mm": 0.24601081531727687,
+              "pair": "cycloidalDisk1:driverDisk",
+              "rms_force_N": 31.520593930927692,
+              "rms_penetration_mm": 0.11054093224657242
+            },
+            {
+              "active_sample_count": 6.0,
+              "max_force_N": 9.986169853101325,
+              "max_penetration_mm": 0.05239579331828281,
+              "pair": "cycloidalDisk1:pinDisk",
+              "rms_force_N": 1.3254601920369573,
+              "rms_penetration_mm": 0.006189075696268966
+            }
+          ],
+          "torque_ripple_pct": 443.7812604353488,
+          "unaccounted_power_W_mean": 0.16831640693205063,
+          "unmonitored_contact_pair_count": 0.0,
+          "unmonitored_top_contact_pairs": []
+        },
+        "missing_metric_keys": [],
+        "ok": true,
+        "output_load_Nm": 0.0,
+        "passed": true,
+        "preflight_issues": [],
+        "procedural_cycloidal_fallback": false,
+        "samples": 81,
+        "solver_diverged": 0.0,
+        "timestep": 2.5e-05
+      },
+      {
+        "build_meta": {
+          "n_bodies": 6,
+          "n_contacts_reported": 7,
+          "n_joints": 4,
+          "n_loads": 1,
+          "n_motors": 1
+        },
+        "capability_unavailable": false,
+        "chrono_version": "unknown",
+        "contact_config": {
+          "cad_body_frame": "legacy",
+          "cad_reference_frames": false,
+          "collision_filter_named_pairs": true,
+          "contact_envelope_m": 5e-05,
+          "contact_margin_m": 2e-05,
+          "contact_model": "smc",
+          "damping_N_s_m": 2500.0,
+          "friction": 0.02,
+          "normal_stiffness_N_m": 50000000.0,
+          "restitution": 0.0,
+          "smc_use_material_properties": true,
+          "solver_iterations": 800.0,
+          "timestep": 2.5e-05,
+          "use_visual_geometry_as_collision": false,
+          "young_modulus_pa": 30000000.0
+        },
+        "contact_model_requested": "smc",
+        "execution_mode": null,
+        "failure_mode": "none",
+        "metadata_contact_method": "SMC",
+        "metadata_contact_model": "smc",
+        "metrics": {
+          "all_contact_force_rms_N": 28.037228454585684,
+          "all_top_contact_pairs": [
+            {
+              "active_sample_count": 65.0,
+              "max_force_N": 180.23373438070942,
+              "max_penetration_mm": 0.2370533547946252,
+              "pair": "cycloidalDisk1:driverDisk",
+              "rms_force_N": 39.59088682500526,
+              "rms_penetration_mm": 0.11446472649678947
+            },
+            {
+              "active_sample_count": 9.0,
+              "max_force_N": 18.75616196186222,
+              "max_penetration_mm": 0.03670281876111403,
+              "pair": "cycloidalDisk1:pinDisk",
+              "rms_force_N": 2.1757847409344264,
+              "rms_penetration_mm": 0.005212709707008086
+            }
+          ],
+          "contact_force_rms_N": 28.037228454585684,
+          "contact_pair_max_penetration_mm": {
+            "cycloidalDisk1:driverDisk": 0.2370533547946252,
+            "cycloidalDisk1:pinDisk": 0.03670281876111403
+          },
+          "contact_pair_rms_force_N": {
+            "cycloidalDisk1:driverDisk": 39.59088682500526,
+            "cycloidalDisk1:pinDisk": 2.1757847409344264
+          },
+          "in_omega_med": 10.0,
+          "input_power_W_mean": 0.2066193457329802,
+          "kinetic_energy_rate_W_mean": 0.004990327383573712,
+          "lockup_detected": 0.0,
+          "max_constraint_error_mm": 4.5820159550503585e-06,
+          "max_penetration_mm": 0.2370533547946252,
+          "mechanical_efficiency_pct": 0.0,
+          "n_contacts_max": 26.0,
+          "out_omega_fit_rad_s": 1.5681677683839097,
+          "out_omega_med": 1.0598921065772315,
+          "out_omega_med_raw": 1.0598921065772315,
+          "output_power_W_mean": 0.0,
+          "output_torque_Nm_mean": 0.0,
+          "output_torque_Nm_signed_mean": 0.0,
+          "power_balance_error_pct": 100.0,
+          "power_balance_residual_pct": 97.5847724394487,
+          "ratio_error_pct": 4.8324734391393855,
+          "ratio_observed": 9.434922609522545,
+          "top_contact_pairs": [
+            {
+              "active_sample_count": 65.0,
+              "max_force_N": 180.23373438070942,
+              "max_penetration_mm": 0.2370533547946252,
+              "pair": "cycloidalDisk1:driverDisk",
+              "rms_force_N": 39.59088682500526,
+              "rms_penetration_mm": 0.11446472649678947
+            },
+            {
+              "active_sample_count": 9.0,
+              "max_force_N": 18.75616196186222,
+              "max_penetration_mm": 0.03670281876111403,
+              "pair": "cycloidalDisk1:pinDisk",
+              "rms_force_N": 2.1757847409344264,
+              "rms_penetration_mm": 0.005212709707008086
+            }
+          ],
+          "torque_ripple_pct": 534.840250969324,
+          "unaccounted_power_W_mean": 0.20162901834940647,
+          "unmonitored_contact_pair_count": 0.0,
+          "unmonitored_top_contact_pairs": []
+        },
+        "missing_metric_keys": [],
+        "ok": true,
+        "output_load_Nm": 0.0,
+        "passed": true,
+        "preflight_issues": [],
+        "procedural_cycloidal_fallback": false,
+        "samples": 101,
+        "solver_diverged": 0.0,
+        "timestep": 2.5e-05
+      }
+    ],
+    "samples": [
+      61,
+      81,
+      101
+    ]
+  },
+  "design_ir": {
+    "cad_assets_manifest": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_assets_manifest.json",
+    "cad_source": {
+      "commit": "0d608077cf4a68cd736cd3dd585e17d5c6d00aea",
+      "generator": "iplayfast/CycloidGearBox",
+      "kernel": "FreeCAD/OCCT",
+      "path": "/Users/nataliakokoromyti/Projects/corl/.external/src/CycloidGearBox",
+      "url": "https://github.com/iplayfast/CycloidGearBox"
+    },
+    "collision_shapes": {
+      "cycloidalDisk1": {
+        "asset_mesh": null,
+        "asset_mesh_file": null,
+        "child_count": 129,
+        "child_meshes": [
+          "cycloidal_freecad_assets/cycloidalDisk1.stl"
+        ],
+        "child_shapes": [
+          "mesh",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull",
+          "convex_hull"
+        ],
+        "is_convex": null,
+        "is_static": null,
+        "mesh": null,
+        "mesh_file": null,
+        "shape": "compound",
+        "sweep_sphere_radius_m": null
+      },
+      "driverDisk": {
+        "asset_mesh": "cycloidal_freecad_assets/driverPinsCollision.stl",
+        "asset_mesh_file": {
+          "bytes": 150084,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/driverPinsCollision.stl",
+          "sha256": "943c9412b0193a6b007213dbacf2b0c0e5801d38876bb97c4be6a548bce6d1d9"
+        },
+        "child_count": 6,
+        "child_meshes": [],
+        "child_shapes": [
+          "cylinder",
+          "cylinder",
+          "cylinder",
+          "cylinder",
+          "cylinder",
+          "cylinder"
+        ],
+        "is_convex": null,
+        "is_static": null,
+        "mesh": null,
+        "mesh_file": null,
+        "shape": "compound",
+        "sweep_sphere_radius_m": null
+      },
+      "pinDisk": {
+        "asset_mesh": "cycloidal_freecad_assets/ringPinsCollision.stl",
+        "asset_mesh_file": {
+          "bytes": 250084,
+          "exists": true,
+          "path": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/cycloidal_freecad_assets/ringPinsCollision.stl",
+          "sha256": "e20bf5ce6bf7f9eec2920d7e5dc7e0396617a97fb755048304c18b400cf5729b"
+        },
+        "child_count": 10,
+        "child_meshes": [],
+        "child_shapes": [
+          "cylinder",
+          "cylinder",
+          "cylinder",
+          "cylinder",
+          "cylinder",
+          "cylinder",
+          "cylinder",
+          "cylinder",
+          "cylinder",
+          "cylinder"
+        ],
+        "is_convex": null,
+        "is_static": null,
+        "mesh": null,
+        "mesh_file": null,
+        "shape": "compound",
+        "sweep_sphere_radius_m": null
+      }
+    },
+    "contact_bodies_expected_chrono_collision": [
+      "pinDisk",
+      "driverDisk",
+      "cycloidalDisk1"
+    ],
+    "joints": [
+      "input_revolute",
+      "eccentric_disc",
+      "output_revolute",
+      "ring_contact",
+      "output_pin_contact",
+      "driver_output_fixed",
+      "eccentric_key_fixed"
+    ],
+    "parts": [
+      "pinDisk",
+      "driverDisk",
+      "inputShaft",
+      "cycloidalDisk1",
+      "eccentricKey",
+      "outputShaft"
+    ],
+    "ports": [
+      "input_port",
+      "output_port"
+    ]
+  },
+  "diagnostic_acceptance_keys": [
+    "nsc_bad_regime_observed"
+  ],
+  "environment": {
+    "cwd": "/Users/nataliakokoromyti/Projects/corl",
+    "cycloid_gearbox_commit": "0d608077cf4a68cd736cd3dd585e17d5c6d00aea",
+    "cycloid_gearbox_path": "/Users/nataliakokoromyti/Projects/corl/.external/src/CycloidGearBox",
+    "freecad_cmd": [
+      "/Users/nataliakokoromyti/Projects/corl/.external/bin/mech-freecadcmd"
+    ],
+    "freecad_version": "FreeCAD 1.0.0 Revision: 39109 (Git)",
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "python": "3.12.13 (main, Mar  3 2026, 12:39:30) [Clang 17.0.0 (clang-1700.6.3.2)]",
+    "repo_branch": "mech-sim-natalia",
+    "repo_commit": "630fe148754865ab09ad0054a88cfb3451c06a27"
+  },
+  "generated_at_utc": "2026-05-28T08:09:24.549915+00:00",
+  "missing_bridge": null,
+  "ok": true,
+  "proof_json": "/Users/nataliakokoromyti/Projects/corl/runs/cycloidal_real_geometry_validation_passing/proof.json",
+  "required_acceptance_keys": [
+    "cad_datums_present",
+    "cad_static_contact_audit_passed",
+    "chrono_nsc_real_geometry_metrics",
+    "chrono_procedural_fallback_false",
+    "chrono_smc_real_geometry_metrics",
+    "freecad_export_ran",
+    "manifest_written",
+    "named_bodies_exported",
+    "nonempty_step_stl_exports",
+    "smc_loaded_power_torque_metrics",
+    "smc_minimum_success_threshold",
+    "smc_ratio_convergence",
+    "smc_unloaded_ratio_near_declared",
+    "trusted_cad_mass_properties"
+  ],
+  "runs": {
+    "nsc": {
+      "build_meta": {
+        "n_bodies": 6,
+        "n_contacts_reported": 52,
+        "n_joints": 4,
+        "n_loads": 1,
+        "n_motors": 1
+      },
+      "capability_unavailable": false,
+      "chrono_version": "unknown",
+      "contact_config": {
+        "cad_body_frame": "legacy",
+        "cad_reference_frames": false,
+        "collision_filter_named_pairs": true,
+        "contact_envelope_m": 5e-05,
+        "contact_margin_m": 2e-05,
+        "contact_model": "nsc",
+        "damping_N_s_m": 2500.0,
+        "friction": 0.02,
+        "normal_stiffness_N_m": 50000000.0,
+        "restitution": 0.0,
+        "smc_use_material_properties": true,
+        "solver_iterations": 800.0,
+        "timestep": 2.5e-05,
+        "use_visual_geometry_as_collision": false,
+        "young_modulus_pa": 30000000.0
+      },
+      "contact_model_requested": "nsc",
+      "execution_mode": null,
+      "failure_mode": "lockup_mechanism_jammed",
+      "metadata_contact_method": "NSC",
+      "metadata_contact_model": "nsc",
+      "metrics": {
+        "all_contact_force_rms_N": 417360.32084630826,
+        "all_top_contact_pairs": [
+          {
+            "active_sample_count": 48.0,
+            "max_force_N": 3373272.6657209597,
+            "max_penetration_mm": 0.24341868265764788,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 569497.1733257902,
+            "rms_penetration_mm": 0.11067526094164393
+          },
+          {
+            "active_sample_count": 27.0,
+            "max_force_N": 1184693.5670754067,
+            "max_penetration_mm": 0.06378988473443314,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 155087.86028507038,
+            "rms_penetration_mm": 0.017528818910322937
+          }
+        ],
+        "contact_force_rms_N": 417360.32084630826,
+        "contact_pair_max_penetration_mm": {
+          "cycloidalDisk1:driverDisk": 0.24341868265764788,
+          "cycloidalDisk1:pinDisk": 0.06378988473443314
+        },
+        "contact_pair_rms_force_N": {
+          "cycloidalDisk1:driverDisk": 569497.1733257902,
+          "cycloidalDisk1:pinDisk": 155087.86028507038
+        },
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 719.0421893401331,
+        "kinetic_energy_rate_W_mean": 67.7170562701063,
+        "lockup_detected": 1.0,
+        "max_constraint_error_mm": 0.08336053855381044,
+        "max_penetration_mm": 0.24341868265764788,
+        "mechanical_efficiency_pct": 3.195236428279187,
+        "n_contacts_max": 101.0,
+        "out_omega_fit_rad_s": -0.5801315620619018,
+        "out_omega_med": -0.1811686413510165,
+        "out_omega_med_raw": -0.1811686413510165,
+        "output_power_W_mean": 22.975097968492136,
+        "output_torque_Nm_mean": 0.727154891304347,
+        "output_torque_Nm_signed_mean": -0.727154891304347,
+        "power_balance_error_pct": 96.80476357172081,
+        "power_balance_residual_pct": 87.38708860437981,
+        "ratio_error_pct": 513.3021160976305,
+        "ratio_observed": 55.19719044878674,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 48.0,
+            "max_force_N": 3373272.6657209597,
+            "max_penetration_mm": 0.24341868265764788,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 569497.1733257902,
+            "rms_penetration_mm": 0.11067526094164393
+          },
+          {
+            "active_sample_count": 27.0,
+            "max_force_N": 1184693.5670754067,
+            "max_penetration_mm": 0.06378988473443314,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 155087.86028507038,
+            "rms_penetration_mm": 0.017528818910322937
+          }
+        ],
+        "torque_ripple_pct": 10188697.024364207,
+        "unaccounted_power_W_mean": 628.3500351015346,
+        "unmonitored_contact_pair_count": 0.0,
+        "unmonitored_top_contact_pairs": []
+      },
+      "missing_metric_keys": [],
+      "ok": true,
+      "output_load_Nm": 0.75,
+      "passed": false,
+      "preflight_issues": [],
+      "procedural_cycloidal_fallback": false,
+      "samples": 61,
+      "solver_diverged": 0.0,
+      "timestep": 2.5e-05
+    },
+    "smc": {
+      "build_meta": {
+        "n_bodies": 6,
+        "n_contacts_reported": 27,
+        "n_joints": 4,
+        "n_loads": 1,
+        "n_motors": 1
+      },
+      "capability_unavailable": false,
+      "chrono_version": "unknown",
+      "contact_config": {
+        "cad_body_frame": "legacy",
+        "cad_reference_frames": false,
+        "collision_filter_named_pairs": true,
+        "contact_envelope_m": 5e-05,
+        "contact_margin_m": 2e-05,
+        "contact_model": "smc",
+        "damping_N_s_m": 2500.0,
+        "friction": 0.02,
+        "normal_stiffness_N_m": 50000000.0,
+        "restitution": 0.0,
+        "smc_use_material_properties": true,
+        "solver_iterations": 800.0,
+        "timestep": 2.5e-05,
+        "use_visual_geometry_as_collision": false,
+        "young_modulus_pa": 30000000.0
+      },
+      "contact_model_requested": "smc",
+      "execution_mode": null,
+      "failure_mode": "power_balance_error",
+      "metadata_contact_method": "SMC",
+      "metadata_contact_model": "smc",
+      "metrics": {
+        "all_contact_force_rms_N": 148.17387831121502,
+        "all_top_contact_pairs": [
+          {
+            "active_sample_count": 50.0,
+            "max_force_N": 435.9495049582609,
+            "max_penetration_mm": 0.40078926394926384,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 207.89924380813287,
+            "rms_penetration_mm": 0.3185046196553515
+          },
+          {
+            "active_sample_count": 42.0,
+            "max_force_N": 71.85485397657588,
+            "max_penetration_mm": 0.3714734411914833,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 26.24692080187774,
+            "rms_penetration_mm": 0.12194898324369716
+          }
+        ],
+        "contact_force_rms_N": 148.17387831121502,
+        "contact_pair_max_penetration_mm": {
+          "cycloidalDisk1:driverDisk": 0.40078926394926384,
+          "cycloidalDisk1:pinDisk": 0.3714734411914833
+        },
+        "contact_pair_rms_force_N": {
+          "cycloidalDisk1:driverDisk": 207.89924380813287,
+          "cycloidalDisk1:pinDisk": 26.24692080187774
+        },
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 1.2084911561783545,
+        "kinetic_energy_rate_W_mean": 0.018436871012284087,
+        "lockup_detected": 0.0,
+        "max_constraint_error_mm": 7.729451496525885e-07,
+        "max_penetration_mm": 0.40078926394926384,
+        "mechanical_efficiency_pct": 244.28232792323658,
+        "n_contacts_max": 33.0,
+        "out_omega_fit_rad_s": -3.062882420763338,
+        "out_omega_med": -2.6685190345749024,
+        "out_omega_med_raw": -2.6685190345749024,
+        "output_power_W_mean": 2.952130329058921,
+        "output_torque_Nm_mean": 0.727154891304347,
+        "output_torque_Nm_signed_mean": -0.727154891304347,
+        "power_balance_error_pct": 144.28232792323658,
+        "power_balance_residual_pct": 145.80793867496004,
+        "ratio_error_pct": 58.362256490776275,
+        "ratio_observed": 3.7473969158301355,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 50.0,
+            "max_force_N": 435.9495049582609,
+            "max_penetration_mm": 0.40078926394926384,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 207.89924380813287,
+            "rms_penetration_mm": 0.3185046196553515
+          },
+          {
+            "active_sample_count": 42.0,
+            "max_force_N": 71.85485397657588,
+            "max_penetration_mm": 0.3714734411914833,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 26.24692080187774,
+            "rms_penetration_mm": 0.12194898324369716
+          }
+        ],
+        "torque_ripple_pct": 295.4498581502188,
+        "unaccounted_power_W_mean": -1.7620760438928507,
+        "unmonitored_contact_pair_count": 0.0,
+        "unmonitored_top_contact_pairs": []
+      },
+      "missing_metric_keys": [],
+      "ok": true,
+      "output_load_Nm": 0.75,
+      "passed": false,
+      "preflight_issues": [],
+      "procedural_cycloidal_fallback": false,
+      "samples": 61,
+      "solver_diverged": 0.0,
+      "timestep": 2.5e-05
+    },
+    "smc_unloaded": {
+      "build_meta": {
+        "n_bodies": 6,
+        "n_contacts_reported": 10,
+        "n_joints": 4,
+        "n_loads": 1,
+        "n_motors": 1
+      },
+      "capability_unavailable": false,
+      "chrono_version": "unknown",
+      "contact_config": {
+        "cad_body_frame": "legacy",
+        "cad_reference_frames": false,
+        "collision_filter_named_pairs": true,
+        "contact_envelope_m": 5e-05,
+        "contact_margin_m": 2e-05,
+        "contact_model": "smc",
+        "damping_N_s_m": 2500.0,
+        "friction": 0.02,
+        "normal_stiffness_N_m": 50000000.0,
+        "restitution": 0.0,
+        "smc_use_material_properties": true,
+        "solver_iterations": 800.0,
+        "timestep": 2.5e-05,
+        "use_visual_geometry_as_collision": false,
+        "young_modulus_pa": 30000000.0
+      },
+      "contact_model_requested": "smc",
+      "execution_mode": null,
+      "failure_mode": "none",
+      "metadata_contact_method": "SMC",
+      "metadata_contact_model": "smc",
+      "metrics": {
+        "all_contact_force_rms_N": 24.251400876066885,
+        "all_top_contact_pairs": [
+          {
+            "active_sample_count": 40.0,
+            "max_force_N": 112.96380046184325,
+            "max_penetration_mm": 0.2431151588098146,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 34.22776918134197,
+            "rms_penetration_mm": 0.11724487884921057
+          },
+          {
+            "active_sample_count": 4.0,
+            "max_force_N": 16.96919144623588,
+            "max_penetration_mm": 0.017766251403372735,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 2.17271852115553,
+            "rms_penetration_mm": 0.002629291591667106
+          }
+        ],
+        "contact_force_rms_N": 24.251400876066885,
+        "contact_pair_max_penetration_mm": {
+          "cycloidalDisk1:driverDisk": 0.2431151588098146,
+          "cycloidalDisk1:pinDisk": 0.017766251403372735
+        },
+        "contact_pair_rms_force_N": {
+          "cycloidalDisk1:driverDisk": 34.22776918134197,
+          "cycloidalDisk1:pinDisk": 2.17271852115553
+        },
+        "in_omega_med": 10.0,
+        "input_power_W_mean": 0.2596654931313396,
+        "kinetic_energy_rate_W_mean": 0.004236477776350599,
+        "lockup_detected": 0.0,
+        "max_constraint_error_mm": 5.097768681733026e-07,
+        "max_penetration_mm": 0.2431151588098146,
+        "mechanical_efficiency_pct": 0.0,
+        "n_contacts_max": 23.0,
+        "out_omega_fit_rad_s": 1.4799370533059648,
+        "out_omega_med": 0.9775368082116052,
+        "out_omega_med_raw": 0.9775368082116052,
+        "output_power_W_mean": 0.0,
+        "output_torque_Nm_mean": 0.0,
+        "output_torque_Nm_signed_mean": 0.0,
+        "power_balance_error_pct": 100.0,
+        "power_balance_residual_pct": 98.36848642256528,
+        "ratio_error_pct": 13.664375783851964,
+        "ratio_observed": 10.229793820546677,
+        "top_contact_pairs": [
+          {
+            "active_sample_count": 40.0,
+            "max_force_N": 112.96380046184325,
+            "max_penetration_mm": 0.2431151588098146,
+            "pair": "cycloidalDisk1:driverDisk",
+            "rms_force_N": 34.22776918134197,
+            "rms_penetration_mm": 0.11724487884921057
+          },
+          {
+            "active_sample_count": 4.0,
+            "max_force_N": 16.96919144623588,
+            "max_penetration_mm": 0.017766251403372735,
+            "pair": "cycloidalDisk1:pinDisk",
+            "rms_force_N": 2.17271852115553,
+            "rms_penetration_mm": 0.002629291591667106
+          }
+        ],
+        "torque_ripple_pct": 363.7023667104501,
+        "unaccounted_power_W_mean": 0.25542901535498896,
+        "unmonitored_contact_pair_count": 0.0,
+        "unmonitored_top_contact_pairs": []
+      },
+      "missing_metric_keys": [],
+      "ok": true,
+      "output_load_Nm": 0.0,
+      "passed": true,
+      "preflight_issues": [],
+      "procedural_cycloidal_fallback": false,
+      "samples": 61,
+      "solver_diverged": 0.0,
+      "timestep": 2.5e-05
+    }
+  },
+  "schema": "mech_bench.cycloidal_real_geometry_chrono_proof.v1",
+  "timestep_sensitivity": {
+    "lockup_detected_max": 0.0,
+    "max_penetration_mm_max": 0.2431151588098146,
+    "note": "Non-gating diagnostic. A credible final validated contact claim should make this stable across timestep refinement.",
+    "ok": true,
+    "ratio_error_pct_max": 13.664375783851964,
+    "ratio_observed_span": 0.8158474392900388,
+    "ratio_observed_values": [
+      9.806110691748618,
+      9.413946381256638,
+      10.229793820546677
+    ],
+    "runs": [
+      {
+        "build_meta": {
+          "n_bodies": 6,
+          "n_contacts_reported": 21,
+          "n_joints": 4,
+          "n_loads": 1,
+          "n_motors": 1
+        },
+        "capability_unavailable": false,
+        "chrono_version": "unknown",
+        "contact_config": {
+          "cad_body_frame": "legacy",
+          "cad_reference_frames": false,
+          "collision_filter_named_pairs": true,
+          "contact_envelope_m": 5e-05,
+          "contact_margin_m": 2e-05,
+          "contact_model": "smc",
+          "damping_N_s_m": 2500.0,
+          "friction": 0.02,
+          "normal_stiffness_N_m": 50000000.0,
+          "restitution": 0.0,
+          "smc_use_material_properties": true,
+          "solver_iterations": 800.0,
+          "timestep": 7.5e-05,
+          "use_visual_geometry_as_collision": false,
+          "young_modulus_pa": 30000000.0
+        },
+        "contact_model_requested": "smc",
+        "execution_mode": null,
+        "failure_mode": "none",
+        "metadata_contact_method": "SMC",
+        "metadata_contact_model": "smc",
+        "metrics": {
+          "all_contact_force_rms_N": 29.957460285704798,
+          "all_top_contact_pairs": [
+            {
+              "active_sample_count": 41.0,
+              "max_force_N": 164.82725549703605,
+              "max_penetration_mm": 0.23937703372212127,
+              "pair": "cycloidalDisk1:driverDisk",
+              "rms_force_N": 42.318564791065334,
+              "rms_penetration_mm": 0.1162667976899698
+            },
+            {
+              "active_sample_count": 6.0,
+              "max_force_N": 13.93937808883741,
+              "max_penetration_mm": 0.03187439142493531,
+              "pair": "cycloidalDisk1:pinDisk",
+              "rms_force_N": 2.00945952026056,
+              "rms_penetration_mm": 0.005364031200601848
+            }
+          ],
+          "contact_force_rms_N": 29.957460285704798,
+          "contact_pair_max_penetration_mm": {
+            "cycloidalDisk1:driverDisk": 0.23937703372212127,
+            "cycloidalDisk1:pinDisk": 0.03187439142493531
+          },
+          "contact_pair_rms_force_N": {
+            "cycloidalDisk1:driverDisk": 42.318564791065334,
+            "cycloidalDisk1:pinDisk": 2.00945952026056
+          },
+          "in_omega_med": 10.0,
+          "input_power_W_mean": 0.24130041373197528,
+          "kinetic_energy_rate_W_mean": 0.004438031070287234,
+          "lockup_detected": 0.0,
+          "max_constraint_error_mm": 1.4202955448706422e-06,
+          "max_penetration_mm": 0.23937703372212127,
+          "mechanical_efficiency_pct": 0.0,
+          "n_contacts_max": 26.0,
+          "out_omega_fit_rad_s": 1.5085063951345448,
+          "out_omega_med": 1.0197722944749676,
+          "out_omega_med_raw": 1.0197722944749676,
+          "output_power_W_mean": 0.0,
+          "output_torque_Nm_mean": 0.0,
+          "output_torque_Nm_signed_mean": 0.0,
+          "power_balance_error_pct": 100.0,
+          "power_balance_residual_pct": 98.16078596731427,
+          "ratio_error_pct": 8.956785463873532,
+          "ratio_observed": 9.806110691748618,
+          "top_contact_pairs": [
+            {
+              "active_sample_count": 41.0,
+              "max_force_N": 164.82725549703605,
+              "max_penetration_mm": 0.23937703372212127,
+              "pair": "cycloidalDisk1:driverDisk",
+              "rms_force_N": 42.318564791065334,
+              "rms_penetration_mm": 0.1162667976899698
+            },
+            {
+              "active_sample_count": 6.0,
+              "max_force_N": 13.93937808883741,
+              "max_penetration_mm": 0.03187439142493531,
+              "pair": "cycloidalDisk1:pinDisk",
+              "rms_force_N": 2.00945952026056,
+              "rms_penetration_mm": 0.005364031200601848
+            }
+          ],
+          "torque_ripple_pct": 568.3820949836553,
+          "unaccounted_power_W_mean": 0.23686238266168805,
+          "unmonitored_contact_pair_count": 0.0,
+          "unmonitored_top_contact_pairs": []
+        },
+        "missing_metric_keys": [],
+        "ok": true,
+        "output_load_Nm": 0.0,
+        "passed": true,
+        "preflight_issues": [],
+        "procedural_cycloidal_fallback": false,
+        "samples": 61,
+        "solver_diverged": 0.0,
+        "timestep": 7.5e-05
+      },
+      {
+        "build_meta": {
+          "n_bodies": 6,
+          "n_contacts_reported": 6,
+          "n_joints": 4,
+          "n_loads": 1,
+          "n_motors": 1
+        },
+        "capability_unavailable": false,
+        "chrono_version": "unknown",
+        "contact_config": {
+          "cad_body_frame": "legacy",
+          "cad_reference_frames": false,
+          "collision_filter_named_pairs": true,
+          "contact_envelope_m": 5e-05,
+          "contact_margin_m": 2e-05,
+          "contact_model": "smc",
+          "damping_N_s_m": 2500.0,
+          "friction": 0.02,
+          "normal_stiffness_N_m": 50000000.0,
+          "restitution": 0.0,
+          "smc_use_material_properties": true,
+          "solver_iterations": 800.0,
+          "timestep": 5e-05,
+          "use_visual_geometry_as_collision": false,
+          "young_modulus_pa": 30000000.0
+        },
+        "contact_model_requested": "smc",
+        "execution_mode": null,
+        "failure_mode": "none",
+        "metadata_contact_method": "SMC",
+        "metadata_contact_model": "smc",
+        "metrics": {
+          "all_contact_force_rms_N": 25.473926647148744,
+          "all_top_contact_pairs": [
+            {
+              "active_sample_count": 40.0,
+              "max_force_N": 118.5218989279534,
+              "max_penetration_mm": 0.243063441303093,
+              "pair": "cycloidalDisk1:driverDisk",
+              "rms_force_N": 36.02557012865872,
+              "rms_penetration_mm": 0.12987758266849764
+            },
+            {
+              "active_sample_count": 3.0,
+              "max_force_N": 0.10278439095026537,
+              "max_penetration_mm": 0.008704366337042302,
+              "pair": "cycloidalDisk1:pinDisk",
+              "rms_force_N": 0.013211878074495356,
+              "rms_penetration_mm": 0.001305095327331142
+            }
+          ],
+          "contact_force_rms_N": 25.473926647148744,
+          "contact_pair_max_penetration_mm": {
+            "cycloidalDisk1:driverDisk": 0.243063441303093,
+            "cycloidalDisk1:pinDisk": 0.008704366337042302
+          },
+          "contact_pair_rms_force_N": {
+            "cycloidalDisk1:driverDisk": 36.02557012865872,
+            "cycloidalDisk1:pinDisk": 0.013211878074495356
+          },
+          "in_omega_med": 10.0,
+          "input_power_W_mean": 0.24154557986297545,
+          "kinetic_energy_rate_W_mean": 0.005353590595843616,
+          "lockup_detected": 0.0,
+          "max_constraint_error_mm": 7.867866570114148e-07,
+          "max_penetration_mm": 0.243063441303093,
+          "mechanical_efficiency_pct": 0.0,
+          "n_contacts_max": 20.0,
+          "out_omega_fit_rad_s": 1.4491579358062194,
+          "out_omega_med": 1.0622537663811435,
+          "out_omega_med_raw": 1.0622537663811435,
+          "output_power_W_mean": 0.0,
+          "output_torque_Nm_mean": 0.0,
+          "output_torque_Nm_signed_mean": 0.0,
+          "power_balance_error_pct": 100.0,
+          "power_balance_residual_pct": 97.7836106134169,
+          "ratio_error_pct": 4.599404236184866,
+          "ratio_observed": 9.413946381256638,
+          "top_contact_pairs": [
+            {
+              "active_sample_count": 40.0,
+              "max_force_N": 118.5218989279534,
+              "max_penetration_mm": 0.243063441303093,
+              "pair": "cycloidalDisk1:driverDisk",
+              "rms_force_N": 36.02557012865872,
+              "rms_penetration_mm": 0.12987758266849764
+            },
+            {
+              "active_sample_count": 3.0,
+              "max_force_N": 0.10278439095026537,
+              "max_penetration_mm": 0.008704366337042302,
+              "pair": "cycloidalDisk1:pinDisk",
+              "rms_force_N": 0.013211878074495356,
+              "rms_penetration_mm": 0.001305095327331142
+            }
+          ],
+          "torque_ripple_pct": 471.3860802977457,
+          "unaccounted_power_W_mean": 0.23619198926713184,
+          "unmonitored_contact_pair_count": 0.0,
+          "unmonitored_top_contact_pairs": []
+        },
+        "missing_metric_keys": [],
+        "ok": true,
+        "output_load_Nm": 0.0,
+        "passed": true,
+        "preflight_issues": [],
+        "procedural_cycloidal_fallback": false,
+        "samples": 61,
+        "solver_diverged": 0.0,
+        "timestep": 5e-05
+      },
+      {
+        "build_meta": {
+          "n_bodies": 6,
+          "n_contacts_reported": 10,
+          "n_joints": 4,
+          "n_loads": 1,
+          "n_motors": 1
+        },
+        "capability_unavailable": false,
+        "chrono_version": "unknown",
+        "contact_config": {
+          "cad_body_frame": "legacy",
+          "cad_reference_frames": false,
+          "collision_filter_named_pairs": true,
+          "contact_envelope_m": 5e-05,
+          "contact_margin_m": 2e-05,
+          "contact_model": "smc",
+          "damping_N_s_m": 2500.0,
+          "friction": 0.02,
+          "normal_stiffness_N_m": 50000000.0,
+          "restitution": 0.0,
+          "smc_use_material_properties": true,
+          "solver_iterations": 800.0,
+          "timestep": 2.5e-05,
+          "use_visual_geometry_as_collision": false,
+          "young_modulus_pa": 30000000.0
+        },
+        "contact_model_requested": "smc",
+        "execution_mode": null,
+        "failure_mode": "none",
+        "metadata_contact_method": "SMC",
+        "metadata_contact_model": "smc",
+        "metrics": {
+          "all_contact_force_rms_N": 24.251400876066885,
+          "all_top_contact_pairs": [
+            {
+              "active_sample_count": 40.0,
+              "max_force_N": 112.96380046184325,
+              "max_penetration_mm": 0.2431151588098146,
+              "pair": "cycloidalDisk1:driverDisk",
+              "rms_force_N": 34.22776918134197,
+              "rms_penetration_mm": 0.11724487884921057
+            },
+            {
+              "active_sample_count": 4.0,
+              "max_force_N": 16.96919144623588,
+              "max_penetration_mm": 0.017766251403372735,
+              "pair": "cycloidalDisk1:pinDisk",
+              "rms_force_N": 2.17271852115553,
+              "rms_penetration_mm": 0.002629291591667106
+            }
+          ],
+          "contact_force_rms_N": 24.251400876066885,
+          "contact_pair_max_penetration_mm": {
+            "cycloidalDisk1:driverDisk": 0.2431151588098146,
+            "cycloidalDisk1:pinDisk": 0.017766251403372735
+          },
+          "contact_pair_rms_force_N": {
+            "cycloidalDisk1:driverDisk": 34.22776918134197,
+            "cycloidalDisk1:pinDisk": 2.17271852115553
+          },
+          "in_omega_med": 10.0,
+          "input_power_W_mean": 0.2596654931313396,
+          "kinetic_energy_rate_W_mean": 0.004236477776350599,
+          "lockup_detected": 0.0,
+          "max_constraint_error_mm": 5.097768681733026e-07,
+          "max_penetration_mm": 0.2431151588098146,
+          "mechanical_efficiency_pct": 0.0,
+          "n_contacts_max": 23.0,
+          "out_omega_fit_rad_s": 1.4799370533059648,
+          "out_omega_med": 0.9775368082116052,
+          "out_omega_med_raw": 0.9775368082116052,
+          "output_power_W_mean": 0.0,
+          "output_torque_Nm_mean": 0.0,
+          "output_torque_Nm_signed_mean": 0.0,
+          "power_balance_error_pct": 100.0,
+          "power_balance_residual_pct": 98.36848642256528,
+          "ratio_error_pct": 13.664375783851964,
+          "ratio_observed": 10.229793820546677,
+          "top_contact_pairs": [
+            {
+              "active_sample_count": 40.0,
+              "max_force_N": 112.96380046184325,
+              "max_penetration_mm": 0.2431151588098146,
+              "pair": "cycloidalDisk1:driverDisk",
+              "rms_force_N": 34.22776918134197,
+              "rms_penetration_mm": 0.11724487884921057
+            },
+            {
+              "active_sample_count": 4.0,
+              "max_force_N": 16.96919144623588,
+              "max_penetration_mm": 0.017766251403372735,
+              "pair": "cycloidalDisk1:pinDisk",
+              "rms_force_N": 2.17271852115553,
+              "rms_penetration_mm": 0.002629291591667106
+            }
+          ],
+          "torque_ripple_pct": 363.7023667104501,
+          "unaccounted_power_W_mean": 0.25542901535498896,
+          "unmonitored_contact_pair_count": 0.0,
+          "unmonitored_top_contact_pairs": []
+        },
+        "missing_metric_keys": [],
+        "ok": true,
+        "output_load_Nm": 0.0,
+        "passed": true,
+        "preflight_issues": [],
+        "procedural_cycloidal_fallback": false,
+        "samples": 61,
+        "solver_diverged": 0.0,
+        "timestep": 2.5e-05
+      }
+    ],
+    "status": "stable",
+    "timesteps": [
+      7.5e-05,
+      5e-05,
+      2.5e-05
+    ]
+  },
+  "trusted_asset_manifest": {
+    "design_units": "mm",
+    "geometry": [
+      {
+        "exists": true,
+        "part_id": "pinDisk",
+        "path": "cycloidal_freecad_assets/pinDisk.stl",
+        "role": "mesh",
+        "sha256": "75d3fd301548fc7dec54774a51295b70faf04dbef499fe305a8318694435c754",
+        "size_bytes": 831684
+      },
+      {
+        "exists": true,
+        "part_id": "pinDisk",
+        "path": "cycloidal_freecad_assets/pinDisk.step",
+        "role": "step",
+        "sha256": "25a1b86b3bf873265d46f7d1ba38c49ef17e4ad2a4acc4377b2c115b549ee891",
+        "size_bytes": 65007
+      },
+      {
+        "exists": true,
+        "part_id": "driverDisk",
+        "path": "cycloidal_freecad_assets/driverDisk.stl",
+        "role": "mesh",
+        "sha256": "6e0cc552e32c4b66747ce9e5bdc68f29ba05a1c712ba128fa2f72f211fe7b529",
+        "size_bytes": 201684
+      },
+      {
+        "exists": true,
+        "part_id": "driverDisk",
+        "path": "cycloidal_freecad_assets/driverDisk.step",
+        "role": "step",
+        "sha256": "4722f538fd29b2bef728bcfe643bc5997d9d2387f40e2b92e9d68cbf0dd071fd",
+        "size_bytes": 15702
+      },
+      {
+        "exists": true,
+        "part_id": "inputShaft",
+        "path": "cycloidal_freecad_assets/inputShaft.stl",
+        "role": "mesh",
+        "sha256": "1827604285baffd58ba398796e14a2adf6a6013655da19179aa24720a6239b12",
+        "size_bytes": 89684
+      },
+      {
+        "exists": true,
+        "part_id": "inputShaft",
+        "path": "cycloidal_freecad_assets/inputShaft.step",
+        "role": "step",
+        "sha256": "9079c33a5c78b13372dc47f3455b5e7f6ec40f30f0cf1e2cae4fc23fbd372178",
+        "size_bytes": 14379
+      },
+      {
+        "exists": true,
+        "part_id": "cycloidalDisk1",
+        "path": "cycloidal_freecad_assets/cycloidalDisk1.stl",
+        "role": "mesh",
+        "sha256": "147eb4f60ad2e5275fbd5e1c7e5e768c170a88ec3c99ea2a8fce86fefe375e32",
+        "size_bytes": 790584
+      },
+      {
+        "exists": true,
+        "part_id": "cycloidalDisk1",
+        "path": "cycloidal_freecad_assets/cycloidalDisk1.step",
+        "role": "step",
+        "sha256": "03efc0143d3ec51803393a1c56d73a0183b2ae183c54ca63b15a57ae8e9ceb2a",
+        "size_bytes": 131112
+      },
+      {
+        "exists": true,
+        "part_id": "eccentricKey",
+        "path": "cycloidal_freecad_assets/eccentricKey.stl",
+        "role": "mesh",
+        "sha256": "98a45c1e9f7498dd3dee21e250a4e7287b0ee2e1318ccf50e666c7efa563cedb",
+        "size_bytes": 78134
+      },
+      {
+        "exists": true,
+        "part_id": "eccentricKey",
+        "path": "cycloidal_freecad_assets/eccentricKey.step",
+        "role": "step",
+        "sha256": "3ea3ea70f0b3eef027bbcaefebbd1fc11405a929b23cfd7e41ad1889154db19b",
+        "size_bytes": 10427
+      },
+      {
+        "exists": true,
+        "part_id": "outputShaft",
+        "path": "cycloidal_freecad_assets/outputShaft.stl",
+        "role": "mesh",
+        "sha256": "e1e7e647c9efb42eab0b130ef648d6281d78a8f0ec2b4bfc20063f6442b52860",
+        "size_bytes": 199684
+      },
+      {
+        "exists": true,
+        "part_id": "outputShaft",
+        "path": "cycloidal_freecad_assets/outputShaft.step",
+        "role": "step",
+        "sha256": "f51a626e8e9de32298dad473cbf2e4b535f548ea1e02a29bdfe054859c3ec5f1",
+        "size_bytes": 15796
+      }
+    ],
+    "mass_properties": [
+      {
+        "com_local_mm": [
+          -0.0,
+          -0.0,
+          6.438658258
+        ],
+        "inertia_kg_m2": [
+          [
+            0.000331522563104,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.000331522563104,
+            -0.0
+          ],
+          [
+            0.0,
+            -0.0,
+            0.000668283568753
+          ]
+        ],
+        "kernel": "FreeCAD/OCCT",
+        "mass_kg": 0.48179298216,
+        "part_id": "pinDisk",
+        "reason": "",
+        "recomputed": true,
+        "source": "trusted_cad_kernel"
+      },
+      {
+        "com_local_mm": [
+          0.0,
+          -0.0,
+          10.41962842
+        ],
+        "inertia_kg_m2": [
+          [
+            4.2952486393e-05,
+            -0.0,
+            -0.0
+          ],
+          [
+            -0.0,
+            4.2952486393e-05,
+            -0.0
+          ],
+          [
+            -0.0,
+            -0.0,
+            0.000116673478684
+          ]
+        ],
+        "kernel": "FreeCAD/OCCT",
+        "mass_kg": 0.19005288434,
+        "part_id": "driverDisk",
+        "reason": "",
+        "recomputed": true,
+        "source": "trusted_cad_kernel"
+      },
+      {
+        "com_local_mm": [
+          -0.07954063,
+          -0.002107492,
+          5.395014826
+        ],
+        "inertia_kg_m2": [
+          [
+            4.37809935e-07,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            4.37946035e-07,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            4.37809935e-07
+          ]
+        ],
+        "kernel": "FreeCAD/OCCT",
+        "mass_kg": 0.011678560945,
+        "part_id": "inputShaft",
+        "reason": "",
+        "recomputed": true,
+        "source": "trusted_cad_kernel"
+      },
+      {
+        "com_local_mm": [
+          2.000413364,
+          0.0,
+          12.5
+        ],
+        "inertia_kg_m2": [
+          [
+            1.9869469871e-05,
+            0.0,
+            2.833222402e-06
+          ],
+          [
+            0.0,
+            1.9416003434e-05,
+            0.0
+          ],
+          [
+            2.833222402e-06,
+            0.0,
+            7.4221533736e-05
+          ]
+        ],
+        "kernel": "FreeCAD/OCCT",
+        "mass_kg": 0.113305477888,
+        "part_id": "cycloidalDisk1",
+        "reason": "",
+        "recomputed": true,
+        "source": "trusted_cad_kernel"
+      },
+      {
+        "com_local_mm": [
+          0.132208423,
+          -0.0,
+          15.155539322
+        ],
+        "inertia_kg_m2": [
+          [
+            2.1985693e-07,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            3.17981512e-07,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            3.74351803e-07
+          ]
+        ],
+        "kernel": "FreeCAD/OCCT",
+        "mass_kg": 0.009809198314,
+        "part_id": "eccentricKey",
+        "reason": "",
+        "recomputed": true,
+        "source": "trusted_cad_kernel"
+      },
+      {
+        "com_local_mm": [
+          -0.0,
+          -0.000598943,
+          22.68502631
+        ],
+        "inertia_kg_m2": [
+          [
+            5.1329475517e-05,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            5.1358842959e-05,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            9.4469684122e-05
+          ]
+        ],
+        "kernel": "FreeCAD/OCCT",
+        "mass_kg": 0.123279515311,
+        "part_id": "outputShaft",
+        "reason": "",
+        "recomputed": true,
+        "source": "trusted_cad_kernel"
+      }
+    ],
+    "materials": {},
+    "notes": [
+      "Mass, COM, and inertia were recomputed by a trusted CAD bridge for every positive-mass part."
+    ],
+    "schema_version": "trusted_asset_manifest.v1",
+    "trusted_geometry_kernel": "FreeCAD/OCCT",
+    "trusted_mass_properties_recomputed": true
+  },
+  "validation_scope": "real-geometry solver acceptance; not empirical hardware calibration"
+}

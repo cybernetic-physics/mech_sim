@@ -34,6 +34,7 @@ BODY_NAMES = (
 )
 
 DEFAULT_SOURCE_CANDIDATES = (
+    str(Path(__file__).resolve().parents[2] / ".external" / "src" / "CycloidGearBox"),
     "/opt/CycloidGearBox",
     "/workspace/third_party/CycloidGearBox",
     "/tmp/CycloidGearBox",
@@ -697,22 +698,16 @@ def _mass_properties_for_body(
     tuple[float, float, float],
     tuple[tuple[float, float, float], tuple[float, float, float], tuple[float, float, float]],
 ]:
+    cad_mass: float | None = None
+    cad_com: tuple[float, float, float] | None = None
     props = body.get("mass_properties")
     if isinstance(props, dict):
         try:
             mass = float(props["mass_kg"])
             com_vals = [float(v) for v in list(props["com_mm"])[:3]]
-            inertia_raw = props["inertia_kg_m2"]
-            inertia = tuple(
-                tuple(float(v) for v in list(row)[:3])
-                for row in list(inertia_raw)[:3]
-            )
-            if len(com_vals) == 3 and len(inertia) == 3:
-                return _canonical_chrono_mass_properties(
-                    mass,
-                    tuple(com_vals),
-                    inertia,  # type: ignore[arg-type]
-                )
+            if len(com_vals) == 3 and math.isfinite(mass) and mass > 0.0:
+                cad_mass = mass
+                cad_com = tuple(com_vals)  # type: ignore[assignment]
         except (KeyError, TypeError, ValueError):
             pass
 
@@ -723,8 +718,12 @@ def _mass_properties_for_body(
     sy = max((bbox[4] - bbox[1]) / 1000.0, 1e-6)
     sz = max((bbox[5] - bbox[2]) / 1000.0, 1e-6)
     volume_m3 = sx * sy * sz
-    mass = max(float(fallback_mass_kg), density_kg_m3 * volume_m3 * 0.35)
-    com = (
+    mass = (
+        float(cad_mass)
+        if cad_mass is not None
+        else max(float(fallback_mass_kg), density_kg_m3 * volume_m3 * 0.35)
+    )
+    com = cad_com or (
         (bbox[0] + bbox[3]) / 2.0,
         (bbox[1] + bbox[4]) / 2.0,
         (bbox[2] + bbox[5]) / 2.0,

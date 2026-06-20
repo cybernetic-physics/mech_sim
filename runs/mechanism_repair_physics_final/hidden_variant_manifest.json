@@ -424,7 +424,7 @@
     },
     {
       "family": "cycloidal_reducer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t00_cycloidal_lowN_stub_s20260610/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -432,13 +432,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t00_cycloidal_lowN_stub_s20260610/eval_config.public.toml",
-      "task_id": "cycloidal_reducer_t00_cycloidal_lowN_stub_s20260610",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610/eval_config.public.toml",
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
       "verifier_level": 3
     },
     {
       "family": "cycloidal_reducer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t01_cycloidal_lowN_stub_s20260611/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t01_cycloidal_real_geometry_chrono_s20260611/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -446,13 +446,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t01_cycloidal_lowN_stub_s20260611/eval_config.public.toml",
-      "task_id": "cycloidal_reducer_t01_cycloidal_lowN_stub_s20260611",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t01_cycloidal_real_geometry_chrono_s20260611/eval_config.public.toml",
+      "task_id": "cycloidal_reducer_t01_cycloidal_real_geometry_chrono_s20260611",
       "verifier_level": 3
     },
     {
       "family": "cycloidal_reducer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t02_cycloidal_lowN_stub_s20260612/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -460,13 +460,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t02_cycloidal_lowN_stub_s20260612/eval_config.public.toml",
-      "task_id": "cycloidal_reducer_t02_cycloidal_lowN_stub_s20260612",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612/eval_config.public.toml",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
       "verifier_level": 3
     },
     {
       "family": "cycloidal_reducer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t03_cycloidal_lowN_stub_s20260613/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -474,13 +474,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t03_cycloidal_lowN_stub_s20260613/eval_config.public.toml",
-      "task_id": "cycloidal_reducer_t03_cycloidal_lowN_stub_s20260613",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613/eval_config.public.toml",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
       "verifier_level": 3
     },
     {
       "family": "cycloidal_reducer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t04_cycloidal_lowN_stub_s20260614/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t04_cycloidal_real_geometry_chrono_s20260614/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -488,13 +488,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t04_cycloidal_lowN_stub_s20260614/eval_config.public.toml",
-      "task_id": "cycloidal_reducer_t04_cycloidal_lowN_stub_s20260614",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t04_cycloidal_real_geometry_chrono_s20260614/eval_config.public.toml",
+      "task_id": "cycloidal_reducer_t04_cycloidal_real_geometry_chrono_s20260614",
       "verifier_level": 3
     },
     {
       "family": "cycloidal_reducer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t05_cycloidal_lowN_stub_s20260615/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t05_cycloidal_real_geometry_chrono_s20260615/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -502,13 +502,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t05_cycloidal_lowN_stub_s20260615/eval_config.public.toml",
-      "task_id": "cycloidal_reducer_t05_cycloidal_lowN_stub_s20260615",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t05_cycloidal_real_geometry_chrono_s20260615/eval_config.public.toml",
+      "task_id": "cycloidal_reducer_t05_cycloidal_real_geometry_chrono_s20260615",
       "verifier_level": 3
     },
     {
       "family": "cycloidal_reducer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t06_cycloidal_lowN_stub_s20260616/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t06_cycloidal_real_geometry_chrono_s20260616/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -516,13 +516,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t06_cycloidal_lowN_stub_s20260616/eval_config.public.toml",
-      "task_id": "cycloidal_reducer_t06_cycloidal_lowN_stub_s20260616",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t06_cycloidal_real_geometry_chrono_s20260616/eval_config.public.toml",
+      "task_id": "cycloidal_reducer_t06_cycloidal_real_geometry_chrono_s20260616",
       "verifier_level": 3
     },
     {
       "family": "cycloidal_reducer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t07_cycloidal_lowN_stub_s20260617/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t07_cycloidal_real_geometry_chrono_s20260617/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -530,13 +530,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t07_cycloidal_lowN_stub_s20260617/eval_config.public.toml",
-      "task_id": "cycloidal_reducer_t07_cycloidal_lowN_stub_s20260617",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t07_cycloidal_real_geometry_chrono_s20260617/eval_config.public.toml",
+      "task_id": "cycloidal_reducer_t07_cycloidal_real_geometry_chrono_s20260617",
       "verifier_level": 3
     },
     {
       "family": "cycloidal_reducer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t08_cycloidal_lowN_stub_s20260618/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t08_cycloidal_real_geometry_chrono_s20260618/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -544,13 +544,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t08_cycloidal_lowN_stub_s20260618/eval_config.public.toml",
-      "task_id": "cycloidal_reducer_t08_cycloidal_lowN_stub_s20260618",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t08_cycloidal_real_geometry_chrono_s20260618/eval_config.public.toml",
+      "task_id": "cycloidal_reducer_t08_cycloidal_real_geometry_chrono_s20260618",
       "verifier_level": 3
     },
     {
       "family": "cycloidal_reducer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t09_cycloidal_lowN_stub_s20260619/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t09_cycloidal_real_geometry_chrono_s20260619/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -558,8 +558,8 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t09_cycloidal_lowN_stub_s20260619/eval_config.public.toml",
-      "task_id": "cycloidal_reducer_t09_cycloidal_lowN_stub_s20260619",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cycloidal_reducer_t09_cycloidal_real_geometry_chrono_s20260619/eval_config.public.toml",
+      "task_id": "cycloidal_reducer_t09_cycloidal_real_geometry_chrono_s20260619",
       "verifier_level": 3
     },
     {

@@ -3,6 +3,166 @@
   "cells": [
     {
       "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t08_cycloidal_real_geometry_chrono_s20260618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t08_cycloidal_real_geometry_chrono_s20260618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t08_cycloidal_real_geometry_chrono_s20260618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t08_cycloidal_real_geometry_chrono_s20260618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t08_cycloidal_real_geometry_chrono_s20260618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t08_cycloidal_real_geometry_chrono_s20260618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t08_cycloidal_real_geometry_chrono_s20260618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t08_cycloidal_real_geometry_chrono_s20260618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
       "family": "lead_screw",
       "method": "frozen_model",
       "seed": 20260610,
@@ -560,6 +720,166 @@
       "split_kind": "headline",
       "task_id": "chain_drive_t09_chain_sprocket_ratio_s20264619",
       "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
+      "verifier_level": 3
     },
     {
       "budget": 32,
@@ -1680,6 +2000,86 @@
       "split_kind": "anti_shortcut",
       "task_id": "spur_compound_gear_train_t02_compound_gear_velocity_s20262612",
       "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cycloidal_reducer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
+      "verifier_level": 3
     },
     {
       "budget": 32,
@@ -2322,10 +2722,10 @@
       "verifier_level": 2
     }
   ],
-  "full_planned_cells": 4560,
+  "full_planned_cells": 5280,
   "num_shards": 24,
   "out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
-  "planned_cells": 232,
+  "planned_cells": 272,
   "replay_args": [
     "--benchmark-dir",
     "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",

@@ -3,12 +3,12 @@
   "budget_mismatch_count": 0,
   "duplicate_cell_count": 0,
   "extra_cell_count": 0,
-  "full_planned_cells": 4560,
+  "full_planned_cells": 5280,
   "missing_accounting_count": 0,
-  "missing_cell_count": 4560,
+  "missing_cell_count": 5280,
   "num_shards": 1,
   "observed_rows": 0,
-  "planned_cells": 4560,
+  "planned_cells": 5280,
   "primary_budget": 32,
   "primary_expensive_budget_excess_count": 0,
   "sample_budget_mismatches": [],
@@ -18,253 +18,253 @@
   "sample_missing_cells": [
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "frozen_model",
       "seed": 20260610,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "sft_seen_family",
       "seed": 20260610,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "llm_evolve_no_update",
       "seed": 20260610,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "verifier_gated_search",
       "seed": 20260610,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "adaptive_evolution",
       "seed": 20260610,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "mechanical_evolve_ttrl",
       "seed": 20260610,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "mechanical_evolve_ttrl_tool_verified",
       "seed": 20260610,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "mechanical_evolve_ttrl_confidence",
       "seed": 20260610,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "frozen_model",
       "seed": 20260611,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "sft_seen_family",
       "seed": 20260611,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "llm_evolve_no_update",
       "seed": 20260611,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "verifier_gated_search",
       "seed": 20260611,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "adaptive_evolution",
       "seed": 20260611,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "mechanical_evolve_ttrl",
       "seed": 20260611,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "mechanical_evolve_ttrl_tool_verified",
       "seed": 20260611,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "mechanical_evolve_ttrl_confidence",
       "seed": 20260611,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "frozen_model",
       "seed": 20260612,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "sft_seen_family",
       "seed": 20260612,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "llm_evolve_no_update",
       "seed": 20260612,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "verifier_gated_search",
       "seed": 20260612,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "adaptive_evolution",
       "seed": 20260612,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "mechanical_evolve_ttrl",
       "seed": 20260612,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "mechanical_evolve_ttrl_tool_verified",
       "seed": 20260612,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "mechanical_evolve_ttrl_confidence",
       "seed": 20260612,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t00_lead_screw_linear_travel_s20266610",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
+      "verifier_level": 3
     },
     {
       "budget": 32,
-      "family": "lead_screw",
+      "family": "cycloidal_reducer",
       "method": "frozen_model",
       "seed": 20260610,
       "split": "A",
       "split_kind": "headline",
-      "task_id": "lead_screw_t01_lead_screw_linear_travel_s20266611",
-      "verifier_level": 2
+      "task_id": "cycloidal_reducer_t01_cycloidal_real_geometry_chrono_s20260611",
+      "verifier_level": 3
     }
   ],
   "sample_primary_expensive_budget_excesses": [],

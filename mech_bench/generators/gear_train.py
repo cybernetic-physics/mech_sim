@@ -1148,3 +1148,300 @@ class CycloidalLowNStubGenerator(TaskGenerator):
                                      target_ratio=target_ratio,
                                      requires_adapter="rigid_body_dynamics+contact_forces"),
         )
+
+
+class CycloidalRealGeometryChronoGenerator(TaskGenerator):
+    family = "cycloidal_real_geometry_chrono"
+    tier = "contact_dynamics"
+
+    _ASSETS = (
+        ("pins10_ratio9", 10, 9.0, 42),
+        ("pins12_ratio11", 12, 11.0, 48),
+        ("pins14_ratio13", 14, 13.0, 56),
+    )
+
+    def generate(self, seed: int, difficulty: int = 3) -> GeneratedTask:
+        asset_id, ring_pins, ratio, segments = self._ASSETS[
+            (int(seed) - 20260610) % len(self._ASSETS)
+        ]
+        input_speed = 10.0
+        task_id = make_task_id(self.family, seed)
+        pair_ring = "pinDisk:cycloidalDisk1"
+        pair_driver = "driverDisk:cycloidalDisk1"
+
+        prompt = (
+            "# Cycloidal reducer with CAD-backed Chrono contact\n\n"
+            f"Design a single-stage cycloidal reducer with {ring_pins} "
+            f"fixed ring pins and reduction ratio {ratio:g}:1.\n\n"
+            "* The design must expose `input_port` on the input shaft axis "
+            "and `output_port` on the output shaft/carrier axis.\n"
+            "* Contact must be represented by `contact_pair` joints for "
+            f"`{pair_ring}` and `{pair_driver}`.\n"
+            "* Contact bodies must carry real `chrono_collision` geometry "
+            "derived from CAD STEP/STL assets, not fake oracle outputs.\n"
+            "* `params.declared_ratio` must match the ring-pin reduction "
+            f"{ratio:g}, and the mechanism must avoid lockup under the "
+            "Chrono contact trial.\n"
+        )
+
+        task_toml: dict[str, Any] = {
+            "task": {"id": task_id, "family": self.family,
+                     "difficulty": int(difficulty), "units": "mm",
+                     "tier": self.tier},
+            "requirements": {
+                "required_ports": ["input_port", "output_port"],
+                "expected_mobility": 3,
+                "max_envelope_mm": [160, 160, 80],
+            },
+            "objective": {
+                "description": (
+                    f"CAD-backed cycloidal reducer: {ring_pins} ring pins, "
+                    f"declared ratio {ratio:g}."
+                ),
+                "allow_massless_links": False,
+                "ground_required": True,
+            },
+            "visibility": {
+                "public_split": ["ports", "contact", "ratio"],
+                "hidden_split": ["contact", "lockup"],
+            },
+            "capability": {
+                "requires_adapter": "rigid_body_dynamics+contact_forces",
+                "expect_capability_unavailable": False,
+            },
+        }
+
+        def _cfg(
+            *,
+            samples: int,
+            duration_s: float,
+            min_engagement: float,
+            ratio_tol_pct: float,
+        ) -> dict[str, Any]:
+            return {
+                "probes": [
+                    {"id": "ports", "type": "required_ports",
+                     "ports": ["input_port", "output_port"],
+                     "require_kinds": {"input_port": "revolute_joint",
+                                        "output_port": "revolute_joint"},
+                     "require_grounded": ["input_port", "output_port"],
+                     "hard_gate": True, "severity": "critical"},
+                    {"id": "ratio", "type": "analytic_param_check",
+                     "path": "params.declared_ratio",
+                     "expected": float(ratio),
+                     "comparator": "eq",
+                     "tolerance_pct": float(ratio_tol_pct),
+                     "failure_code": "wrong_ratio",
+                     "weight": 0.3, "severity": "major"},
+                    {"id": "contact", "type": "contact_engagement",
+                     "required_pairs": [pair_ring, pair_driver],
+                     "min_rms_force_N": 0.1,
+                     "min_engagement_fraction": float(min_engagement),
+                     "adapter": "chrono_contact",
+                     "hard_gate": True,
+                     "weight": 1.0, "severity": "critical"},
+                    {"id": "lockup", "type": "lockup",
+                     "input_port": "input_port",
+                     "output_port": "output_port",
+                     "min_output_motion_rad": 0.005,
+                     "min_output_velocity_rad_s": 0.001,
+                     "adapter": "chrono_contact",
+                     "weight": 0.5, "severity": "critical"},
+                ],
+                "feedback": {
+                    "public_metrics": [
+                        "ports.ports_required",
+                        "ratio.observed",
+                        f"contact.contact.{pair_ring}.rms_N",
+                        f"contact.contact.{pair_driver}.rms_N",
+                    ],
+                    "hidden_metrics": [
+                        "contact.worst_pair_score",
+                        "lockup.lockup_detected",
+                    ],
+                },
+                "hard_gate": {"require": ["ports", "contact"]},
+                "adapters": {
+                    "chrono_contact": {
+                        "contact_model": "nsc",
+                        "procedural_cycloidal_fallback": False,
+                        "collision_filter_named_pairs": True,
+                        "samples": int(samples),
+                        "duration_s": float(duration_s),
+                        "dt": 2.5e-5,
+                        "timestep": 2.5e-5,
+                        "input_speed_rad_s": input_speed,
+                        "output_load_Nm": 0.75,
+                        "output_load_start_s": 0.02,
+                        "output_load_ramp_s": 0.05,
+                        "contact_margin_m": 2.0e-5,
+                        "contact_envelope_m": 5.0e-5,
+                        "normal_stiffness_N_m": 5.0e7,
+                        "normal_damping_N_s_m": 2500.0,
+                        "friction_mu": 0.02,
+                        "restitution": 0.0,
+                        "young_modulus_pa": 3.0e7,
+                        "smc_use_material_properties": True,
+                        "solver_iterations": 800,
+                        "solver_max_iterations": 800,
+                        "solver_tolerance": 1.0e-8,
+                    },
+                },
+            }
+
+        ref_py = _cycloidal_real_geometry_reference_py(
+            asset_id=asset_id,
+            ring_pins=ring_pins,
+            ratio=ratio,
+        )
+        negatives = {
+            "wrong_ratio": _negative_overlay(
+                f"    ir['params']['declared_ratio'] = {round(ratio + 2.0, 6)}"
+            ),
+            "missing_port": _negative_overlay(
+                "    del ir['ports']['output_port']"
+            ),
+            "missing_contact_geometry": _negative_overlay(
+                "    for part in ir.get('parts', []) or []:\n"
+                "        if part.get('id') in {'pinDisk', 'driverDisk', 'cycloidalDisk1'}:\n"
+                "            params = part.get('params') or {}\n"
+                "            params.pop('chrono_collision', None)\n"
+                "            part['params'] = params"
+            ),
+        }
+        expected = {
+            "description": (
+                "Tier 3 cycloidal_real_geometry_chrono negatives."
+            ),
+            "controls": [
+                {
+                    "id": "wrong_ratio",
+                    "submission": "negative_solutions/wrong_ratio",
+                    "expected_failure_codes": ["wrong_ratio"],
+                    "expected_hard_gate_passed": True,
+                    "expected_score_below": 0.9,
+                },
+                {
+                    "id": "missing_port",
+                    "submission": "negative_solutions/missing_port",
+                    "expected_failure_codes": ["missing_port"],
+                    "expected_hard_gate_passed": False,
+                    "expected_score_below": 0.001,
+                },
+                {
+                    "id": "missing_contact_geometry",
+                    "submission": "negative_solutions/missing_contact_geometry",
+                    "expected_failure_codes": ["missing_contact"],
+                    "expected_hard_gate_passed": False,
+                    "expected_score_below": 0.6,
+                },
+            ],
+        }
+        return GeneratedTask(
+            task_id=task_id, family=self.family,
+            difficulty=int(difficulty), prompt_md=prompt,
+            task_toml=task_toml,
+            eval_config_toml=_cfg(
+                samples=61,
+                duration_s=0.2,
+                min_engagement=0.005,
+                ratio_tol_pct=1.0,
+            ),
+            eval_config_hidden_toml=_cfg(
+                samples=81,
+                duration_s=0.2,
+                min_engagement=0.01,
+                ratio_tol_pct=0.5,
+            ),
+            fixtures={},
+            reference_solution_py=ref_py,
+            negative_solutions=negatives,
+            expected_failures=expected,
+            metadata=common_metadata(
+                self.family, self.tier, seed, difficulty,
+                asset_id=asset_id,
+                ring_pins=ring_pins,
+                target_ratio=ratio,
+                line_segment_count=segments,
+                requires_adapter="rigid_body_dynamics+contact_forces",
+                requires_cached_cad_fixture=True,
+            ),
+        )
+
+
+def _cycloidal_real_geometry_reference_py(
+    *,
+    asset_id: str,
+    ring_pins: int,
+    ratio: float,
+) -> str:
+    return (
+        _PUBLIC_HEAD
+        + "from dataclasses import asdict\n"
+        + "from pathlib import Path\n"
+        + "import json\n"
+        + "import shutil\n\n\n"
+        + "def _copy_fixture_assets(out_dir: Path) -> Path:\n"
+        + "    import mech_bench\n\n"
+        + f"    asset_id = {asset_id!r}\n"
+        + "    src = (Path(mech_bench.__file__).resolve().parent / 'fixtures' /\n"
+        + "           'cycloidal_real_geometry' / asset_id)\n"
+        + "    manifest_src = src / 'cycloidal_assets_manifest.json'\n"
+        + "    if not manifest_src.is_file():\n"
+        + "        raise FileNotFoundError(f'missing cycloidal CAD fixture: {manifest_src}')\n"
+        + "    dst = Path(out_dir) / 'cycloidal_assets'\n"
+        + "    if dst.exists():\n"
+        + "        shutil.rmtree(dst)\n"
+        + "    shutil.copytree(src, dst)\n"
+        + "    manifest_dst = dst / 'cycloidal_assets_manifest.json'\n"
+        + "    data = json.loads(manifest_dst.read_text())\n"
+        + "    data['root'] = str(dst)\n"
+        + "    manifest_dst.write_text(json.dumps(data, indent=2, sort_keys=True) + '\\n')\n"
+        + "    return manifest_dst\n\n\n"
+        + "def _fixture_path(value: object) -> object:\n"
+        + "    if not isinstance(value, str) or not value:\n"
+        + "        return value\n"
+        + "    path = Path(value)\n"
+        + "    if path.is_absolute() or value.startswith('cycloidal_assets/'):\n"
+        + "        return value\n"
+        + "    return str(Path('cycloidal_assets') / value)\n\n\n"
+        + "def _rewrite_fixture_paths(obj: object) -> None:\n"
+        + "    if isinstance(obj, dict):\n"
+        + "        for key, value in list(obj.items()):\n"
+        + "            if key in {'mesh', 'step', 'cad', 'collision'}:\n"
+        + "                obj[key] = _fixture_path(value)\n"
+        + "            else:\n"
+        + "                _rewrite_fixture_paths(value)\n"
+        + "    elif isinstance(obj, list):\n"
+        + "        for value in obj:\n"
+        + "            _rewrite_fixture_paths(value)\n\n\n"
+        + "def build_design(out_dir: Path) -> dict:\n"
+        + "    from mech_bench.geometry.cycloidal_freecad import (\n"
+        + "        CycloidalReducerAssets,\n"
+        + "        build_chrono_design_ir_from_assets,\n"
+        + "    )\n\n"
+        + "    manifest = _copy_fixture_assets(Path(out_dir))\n"
+        + "    assets = CycloidalReducerAssets.from_manifest(manifest)\n"
+        + "    ir = build_chrono_design_ir_from_assets(\n"
+        + "        assets,\n"
+        + "        include_secondary_disc=False,\n"
+        + "        collision_sweep_radius_m=2.0e-5,\n"
+        + "        use_cad_collision_primitives=False,\n"
+        + "        use_cad_eccentric_body_frames=True,\n"
+        + "        use_cad_outer_sidewall_collision=True,\n"
+        + "        cad_outer_sidewall_thickness_mm=0.75,\n"
+        + "        cad_outer_sidewall_max_hulls=128,\n"
+        + "    )\n"
+        + f"    ir.params['pins'] = {int(ring_pins)}\n"
+        + f"    ir.params['declared_ratio'] = {float(ratio)!r}\n"
+        + "    for part in ir.parts:\n"
+        + "        geom = part.geometry if isinstance(part.geometry, dict) else {}\n"
+        + "        if 'step' in geom:\n"
+        + "            geom.setdefault('cad', geom['step'])\n"
+        + "        if 'mesh' in geom:\n"
+        + "            geom.setdefault('collision', geom['mesh'])\n"
+        + "        part.geometry = geom\n"
+        + "    payload = asdict(ir)\n"
+        + "    _rewrite_fixture_paths(payload)\n"
+        + "    return payload\n"
+    )

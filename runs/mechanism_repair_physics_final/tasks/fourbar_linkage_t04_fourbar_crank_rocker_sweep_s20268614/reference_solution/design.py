@@ -312,7 +312,8 @@ def _physics_enrich_design(ir, out_dir):
         if not isinstance(part, dict):
             continue
         part_id = _physics_safe_id(part.get("id", f"part_{index}"))
-        part.setdefault("material", "steel_1045")
+        if not part.get("material"):
+            part["material"] = "steel_1045"
         part.setdefault("com_local_mm", (0.0, 0.0, 0.0))
         pparams = part.setdefault("params", {})
         initial_pose = _physics_default_initial_pose_mm(part, 'fourbar_linkage')

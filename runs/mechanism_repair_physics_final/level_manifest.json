@@ -367,8 +367,8 @@
         "physics_contact"
       ],
       "family": "cycloidal_reducer",
-      "headline_eligible": false,
-      "task_id": "cycloidal_reducer_t00_cycloidal_lowN_stub_s20260610",
+      "headline_eligible": true,
+      "task_id": "cycloidal_reducer_t00_cycloidal_real_geometry_chrono_s20260610",
       "verifier_level": 3
     },
     {
@@ -379,8 +379,8 @@
         "physics_contact"
       ],
       "family": "cycloidal_reducer",
-      "headline_eligible": false,
-      "task_id": "cycloidal_reducer_t01_cycloidal_lowN_stub_s20260611",
+      "headline_eligible": true,
+      "task_id": "cycloidal_reducer_t01_cycloidal_real_geometry_chrono_s20260611",
       "verifier_level": 3
     },
     {
@@ -391,8 +391,8 @@
         "physics_contact"
       ],
       "family": "cycloidal_reducer",
-      "headline_eligible": false,
-      "task_id": "cycloidal_reducer_t02_cycloidal_lowN_stub_s20260612",
+      "headline_eligible": true,
+      "task_id": "cycloidal_reducer_t02_cycloidal_real_geometry_chrono_s20260612",
       "verifier_level": 3
     },
     {
@@ -403,8 +403,8 @@
         "physics_contact"
       ],
       "family": "cycloidal_reducer",
-      "headline_eligible": false,
-      "task_id": "cycloidal_reducer_t03_cycloidal_lowN_stub_s20260613",
+      "headline_eligible": true,
+      "task_id": "cycloidal_reducer_t03_cycloidal_real_geometry_chrono_s20260613",
       "verifier_level": 3
     },
     {
@@ -415,8 +415,8 @@
         "physics_contact"
       ],
       "family": "cycloidal_reducer",
-      "headline_eligible": false,
-      "task_id": "cycloidal_reducer_t04_cycloidal_lowN_stub_s20260614",
+      "headline_eligible": true,
+      "task_id": "cycloidal_reducer_t04_cycloidal_real_geometry_chrono_s20260614",
       "verifier_level": 3
     },
     {
@@ -427,8 +427,8 @@
         "physics_contact"
       ],
       "family": "cycloidal_reducer",
-      "headline_eligible": false,
-      "task_id": "cycloidal_reducer_t05_cycloidal_lowN_stub_s20260615",
+      "headline_eligible": true,
+      "task_id": "cycloidal_reducer_t05_cycloidal_real_geometry_chrono_s20260615",
       "verifier_level": 3
     },
     {
@@ -439,8 +439,8 @@
         "physics_contact"
       ],
       "family": "cycloidal_reducer",
-      "headline_eligible": false,
-      "task_id": "cycloidal_reducer_t06_cycloidal_lowN_stub_s20260616",
+      "headline_eligible": true,
+      "task_id": "cycloidal_reducer_t06_cycloidal_real_geometry_chrono_s20260616",
       "verifier_level": 3
     },
     {
@@ -451,8 +451,8 @@
         "physics_contact"
       ],
       "family": "cycloidal_reducer",
-      "headline_eligible": false,
-      "task_id": "cycloidal_reducer_t07_cycloidal_lowN_stub_s20260617",
+      "headline_eligible": true,
+      "task_id": "cycloidal_reducer_t07_cycloidal_real_geometry_chrono_s20260617",
       "verifier_level": 3
     },
     {
@@ -463,8 +463,8 @@
         "physics_contact"
       ],
       "family": "cycloidal_reducer",
-      "headline_eligible": false,
-      "task_id": "cycloidal_reducer_t08_cycloidal_lowN_stub_s20260618",
+      "headline_eligible": true,
+      "task_id": "cycloidal_reducer_t08_cycloidal_real_geometry_chrono_s20260618",
       "verifier_level": 3
     },
     {
@@ -475,8 +475,8 @@
         "physics_contact"
       ],
       "family": "cycloidal_reducer",
-      "headline_eligible": false,
-      "task_id": "cycloidal_reducer_t09_cycloidal_lowN_stub_s20260619",
+      "headline_eligible": true,
+      "task_id": "cycloidal_reducer_t09_cycloidal_real_geometry_chrono_s20260619",
       "verifier_level": 3
     },
     {

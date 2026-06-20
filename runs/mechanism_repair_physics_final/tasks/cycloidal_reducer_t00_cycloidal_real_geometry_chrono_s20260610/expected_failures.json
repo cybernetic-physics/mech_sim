@@ -1,0 +1,54 @@
+{
+  "description": "Tier 3 cycloidal_real_geometry_chrono negatives.",
+  "controls": [
+    {
+      "id": "wrong_ratio",
+      "submission": "negative_solutions/wrong_ratio",
+      "expected_failure_codes": [
+        "wrong_ratio"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.9
+    },
+    {
+      "id": "missing_port",
+      "submission": "negative_solutions/missing_port",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001
+    },
+    {
+      "id": "missing_contact_geometry",
+      "submission": "negative_solutions/missing_contact_geometry",
+      "expected_failure_codes": [
+        "missing_contact"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.6
+    },
+    {
+      "id": "missing_required_port_physics",
+      "submission": "negative_solutions/missing_required_port_physics",
+      "expected_failure_codes": [
+        "missing_port"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.001
+    },
+    {
+      "id": "missing_trusted_mass_physics",
+      "submission": "negative_solutions/missing_trusted_mass_physics",
+      "expected_failure_codes": [
+        "invalid_mass_properties"
+      ],
+      "expected_hard_gate_passed": false,
+      "expected_score_below": 0.6
+    }
+  ],
+  "mechanism_repair_physics": {
+    "min_effective_negative_controls": 2,
+    "negative_controls_must_not_all_pass_hard_gates": true
+  }
+}

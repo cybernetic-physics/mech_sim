@@ -21,6 +21,7 @@ from mech_bench.generators.gear_train import (
     ContactGearPairStubGenerator,
     CycloidalLayoutRatioGenerator,
     CycloidalLowNStubGenerator,
+    CycloidalRealGeometryChronoGenerator,
     RackPinionConversionGenerator,
     SpurGearRatioAnalyticGenerator,
 )
@@ -140,6 +141,7 @@ SUITE: list[type[TaskGenerator]] = [
     # Pre-existing Tier 3 (capability-unavailable stubs)
     ContactGearPairStubGenerator,
     CycloidalLowNStubGenerator,
+    CycloidalRealGeometryChronoGenerator,
     # Part B — Tier 3 additions (synthetic fake-oracle stubs)
     CamFollowerContactStubGenerator,
     RatchetPawlEngagementStubGenerator,

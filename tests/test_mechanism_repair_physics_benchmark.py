@@ -73,10 +73,11 @@ def test_physics_preflight_materializes_required_families_and_manifests(
         for blocker in audit["paper_blockers"]
     )
     assert audit["family_counts"] == {family: 1 for family in REQUIRED_FAMILIES}
-    assert audit["headline_task_count"] == 9
+    assert audit["headline_task_count"] == 10
     assert audit["headline_family_counts"] == {
         "belt_drive": 1,
         "chain_drive": 1,
+        "cycloidal_reducer": 1,
         "fourbar_linkage": 1,
         "lead_screw": 1,
         "planetary_reducer": 1,
@@ -85,7 +86,7 @@ def test_physics_preflight_materializes_required_families_and_manifests(
         "slider_crank": 1,
         "spur_compound_gear_train": 1,
     }
-    assert audit["diagnostic_task_count"] == 3
+    assert audit["diagnostic_task_count"] == 2
     assert audit["level_counts"] == {"2": 9, "3": 3}
     assert all(
         len(task["constraint_classes"]) >= 3
@@ -110,18 +111,20 @@ def test_physics_preflight_materializes_required_families_and_manifests(
             test_names = {
                 Path(path).name for path in split_manifest["splits"]["test"]
             }
-            assert len(test_names) == 3
+            assert len(test_names) == 4
             assert any(name.startswith("planetary_reducer") for name in test_names)
             assert any(name.startswith("lead_screw") for name in test_names)
             assert any(name.startswith("slider_crank") for name in test_names)
+            assert any(name.startswith("cycloidal_reducer") for name in test_names)
         else:
             test_names = {
                 Path(path).name for path in split_manifest["splits"]["test"]
             }
-            assert len(test_names) == 4
+            assert len(test_names) == 5
             assert any(name.startswith("belt_drive") for name in test_names)
             assert any(name.startswith("chain_drive") for name in test_names)
             assert any(name.startswith("rack_pinion") for name in test_names)
+            assert any(name.startswith("cycloidal_reducer") for name in test_names)
             assert any(
                 name.startswith("spur_compound_gear_train")
                 for name in test_names

@@ -1,0 +1,9 @@
+{
+  "clearance": 0.6,
+  "declared_ratio": 9.0,
+  "driver_pin_collision_shrink_mm": 0.68,
+  "line_segment_count": 42,
+  "pins": 10,
+  "ring_pin_count": 10,
+  "tooth_count": 9
+}
