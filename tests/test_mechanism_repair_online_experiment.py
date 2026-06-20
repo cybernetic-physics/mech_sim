@@ -229,6 +229,77 @@ def test_validate_physics_benchmark_requires_anti_shortcut_manifests(
         online.validate_benchmark(tmp_path)
 
 
+def test_physics_anti_shortcut_splits_reuse_nonempty_sft_source(
+    tmp_path: Path,
+) -> None:
+    for split in ("A", "hidden_perturbation", "external_style"):
+        split_dir = tmp_path / f"splits_{split}"
+        split_dir.mkdir()
+        (split_dir / "test.txt").write_text("task_eval\n")
+        (split_dir / "train.txt").write_text(
+            "task_train\n" if split == "A" else ""
+        )
+
+    mapping = online.resolve_sft_training_splits(
+        benchmark_dir=tmp_path,
+        splits=["A", "hidden_perturbation", "external_style"],
+        contract={"is_physics": True},
+    )
+
+    assert mapping == {
+        "A": "A",
+        "hidden_perturbation": "A",
+        "external_style": "A",
+    }
+
+
+def test_empty_nonphysics_sft_split_is_rejected(tmp_path: Path) -> None:
+    split_dir = tmp_path / "splits_A"
+    split_dir.mkdir()
+    (split_dir / "train.txt").write_text("")
+
+    with pytest.raises(SystemExit, match="split A has no SFT train rows"):
+        online.resolve_sft_training_split(
+            benchmark_dir=tmp_path,
+            split="A",
+            contract={"is_physics": False},
+        )
+
+
+def test_build_plan_records_sft_training_split_mapping(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    split_dir = tmp_path / "splits_hidden_perturbation"
+    split_dir.mkdir()
+    (split_dir / "test.txt").write_text("task_a\n")
+    monkeypatch.setattr(
+        online,
+        "build_expected_coverage",
+        lambda _benchmark_dir: {"expected_cells": ["cell"]},
+    )
+
+    plan = build_plan(
+        benchmark_dir=tmp_path,
+        out_dir=tmp_path,
+        splits=["hidden_perturbation"],
+        seeds=[20260610],
+        methods=["sft_seen_family"],
+        budget=32,
+        feedback_turns=4,
+        audit_retries=0,
+        limit_tasks=0,
+        init_online_from_sft=True,
+        ttrl_steps=32,
+        ttrl_generations=4,
+        ttrl_steps_per_generation=4,
+        ttrl_reward_channel="artifact_progress",
+        sft_training_splits={"hidden_perturbation": "A"},
+    )
+
+    assert plan["sft_training_splits"] == {"hidden_perturbation": "A"}
+
+
 def test_method_order_runs_no_update_before_ttrl_for_caps() -> None:
     ordered = order_methods_for_budget_dependencies([
         "mechanical_evolve_ttrl_tool_verified",

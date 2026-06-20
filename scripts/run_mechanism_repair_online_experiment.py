@@ -74,7 +74,8 @@ ADAPTER_WEIGHT_FILE_NAMES = {
     "pytorch_model.bin",
 }
 LEGACY_DEFAULT_SPLITS = ("A", "B")
-PHYSICS_DEFAULT_SPLITS = ("A", "B", "hidden_perturbation", "external_style")
+PHYSICS_ANTI_SHORTCUT_SPLITS = ("hidden_perturbation", "external_style")
+PHYSICS_DEFAULT_SPLITS = ("A", "B", *PHYSICS_ANTI_SHORTCUT_SPLITS)
 
 
 @dataclass(frozen=True)
@@ -389,6 +390,19 @@ def main() -> int:
             f"expects {expected_ttrl_verifier_calls} verifier calls, "
             f"not budget={budget}"
         )
+    needs_sft_for_run = methods_need_sft(
+        requested_methods,
+        init_online_from_sft=bool(args.init_online_from_sft),
+    )
+    sft_training_splits = (
+        resolve_sft_training_splits(
+            benchmark_dir=benchmark_dir,
+            splits=splits,
+            contract=method_contract,
+        )
+        if needs_sft_for_run
+        else {}
+    )
 
     plan = build_plan(
         benchmark_dir=benchmark_dir,
@@ -406,6 +420,7 @@ def main() -> int:
         ttrl_steps_per_generation=ttrl_steps_per_generation,
         ttrl_reward_channel=str(args.ttrl_reward_channel),
         shard_cells=shard_cells,
+        sft_training_splits=sft_training_splits,
     )
     write_json(out_dir / "online_experiment_plan.json", plan)
     if args.dry_run:
@@ -440,7 +455,8 @@ def main() -> int:
 
     for split in splits:
         split_dir = benchmark_dir / f"splits_{split}"
-        train_file = split_dir / "train.txt"
+        sft_train_split = sft_training_splits.get(split, split)
+        train_file = benchmark_dir / f"splits_{sft_train_split}" / "train.txt"
         test_file = make_eval_split_file(
             split_dir=split_dir,
             run_root=run_root,
@@ -451,21 +467,11 @@ def main() -> int:
         for seed in seeds:
             sft_adapter = None
             sft_manifest_path: Path | None = None
-            needs_sft = (
-                bool(set(requested_methods) & SFT_METHODS)
-                or (
-                    bool(args.init_online_from_sft)
-                    and bool(
-                        set(requested_methods)
-                        & (BASELINE_FEEDBACK_METHODS | TTRL_METHODS)
-                    )
-                )
-            )
-            if needs_sft:
+            if needs_sft_for_run:
                 sft_base = shared_sft_root or run_root
-                sft_dir = sft_base / split / str(seed) / "sft_train"
+                sft_dir = sft_base / sft_train_split / str(seed) / "sft_train"
                 lock_path = (
-                    sft_base / split / str(seed) / ".sft_train.lock"
+                    sft_base / sft_train_split / str(seed) / ".sft_train.lock"
                     if shared_sft_root
                     else None
                 )
@@ -694,6 +700,59 @@ def default_splits_for_contract(contract: dict[str, Any]) -> list[str]:
     return list(LEGACY_DEFAULT_SPLITS)
 
 
+def methods_need_sft(
+    methods: list[str],
+    *,
+    init_online_from_sft: bool,
+) -> bool:
+    method_set = set(methods)
+    return bool(method_set & SFT_METHODS) or (
+        bool(init_online_from_sft)
+        and bool(method_set & (BASELINE_FEEDBACK_METHODS | TTRL_METHODS))
+    )
+
+
+def resolve_sft_training_splits(
+    *,
+    benchmark_dir: Path,
+    splits: list[str],
+    contract: dict[str, Any],
+) -> dict[str, str]:
+    return {
+        split: resolve_sft_training_split(
+            benchmark_dir=benchmark_dir,
+            split=split,
+            contract=contract,
+        )
+        for split in splits
+    }
+
+
+def resolve_sft_training_split(
+    *,
+    benchmark_dir: Path,
+    split: str,
+    contract: dict[str, Any],
+) -> str:
+    if split_has_train_rows(benchmark_dir, split):
+        return split
+    if (
+        bool(contract.get("is_physics"))
+        and split in PHYSICS_ANTI_SHORTCUT_SPLITS
+        and split_has_train_rows(benchmark_dir, "A")
+    ):
+        return "A"
+    raise SystemExit(
+        f"split {split} has no SFT train rows; provide splits_{split}/train.txt "
+        "or use a physics anti-shortcut split with splits_A/train.txt present"
+    )
+
+
+def split_has_train_rows(benchmark_dir: Path, split: str) -> bool:
+    train_file = benchmark_dir / f"splits_{split}" / "train.txt"
+    return train_file.is_file() and bool(read_ids(train_file))
+
+
 def load_shard_cells(path_value: str | None) -> list[dict[str, Any]]:
     if not path_value:
         return []
@@ -760,6 +819,7 @@ def build_plan(
     ttrl_steps_per_generation: int,
     ttrl_reward_channel: str,
     shard_cells: list[dict[str, Any]] | None = None,
+    sft_training_splits: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     shard_cells = shard_cells or []
     shard_task_ids_by_split: dict[str, set[str]] = defaultdict(set)
@@ -805,6 +865,7 @@ def build_plan(
         "ttrl_steps_per_generation": ttrl_steps_per_generation,
         "ttrl_num_generations": ttrl_generations,
         "ttrl_reward_channel": str(ttrl_reward_channel),
+        "sft_training_splits": dict(sorted((sft_training_splits or {}).items())),
         "ttrl_rollout_evaluations_per_cell": (
             ((ttrl_steps + ttrl_steps_per_generation - 1)
              // ttrl_steps_per_generation)
