@@ -35,6 +35,9 @@ Cluster GPU usage must also be conservative by default:
 - Resume partial MATX physics runs by submitting explicit single-shard jobs
   with `SHARD_INDICES=<n>` and no dependent merge/analysis jobs until all
   shards required by the final audit are present.
+- Selected-shard resume must preserve the existing remote run tree by default;
+  do not restage into an existing partial run unless the user explicitly
+  accepts that partial artifacts may be deleted.
 - If a run needs more than one concurrent GPU shard, record the intended GPU
   count, job IDs, and expected duration before launch.
 - If lab mates or cluster staff report pressure, cancel pending GPU work first

@@ -27,6 +27,8 @@ ALLOW_HIGH_CLUSTER_USAGE="${ALLOW_HIGH_CLUSTER_USAGE:-0}"
 MAX_ARRAY_TASKS="${MAX_ARRAY_TASKS:-1}"
 SHARD_INDICES="${SHARD_INDICES:-}"
 SUBMIT_DEPENDENTS="${SUBMIT_DEPENDENTS:-auto}"
+RESTAGE_REMOTE_REPO="${RESTAGE_REMOTE_REPO:-auto}"
+ALLOW_DESTRUCTIVE_RESTAGE="${ALLOW_DESTRUCTIVE_RESTAGE:-0}"
 OUT_DIR="${OUT_DIR:-runs/mechanism_repair_physics_final}"
 METHODS="${METHODS-}"
 SPLITS="${SPLITS-}"
@@ -110,6 +112,8 @@ Useful overrides:
   MAX_ARRAY_TASKS=$MAX_ARRAY_TASKS
   SHARD_INDICES=$SHARD_INDICES
   SUBMIT_DEPENDENTS=$SUBMIT_DEPENDENTS
+  RESTAGE_REMOTE_REPO=$RESTAGE_REMOTE_REPO
+  ALLOW_DESTRUCTIVE_RESTAGE=$ALLOW_DESTRUCTIVE_RESTAGE
   GRES=$GRES
   BASE_MODEL=$BASE_MODEL
   SGLANG_MODEL=$SGLANG_MODEL
@@ -244,6 +248,21 @@ if [[ "$SUBMIT_DEPENDENTS" != "0" && "$SUBMIT_DEPENDENTS" != "1" ]]; then
   echo "SUBMIT_DEPENDENTS must be 0, 1, or auto" >&2
   exit 2
 fi
+if [[ "$RESTAGE_REMOTE_REPO" == "auto" ]]; then
+  if [[ -n "$SHARD_INDICES" ]]; then
+    RESTAGE_REMOTE_REPO=0
+  else
+    RESTAGE_REMOTE_REPO=1
+  fi
+fi
+if [[ "$RESTAGE_REMOTE_REPO" != "0" && "$RESTAGE_REMOTE_REPO" != "1" ]]; then
+  echo "RESTAGE_REMOTE_REPO must be 0, 1, or auto" >&2
+  exit 2
+fi
+if [[ "$ALLOW_DESTRUCTIVE_RESTAGE" != "0" && "$ALLOW_DESTRUCTIVE_RESTAGE" != "1" ]]; then
+  echo "ALLOW_DESTRUCTIVE_RESTAGE must be 0 or 1" >&2
+  exit 2
+fi
 if [[ "$GRES" == *gpu* && "$ARRAY_CONCURRENCY" != "1" && "$ALLOW_HIGH_CLUSTER_USAGE" != "1" ]]; then
   cat >&2 <<EOF
 Refusing to submit multiple concurrent GPU shards.
@@ -258,7 +277,22 @@ that higher concurrency is explicitly acceptable.
 EOF
   exit 2
 fi
-if (( submit )) && [[ "$GRES" == *gpu* ]] && (( array_task_count > MAX_ARRAY_TASKS )) && [[ "$ALLOW_HIGH_CLUSTER_USAGE" != "1" ]]; then
+if [[ -n "$SHARD_INDICES" && "$RESTAGE_REMOTE_REPO" == "1" && "$ALLOW_DESTRUCTIVE_RESTAGE" != "1" ]]; then
+  cat >&2 <<EOF
+Refusing destructive selected-shard resume.
+
+Requested:
+  SHARD_INDICES=$SHARD_INDICES
+  RESTAGE_REMOTE_REPO=$RESTAGE_REMOTE_REPO
+
+Selected-shard resume is meant to preserve existing shard outputs in
+$remote_repo. Restaging deletes that tree before recreating it. Set
+RESTAGE_REMOTE_REPO=0 to preserve the existing run, or set
+ALLOW_DESTRUCTIVE_RESTAGE=1 only for a deliberate fresh root.
+EOF
+  exit 2
+fi
+if [[ "$GRES" == *gpu* ]] && (( array_task_count > MAX_ARRAY_TASKS )) && [[ "$ALLOW_HIGH_CLUSTER_USAGE" != "1" ]]; then
   cat >&2 <<EOF
 Refusing to submit a broad GPU array.
 
@@ -277,10 +311,14 @@ EOF
 fi
 array_spec="$array_range%$ARRAY_CONCURRENCY"
 
-ssh "$REMOTE_HOST" "rm -rf '$remote_repo' && mkdir -p '$remote_repo' '$remote_logs' '$REMOTE_ROOT/locks' '$REMOTE_ROOT/venvs'"
-git -C "$repo_root" archive --format=tar "$source_commit" \
-  | ssh "$REMOTE_HOST" "tar -xf - -C '$remote_repo'"
-ssh "$REMOTE_HOST" "rm -rf '$remote_out_dir/experiment_shards'"
+if [[ "$RESTAGE_REMOTE_REPO" == "1" ]]; then
+  ssh "$REMOTE_HOST" "rm -rf '$remote_repo' && mkdir -p '$remote_repo' '$remote_logs' '$REMOTE_ROOT/locks' '$REMOTE_ROOT/venvs'"
+  git -C "$repo_root" archive --format=tar "$source_commit" \
+    | ssh "$REMOTE_HOST" "tar -xf - -C '$remote_repo'"
+  ssh "$REMOTE_HOST" "rm -rf '$remote_out_dir/experiment_shards'"
+else
+  ssh "$REMOTE_HOST" "test -d '$remote_repo' && mkdir -p '$remote_logs' '$REMOTE_ROOT/locks' '$REMOTE_ROOT/venvs'"
+fi
 
 tmp_sbatch="$(mktemp)"
 cat >"$tmp_sbatch" <<EOF
@@ -800,7 +838,11 @@ EOF
 scp "$tmp_analysis" "$REMOTE_HOST:$remote_analysis_sbatch"
 rm -f "$tmp_analysis"
 
-echo "Staged $source_ref ($source_commit) at $REMOTE_HOST:$remote_repo"
+if [[ "$RESTAGE_REMOTE_REPO" == "1" ]]; then
+  echo "Staged $source_ref ($source_commit) at $REMOTE_HOST:$remote_repo"
+else
+  echo "Preserved existing remote repo at $REMOTE_HOST:$remote_repo"
+fi
 echo "Wrote array Slurm script at $REMOTE_HOST:$remote_sbatch"
 echo "Wrote merge Slurm script at $REMOTE_HOST:$remote_merge_sbatch"
 echo "Wrote analysis Slurm script at $REMOTE_HOST:$remote_analysis_sbatch"
