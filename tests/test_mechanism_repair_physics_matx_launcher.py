@@ -58,3 +58,36 @@ def test_finalize_only_refuses_restaging_before_remote_contact() -> None:
     assert proc.returncode == 2
     assert "Refusing finalize-only restage" in proc.stderr
     assert "Restaging would delete or replace the evidence" in proc.stderr
+
+
+def test_finalize_only_submit_requires_local_shard_audit() -> None:
+    proc = run_launcher("--finalize-only", "--submit")
+
+    assert proc.returncode == 2
+    assert "Refusing unaudited finalize-only submit" in proc.stderr
+    assert "FINALIZE_AUDIT_JSON" in proc.stderr
+
+
+def test_finalize_only_submit_rejects_unclean_local_shard_audit(
+    tmp_path: Path,
+) -> None:
+    audit = tmp_path / "resume_audit.json"
+    audit.write_text(
+        (
+            '{"schema":"mechanism_repair_physics.shard_resume_plan.v1",'
+            '"merge_ready":false,"shard_count":24,'
+            '"incomplete_shard_count":1,"missing_rows":1,'
+            '"duplicate_rows":0,"unexpected_rows":0}\n'
+        ),
+        encoding="utf-8",
+    )
+
+    proc = run_launcher(
+        "--finalize-only",
+        "--submit",
+        FINALIZE_AUDIT_JSON=str(audit),
+    )
+
+    assert proc.returncode == 2
+    assert "local shard-resume audit is not clean" in proc.stderr
+    assert "merge_ready is not true" in proc.stderr

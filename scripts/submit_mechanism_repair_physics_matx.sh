@@ -86,6 +86,8 @@ MERGE_SLURM_OUTPUT="${MERGE_SLURM_OUTPUT:-auto}"
 MERGE_SLURM_ERROR="${MERGE_SLURM_ERROR:-auto}"
 ANALYSIS_SLURM_OUTPUT="${ANALYSIS_SLURM_OUTPUT:-auto}"
 ANALYSIS_SLURM_ERROR="${ANALYSIS_SLURM_ERROR:-auto}"
+FINALIZE_AUDIT_JSON="${FINALIZE_AUDIT_JSON:-}"
+LOCAL_PYTHON="${LOCAL_PYTHON:-python3}"
 
 usage() {
   cat <<EOF
@@ -136,6 +138,7 @@ Useful overrides:
   MERGE_SLURM_ERROR=$MERGE_SLURM_ERROR
   ANALYSIS_SLURM_OUTPUT=$ANALYSIS_SLURM_OUTPUT
   ANALYSIS_SLURM_ERROR=$ANALYSIS_SLURM_ERROR
+  FINALIZE_AUDIT_JSON=$FINALIZE_AUDIT_JSON
 EOF
 }
 
@@ -285,6 +288,57 @@ must consume. Use RESTAGE_REMOTE_REPO=0, or run a normal selected-shard submit
 for deliberate GPU reruns.
 EOF
   exit 2
+fi
+if (( finalize_only && submit )); then
+  if [[ -z "$FINALIZE_AUDIT_JSON" ]]; then
+    cat >&2 <<EOF
+Refusing unaudited finalize-only submit.
+
+Run scripts/plan_mechanism_repair_shard_resume.py against the final run tree
+and set FINALIZE_AUDIT_JSON to the resulting local JSON report. The report must
+show merge_ready=true before CPU merge/analysis jobs may be submitted.
+EOF
+    exit 2
+  fi
+  if [[ ! -f "$FINALIZE_AUDIT_JSON" ]]; then
+    echo "FINALIZE_AUDIT_JSON does not exist: $FINALIZE_AUDIT_JSON" >&2
+    exit 2
+  fi
+  if ! finalize_audit_check="$("$LOCAL_PYTHON" - "$FINALIZE_AUDIT_JSON" "$NUM_SHARDS" <<'PY'
+import json
+import sys
+
+path = sys.argv[1]
+expected_shards = int(sys.argv[2])
+with open(path, "r", encoding="utf-8") as handle:
+    report = json.load(handle)
+
+errors = []
+if report.get("schema") != "mechanism_repair_physics.shard_resume_plan.v1":
+    errors.append("schema is not mechanism_repair_physics.shard_resume_plan.v1")
+if report.get("merge_ready") is not True:
+    errors.append("merge_ready is not true")
+if int(report.get("shard_count", -1)) != expected_shards:
+    errors.append(
+        f"shard_count={report.get('shard_count')} does not match NUM_SHARDS={expected_shards}"
+    )
+for field in ("incomplete_shard_count", "missing_rows", "duplicate_rows", "unexpected_rows"):
+    if int(report.get(field, -1)) != 0:
+        errors.append(f"{field}={report.get(field)}")
+if errors:
+    print("; ".join(errors))
+    raise SystemExit(1)
+print("ok")
+PY
+  )"; then
+    cat >&2 <<EOF
+Refusing finalize-only submit because the local shard-resume audit is not clean.
+
+FINALIZE_AUDIT_JSON=$FINALIZE_AUDIT_JSON
+$finalize_audit_check
+EOF
+    exit 2
+  fi
 fi
 if (( ! finalize_only )) && [[ "$GRES" == *gpu* && "$ARRAY_CONCURRENCY" != "1" && "$ALLOW_HIGH_CLUSTER_USAGE" != "1" ]]; then
   cat >&2 <<EOF
