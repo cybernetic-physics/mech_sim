@@ -58,6 +58,13 @@ def test_launcher_defaults_to_one_l40() -> None:
     assert 'GRES="${GRES:-gpu:l40s:1}"' in text
 
 
+def test_launcher_defaults_to_single_local_sampler_concurrency() -> None:
+    text = SCRIPT.read_text(encoding="utf-8")
+
+    assert 'CONCURRENCY="${CONCURRENCY:-1}"' in text
+    assert "--concurrency \"$CONCURRENCY\"" in text
+
+
 def test_launcher_defaults_to_no_server_local_cuda_rollout() -> None:
     text = SCRIPT.read_text(encoding="utf-8")
 

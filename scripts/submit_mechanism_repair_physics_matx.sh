@@ -15,6 +15,7 @@ GRES="${GRES:-gpu:l40s:1}"
 CPUS_PER_TASK="${CPUS_PER_TASK:-16}"
 MEM="${MEM:-160G}"
 TIME="${TIME:-4-00:00:00}"
+CONCURRENCY="${CONCURRENCY:-1}"
 MERGE_CPUS_PER_TASK="${MERGE_CPUS_PER_TASK:-8}"
 MERGE_MEM="${MERGE_MEM:-48G}"
 MERGE_TIME="${MERGE_TIME:-04:00:00}"
@@ -126,6 +127,7 @@ Useful overrides:
   REFRESH_REMOTE_CODE=$REFRESH_REMOTE_CODE
   ALLOW_DESTRUCTIVE_RESTAGE=$ALLOW_DESTRUCTIVE_RESTAGE
   GRES=$GRES
+  CONCURRENCY=$CONCURRENCY
   BASE_MODEL=$BASE_MODEL
   ROLLOUT_BACKEND=$ROLLOUT_BACKEND
   LOCAL_DEVICE=$LOCAL_DEVICE
@@ -222,6 +224,10 @@ if (( NUM_SHARDS < 1 )); then
 fi
 if [[ ! "$ARRAY_CONCURRENCY" =~ ^[1-9][0-9]*$ ]]; then
   echo "ARRAY_CONCURRENCY must be a positive integer" >&2
+  exit 2
+fi
+if [[ ! "$CONCURRENCY" =~ ^[1-9][0-9]*$ ]]; then
+  echo "CONCURRENCY must be a positive integer" >&2
   exit 2
 fi
 if [[ ! "$MAX_ARRAY_TASKS" =~ ^[1-9][0-9]*$ ]]; then
@@ -753,6 +759,7 @@ exec env CUDA_VISIBLE_DEVICES="\$train_cuda_visible_devices" \\
   --local-torch-dtype "$LOCAL_TORCH_DTYPE" \\
   "\${local_trust_args[@]}" \\
   --sglang-base-url "http://127.0.0.1:\$sglang_port" \\
+  --concurrency "$CONCURRENCY" \\
   --audit-retries "$AUDIT_RETRIES" \\
   --evidence-layout "$EVIDENCE_LAYOUT" \\
   --skip-analysis \\
