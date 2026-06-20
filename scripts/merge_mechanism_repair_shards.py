@@ -168,6 +168,11 @@ def run_physics_shard_merge(args: argparse.Namespace) -> int:
     rows, shard_summaries = load_shard_rows(
         shard_root,
         require_all_shards=max(0, int(args.require_all_shards)),
+        expected_shard_dir=(
+            benchmark_dir / "experiment_shards"
+            if int(args.require_all_shards) > 0
+            else None
+        ),
     )
     out_dir.mkdir(parents=True, exist_ok=True)
     write_jsonl(out_dir / "cell_results.jsonl", rows)
@@ -208,6 +213,7 @@ def load_shard_rows(
     shard_root: Path,
     *,
     require_all_shards: int = 0,
+    expected_shard_dir: Path | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     shard_dirs = sorted(path for path in shard_root.glob("shard_*") if path.is_dir())
     if require_all_shards:
@@ -216,10 +222,15 @@ def load_shard_rows(
         missing = sorted(expected - observed)
         if missing:
             raise SystemExit(f"missing shard output directories: {missing}")
+    expected_by_shard = load_expected_shard_keys(
+        expected_shard_dir,
+        require_all_shards=require_all_shards,
+    )
     rows: list[dict[str, Any]] = []
     shard_summaries: list[dict[str, Any]] = []
     seen: dict[tuple[Any, ...], str] = {}
     duplicates: list[dict[str, Any]] = []
+    coverage_errors: list[dict[str, Any]] = []
     for shard_dir in shard_dirs:
         rows_path = shard_dir / "cell_results.jsonl"
         if not rows_path.is_file():
@@ -233,8 +244,27 @@ def load_shard_rows(
             for line in rows_path.read_text(encoding="utf-8").splitlines()
             if line.strip()
         ]
+        observed_keys = {physics_cell_key(row) for row in shard_rows}
+        expected_keys = expected_by_shard.get(shard_dir.name)
+        missing_keys: list[tuple[Any, ...]] = []
+        unexpected_keys: list[tuple[Any, ...]] = []
+        if expected_keys is not None:
+            missing_keys = sorted(expected_keys - observed_keys)
+            unexpected_keys = sorted(observed_keys - expected_keys)
+            if missing_keys or unexpected_keys:
+                coverage_errors.append({
+                    "shard": shard_dir.name,
+                    "expected_rows": len(expected_keys),
+                    "observed_rows": len(observed_keys),
+                    "missing_cell_count": len(missing_keys),
+                    "unexpected_cell_count": len(unexpected_keys),
+                    "sample_missing_cells": [list(key) for key in missing_keys[:10]],
+                    "sample_unexpected_cells": [
+                        list(key) for key in unexpected_keys[:10]
+                    ],
+                })
         for row in shard_rows:
-            key = row_key(row)
+            key = physics_cell_key(row)
             if key in seen:
                 duplicates.append({
                     "key": list(key),
@@ -247,15 +277,65 @@ def load_shard_rows(
         shard_summaries.append({
             "shard": shard_dir.name,
             "rows": len(shard_rows),
+            "expected_rows": (
+                len(expected_keys) if expected_keys is not None else None
+            ),
+            "missing_cell_count": len(missing_keys),
+            "unexpected_cell_count": len(unexpected_keys),
             "cell_results": str(rows_path),
         })
     if duplicates:
         raise SystemExit(
-            "duplicate split/task/seed/method rows across shards: "
+            "duplicate split/task/seed/method/budget rows across shards: "
             + json.dumps(duplicates[:20], sort_keys=True)
         )
-    rows.sort(key=lambda row: row_key(row))
+    if coverage_errors:
+        raise SystemExit(
+            "incomplete or mismatched shard coverage: "
+            + json.dumps(coverage_errors[:20], sort_keys=True)
+        )
+    rows.sort(key=lambda row: physics_cell_key(row))
     return rows, shard_summaries
+
+
+def load_expected_shard_keys(
+    expected_shard_dir: Path | None,
+    *,
+    require_all_shards: int,
+) -> dict[str, set[tuple[Any, ...]]]:
+    if expected_shard_dir is None:
+        return {}
+    if not expected_shard_dir.is_dir():
+        raise SystemExit(f"missing experiment shard manifests: {expected_shard_dir}")
+    expected_by_shard: dict[str, set[tuple[Any, ...]]] = {}
+    missing_manifests: list[str] = []
+    for shard_index in range(require_all_shards):
+        shard_name = f"shard_{shard_index:04d}"
+        path = expected_shard_dir / f"{shard_name}.json"
+        if not path.is_file():
+            missing_manifests.append(path.name)
+            continue
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        expected_by_shard[shard_name] = {
+            physics_cell_key(cell)
+            for cell in payload.get("cells", []) or []
+        }
+    if missing_manifests:
+        raise SystemExit(
+            "missing experiment shard manifests: "
+            + json.dumps(missing_manifests, sort_keys=True)
+        )
+    return expected_by_shard
+
+
+def physics_cell_key(row: dict[str, Any]) -> tuple[str, str, int, str, int]:
+    return (
+        str(row["split"]),
+        str(row["task_id"]),
+        int(row["seed"]),
+        str(row["method"]),
+        int(row.get("budget", 0) or 0),
+    )
 
 
 def absolutize_row_paths(
@@ -520,7 +600,7 @@ def write_shard_merge_manifest(
         "schema": "mechanism_repair_physics.shard_merge_manifest.v1",
         "shard_root": str(shard_root),
         "rows": len(rows),
-        "unique_cells": len({row_key(row) for row in rows}),
+        "unique_cells": len({physics_cell_key(row) for row in rows}),
         "shards": shard_summaries,
     }
     (out_dir / "shard_merge_manifest.json").write_text(
