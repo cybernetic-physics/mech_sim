@@ -1673,7 +1673,16 @@ def collect_paths(row: dict[str, Any], list_key: str, scalar_key: str) -> list[s
 
 def resolve_path(out_dir: Path, raw: str) -> Path:
     path = Path(raw)
-    return path if path.is_absolute() else out_dir / path
+    if not path.is_absolute():
+        return out_dir / path
+    if path.exists():
+        return path
+    out_dir = out_dir.resolve()
+    parts = path.parts
+    for index in range(len(parts) - 1, -1, -1):
+        if parts[index] == out_dir.name:
+            return out_dir.joinpath(*parts[index + 1 :])
+    return path
 
 
 def parse_csv(raw: str) -> list[str]:

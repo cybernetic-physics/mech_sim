@@ -198,6 +198,39 @@ def test_resume_plan_requires_clean_complete_shards_for_merge(tmp_path: Path) ->
     assert report["complete_shard_count"] == 2
 
 
+def test_resume_plan_reroots_synced_remote_absolute_evidence_paths(
+    tmp_path: Path,
+) -> None:
+    run_dir = tmp_path / "run"
+    expected = [_cell("task_a", "frozen_model")]
+    _write_shard(run_dir, 0, expected)
+    shard_dir = run_dir / "shard_runs" / "shard_0000"
+    raw_path = shard_dir / "raw" / "0.txt"
+    verifier_path = shard_dir / "verifier" / "0.json"
+    raw_path.parent.mkdir(parents=True, exist_ok=True)
+    verifier_path.parent.mkdir(parents=True, exist_ok=True)
+    raw_path.write_text("design\n", encoding="utf-8")
+    verifier_path.write_text("{}\n", encoding="utf-8")
+    remote_prefix = (
+        "/matx/u/knatalia/corl_mechanism_repair_physics/repo/"
+        "runs/mechanism_repair_physics_final/shard_runs/shard_0000"
+    )
+    row = {
+        **expected[0],
+        "raw_completion_paths": [f"{remote_prefix}/raw/0.txt"],
+        "verifier_output_paths": [f"{remote_prefix}/verifier/0.json"],
+    }
+    rows_path = shard_dir / "cell_results.jsonl"
+    rows_path.parent.mkdir(parents=True, exist_ok=True)
+    rows_path.write_text(json.dumps(row, sort_keys=True) + "\n", encoding="utf-8")
+
+    report = build_report(run_dir=run_dir)
+
+    assert report["merge_ready"] is True
+    assert report["missing_evidence_count"] == 0
+    assert report["shards"][0]["status"] == "complete"
+
+
 def test_resume_plan_flags_duplicate_or_unexpected_rows(tmp_path: Path) -> None:
     run_dir = tmp_path / "run"
     expected = [_cell("task_a", "frozen_model")]
