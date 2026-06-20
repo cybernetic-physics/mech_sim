@@ -1537,6 +1537,7 @@ def run_or_load_eval_summary(
             raise SystemExit(f"SFT manifest missing: {manifest_path}")
         payload = json.loads(manifest_path.read_text())
         cmd.extend(["--sglang-lora-path", str(payload["final_adapter"])])
+    add_flag(cmd, method.name == "adaptive_evolution", "--archive-feedback")
     run(cmd, timeout=float(args.eval_timeout_s))
     if not summary_path.is_file():
         raise SystemExit(f"sample_and_score did not write {summary_path}")

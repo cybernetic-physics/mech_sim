@@ -19,6 +19,7 @@ from rl.sample_and_score import (
     _rollout_verifier_calls,
     _sglang_one_turn_messages,
     _task_required_audits,
+    archive_feedback_text,
 )
 from rl.train_true_grpo_trl import ASSISTANT_CODE_PREFILL as TRAIN_ASSISTANT_CODE_PREFILL
 from rl.verifier_audits import cad_audit_count, chrono_audit_count
@@ -457,6 +458,35 @@ def test_max_verifier_calls_per_task_caps_multiturn_budget(
     assert observed_turns == [4, 2]
     assert len(summary["all_samples"]) == 2
     assert sum(item["verifier_calls"] for item in summary["all_samples"]) == 6
+
+
+def test_archive_feedback_text_summarizes_prior_candidates() -> None:
+    good = _outcome(
+        RewardResult(
+            score=1.0,
+            verified_score=1.0,
+            hard_gate_passed=True,
+            evaluation_valid=True,
+            failure_codes=[],
+        )
+    )
+    good.sample_idx = 3
+    weak = _outcome(
+        RewardResult(
+            score=0.2,
+            verified_score=0.2,
+            hard_gate_passed=False,
+            evaluation_valid=True,
+            failure_codes=["wrong_mobility"],
+        )
+    )
+    weak.sample_idx = 1
+
+    text = archive_feedback_text([weak, good])
+
+    assert "adaptive evolution archive" in text
+    assert "sample=3 score=1.000" in text
+    assert "wrong_mobility" in text
 
 
 def test_sampler_retry_preserves_spent_verifier_call_traces(

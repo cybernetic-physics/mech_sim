@@ -886,9 +886,12 @@ def run_one(
     pass_threshold: float,
     max_turns: int = 1,
     sample_idx: int = 0,
+    archive_hint: str = "",
 ) -> SampleOutcome:
     family, tier = _read_task_meta(task_dir)
     user_prompt = _build_user_prompt(task_dir)
+    if archive_hint:
+        user_prompt = user_prompt.rstrip() + "\n\n" + archive_hint.strip()
     t0 = time.perf_counter()
     verifier_calls_before_final = 0
     rollout_reward: RewardResult | None = None
@@ -1401,6 +1404,38 @@ def actual_verifier_calls_total(outcomes: list[SampleOutcome]) -> int:
     return sum(int(item.verifier_calls or 0) for item in outcomes)
 
 
+def archive_feedback_text(outcomes: list[SampleOutcome], limit: int = 4) -> str:
+    if not outcomes:
+        return ""
+    ranked = sorted(
+        outcomes,
+        key=lambda item: (
+            item.reward.verified_score if item.reward else 0.0,
+            -int(item.sample_idx),
+        ),
+        reverse=True,
+    )
+    lines = [
+        "## adaptive evolution archive",
+        (
+            "Use these prior candidates as search memory. Preserve repairs that "
+            "raised score, avoid repeated failure modes, and propose a distinct "
+            "mechanism implementation."
+        ),
+    ]
+    for item in ranked[:limit]:
+        score = item.reward.verified_score if item.reward else 0.0
+        dense = getattr(item.reward, "dense_pct", 0.0) if item.reward else 0.0
+        failures = item.reward.failure_codes if item.reward else [item.error]
+        failure_text = ",".join(str(code) for code in failures if str(code)) or "none"
+        lines.append(
+            f"- sample={item.sample_idx} score={score:.3f} "
+            f"dense_pct={dense:.1f} pass={item.verifier_valid_passed()} "
+            f"failures={failure_text[:160]}"
+        )
+    return "\n".join(lines)
+
+
 # --------------------------------------------------------------------- #
 # CLI                                                                   #
 # --------------------------------------------------------------------- #
@@ -1462,6 +1497,10 @@ def main(argv: list[str] | None = None) -> int:
                         "set, sampling stops once this budget is spent and "
                         "the final sample's max turns are clipped to the "
                         "remaining budget.")
+    p.add_argument("--archive-feedback", action="store_true",
+                   help="feed a compact per-task archive of previous scored "
+                        "candidates into later samples; used for no-update "
+                        "adaptive evolution/search baselines")
     p.add_argument("--pass-threshold", type=float, default=1.0,
                    help="verified_score threshold for PASS and best-of-K; "
                         "1.0 requires all scored probes to pass")
@@ -1590,6 +1629,11 @@ def main(argv: list[str] | None = None) -> int:
                         pass_threshold=args.pass_threshold,
                         max_turns=run_max_turns,
                         sample_idx=k,
+                        archive_hint=(
+                            archive_feedback_text(outs)
+                            if args.archive_feedback
+                            else ""
+                        ),
                     )
                     _append_missing_outcome_turn_traces(
                         o,
@@ -1755,6 +1799,7 @@ def main(argv: list[str] | None = None) -> int:
         "n_tasks": len(by_task),
         "samples_per_task": args.samples_per_task,
         "max_turns": args.max_turns,
+        "archive_feedback": bool(args.archive_feedback),
         "pass_threshold": args.pass_threshold,
         "n_passed_best_of_k": n_strict_passed,
         "pass_rate_best_of_k": (

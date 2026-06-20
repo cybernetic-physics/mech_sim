@@ -1437,6 +1437,7 @@ def test_eval_summary_runner_does_not_emit_none_budget(
     cmd = captured["cmd"]
     assert "--max-verifier-calls-per-task" in cmd
     assert cmd[cmd.index("--max-verifier-calls-per-task") + 1] == "32"
+    assert "--archive-feedback" in cmd
     assert "None" not in cmd
 
 
