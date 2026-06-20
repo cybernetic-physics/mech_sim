@@ -156,6 +156,79 @@ def test_physics_method_specs_and_reward_channels() -> None:
     )
 
 
+def test_physics_contract_defaults_include_anti_shortcut_splits(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "method_manifest.json").write_text(
+        json.dumps({
+            "schema": "mechanism_repair_physics.method_manifest.v1",
+            "required_methods": [
+                "frozen_model",
+                "sft_seen_family",
+                "llm_evolve_no_update",
+                "verifier_gated_search",
+                "adaptive_evolution",
+                "mechanical_evolve_ttrl",
+                "mechanical_evolve_ttrl_tool_verified",
+                "mechanical_evolve_ttrl_confidence",
+            ],
+            "eval_seeds": [20260610],
+            "primary_budget_expensive_verifier_calls": 32,
+        })
+        + "\n"
+    )
+
+    contract = online.load_method_contract(tmp_path)
+
+    assert contract["is_physics"] is True
+    assert online.default_splits_for_contract(contract) == [
+        "A",
+        "B",
+        "hidden_perturbation",
+        "external_style",
+    ]
+
+
+def test_legacy_contract_defaults_to_family_holdout_splits(
+    tmp_path: Path,
+) -> None:
+    contract = online.load_method_contract(tmp_path)
+
+    assert contract["is_physics"] is False
+    assert online.default_splits_for_contract(contract) == ["A", "B"]
+
+
+def test_validate_physics_benchmark_requires_anti_shortcut_manifests(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "benchmark_manifest.json").write_text(
+        json.dumps({"experiment_ready": True}) + "\n"
+    )
+    (tmp_path / "method_manifest.json").write_text(
+        json.dumps({
+            "schema": "mechanism_repair_physics.method_manifest.v1",
+            "required_methods": [
+                "frozen_model",
+                "sft_seen_family",
+                "llm_evolve_no_update",
+                "verifier_gated_search",
+                "adaptive_evolution",
+                "mechanical_evolve_ttrl",
+                "mechanical_evolve_ttrl_tool_verified",
+                "mechanical_evolve_ttrl_confidence",
+            ],
+        })
+        + "\n"
+    )
+    (tmp_path / "verifier_manifest.json").write_text("{}\n")
+    (tmp_path / "split_manifest_A.json").write_text("{}\n")
+    (tmp_path / "split_manifest_B.json").write_text("{}\n")
+    (tmp_path / "tasks").mkdir()
+
+    with pytest.raises(SystemExit, match="split_manifest_hidden_perturbation"):
+        online.validate_benchmark(tmp_path)
+
+
 def test_method_order_runs_no_update_before_ttrl_for_caps() -> None:
     ordered = order_methods_for_budget_dependencies([
         "mechanical_evolve_ttrl_tool_verified",

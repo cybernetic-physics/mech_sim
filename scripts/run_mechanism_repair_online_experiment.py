@@ -69,6 +69,8 @@ ADAPTER_WEIGHT_FILE_NAMES = {
     "adapter_model.bin",
     "pytorch_model.bin",
 }
+LEGACY_DEFAULT_SPLITS = ("A", "B")
+PHYSICS_DEFAULT_SPLITS = ("A", "B", "hidden_perturbation", "external_style")
 
 
 @dataclass(frozen=True)
@@ -323,7 +325,7 @@ def main() -> int:
         if shard_cells and args.splits is None
         else parse_csv(args.splits)
         if args.splits
-        else ["A", "B"]
+        else default_splits_for_contract(method_contract)
     )
     seeds = (
         sorted({int(cell["seed"]) for cell in shard_cells})
@@ -601,12 +603,16 @@ def main() -> int:
 
 
 def validate_benchmark(benchmark_dir: Path) -> None:
+    method_contract = load_method_contract(benchmark_dir)
+    required_splits = default_splits_for_contract(method_contract)
     required = [
         benchmark_dir / "benchmark_manifest.json",
         benchmark_dir / "method_manifest.json",
         benchmark_dir / "verifier_manifest.json",
-        benchmark_dir / "split_manifest_A.json",
-        benchmark_dir / "split_manifest_B.json",
+        *[
+            benchmark_dir / f"split_manifest_{split}.json"
+            for split in required_splits
+        ],
         benchmark_dir / "tasks",
     ]
     missing = [str(path) for path in required if not path.exists()]
@@ -634,35 +640,36 @@ def load_method_contract(benchmark_dir: Path) -> dict[str, Any]:
         for method in manifest.get("required_methods", LEGACY_REQUIRED_METHODS)
     ]
     seeds = [int(seed) for seed in manifest.get("eval_seeds", LEGACY_EVAL_SEEDS)]
+    schema = str(manifest.get("schema") or "")
+    is_physics = (
+        schema.startswith("mechanism_repair_physics.")
+        or required == list(PHYSICS_REQUIRED_METHODS)
+    )
     return {
+        "schema": schema,
+        "is_physics": is_physics,
         "required_methods": required,
         "primary_method": str(
             manifest.get("primary_method")
-            or (
-                PHYSICS_PRIMARY_METHOD
-                if required == list(PHYSICS_REQUIRED_METHODS)
-                else LEGACY_PRIMARY_METHOD
-            )
+            or (PHYSICS_PRIMARY_METHOD if is_physics else LEGACY_PRIMARY_METHOD)
         ),
         "primary_baseline": str(
             manifest.get("primary_baseline")
-            or (
-                PHYSICS_PRIMARY_BASELINE
-                if required == list(PHYSICS_REQUIRED_METHODS)
-                else LEGACY_PRIMARY_BASELINE
-            )
+            or (PHYSICS_PRIMARY_BASELINE if is_physics else LEGACY_PRIMARY_BASELINE)
         ),
         "primary_budget": int(
             manifest.get("primary_budget_expensive_verifier_calls")
             or manifest.get("primary_budget_verifier_calls")
-            or (
-                PHYSICS_PRIMARY_BUDGET
-                if required == list(PHYSICS_REQUIRED_METHODS)
-                else LEGACY_PRIMARY_BUDGET
-            )
+            or (PHYSICS_PRIMARY_BUDGET if is_physics else LEGACY_PRIMARY_BUDGET)
         ),
         "eval_seeds": seeds,
     }
+
+
+def default_splits_for_contract(contract: dict[str, Any]) -> list[str]:
+    if bool(contract.get("is_physics")):
+        return list(PHYSICS_DEFAULT_SPLITS)
+    return list(LEGACY_DEFAULT_SPLITS)
 
 
 def load_shard_cells(path_value: str | None) -> list[dict[str, Any]]:
