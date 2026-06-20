@@ -1359,7 +1359,11 @@ def method_implementation_errors_for_row(
             samples_per_task = int_value(source_value(
                 row,
                 summary,
-                row_keys=("samples_per_task", "candidate_count", "n_candidates"),
+                row_keys=(
+                    "samples_per_task",
+                    "actual_verifier_calls",
+                    "verifier_calls",
+                ),
                 summary_keys=("samples_per_task",),
                 default=0,
             ))
