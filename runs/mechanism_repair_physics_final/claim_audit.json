@@ -13,6 +13,7 @@
     "trace_pairs.json",
     "repair_taxonomy.json"
   ],
+  "missing_analysis_requirements": [],
   "missing_before_paper_claim": [
     "execute all required methods for all planned seeds/splits/tasks",
     "run hidden/isomorphic anti-shortcut variants",

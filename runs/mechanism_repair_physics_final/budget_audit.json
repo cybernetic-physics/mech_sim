@@ -9,6 +9,7 @@
   "observed_rows": 0,
   "planned_cells": 6480,
   "primary_budget": 32,
+  "primary_expensive_budget_excess_count": 0,
   "sample_budget_mismatches": [],
   "sample_duplicate_cells": [],
   "sample_missing_accounting": [],
@@ -264,6 +265,7 @@
       "verifier_level": 3
     }
   ],
+  "sample_primary_expensive_budget_excesses": [],
   "schema": "mechanism_repair_physics.budget_audit.v1",
   "shard_index": 0
 }

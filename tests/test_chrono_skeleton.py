@@ -128,6 +128,12 @@ def test_chrono_child_env_adds_chrono_lib_path(tmp_path, monkeypatch):
 def test_chrono_unavailable_yields_capability_unavailable(tmp_path):
     """Tasks requiring contact_forces must surface capability_unavailable
     when neither the real chrono nor the fake oracle is registered."""
+    from mech_bench.adapters.chrono_contact import chrono_diagnostic
+
+    diag = chrono_diagnostic()
+    if diag["status"] == "available":
+        pytest.skip("real chrono_contact is available in this environment")
+
     from mech_bench.adapters import _REGISTRY
 
     # Temporarily remove the fake oracle from the registry, then restore.
