@@ -32,6 +32,10 @@ from typing import Any
 from scripts.analyze_mechanism_repair_results import (
     build_expected_coverage,
 )
+from scripts.run_mechanism_repair_physics_experiment import (
+    missing_evidence_for_row,
+    missing_learning_evidence,
+)
 from scripts.prepare_mechanism_repair_benchmark import (
     EVAL_SEEDS as LEGACY_EVAL_SEEDS,
     PRIMARY_BASELINE as LEGACY_PRIMARY_BASELINE,
@@ -411,6 +415,24 @@ def main() -> int:
     rows_path = out_dir / "cell_results.jsonl"
     if args.resume_existing:
         rows = load_existing_rows(rows_path)
+        if method_contract.get("is_physics"):
+            rows, dropped_rows = prune_unusable_resume_rows(
+                rows,
+                out_dir=out_dir,
+                budget=budget,
+                verifier_level_by_task=verifier_level_by_task,
+            )
+            if dropped_rows:
+                rewrite_rows(rows_path, rows)
+                write_json(
+                    out_dir / "resume_pruned_rows.json",
+                    {
+                        "schema": "mechanism_repair.resume_pruned_rows.v1",
+                        "dropped_count": len(dropped_rows),
+                        "dropped_rows": dropped_rows[:100],
+                    },
+                )
+                write_results_bundle(out_dir, rows)
     else:
         reset_non_resume_outputs(out_dir=out_dir, run_root=run_root)
         rows = []
@@ -885,6 +907,92 @@ def expensive_budget_caps_for_ttrl(
             "split/task/seed/budget so the baseline runs before TTRL."
         )
     return None, None
+
+
+def prune_unusable_resume_rows(
+    rows: list[dict[str, Any]],
+    *,
+    out_dir: Path,
+    budget: int,
+    verifier_level_by_task: dict[str, int],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    kept: list[dict[str, Any]] = []
+    dropped: list[dict[str, Any]] = []
+    for row in rows:
+        reasons = unusable_resume_row_reasons(
+            row,
+            out_dir=out_dir,
+            budget=budget,
+            verifier_level_by_task=verifier_level_by_task,
+        )
+        if reasons:
+            dropped.append({
+                "key": row_key_text(row),
+                "reasons": reasons,
+            })
+            continue
+        kept.append(row)
+    return kept, dropped
+
+
+def unusable_resume_row_reasons(
+    row: dict[str, Any],
+    *,
+    out_dir: Path,
+    budget: int,
+    verifier_level_by_task: dict[str, int],
+) -> list[str]:
+    reasons: list[str] = []
+    try:
+        key = row_key(row)
+    except (KeyError, TypeError, ValueError):
+        return ["malformed_row_key"]
+
+    split, task_id, seed, method = key
+    row_budget = int(
+        row.get("budget", row.get("budget_verifier_calls", budget)) or budget
+    )
+    verifier_level = int(
+        row.get("verifier_level")
+        or verifier_level_by_task.get(task_id, 0)
+        or 0
+    )
+    cell = {
+        "split": split,
+        "task_id": task_id,
+        "seed": int(seed),
+        "method": method,
+        "budget": row_budget,
+        "verifier_level": verifier_level,
+    }
+    verifier_calls = int(
+        row.get("actual_verifier_calls", row.get("verifier_calls", -1)) or -1
+    )
+    if verifier_calls != row_budget:
+        reasons.append("verifier_budget_mismatch")
+    if "actual_cad_calls" not in row and "cad_audits" not in row:
+        reasons.append("missing_cad_accounting")
+    if "actual_chrono_calls" not in row and "chrono_audits" not in row:
+        reasons.append("missing_chrono_accounting")
+    for item in missing_evidence_for_row(out_dir, cell, row):
+        reasons.append(f"missing_{item['kind']}")
+    if method in SFT_METHODS | TTRL_METHODS:
+        learning_missing = missing_learning_evidence(
+            out_dir,
+            row,
+            require_rl_evidence=method in TTRL_METHODS,
+        )
+        reasons.extend(f"missing_{item}" for item in learning_missing)
+    return sorted(set(reasons))
+
+
+def row_key_text(row: dict[str, Any]) -> str:
+    try:
+        split, task_id, seed, method = row_key(row)
+    except (KeyError, TypeError, ValueError):
+        return "<malformed>"
+    budget = row.get("budget", row.get("budget_verifier_calls", ""))
+    return f"{split}/{task_id}/seed{seed}/{method}/budget{budget}"
 
 
 def reward_channel_for_method(method: str, *, default: str) -> str:
@@ -2823,6 +2931,13 @@ def append_row(path: Path, row: dict[str, Any]) -> None:
         f.write(json.dumps(row, sort_keys=True, default=str) + "\n")
 
 
+def rewrite_rows(path: Path, rows: list[dict[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "".join(json.dumps(row, sort_keys=True, default=str) + "\n" for row in rows)
+    )
+
+
 def load_existing_rows(path: Path) -> list[dict[str, Any]]:
     if not path.is_file():
         return []
@@ -2840,6 +2955,8 @@ def write_results_bundle(out_dir: Path, rows: list[dict[str, Any]]) -> None:
     csv_path = out_dir / "cell_results.csv"
     fields = sorted({key for row in rows for key in row})
     if not fields:
+        csv_path.write_text("")
+        (out_dir / "results.csv").write_text("")
         write_artifact_indexes(out_dir, rows)
         return
     write_results_csv(csv_path, rows, fields)

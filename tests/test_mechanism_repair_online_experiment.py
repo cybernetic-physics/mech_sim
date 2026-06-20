@@ -277,6 +277,96 @@ def test_expensive_budget_caps_use_matching_no_update_row() -> None:
         )
 
 
+def test_prune_unusable_physics_resume_rows_drops_missing_evidence(
+    tmp_path: Path,
+) -> None:
+    row = {
+        "split": "A",
+        "task_id": "level3_task",
+        "seed": 20260610,
+        "method": "frozen_model",
+        "budget": 32,
+        "actual_verifier_calls": 32,
+        "actual_cad_calls": 0,
+        "actual_chrono_calls": 0,
+        "verifier_level": 3,
+        "raw_completion_paths": [],
+        "verifier_output_paths": [],
+        "cad_artifact_paths": [],
+        "chrono_output_paths": [],
+    }
+
+    kept, dropped = online.prune_unusable_resume_rows(
+        [row],
+        out_dir=tmp_path,
+        budget=32,
+        verifier_level_by_task={"level3_task": 3},
+    )
+
+    assert kept == []
+    assert dropped == [
+        {
+            "key": "A/level3_task/seed20260610/frozen_model/budget32",
+            "reasons": [
+                "missing_cad_artifacts",
+                "missing_chrono_outputs",
+                "missing_raw_completions",
+                "missing_verifier_outputs",
+            ],
+        }
+    ]
+
+
+def test_prune_unusable_physics_resume_rows_keeps_complete_row(
+    tmp_path: Path,
+) -> None:
+    for relative in (
+        "raw/complete.txt",
+        "verifier/complete.json",
+        "cad/complete.json",
+        "chrono/complete.json",
+    ):
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("{}\n")
+    row = {
+        "split": "A",
+        "task_id": "level3_task",
+        "seed": 20260610,
+        "method": "llm_evolve_no_update",
+        "budget": 32,
+        "actual_verifier_calls": 32,
+        "actual_cad_calls": 1,
+        "actual_chrono_calls": 1,
+        "verifier_level": 3,
+        "raw_completion_paths": ["raw/complete.txt"],
+        "verifier_output_paths": ["verifier/complete.json"],
+        "cad_artifact_paths": ["cad/complete.json"],
+        "chrono_output_paths": ["chrono/complete.json"],
+    }
+
+    kept, dropped = online.prune_unusable_resume_rows(
+        [row],
+        out_dir=tmp_path,
+        budget=32,
+        verifier_level_by_task={"level3_task": 3},
+    )
+
+    assert kept == [row]
+    assert dropped == []
+
+
+def test_write_results_bundle_overwrites_empty_csvs(tmp_path: Path) -> None:
+    (tmp_path / "results.csv").write_text("stale\n")
+    (tmp_path / "cell_results.csv").write_text("stale\n")
+
+    online.write_results_bundle(tmp_path, [])
+
+    assert (tmp_path / "results.csv").read_text() == ""
+    assert (tmp_path / "cell_results.csv").read_text() == ""
+    assert json.loads((tmp_path / "results.json").read_text()) == {"rows": []}
+
+
 def test_reward_log_exceeds_expensive_caps(tmp_path: Path) -> None:
     reward_log = tmp_path / "reward_log.jsonl"
     reward_log.write_text(
