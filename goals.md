@@ -29,10 +29,14 @@ Cluster monitoring must be sparse and respectful of shared infrastructure:
 
 Cluster GPU usage must also be conservative by default:
 
-- Use at most one L40 GPU total for this project at any time unless the user
-  explicitly revises this limit. Do not submit multiple simultaneous L40 jobs,
-  do not keep extra L40 jobs pending in the queue, and do not use or disturb
-  another agent's L40 allocation.
+- Hard limit: use at most one L40 GPU total for this project at any time
+  unless the user explicitly revises this limit. "One" means one active or
+  pending L40 job total, not one job per shard, one job per method, or one job
+  per agent.
+- Do not submit multiple simultaneous L40 jobs, do not keep extra L40 jobs
+  pending in the queue, and do not use or disturb another agent's L40
+  allocation. If another agent is using an L40, coordinate around that
+  allocation instead of launching anything that could contend with it.
 - Do not launch broad GPU arrays or high-concurrency shard runs by default.
 - For MATX physics runs, default to one GPU shard at a time unless the user
   explicitly authorizes higher concurrency after coordinating with the lab.

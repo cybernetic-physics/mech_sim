@@ -59,6 +59,8 @@ def test_sync_helper_documents_single_shard_audit() -> None:
     assert "rsync -az --delete" in text
     assert "scripts/plan_mechanism_repair_shard_resume.py" in text
     assert "--out-json" in text
+    assert 'PRINT_FULL_AUDIT="${PRINT_FULL_AUDIT:-0}"' in text
+    assert "synced_shard_status" in text
 
 
 def test_help_documents_finalize_only() -> None:

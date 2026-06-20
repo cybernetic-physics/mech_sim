@@ -11,6 +11,7 @@ ROLLOUT_BACKEND="${ROLLOUT_BACKEND:-transformers_local}"
 LOCAL_DEVICE="${LOCAL_DEVICE:-cuda}"
 LOCAL_TORCH_DTYPE="${LOCAL_TORCH_DTYPE:-bfloat16}"
 WRITE_AUDIT_JSON="${WRITE_AUDIT_JSON:-1}"
+PRINT_FULL_AUDIT="${PRINT_FULL_AUDIT:-0}"
 AUDIT_JSON="${AUDIT_JSON:-$LOCAL_RUN_DIR/shard_resume_audit.json}"
 
 usage() {
@@ -32,6 +33,7 @@ Useful overrides:
   LOCAL_DEVICE=$LOCAL_DEVICE
   LOCAL_TORCH_DTYPE=$LOCAL_TORCH_DTYPE
   WRITE_AUDIT_JSON=$WRITE_AUDIT_JSON
+  PRINT_FULL_AUDIT=$PRINT_FULL_AUDIT
   AUDIT_JSON=$AUDIT_JSON
 EOF
 }
@@ -55,6 +57,10 @@ if [[ ! "$SHARD_INDEX" =~ ^[0-9]+$ ]]; then
 fi
 if [[ "$WRITE_AUDIT_JSON" != "0" && "$WRITE_AUDIT_JSON" != "1" ]]; then
   echo "WRITE_AUDIT_JSON must be 0 or 1" >&2
+  exit 2
+fi
+if [[ "$PRINT_FULL_AUDIT" != "0" && "$PRINT_FULL_AUDIT" != "1" ]]; then
+  echo "PRINT_FULL_AUDIT must be 0 or 1" >&2
   exit 2
 fi
 
@@ -86,7 +92,48 @@ audit_cmd=(
 )
 if [[ "$WRITE_AUDIT_JSON" == "1" ]]; then
   mkdir -p "$(dirname "$AUDIT_JSON")"
-  "${audit_cmd[@]}" --out-json "$AUDIT_JSON"
+  audit_stdout="$(mktemp)"
+  cleanup() {
+    rm -f "$audit_stdout"
+  }
+  trap cleanup EXIT
+  "${audit_cmd[@]}" --out-json "$AUDIT_JSON" > "$audit_stdout"
+  if [[ "$PRINT_FULL_AUDIT" == "1" ]]; then
+    cat "$audit_stdout"
+  else
+    "$PYTHON" - "$AUDIT_JSON" "$SHARD_INDEX" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+audit_path = Path(sys.argv[1])
+shard_index = int(sys.argv[2])
+report = json.loads(audit_path.read_text(encoding="utf-8"))
+shard = next(
+    (
+        item
+        for item in report.get("shards", [])
+        if int(item.get("shard_index", -1)) == shard_index
+    ),
+    {},
+)
+summary = {
+    "expected_rows": report.get("expected_rows"),
+    "observed_rows": report.get("observed_rows"),
+    "missing_rows": report.get("missing_rows"),
+    "complete_shard_count": report.get("complete_shard_count"),
+    "incomplete_shard_count": report.get("incomplete_shard_count"),
+    "next_shard_index": report.get("next_shard_index"),
+    "merge_ready": report.get("merge_ready"),
+    "synced_shard": shard.get("shard"),
+    "synced_shard_status": shard.get("status"),
+    "synced_shard_observed_rows": shard.get("observed_rows"),
+    "synced_shard_missing_rows": shard.get("missing_rows"),
+    "synced_shard_blockers": shard.get("blockers", []),
+}
+print(json.dumps(summary, indent=2, sort_keys=True))
+PY
+  fi
 else
   "${audit_cmd[@]}"
 fi
