@@ -323,6 +323,86 @@
     },
     {
       "budget": 32,
+      "family": "belt_drive",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t08_belt_pulley_ratio_s20263618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t08_belt_pulley_ratio_s20263618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t08_belt_pulley_ratio_s20263618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t08_belt_pulley_ratio_s20263618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t08_belt_pulley_ratio_s20263618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t08_belt_pulley_ratio_s20263618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t08_belt_pulley_ratio_s20263618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t08_belt_pulley_ratio_s20263618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
       "family": "lead_screw",
       "method": "frozen_model",
       "seed": 20260610,
@@ -639,6 +719,86 @@
       "split": "hidden_perturbation",
       "split_kind": "anti_shortcut",
       "task_id": "lead_screw_t09_lead_screw_linear_travel_s20266619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t07_belt_pulley_ratio_s20263617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t07_belt_pulley_ratio_s20263617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t07_belt_pulley_ratio_s20263617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t07_belt_pulley_ratio_s20263617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t07_belt_pulley_ratio_s20263617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t07_belt_pulley_ratio_s20263617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t07_belt_pulley_ratio_s20263617",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "belt_drive",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "belt_drive_t07_belt_pulley_ratio_s20263617",
       "verifier_level": 2
     },
     {
@@ -722,10 +882,10 @@
       "verifier_level": 2
     }
   ],
-  "full_planned_cells": 1440,
+  "full_planned_cells": 1920,
   "num_shards": 24,
   "out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
-  "planned_cells": 72,
+  "planned_cells": 88,
   "replay_args": [
     "--benchmark-dir",
     "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",

@@ -464,6 +464,8 @@ class BeltPulleyRatioGenerator(TaskGenerator):
             f"Design a two-pulley belt drive with drive Ø{d_in} mm and "
             f"driven Ø{d_out} mm.\n\n"
             f"* Declare `params.declared_ratio` = D_out / D_in = {ratio}.\n"
+            f"* The observed output/input angular velocity ratio must be "
+            f"D_in / D_out = {round(d_in / d_out, 6)}.\n"
             "* Ports: `input_port`, `output_port` (revolute_joint, "
             "both grounded).\n"
             "* Mobility = 2 (ungeared analytic tier).\n"
@@ -490,6 +492,7 @@ class BeltPulleyRatioGenerator(TaskGenerator):
         }
 
         def _cfg(target_ratio: float, tol_pct: float) -> dict[str, Any]:
+            speed_ratio = 1.0 / target_ratio
             return {
                 "probes": [
                     {"id": "mobility", "type": "dof_grubler",
@@ -508,13 +511,25 @@ class BeltPulleyRatioGenerator(TaskGenerator):
                      "tolerance_pct": float(tol_pct),
                      "failure_code": "wrong_ratio",
                      "weight": 1.0, "severity": "major"},
+                    {"id": "speed_ratio", "type": "port_velocity_ratio",
+                     "input_port": "input_port",
+                     "output_port": "output_port",
+                     "expected": float(speed_ratio),
+                     "tolerance_pct": float(tol_pct),
+                     "min_abs_input_velocity": 1e-6,
+                     "weight": 1.0, "severity": "major"},
                 ],
                 "feedback": {
                     "public_metrics": [
                         "mobility.observed", "ports.ports_required",
                         "ratio.observed", "ratio.expected",
+                        "speed_ratio.ratio_observed",
+                        "speed_ratio.ratio_expected",
                     ],
-                    "hidden_metrics": ["ratio.error_pct"],
+                    "hidden_metrics": [
+                        "ratio.error_pct",
+                        "speed_ratio.ratio_error_pct",
+                    ],
                 },
                 "hard_gate": {"require": ["mobility", "ports"]},
             }
@@ -528,6 +543,11 @@ class BeltPulleyRatioGenerator(TaskGenerator):
             "missing_port": _negative_overlay(
                 "    del ir['ports']['output_port']"
             ),
+            "wrong_pulley_geometry": _negative_overlay(
+                "    for part in ir['parts']:\n"
+                "        if part['id'] == 'driven':\n"
+                "            part['params']['diameter_mm'] *= 0.5"
+            ),
         }
         expected = {
             "description": "Tier 2 belt_pulley_ratio negatives.",
@@ -537,7 +557,7 @@ class BeltPulleyRatioGenerator(TaskGenerator):
                     "submission": "negative_solutions/wrong_ratio",
                     "expected_failure_codes": ["wrong_ratio"],
                     "expected_hard_gate_passed": True,
-                    "expected_score_below": 0.5,
+                    "expected_score_below": 0.51,
                 },
                 {
                     "id": "missing_port",
@@ -545,6 +565,13 @@ class BeltPulleyRatioGenerator(TaskGenerator):
                     "expected_failure_codes": ["missing_port"],
                     "expected_hard_gate_passed": False,
                     "expected_score_below": 0.001,
+                },
+                {
+                    "id": "wrong_pulley_geometry",
+                    "submission": "negative_solutions/wrong_pulley_geometry",
+                    "expected_failure_codes": ["wrong_ratio"],
+                    "expected_hard_gate_passed": True,
+                    "expected_score_below": 0.8,
                 },
             ],
         }

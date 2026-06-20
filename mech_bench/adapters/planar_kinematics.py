@@ -1,14 +1,15 @@
 """Analytical planar-kinematics adapter.
 
-Handles closed-loop planar four-bar, slider-crank, and simple
-lead-screw topologies analytically from DesignIR topology + joint
-anchor data. Emits port traces, joint position / velocity time-series,
-and a shared time axis. Pure NumPy — no physics solver.
+Handles closed-loop planar four-bar, slider-crank, simple lead-screw,
+and two-pulley belt topologies analytically from DesignIR topology +
+joint anchor data. Emits port traces, joint position / velocity
+time-series, and a shared time axis. Pure NumPy — no physics solver.
 
 Topology detection is auto by default:
   * 4 parts + 4 revolutes → four-bar.
   * 4 parts + 3 revolutes + 1 prismatic → slider-crank (planar).
   * 3 parts + 1 revolute + 1 prismatic + lead_mm param → lead screw.
+  * 3 parts + 2 revolutes + pulley diameter params → belt drive.
 
 Anything outside these returns an empty trace (and probes downstream
 surface ``SIMULATOR_DIVERGENCE`` or ``LOCKUP`` as appropriate).
@@ -440,6 +441,19 @@ def _float_param(ir: DesignIR, *keys: str) -> float | None:
     return None
 
 
+def _part_float_param(part: Part, *keys: str) -> float | None:
+    for key in keys:
+        if key not in part.params:
+            continue
+        try:
+            value = float(part.params[key])
+        except (TypeError, ValueError):
+            continue
+        if np.isfinite(value):
+            return value
+    return None
+
+
 def _solve_lead_screw(
     ir: DesignIR,
     n_samples: int,
@@ -519,6 +533,81 @@ def _solve_lead_screw(
     }
 
 
+def _solve_belt_drive(
+    ir: DesignIR,
+    n_samples: int,
+    *,
+    strict_geometry: bool,
+) -> dict[str, Any] | None:
+    """No-slip belt kinematics for two grounded revolute pulley axes."""
+    del strict_geometry
+    if len(ir.parts) != 3:
+        return None
+    revs = [j for j in ir.joints if j.type == "revolute"]
+    if len(revs) != 2:
+        return None
+    fixed = [p for p in ir.parts if p.fixed]
+    if len(fixed) != 1:
+        return None
+    ground = fixed[0].id
+    input_port = ir.ports.get("input_port")
+    output_port = ir.ports.get("output_port")
+    if input_port is None or input_port.kind != "revolute_joint":
+        return None
+    if output_port is None or output_port.kind != "revolute_joint":
+        return None
+    j_in = next((j for j in revs if j.id == input_port.part), None)
+    j_out = next((j for j in revs if j.id == output_port.part), None)
+    if j_in is None or j_out is None or j_in.id == j_out.id:
+        return None
+    if ground not in (j_in.parent, j_in.child):
+        return None
+    if ground not in (j_out.parent, j_out.child):
+        return None
+
+    parts = {part.id: part for part in ir.parts}
+    input_part_id = j_in.child if j_in.parent == ground else j_in.parent
+    output_part_id = j_out.child if j_out.parent == ground else j_out.parent
+    input_part = parts.get(input_part_id)
+    output_part = parts.get(output_part_id)
+    if input_part is None or output_part is None:
+        return None
+    role_text = f"{input_part.role} {output_part.role}".lower()
+    if "pulley" not in role_text:
+        return None
+    d_in = _part_float_param(input_part, "diameter_mm", "pitch_diameter_mm")
+    d_out = _part_float_param(output_part, "diameter_mm", "pitch_diameter_mm")
+    if d_in is None or d_out is None or d_in <= 0.0 or d_out <= 0.0:
+        return None
+
+    time_s = np.linspace(0.0, 2.0 * np.pi, n_samples,
+                         endpoint=False, dtype=float)
+    input_arr = time_s.copy()
+    speed_ratio = float(d_in / d_out)
+    output_arr = input_arr * speed_ratio
+    return {
+        "port_traces": {},
+        "joint_positions": {
+            "input_port": input_arr,
+            "output_port": output_arr,
+            j_in.id: input_arr,
+            j_out.id: output_arr,
+        },
+        "joint_velocities": {
+            "input_port": np.gradient(input_arr, time_s, edge_order=1),
+            "output_port": np.gradient(output_arr, time_s, edge_order=1),
+        },
+        "time_s": time_s,
+        "topology": "belt_drive",
+        "link_lengths_mm": {
+            "drive_diameter": float(d_in),
+            "driven_diameter": float(d_out),
+        },
+        "invalid_samples": 0,
+        "ratio_estimate": speed_ratio,
+    }
+
+
 @register_adapter
 class PlanarKinematics(SimAdapter):
     type_name = "planar_kinematics"
@@ -559,6 +648,8 @@ class PlanarKinematics(SimAdapter):
             candidates.append(_solve_slider_crank)
         if topology in ("auto", "lead_screw"):
             candidates.append(_solve_lead_screw)
+        if topology in ("auto", "belt_drive"):
+            candidates.append(_solve_belt_drive)
         for solver in candidates:
             solved = solver(ir, n_samples, strict_geometry=strict_geometry)
             if solved is not None:

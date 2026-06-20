@@ -1,0 +1,21 @@
+{
+  "family": "belt_drive",
+  "tier": "transmission_analytic",
+  "seed": 20263619,
+  "difficulty": 2,
+  "drive_d_mm": 25.73,
+  "driven_d_mm": 51.46,
+  "ratio": 2.0,
+  "task_id": "belt_drive_t09_belt_pulley_ratio_s20263619",
+  "source_task_id": "belt_pulley_ratio_s20263619",
+  "source_generator": "belt_pulley_ratio",
+  "verifier_level": 2,
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "fake_contact_oracle_allowed": false
+}

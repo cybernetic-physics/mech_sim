@@ -3,6 +3,7 @@
 Design a two-pulley belt drive with drive Ø23.69 mm and driven Ø94.76 mm.
 
 * Declare `params.declared_ratio` = D_out / D_in = 4.0.
+* The observed output/input angular velocity ratio must be D_in / D_out = 0.25.
 * Ports: `input_port`, `output_port` (revolute_joint, both grounded).
 * Mobility = 2 (ungeared analytic tier).
 

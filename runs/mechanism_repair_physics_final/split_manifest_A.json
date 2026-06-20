@@ -1,6 +1,6 @@
 {
-  "eligible_task_count": 30,
-  "excluded_diagnostic_task_count": 90,
+  "eligible_task_count": 40,
+  "excluded_diagnostic_task_count": 80,
   "headline_only": true,
   "schema": "mechanism_repair_physics.family_split.v1",
   "seed": 20260610,
@@ -37,6 +37,14 @@
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t09_slider_crank_stroke_s20267619"
     ],
     "train": [
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t02_belt_pulley_ratio_s20263612",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t03_belt_pulley_ratio_s20263613",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t04_belt_pulley_ratio_s20263614",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t05_belt_pulley_ratio_s20263615",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t06_belt_pulley_ratio_s20263616",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t07_belt_pulley_ratio_s20263617",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t08_belt_pulley_ratio_s20263618",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t09_belt_pulley_ratio_s20263619",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t01_fourbar_wiper_arc_s20268611",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t03_fourbar_dwell_path_s20268613",
@@ -47,6 +55,8 @@
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t09_fourbar_crank_rocker_sweep_s20268619"
     ],
     "val": [
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t00_belt_pulley_ratio_s20263610",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t01_belt_pulley_ratio_s20263611",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t00_fourbar_path_s20268610",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t07_fourbar_straight_line_approx_s20268617"
     ]

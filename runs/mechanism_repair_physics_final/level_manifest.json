@@ -17,7 +17,7 @@
         "topology_mobility"
       ],
       "family": "belt_drive",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "belt_drive_t00_belt_pulley_ratio_s20263610",
       "verifier_level": 2
     },
@@ -29,8 +29,8 @@
         "topology_mobility"
       ],
       "family": "belt_drive",
-      "headline_eligible": false,
-      "task_id": "belt_drive_t01_timing_belt_center_distance_s20263611",
+      "headline_eligible": true,
+      "task_id": "belt_drive_t01_belt_pulley_ratio_s20263611",
       "verifier_level": 2
     },
     {
@@ -41,7 +41,7 @@
         "topology_mobility"
       ],
       "family": "belt_drive",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "belt_drive_t02_belt_pulley_ratio_s20263612",
       "verifier_level": 2
     },
@@ -53,8 +53,8 @@
         "topology_mobility"
       ],
       "family": "belt_drive",
-      "headline_eligible": false,
-      "task_id": "belt_drive_t03_timing_belt_center_distance_s20263613",
+      "headline_eligible": true,
+      "task_id": "belt_drive_t03_belt_pulley_ratio_s20263613",
       "verifier_level": 2
     },
     {
@@ -65,7 +65,7 @@
         "topology_mobility"
       ],
       "family": "belt_drive",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "belt_drive_t04_belt_pulley_ratio_s20263614",
       "verifier_level": 2
     },
@@ -77,8 +77,8 @@
         "topology_mobility"
       ],
       "family": "belt_drive",
-      "headline_eligible": false,
-      "task_id": "belt_drive_t05_timing_belt_center_distance_s20263615",
+      "headline_eligible": true,
+      "task_id": "belt_drive_t05_belt_pulley_ratio_s20263615",
       "verifier_level": 2
     },
     {
@@ -89,7 +89,7 @@
         "topology_mobility"
       ],
       "family": "belt_drive",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "belt_drive_t06_belt_pulley_ratio_s20263616",
       "verifier_level": 2
     },
@@ -101,8 +101,8 @@
         "topology_mobility"
       ],
       "family": "belt_drive",
-      "headline_eligible": false,
-      "task_id": "belt_drive_t07_timing_belt_center_distance_s20263617",
+      "headline_eligible": true,
+      "task_id": "belt_drive_t07_belt_pulley_ratio_s20263617",
       "verifier_level": 2
     },
     {
@@ -113,7 +113,7 @@
         "topology_mobility"
       ],
       "family": "belt_drive",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "belt_drive_t08_belt_pulley_ratio_s20263618",
       "verifier_level": 2
     },
@@ -125,8 +125,8 @@
         "topology_mobility"
       ],
       "family": "belt_drive",
-      "headline_eligible": false,
-      "task_id": "belt_drive_t09_timing_belt_center_distance_s20263619",
+      "headline_eligible": true,
+      "task_id": "belt_drive_t09_belt_pulley_ratio_s20263619",
       "verifier_level": 2
     },
     {

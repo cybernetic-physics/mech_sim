@@ -4,8 +4,8 @@
     "hidden_perturbation",
     "external_style"
   ],
-  "expected_anti_shortcut_cells": 960,
-  "missing_anti_shortcut_cells": 960,
+  "expected_anti_shortcut_cells": 1200,
+  "missing_anti_shortcut_cells": 1200,
   "sample_missing_anti_shortcut_cells": [
     {
       "budget": 32,
@@ -249,12 +249,12 @@
     },
     {
       "budget": 32,
-      "family": "slider_crank",
+      "family": "belt_drive",
       "method": "frozen_model",
       "seed": 20260610,
       "split": "hidden_perturbation",
       "split_kind": "anti_shortcut",
-      "task_id": "slider_crank_t05_reciprocating_pump_plunger_s20267615",
+      "task_id": "belt_drive_t08_belt_pulley_ratio_s20263618",
       "verifier_level": 2
     }
   ],

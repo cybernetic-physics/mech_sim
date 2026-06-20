@@ -1,6 +1,6 @@
 [feedback]
-public_metrics = ["mobility.observed", "ports.ports_required", "ratio.observed", "ratio.expected", "trusted_asset_preflight.parts_with_required_geometry"]
-hidden_metrics = ["ratio.error_pct", "trusted_asset_preflight.trusted_mass_properties_recomputed"]
+public_metrics = ["mobility.observed", "ports.ports_required", "ratio.observed", "ratio.expected", "speed_ratio.ratio_observed", "speed_ratio.ratio_expected", "trusted_asset_preflight.parts_with_required_geometry"]
+hidden_metrics = ["ratio.error_pct", "speed_ratio.ratio_error_pct", "trusted_asset_preflight.trusted_mass_properties_recomputed"]
 
 [hard_gate]
 require = ["mobility", "ports", "trusted_asset_preflight"]
@@ -40,6 +40,17 @@ expected = 2.0
 comparator = "eq"
 tolerance_pct = 2.0
 failure_code = "wrong_ratio"
+weight = 1.0
+severity = "major"
+
+[[probes]]
+id = "speed_ratio"
+type = "port_velocity_ratio"
+input_port = "input_port"
+output_port = "output_port"
+expected = 0.5
+tolerance_pct = 2.0
+min_abs_input_velocity = 1e-06
 weight = 1.0
 severity = "major"
 
