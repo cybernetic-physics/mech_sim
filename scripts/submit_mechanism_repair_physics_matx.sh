@@ -30,6 +30,8 @@ SHARD_INDICES="${SHARD_INDICES:-}"
 SUBMIT_DEPENDENTS="${SUBMIT_DEPENDENTS:-auto}"
 RESTAGE_REMOTE_REPO="${RESTAGE_REMOTE_REPO:-auto}"
 REFRESH_REMOTE_CODE="${REFRESH_REMOTE_CODE:-auto}"
+SYNC_LOCAL_BENCHMARK="${SYNC_LOCAL_BENCHMARK:-auto}"
+RESET_SELECTED_SHARDS="${RESET_SELECTED_SHARDS:-0}"
 ALLOW_DESTRUCTIVE_RESTAGE="${ALLOW_DESTRUCTIVE_RESTAGE:-0}"
 OUT_DIR="${OUT_DIR:-runs/mechanism_repair_physics_final}"
 METHODS="${METHODS-}"
@@ -125,6 +127,8 @@ Useful overrides:
   SUBMIT_DEPENDENTS=$SUBMIT_DEPENDENTS
   RESTAGE_REMOTE_REPO=$RESTAGE_REMOTE_REPO
   REFRESH_REMOTE_CODE=$REFRESH_REMOTE_CODE
+  SYNC_LOCAL_BENCHMARK=$SYNC_LOCAL_BENCHMARK
+  RESET_SELECTED_SHARDS=$RESET_SELECTED_SHARDS
   ALLOW_DESTRUCTIVE_RESTAGE=$ALLOW_DESTRUCTIVE_RESTAGE
   GRES=$GRES
   CONCURRENCY=$CONCURRENCY
@@ -307,6 +311,25 @@ if [[ "$REFRESH_REMOTE_CODE" != "0" && "$REFRESH_REMOTE_CODE" != "1" ]]; then
   echo "REFRESH_REMOTE_CODE must be 0, 1, or auto" >&2
   exit 2
 fi
+if [[ "$SYNC_LOCAL_BENCHMARK" == "auto" ]]; then
+  if (( ! finalize_only )) && [[ -f "$repo_root/$OUT_DIR/benchmark_manifest.json" ]]; then
+    SYNC_LOCAL_BENCHMARK=1
+  else
+    SYNC_LOCAL_BENCHMARK=0
+  fi
+fi
+if [[ "$SYNC_LOCAL_BENCHMARK" != "0" && "$SYNC_LOCAL_BENCHMARK" != "1" ]]; then
+  echo "SYNC_LOCAL_BENCHMARK must be 0, 1, or auto" >&2
+  exit 2
+fi
+if [[ "$RESET_SELECTED_SHARDS" != "0" && "$RESET_SELECTED_SHARDS" != "1" ]]; then
+  echo "RESET_SELECTED_SHARDS must be 0 or 1" >&2
+  exit 2
+fi
+if [[ "$RESET_SELECTED_SHARDS" == "1" && -z "$SHARD_INDICES" ]]; then
+  echo "RESET_SELECTED_SHARDS=1 requires SHARD_INDICES" >&2
+  exit 2
+fi
 if [[ "$ALLOW_DESTRUCTIVE_RESTAGE" != "0" && "$ALLOW_DESTRUCTIVE_RESTAGE" != "1" ]]; then
   echo "ALLOW_DESTRUCTIVE_RESTAGE must be 0 or 1" >&2
   exit 2
@@ -465,6 +488,43 @@ else
     git -C "$repo_root" archive --format=tar "$source_commit" \
       | ssh "$REMOTE_HOST" "tar -xf - -C '$remote_repo'"
   fi
+fi
+if [[ "$SYNC_LOCAL_BENCHMARK" == "1" ]]; then
+  local_out_dir="$repo_root/$OUT_DIR"
+  if [[ ! -f "$local_out_dir/benchmark_manifest.json" ]]; then
+    echo "local benchmark_manifest.json not found: $local_out_dir" >&2
+    exit 2
+  fi
+  if [[ ! -d "$local_out_dir/tasks" || ! -d "$local_out_dir/experiment_shards" ]]; then
+    echo "local benchmark scaffold is incomplete: $local_out_dir" >&2
+    exit 2
+  fi
+  ssh "$REMOTE_HOST" "mkdir -p '$remote_out_dir'"
+  rsync -az --delete \
+    --exclude shard_runs/ \
+    --exclude shared_sft/ \
+    "$local_out_dir/" "$REMOTE_HOST:$remote_out_dir/"
+fi
+if [[ "$RESET_SELECTED_SHARDS" == "1" ]]; then
+  ssh "$REMOTE_HOST" bash -s -- "$remote_out_dir" "$SHARD_INDICES" <<'EOS'
+set -euo pipefail
+remote_out_dir="$1"
+shard_indices="$2"
+IFS=',' read -r -a parts <<< "$shard_indices"
+for part in "${parts[@]}"; do
+  if [[ "$part" == *-* ]]; then
+    start="${part%-*}"
+    stop="${part#*-}"
+  else
+    start="$part"
+    stop="$part"
+  fi
+  for ((idx=10#$start; idx<=10#$stop; idx++)); do
+    shard_name="$(printf 'shard_%04d' "$idx")"
+    rm -rf "$remote_out_dir/shard_runs/$shard_name"
+  done
+done
+EOS
 fi
 
 if (( ! finalize_only )); then

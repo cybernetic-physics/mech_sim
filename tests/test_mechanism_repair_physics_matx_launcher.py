@@ -97,6 +97,24 @@ def test_selected_shard_refreshes_code_without_restaging_outputs() -> None:
     assert "tar -xf - -C '$remote_repo'" in text
 
 
+def test_launcher_can_sync_local_benchmark_without_shard_outputs() -> None:
+    text = SCRIPT.read_text(encoding="utf-8")
+
+    assert 'SYNC_LOCAL_BENCHMARK="${SYNC_LOCAL_BENCHMARK:-auto}"' in text
+    assert 'RESET_SELECTED_SHARDS="${RESET_SELECTED_SHARDS:-0}"' in text
+    assert 'rsync -az --delete \\' in text
+    assert "--exclude shard_runs/" in text
+    assert "--exclude shared_sft/" in text
+    assert "local benchmark scaffold is incomplete" in text
+
+
+def test_selected_shard_reset_requires_explicit_shard_indices() -> None:
+    proc = run_launcher(RESET_SELECTED_SHARDS="1")
+
+    assert proc.returncode == 2
+    assert "RESET_SELECTED_SHARDS=1 requires SHARD_INDICES" in proc.stderr
+
+
 def test_default_refuses_broad_gpu_array_before_remote_contact() -> None:
     proc = run_launcher()
 
