@@ -1301,6 +1301,18 @@ def audit_result_bundle(
 ) -> dict[str, Any]:
     errors: list[dict[str, Any]] = []
     expected_counts = row_key_counter(rows, default_budget=default_budget)
+    expected_json_signatures = row_signature_counter(
+        rows,
+        default_budget=default_budget,
+        mode="json",
+    )
+    expected_csv_fields = sorted({key for row in rows for key in row})
+    expected_csv_signatures = row_signature_counter(
+        rows,
+        default_budget=default_budget,
+        mode="csv",
+        fields=expected_csv_fields,
+    )
     for artifact, path, loader in (
         ("results.json", out_dir / "results.json", load_result_json_rows),
         ("results.csv", out_dir / "results.csv", load_result_csv_rows),
@@ -1323,7 +1335,10 @@ def audit_result_bundle(
             artifact_rows,
             default_budget=default_budget,
         )
-        if len(artifact_rows) != len(rows) or artifact_counts != expected_counts:
+        row_keys_match = (
+            len(artifact_rows) == len(rows) and artifact_counts == expected_counts
+        )
+        if not row_keys_match:
             errors.append({
                 "artifact": artifact,
                 "reason": "row_key_mismatch",
@@ -1334,6 +1349,51 @@ def audit_result_bundle(
                 ),
                 "extra_in_artifact": counter_sample(
                     artifact_counts - expected_counts
+                ),
+            })
+            continue
+        if artifact == "results.csv":
+            artifact_fields = sorted({
+                key
+                for row in artifact_rows
+                for key in row
+                if key is not None
+            })
+            if artifact_fields != expected_csv_fields:
+                errors.append({
+                    "artifact": artifact,
+                    "reason": "csv_fields_mismatch",
+                    "missing_fields": sorted(
+                        set(expected_csv_fields) - set(artifact_fields)
+                    ),
+                    "extra_fields": sorted(
+                        set(artifact_fields) - set(expected_csv_fields)
+                    ),
+                })
+                continue
+            artifact_signatures = row_signature_counter(
+                artifact_rows,
+                default_budget=default_budget,
+                mode="csv",
+                fields=expected_csv_fields,
+            )
+            expected_signatures = expected_csv_signatures
+        else:
+            artifact_signatures = row_signature_counter(
+                artifact_rows,
+                default_budget=default_budget,
+                mode="json",
+            )
+            expected_signatures = expected_json_signatures
+        if artifact_signatures != expected_signatures:
+            errors.append({
+                "artifact": artifact,
+                "reason": "row_payload_mismatch",
+                "mismatched_jsonl_rows": signature_counter_sample(
+                    expected_signatures - artifact_signatures
+                ),
+                "mismatched_artifact_rows": signature_counter_sample(
+                    artifact_signatures - expected_signatures
                 ),
             })
     artifacts_present = all((out_dir / name).is_file() for name in RESULT_ARTIFACTS)
@@ -1372,9 +1432,68 @@ def row_key_counter(
     )
 
 
+def row_signature_counter(
+    rows: list[dict[str, Any]],
+    *,
+    default_budget: int,
+    mode: str,
+    fields: list[str] | None = None,
+) -> Counter[str]:
+    return Counter(
+        row_signature(
+            row,
+            default_budget=default_budget,
+            mode=mode,
+            fields=fields,
+        )
+        for row in rows
+    )
+
+
+def row_signature(
+    row: dict[str, Any],
+    *,
+    default_budget: int,
+    mode: str,
+    fields: list[str] | None = None,
+) -> str:
+    key = cell_key_text(row_key(row, default_budget=default_budget))
+    if mode == "json":
+        payload = json.dumps(row, sort_keys=True, separators=(",", ":"))
+    elif mode == "csv":
+        if fields is None:
+            raise ValueError("CSV row signatures require fields")
+        payload = json.dumps(
+            {field: csv_cell_text(row.get(field, "")) for field in fields},
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+    else:
+        raise ValueError(f"unknown row signature mode: {mode}")
+    return f"{key}\t{payload}"
+
+
+def csv_cell_text(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, (list, dict)):
+        return json.dumps(value)
+    return str(value)
+
+
 def counter_sample(counts: Counter[str], limit: int = 25) -> list[str]:
     sample: list[str] = []
     for key, count in sorted(counts.items()):
+        sample.extend([key] * int(count))
+        if len(sample) >= limit:
+            return sample[:limit]
+    return sample
+
+
+def signature_counter_sample(counts: Counter[str], limit: int = 25) -> list[str]:
+    sample: list[str] = []
+    for signature, count in sorted(counts.items()):
+        key = signature.split("\t", 1)[0]
         sample.extend([key] * int(count))
         if len(sample) >= limit:
             return sample[:limit]

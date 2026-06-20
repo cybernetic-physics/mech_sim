@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import json
 import sys
 from pathlib import Path
@@ -78,14 +79,14 @@ def _write_result_artifacts(out_dir: Path, rows: list[dict]) -> None:
     )
     _write_json(out_dir / "results.json", {"rows": rows})
     fields = sorted({key for row in rows for key in row})
-    with (out_dir / "results.csv").open("w", encoding="utf-8") as f:
-        f.write(",".join(fields) + "\n")
+    with (out_dir / "results.csv").open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fields)
+        writer.writeheader()
         for row in rows:
-            values = (
-                json.dumps(row.get(field, ""), sort_keys=True)
-                for field in fields
-            )
-            f.write(",".join(values) + "\n")
+            writer.writerow({
+                key: json.dumps(value) if isinstance(value, (list, dict)) else value
+                for key, value in row.items()
+            })
 
 
 def _write_complete_negative_stats(out_dir: Path) -> None:
@@ -766,6 +767,84 @@ def test_mismatched_result_bundle_blocks_goal_completion(tmp_path: Path) -> None
     assert any(
         "final result bundle" in item
         for item in audit["claim_audit"]["blockers"]
+    )
+
+
+def test_mismatched_result_json_payload_blocks_goal_completion(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    _write_complete_physics_rows(out_dir, plan, lambda _cell: (1, 1))
+    bundle = json.loads((out_dir / "results.json").read_text())
+    bundle["rows"][0]["actual_cad_calls"] = 99
+    _write_json(out_dir / "results.json", bundle)
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert audit["claim_audit"]["result_bundle_audit"]["consistent"] is False
+    assert (
+        audit["claim_audit"]["result_bundle_audit"]["errors"][0]["reason"]
+        == "row_payload_mismatch"
+    )
+    assert (
+        audit["claim_audit"]["result_bundle_audit"]["errors"][0]["artifact"]
+        == "results.json"
+    )
+
+
+def test_mismatched_result_csv_payload_blocks_goal_completion(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    _write_complete_physics_rows(out_dir, plan, lambda _cell: (1, 1))
+    csv_path = out_dir / "results.csv"
+    with csv_path.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        rows = list(reader)
+        fields = list(reader.fieldnames or [])
+    rows[0]["actual_cad_calls"] = "99"
+    with csv_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert audit["claim_audit"]["result_bundle_audit"]["consistent"] is False
+    assert any(
+        error["artifact"] == "results.csv"
+        and error["reason"] == "row_payload_mismatch"
+        for error in audit["claim_audit"]["result_bundle_audit"]["errors"]
     )
 
 
