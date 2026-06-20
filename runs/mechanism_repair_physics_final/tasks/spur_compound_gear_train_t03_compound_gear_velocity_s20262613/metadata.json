@@ -1,0 +1,27 @@
+{
+  "family": "spur_compound_gear_train",
+  "tier": "planar_kinematics",
+  "seed": 20262613,
+  "difficulty": 2,
+  "teeth": [
+    18,
+    72,
+    16,
+    48
+  ],
+  "reduction": 12.0,
+  "speed_ratio": 0.08333333,
+  "module_mm": 2.0,
+  "task_id": "spur_compound_gear_train_t03_compound_gear_velocity_s20262613",
+  "source_task_id": "compound_gear_velocity_s20262613",
+  "source_generator": "compound_gear_velocity",
+  "verifier_level": 2,
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "fake_contact_oracle_allowed": false
+}

@@ -60,12 +60,12 @@ FAMILY_SPECS: tuple[FamilySpec, ...] = (
     FamilySpec(
         "planetary_reducer",
         2,
-        ("planetary_fixed_ring_ratio_analytic", "planetary_fixed_sun_ratio_analytic"),
+        ("planetary_fixed_ring_velocity", "planetary_fixed_sun_velocity"),
     ),
     FamilySpec(
         "spur_compound_gear_train",
         2,
-        ("compound_gear_ratio_analytic", "spur_gear_ratio_analytic"),
+        ("compound_gear_velocity",),
     ),
     FamilySpec("belt_drive", 2, ("belt_pulley_ratio",)),
     FamilySpec("chain_drive", 2, ("chain_sprocket_ratio",)),

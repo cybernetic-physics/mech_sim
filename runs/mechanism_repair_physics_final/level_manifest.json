@@ -845,8 +845,8 @@
         "topology_mobility"
       ],
       "family": "planetary_reducer",
-      "headline_eligible": false,
-      "task_id": "planetary_reducer_t00_planetary_fixed_ring_ratio_analytic_s20261610",
+      "headline_eligible": true,
+      "task_id": "planetary_reducer_t00_planetary_fixed_ring_velocity_s20261610",
       "verifier_level": 2
     },
     {
@@ -857,8 +857,8 @@
         "topology_mobility"
       ],
       "family": "planetary_reducer",
-      "headline_eligible": false,
-      "task_id": "planetary_reducer_t01_planetary_fixed_sun_ratio_analytic_s20261611",
+      "headline_eligible": true,
+      "task_id": "planetary_reducer_t01_planetary_fixed_sun_velocity_s20261611",
       "verifier_level": 2
     },
     {
@@ -869,8 +869,8 @@
         "topology_mobility"
       ],
       "family": "planetary_reducer",
-      "headline_eligible": false,
-      "task_id": "planetary_reducer_t02_planetary_fixed_ring_ratio_analytic_s20261612",
+      "headline_eligible": true,
+      "task_id": "planetary_reducer_t02_planetary_fixed_ring_velocity_s20261612",
       "verifier_level": 2
     },
     {
@@ -881,8 +881,8 @@
         "topology_mobility"
       ],
       "family": "planetary_reducer",
-      "headline_eligible": false,
-      "task_id": "planetary_reducer_t03_planetary_fixed_sun_ratio_analytic_s20261613",
+      "headline_eligible": true,
+      "task_id": "planetary_reducer_t03_planetary_fixed_sun_velocity_s20261613",
       "verifier_level": 2
     },
     {
@@ -893,8 +893,8 @@
         "topology_mobility"
       ],
       "family": "planetary_reducer",
-      "headline_eligible": false,
-      "task_id": "planetary_reducer_t04_planetary_fixed_ring_ratio_analytic_s20261614",
+      "headline_eligible": true,
+      "task_id": "planetary_reducer_t04_planetary_fixed_ring_velocity_s20261614",
       "verifier_level": 2
     },
     {
@@ -905,8 +905,8 @@
         "topology_mobility"
       ],
       "family": "planetary_reducer",
-      "headline_eligible": false,
-      "task_id": "planetary_reducer_t05_planetary_fixed_sun_ratio_analytic_s20261615",
+      "headline_eligible": true,
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
       "verifier_level": 2
     },
     {
@@ -917,8 +917,8 @@
         "topology_mobility"
       ],
       "family": "planetary_reducer",
-      "headline_eligible": false,
-      "task_id": "planetary_reducer_t06_planetary_fixed_ring_ratio_analytic_s20261616",
+      "headline_eligible": true,
+      "task_id": "planetary_reducer_t06_planetary_fixed_ring_velocity_s20261616",
       "verifier_level": 2
     },
     {
@@ -929,8 +929,8 @@
         "topology_mobility"
       ],
       "family": "planetary_reducer",
-      "headline_eligible": false,
-      "task_id": "planetary_reducer_t07_planetary_fixed_sun_ratio_analytic_s20261617",
+      "headline_eligible": true,
+      "task_id": "planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
       "verifier_level": 2
     },
     {
@@ -941,8 +941,8 @@
         "topology_mobility"
       ],
       "family": "planetary_reducer",
-      "headline_eligible": false,
-      "task_id": "planetary_reducer_t08_planetary_fixed_ring_ratio_analytic_s20261618",
+      "headline_eligible": true,
+      "task_id": "planetary_reducer_t08_planetary_fixed_ring_velocity_s20261618",
       "verifier_level": 2
     },
     {
@@ -953,8 +953,8 @@
         "topology_mobility"
       ],
       "family": "planetary_reducer",
-      "headline_eligible": false,
-      "task_id": "planetary_reducer_t09_planetary_fixed_sun_ratio_analytic_s20261619",
+      "headline_eligible": true,
+      "task_id": "planetary_reducer_t09_planetary_fixed_sun_velocity_s20261619",
       "verifier_level": 2
     },
     {
@@ -1325,8 +1325,8 @@
         "topology_mobility"
       ],
       "family": "spur_compound_gear_train",
-      "headline_eligible": false,
-      "task_id": "spur_compound_gear_train_t00_compound_gear_ratio_analytic_s20262610",
+      "headline_eligible": true,
+      "task_id": "spur_compound_gear_train_t00_compound_gear_velocity_s20262610",
       "verifier_level": 2
     },
     {
@@ -1337,8 +1337,8 @@
         "topology_mobility"
       ],
       "family": "spur_compound_gear_train",
-      "headline_eligible": false,
-      "task_id": "spur_compound_gear_train_t01_spur_gear_ratio_analytic_s20262611",
+      "headline_eligible": true,
+      "task_id": "spur_compound_gear_train_t01_compound_gear_velocity_s20262611",
       "verifier_level": 2
     },
     {
@@ -1349,8 +1349,8 @@
         "topology_mobility"
       ],
       "family": "spur_compound_gear_train",
-      "headline_eligible": false,
-      "task_id": "spur_compound_gear_train_t02_compound_gear_ratio_analytic_s20262612",
+      "headline_eligible": true,
+      "task_id": "spur_compound_gear_train_t02_compound_gear_velocity_s20262612",
       "verifier_level": 2
     },
     {
@@ -1361,8 +1361,8 @@
         "topology_mobility"
       ],
       "family": "spur_compound_gear_train",
-      "headline_eligible": false,
-      "task_id": "spur_compound_gear_train_t03_spur_gear_ratio_analytic_s20262613",
+      "headline_eligible": true,
+      "task_id": "spur_compound_gear_train_t03_compound_gear_velocity_s20262613",
       "verifier_level": 2
     },
     {
@@ -1373,8 +1373,8 @@
         "topology_mobility"
       ],
       "family": "spur_compound_gear_train",
-      "headline_eligible": false,
-      "task_id": "spur_compound_gear_train_t04_compound_gear_ratio_analytic_s20262614",
+      "headline_eligible": true,
+      "task_id": "spur_compound_gear_train_t04_compound_gear_velocity_s20262614",
       "verifier_level": 2
     },
     {
@@ -1385,8 +1385,8 @@
         "topology_mobility"
       ],
       "family": "spur_compound_gear_train",
-      "headline_eligible": false,
-      "task_id": "spur_compound_gear_train_t05_spur_gear_ratio_analytic_s20262615",
+      "headline_eligible": true,
+      "task_id": "spur_compound_gear_train_t05_compound_gear_velocity_s20262615",
       "verifier_level": 2
     },
     {
@@ -1397,8 +1397,8 @@
         "topology_mobility"
       ],
       "family": "spur_compound_gear_train",
-      "headline_eligible": false,
-      "task_id": "spur_compound_gear_train_t06_compound_gear_ratio_analytic_s20262616",
+      "headline_eligible": true,
+      "task_id": "spur_compound_gear_train_t06_compound_gear_velocity_s20262616",
       "verifier_level": 2
     },
     {
@@ -1409,8 +1409,8 @@
         "topology_mobility"
       ],
       "family": "spur_compound_gear_train",
-      "headline_eligible": false,
-      "task_id": "spur_compound_gear_train_t07_spur_gear_ratio_analytic_s20262617",
+      "headline_eligible": true,
+      "task_id": "spur_compound_gear_train_t07_compound_gear_velocity_s20262617",
       "verifier_level": 2
     },
     {
@@ -1421,8 +1421,8 @@
         "topology_mobility"
       ],
       "family": "spur_compound_gear_train",
-      "headline_eligible": false,
-      "task_id": "spur_compound_gear_train_t08_compound_gear_ratio_analytic_s20262618",
+      "headline_eligible": true,
+      "task_id": "spur_compound_gear_train_t08_compound_gear_velocity_s20262618",
       "verifier_level": 2
     },
     {
@@ -1433,8 +1433,8 @@
         "topology_mobility"
       ],
       "family": "spur_compound_gear_train",
-      "headline_eligible": false,
-      "task_id": "spur_compound_gear_train_t09_spur_gear_ratio_analytic_s20262619",
+      "headline_eligible": true,
+      "task_id": "spur_compound_gear_train_t09_compound_gear_velocity_s20262619",
       "verifier_level": 2
     }
   ],

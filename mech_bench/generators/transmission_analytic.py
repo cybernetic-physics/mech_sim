@@ -76,6 +76,26 @@ def _basic_pair_design(part_a: str, part_b: str,
     return parts, joints, ports
 
 
+def _velocity_ratio_probe(
+    expected: float,
+    *,
+    tol_pct: float,
+    probe_id: str = "speed_ratio",
+    weight: float = 1.0,
+) -> dict[str, Any]:
+    return {
+        "id": probe_id,
+        "type": "port_velocity_ratio",
+        "input_port": "input_port",
+        "output_port": "output_port",
+        "expected": float(expected),
+        "tolerance_pct": float(tol_pct),
+        "min_abs_input_velocity": 1e-6,
+        "weight": float(weight),
+        "severity": "major",
+    }
+
+
 # --------------------------------------------------------------------- #
 # 21. compound_gear_ratio_analytic                                      #
 # --------------------------------------------------------------------- #
@@ -179,6 +199,211 @@ class CompoundGearRatioAnalyticGenerator(TaskGenerator):
                                      difficulty,
                                      teeth=[p1, g1, p2, g2],
                                      ratio=ratio),
+        )
+
+
+# --------------------------------------------------------------------- #
+# 21b. compound_gear_velocity                                           #
+# --------------------------------------------------------------------- #
+
+
+class CompoundGearVelocityGenerator(TaskGenerator):
+    family = "compound_gear_velocity"
+    tier = "planar_kinematics"
+
+    def generate(self, seed: int, difficulty: int = 2) -> GeneratedTask:
+        rng = random.Random(seed + 41210)
+        p1 = rng.choice([12, 14, 16, 18])
+        g1 = p1 * rng.choice([2, 3, 4])
+        p2 = rng.choice([12, 14, 16])
+        g2 = p2 * rng.choice([2, 3])
+        module_mm = rng.choice([1.5, 2.0, 2.5])
+        reduction = round((g1 / p1) * (g2 / p2), 6)
+        speed_ratio = round(1.0 / reduction, 8)
+        c1 = round(module_mm * (p1 + g1) / 2.0, 3)
+        c2 = round(c1 + module_mm * (p2 + g2) / 2.0, 3)
+        task_id = make_task_id(self.family, seed)
+
+        parts = [
+            make_ground_part("frame"),
+            make_revolute_part(
+                "input_gear",
+                "gear_input",
+                0.03,
+                params={
+                    "teeth": p1,
+                    "pitch_diameter_mm": round(module_mm * p1, 3),
+                },
+            ),
+            make_revolute_part(
+                "compound_gear",
+                "compound_gear",
+                0.06,
+                params={
+                    "stage1_teeth": g1,
+                    "stage2_teeth": p2,
+                    "stage1_pitch_diameter_mm": round(module_mm * g1, 3),
+                    "stage2_pitch_diameter_mm": round(module_mm * p2, 3),
+                },
+            ),
+            make_revolute_part(
+                "output_gear",
+                "gear_output",
+                0.05,
+                params={
+                    "teeth": g2,
+                    "pitch_diameter_mm": round(module_mm * g2, 3),
+                },
+            ),
+        ]
+        joints = [
+            revolute_joint("input_axis", "frame", "input_gear",
+                           (0.0, 0.0, 0.0)),
+            revolute_joint("compound_axis", "frame", "compound_gear",
+                           (c1, 0.0, 0.0)),
+            revolute_joint("output_axis", "frame", "output_gear",
+                           (c2, 0.0, 0.0)),
+        ]
+        ports = {
+            "input_port": revolute_joint_port("input_port", "input_axis"),
+            "output_port": revolute_joint_port("output_port", "output_axis"),
+        }
+        params = {
+            "gear_module_mm": module_mm,
+            "stage1": {"pinion_teeth": p1, "gear_teeth": g1},
+            "stage2": {"pinion_teeth": p2, "gear_teeth": g2},
+            "declared_reduction_ratio": reduction,
+            "declared_velocity_ratio": speed_ratio,
+        }
+        prompt = (
+            "# Compound gear-train velocity\n\n"
+            "Design a two-stage external spur compound reducer with an "
+            "input gear, a compound shaft carrying the stage-1 driven gear "
+            "and stage-2 pinion, and an output gear.\n\n"
+            f"* Stage 1 teeth: input {p1}, compound driven {g1}.\n"
+            f"* Stage 2 teeth: compound pinion {p2}, output {g2}.\n"
+            f"* Module: {module_mm} mm; shaft centers must match pitch "
+            "diameters.\n"
+            f"* `params.declared_reduction_ratio` = {reduction}.\n"
+            f"* Observed output/input angular velocity ratio must be "
+            f"{speed_ratio}.\n"
+            "* Ports: `input_port` and `output_port` as grounded "
+            "revolute_joint ports.\n"
+            "* Mobility = 3 bare grounded gear axes; gear-mesh velocity "
+            "relation is checked by the kinematic verifier.\n"
+        )
+
+        def _cfg(tol_pct: float) -> dict[str, Any]:
+            return {
+                "probes": [
+                    dof_probe(expected=3),
+                    required_ports_probe(
+                        "ports", ["input_port", "output_port"],
+                        require_grounded=["input_port", "output_port"],
+                        require_kinds={
+                            "input_port": "revolute_joint",
+                            "output_port": "revolute_joint",
+                        },
+                    ),
+                    param_check_probe(
+                        "reduction",
+                        "params.declared_reduction_ratio",
+                        reduction,
+                        tolerance_pct=tol_pct,
+                        failure_code="wrong_ratio",
+                        weight=0.5,
+                    ),
+                    _velocity_ratio_probe(
+                        speed_ratio, tol_pct=tol_pct, weight=1.0),
+                ],
+                "feedback": {
+                    "public_metrics": [
+                        "reduction.observed",
+                        "reduction.expected",
+                        "speed_ratio.ratio_observed",
+                        "speed_ratio.ratio_expected",
+                    ],
+                    "hidden_metrics": [
+                        "reduction.error_pct",
+                        "speed_ratio.ratio_error_pct",
+                    ],
+                },
+                "hard_gate": {"require": ["mobility", "ports"]},
+            }
+
+        ref_py = make_basic_design_py(parts, joints, ports, params)
+        negatives = {
+            "wrong_declared_reduction": make_negative_overlay(
+                f"    ir['params']['declared_reduction_ratio'] = "
+                f"{round(reduction * 0.55, 6)}"
+            ),
+            "wrong_output_gear_geometry": make_negative_overlay(
+                "    for part in ir['parts']:\n"
+                "        if part['id'] == 'output_gear':\n"
+                "            part['params']['teeth'] = max(\n"
+                "                1, int(part['params']['teeth'] * 0.5))\n"
+                "            part['params']['pitch_diameter_mm'] *= 0.5"
+            ),
+            "missing_output_port": make_negative_overlay(
+                "    del ir['ports']['output_port']"
+            ),
+        }
+        expected = make_expected_failures(
+            f"Tier 2 {self.family} negatives.",
+            [
+                {"id": "wrong_declared_reduction",
+                 "expected_failure_codes": ["wrong_ratio"],
+                 "expected_hard_gate_passed": True,
+                 "expected_score_below": 0.8},
+                {"id": "wrong_output_gear_geometry",
+                 "expected_failure_codes": ["wrong_ratio"],
+                 "expected_hard_gate_passed": True,
+                 "expected_score_below": 0.8},
+                {"id": "missing_output_port",
+                 "expected_failure_codes": ["missing_port"],
+                 "expected_hard_gate_passed": False,
+                 "expected_score_below": 0.001},
+            ],
+        )
+        task_toml = {
+            "task": {"id": task_id, "family": self.family,
+                     "difficulty": int(difficulty), "units": "mm",
+                     "tier": self.tier},
+            "requirements": {
+                "required_ports": ["input_port", "output_port"],
+                "expected_mobility": 3,
+                "max_envelope_mm": [260, 120, 80],
+            },
+            "objective": {
+                "description": (
+                    "Two-stage compound spur train velocity ratio "
+                    f"{speed_ratio}."
+                ),
+                "ground_required": True,
+            },
+        }
+        return GeneratedTask(
+            task_id=task_id,
+            family=self.family,
+            difficulty=int(difficulty),
+            prompt_md=prompt,
+            task_toml=task_toml,
+            eval_config_toml=_cfg(tol_pct=2.0),
+            eval_config_hidden_toml=_cfg(tol_pct=1.0),
+            fixtures={},
+            reference_solution_py=ref_py,
+            negative_solutions=negatives,
+            expected_failures=expected,
+            metadata=common_metadata(
+                self.family,
+                self.tier,
+                seed,
+                difficulty,
+                teeth=[p1, g1, p2, g2],
+                reduction=reduction,
+                speed_ratio=speed_ratio,
+                module_mm=module_mm,
+            ),
         )
 
 
@@ -394,6 +619,193 @@ class PlanetaryFixedRingRatioGenerator(TaskGenerator):
 
 
 # --------------------------------------------------------------------- #
+# 23b. planetary_fixed_ring_velocity                                    #
+# --------------------------------------------------------------------- #
+
+
+class PlanetaryFixedRingVelocityGenerator(TaskGenerator):
+    family = "planetary_fixed_ring_velocity"
+    tier = "planar_kinematics"
+
+    def generate(self, seed: int, difficulty: int = 2) -> GeneratedTask:
+        rng = random.Random(seed + 43230)
+        sun = rng.choice([14, 16, 18, 20])
+        planet = rng.choice([10, 14, 18])
+        ring = sun + 2 * planet
+        reduction = round(1.0 + ring / sun, 6)
+        speed_ratio = round(1.0 / reduction, 8)
+        task_id = make_task_id(self.family, seed)
+
+        parts = [
+            make_ground_part("frame"),
+            {
+                **make_ground_part("ring"),
+                "role": "fixed_ring_gear",
+                "mass_kg": 0.09,
+                "params": {"teeth": ring, "fixed_member": True},
+            },
+            make_revolute_part(
+                "sun", "sun_gear_input", 0.04,
+                params={"teeth": sun},
+            ),
+            make_revolute_part(
+                "carrier", "planet_carrier_output", 0.05,
+                params={"planet_count": 3},
+            ),
+            make_revolute_part(
+                "planet_0", "planet_gear", 0.02,
+                params={"teeth": planet},
+            ),
+        ]
+        joints = [
+            revolute_joint("sun_axis", "frame", "sun", (0.0, 0.0, 0.0)),
+            revolute_joint(
+                "carrier_axis", "frame", "carrier", (0.0, 0.0, 0.0)),
+            revolute_joint(
+                "planet_spin_axis", "carrier", "planet_0",
+                (35.0, 0.0, 0.0)),
+        ]
+        ports = {
+            "input_port": revolute_joint_port("input_port", "sun_axis"),
+            "output_port": revolute_joint_port(
+                "output_port", "carrier_axis"),
+        }
+        params = {
+            "sun_teeth": sun,
+            "planet_teeth": planet,
+            "ring_teeth": ring,
+            "fixed_member": "ring",
+            "declared_reduction_ratio": reduction,
+            "declared_velocity_ratio": speed_ratio,
+        }
+        prompt = (
+            "# Planetary reducer velocity, fixed ring\n\n"
+            "Design a coaxial planetary reducer with the ring gear fixed, "
+            "the sun gear driven, and the carrier as output.\n\n"
+            f"* Sun teeth: {sun}; planet teeth: {planet}; ring teeth: "
+            f"{ring}.\n"
+            f"* `params.declared_reduction_ratio` = 1 + ring/sun = "
+            f"{reduction}.\n"
+            f"* Observed output/input angular velocity ratio must be "
+            f"{speed_ratio}.\n"
+            "* Include `sun`, `ring`, `planet_0`, and `carrier` roles with "
+            "grounded revolute input/output ports.\n"
+        )
+
+        def _cfg(tol_pct: float) -> dict[str, Any]:
+            return {
+                "probes": [
+                    dof_probe(expected=3),
+                    required_ports_probe(
+                        "ports", ["input_port", "output_port"],
+                        require_grounded=["input_port", "output_port"],
+                        require_kinds={
+                            "input_port": "revolute_joint",
+                            "output_port": "revolute_joint",
+                        },
+                    ),
+                    param_check_probe(
+                        "reduction",
+                        "params.declared_reduction_ratio",
+                        reduction,
+                        tolerance_pct=tol_pct,
+                        failure_code="wrong_ratio",
+                        weight=0.5,
+                    ),
+                    _velocity_ratio_probe(
+                        speed_ratio, tol_pct=tol_pct, weight=1.0),
+                ],
+                "feedback": {
+                    "public_metrics": [
+                        "reduction.observed",
+                        "speed_ratio.ratio_observed",
+                        "speed_ratio.ratio_expected",
+                    ],
+                    "hidden_metrics": [
+                        "reduction.error_pct",
+                        "speed_ratio.ratio_error_pct",
+                    ],
+                },
+                "hard_gate": {"require": ["mobility", "ports"]},
+            }
+
+        ref_py = make_basic_design_py(parts, joints, ports, params)
+        negatives = {
+            "wrong_declared_reduction": make_negative_overlay(
+                f"    ir['params']['declared_reduction_ratio'] = "
+                f"{round(reduction * 0.6, 6)}"
+            ),
+            "wrong_ring_geometry": make_negative_overlay(
+                "    for part in ir['parts']:\n"
+                "        if part['id'] == 'ring':\n"
+                "            part['params']['teeth'] += 8\n"
+                "    ir['params']['ring_teeth'] += 8"
+            ),
+            "missing_output_port": make_negative_overlay(
+                "    del ir['ports']['output_port']"
+            ),
+        }
+        expected = make_expected_failures(
+            f"Tier 2 {self.family} negatives.",
+            [
+                {"id": "wrong_declared_reduction",
+                 "expected_failure_codes": ["wrong_ratio"],
+                 "expected_hard_gate_passed": True,
+                 "expected_score_below": 0.8},
+                {"id": "wrong_ring_geometry",
+                 "expected_failure_codes": ["wrong_ratio"],
+                 "expected_hard_gate_passed": True,
+                 "expected_score_below": 0.8},
+                {"id": "missing_output_port",
+                 "expected_failure_codes": ["missing_port"],
+                 "expected_hard_gate_passed": False,
+                 "expected_score_below": 0.001},
+            ],
+        )
+        task_toml = {
+            "task": {"id": task_id, "family": self.family,
+                     "difficulty": int(difficulty), "units": "mm",
+                     "tier": self.tier},
+            "requirements": {
+                "required_ports": ["input_port", "output_port"],
+                "expected_mobility": 3,
+                "max_envelope_mm": [200, 200, 80],
+            },
+            "objective": {
+                "description": (
+                    "Fixed-ring planetary reducer velocity ratio "
+                    f"{speed_ratio}."
+                ),
+                "ground_required": True,
+            },
+        }
+        return GeneratedTask(
+            task_id=task_id,
+            family=self.family,
+            difficulty=int(difficulty),
+            prompt_md=prompt,
+            task_toml=task_toml,
+            eval_config_toml=_cfg(tol_pct=2.0),
+            eval_config_hidden_toml=_cfg(tol_pct=1.0),
+            fixtures={},
+            reference_solution_py=ref_py,
+            negative_solutions=negatives,
+            expected_failures=expected,
+            metadata=common_metadata(
+                self.family,
+                self.tier,
+                seed,
+                difficulty,
+                sun=sun,
+                planet=planet,
+                ring=ring,
+                reduction=reduction,
+                speed_ratio=speed_ratio,
+            ),
+        )
+
+
+# --------------------------------------------------------------------- #
 # 24. planetary_fixed_sun_ratio_analytic                                #
 # --------------------------------------------------------------------- #
 
@@ -507,6 +919,193 @@ class PlanetaryFixedSunRatioGenerator(TaskGenerator):
             metadata=common_metadata(self.family, self.tier, seed,
                                      difficulty, sun=sun, ring=ring,
                                      ratio=ratio),
+        )
+
+
+# --------------------------------------------------------------------- #
+# 24b. planetary_fixed_sun_velocity                                     #
+# --------------------------------------------------------------------- #
+
+
+class PlanetaryFixedSunVelocityGenerator(TaskGenerator):
+    family = "planetary_fixed_sun_velocity"
+    tier = "planar_kinematics"
+
+    def generate(self, seed: int, difficulty: int = 2) -> GeneratedTask:
+        rng = random.Random(seed + 44240)
+        sun = rng.choice([16, 18, 20])
+        planet = rng.choice([12, 16, 20])
+        ring = sun + 2 * planet
+        speed_ratio = round((ring + sun) / ring, 8)
+        reciprocal = round(1.0 / speed_ratio, 6)
+        task_id = make_task_id(self.family, seed)
+
+        parts = [
+            make_ground_part("frame"),
+            {
+                **make_ground_part("sun"),
+                "role": "fixed_sun_gear",
+                "mass_kg": 0.04,
+                "params": {"teeth": sun, "fixed_member": True},
+            },
+            make_revolute_part(
+                "carrier", "planet_carrier_input", 0.05,
+                params={"planet_count": 3},
+            ),
+            make_revolute_part(
+                "ring", "ring_gear_output", 0.09,
+                params={"teeth": ring},
+            ),
+            make_revolute_part(
+                "planet_0", "planet_gear", 0.02,
+                params={"teeth": planet},
+            ),
+        ]
+        joints = [
+            revolute_joint(
+                "carrier_axis", "frame", "carrier", (0.0, 0.0, 0.0)),
+            revolute_joint("ring_axis", "frame", "ring", (0.0, 0.0, 0.0)),
+            revolute_joint(
+                "planet_spin_axis", "carrier", "planet_0",
+                (35.0, 0.0, 0.0)),
+        ]
+        ports = {
+            "input_port": revolute_joint_port(
+                "input_port", "carrier_axis"),
+            "output_port": revolute_joint_port("output_port", "ring_axis"),
+        }
+        params = {
+            "sun_teeth": sun,
+            "planet_teeth": planet,
+            "ring_teeth": ring,
+            "fixed_member": "sun",
+            "declared_reciprocal_ratio": reciprocal,
+            "declared_velocity_ratio": speed_ratio,
+        }
+        prompt = (
+            "# Planetary reducer velocity, fixed sun\n\n"
+            "Design a coaxial planetary set with the sun gear fixed, "
+            "the carrier driven, and the ring gear as output.\n\n"
+            f"* Sun teeth: {sun}; planet teeth: {planet}; ring teeth: "
+            f"{ring}.\n"
+            f"* Observed output/input angular velocity ratio must be "
+            f"(ring + sun)/ring = {speed_ratio}.\n"
+            f"* `params.declared_reciprocal_ratio` = ring/(ring + sun) = "
+            f"{reciprocal}.\n"
+            "* Include `sun`, `ring`, `planet_0`, and `carrier` roles with "
+            "grounded revolute input/output ports.\n"
+        )
+
+        def _cfg(tol_pct: float) -> dict[str, Any]:
+            return {
+                "probes": [
+                    dof_probe(expected=3),
+                    required_ports_probe(
+                        "ports", ["input_port", "output_port"],
+                        require_grounded=["input_port", "output_port"],
+                        require_kinds={
+                            "input_port": "revolute_joint",
+                            "output_port": "revolute_joint",
+                        },
+                    ),
+                    param_check_probe(
+                        "reciprocal_ratio",
+                        "params.declared_reciprocal_ratio",
+                        reciprocal,
+                        tolerance_pct=tol_pct,
+                        failure_code="wrong_ratio",
+                        weight=0.5,
+                    ),
+                    _velocity_ratio_probe(
+                        speed_ratio, tol_pct=tol_pct, weight=1.0),
+                ],
+                "feedback": {
+                    "public_metrics": [
+                        "reciprocal_ratio.observed",
+                        "speed_ratio.ratio_observed",
+                        "speed_ratio.ratio_expected",
+                    ],
+                    "hidden_metrics": [
+                        "reciprocal_ratio.error_pct",
+                        "speed_ratio.ratio_error_pct",
+                    ],
+                },
+                "hard_gate": {"require": ["mobility", "ports"]},
+            }
+
+        ref_py = make_basic_design_py(parts, joints, ports, params)
+        negatives = {
+            "wrong_declared_reciprocal": make_negative_overlay(
+                f"    ir['params']['declared_reciprocal_ratio'] = "
+                f"{round(reciprocal * 0.65, 6)}"
+            ),
+            "wrong_sun_geometry": make_negative_overlay(
+                "    for part in ir['parts']:\n"
+                "        if part['id'] == 'sun':\n"
+                "            part['params']['teeth'] += 6\n"
+                "    ir['params']['sun_teeth'] += 6"
+            ),
+            "missing_output_port": make_negative_overlay(
+                "    del ir['ports']['output_port']"
+            ),
+        }
+        expected = make_expected_failures(
+            f"Tier 2 {self.family} negatives.",
+            [
+                {"id": "wrong_declared_reciprocal",
+                 "expected_failure_codes": ["wrong_ratio"],
+                 "expected_hard_gate_passed": True,
+                 "expected_score_below": 0.8},
+                {"id": "wrong_sun_geometry",
+                 "expected_failure_codes": ["wrong_ratio"],
+                 "expected_hard_gate_passed": True,
+                 "expected_score_below": 0.8},
+                {"id": "missing_output_port",
+                 "expected_failure_codes": ["missing_port"],
+                 "expected_hard_gate_passed": False,
+                 "expected_score_below": 0.001},
+            ],
+        )
+        task_toml = {
+            "task": {"id": task_id, "family": self.family,
+                     "difficulty": int(difficulty), "units": "mm",
+                     "tier": self.tier},
+            "requirements": {
+                "required_ports": ["input_port", "output_port"],
+                "expected_mobility": 3,
+                "max_envelope_mm": [200, 200, 80],
+            },
+            "objective": {
+                "description": (
+                    "Fixed-sun planetary ring-output velocity ratio "
+                    f"{speed_ratio}."
+                ),
+                "ground_required": True,
+            },
+        }
+        return GeneratedTask(
+            task_id=task_id,
+            family=self.family,
+            difficulty=int(difficulty),
+            prompt_md=prompt,
+            task_toml=task_toml,
+            eval_config_toml=_cfg(tol_pct=2.0),
+            eval_config_hidden_toml=_cfg(tol_pct=1.0),
+            fixtures={},
+            reference_solution_py=ref_py,
+            negative_solutions=negatives,
+            expected_failures=expected,
+            metadata=common_metadata(
+                self.family,
+                self.tier,
+                seed,
+                difficulty,
+                sun=sun,
+                planet=planet,
+                ring=ring,
+                reciprocal_ratio=reciprocal,
+                speed_ratio=speed_ratio,
+            ),
         )
 
 

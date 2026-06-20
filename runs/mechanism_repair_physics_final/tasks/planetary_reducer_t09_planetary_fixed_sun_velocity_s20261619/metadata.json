@@ -1,0 +1,23 @@
+{
+  "family": "planetary_reducer",
+  "tier": "planar_kinematics",
+  "seed": 20261619,
+  "difficulty": 2,
+  "sun": 20,
+  "planet": 16,
+  "ring": 52,
+  "reciprocal_ratio": 0.722222,
+  "speed_ratio": 1.38461538,
+  "task_id": "planetary_reducer_t09_planetary_fixed_sun_velocity_s20261619",
+  "source_task_id": "planetary_fixed_sun_velocity_s20261619",
+  "source_generator": "planetary_fixed_sun_velocity",
+  "verifier_level": 2,
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "fake_contact_oracle_allowed": false
+}

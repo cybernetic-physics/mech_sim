@@ -66,10 +66,13 @@ def test_run_suite_tier_and_family_metrics_present(suite_dir: Path, tmp_path):
     assert len(families) >= 5
 
 
-def test_run_suite_capability_unavailable_counted(suite_dir: Path, tmp_path):
+def test_run_suite_contact_stub_reports_missing_contact(
+    suite_dir: Path, tmp_path,
+):
     summary = run_suite(suite_dir, report_dir=tmp_path / "reports",
                           eval_mode="public")
-    assert summary["capability_unavailable_n"] >= 1  # contact gear stub
+    assert summary["capability_unavailable_n"] == 0
+    assert summary["failure_code_histogram"]["missing_contact"] >= 1
 
 
 def test_run_suite_both_emits_generalization_gap(suite_dir: Path, tmp_path):

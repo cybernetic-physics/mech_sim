@@ -1,10 +1,11 @@
 """Analytical planar-kinematics adapter.
 
 Handles closed-loop planar four-bar, slider-crank, rack-pinion, simple
-lead-screw, two-pulley belt, and two-sprocket chain topologies
-analytically from DesignIR topology + joint anchor data. Emits port
-traces, joint position / velocity time-series, and a shared time axis.
-Pure NumPy — no physics solver.
+lead-screw, two-pulley belt, two-sprocket chain, compound spur gear,
+and simple planetary gearset topologies analytically from DesignIR
+topology + joint anchor data. Emits port traces, joint position /
+velocity time-series, and a shared time axis. Pure NumPy — no physics
+solver.
 
 Topology detection is auto by default:
   * 4 parts + 4 revolutes → four-bar.
@@ -13,6 +14,8 @@ Topology detection is auto by default:
   * 3 parts + 1 revolute + 1 prismatic + lead_mm param → lead screw.
   * 3 parts + 2 revolutes + pulley diameter params → belt drive.
   * 3 parts + 2 revolutes + sprocket tooth-count params → chain drive.
+  * 4 parts + 3 revolutes + compound gear tooth params → compound gear.
+  * 5 parts + planetary roles + fixed sun/ring params → planetary gearset.
 
 Anything outside these returns an empty trace (and probes downstream
 surface ``SIMULATOR_DIVERGENCE`` or ``LOCKUP`` as appropriate).
@@ -457,6 +460,16 @@ def _part_float_param(part: Part, *keys: str) -> float | None:
     return None
 
 
+def _joint_moving_part(joint: Joint, fixed_ids: set[str]) -> str | None:
+    parent_fixed = joint.parent in fixed_ids
+    child_fixed = joint.child in fixed_ids
+    if parent_fixed and not child_fixed:
+        return joint.child
+    if child_fixed and not parent_fixed:
+        return joint.parent
+    return None
+
+
 def _solve_rack_pinion(
     ir: DesignIR,
     n_samples: int,
@@ -703,6 +716,221 @@ def _solve_belt_or_chain_drive(
     }
 
 
+def _solve_compound_gear_train(
+    ir: DesignIR,
+    n_samples: int,
+    *,
+    strict_geometry: bool,
+) -> dict[str, Any] | None:
+    """Two-stage external spur compound train from per-part tooth counts."""
+    del strict_geometry
+    if len(ir.parts) != 4:
+        return None
+    revs = [j for j in ir.joints if j.type == "revolute"]
+    if len(revs) != 3:
+        return None
+    fixed_ids = {p.id for p in ir.parts if p.fixed}
+    if len(fixed_ids) != 1:
+        return None
+    input_port = ir.ports.get("input_port")
+    output_port = ir.ports.get("output_port")
+    if input_port is None or input_port.kind != "revolute_joint":
+        return None
+    if output_port is None or output_port.kind != "revolute_joint":
+        return None
+    j_in = next((j for j in revs if j.id == input_port.part), None)
+    j_out = next((j for j in revs if j.id == output_port.part), None)
+    if j_in is None or j_out is None or j_in.id == j_out.id:
+        return None
+    if _joint_moving_part(j_in, fixed_ids) is None:
+        return None
+    if _joint_moving_part(j_out, fixed_ids) is None:
+        return None
+
+    parts = {part.id: part for part in ir.parts}
+    input_part = parts.get(_joint_moving_part(j_in, fixed_ids) or "")
+    output_part = parts.get(_joint_moving_part(j_out, fixed_ids) or "")
+    if input_part is None or output_part is None:
+        return None
+    compound_candidates = [
+        parts[moving]
+        for joint in revs
+        if joint.id not in (j_in.id, j_out.id)
+        for moving in [_joint_moving_part(joint, fixed_ids)]
+        if moving in parts
+    ]
+    if len(compound_candidates) != 1:
+        return None
+    compound = compound_candidates[0]
+    role_text = " ".join(
+        [input_part.role, compound.role, output_part.role]).lower()
+    if "gear" not in role_text or "compound" not in role_text:
+        return None
+
+    p1 = _part_float_param(input_part, "teeth", "input_teeth")
+    g1 = _part_float_param(
+        compound, "stage1_teeth", "driven_teeth", "gear_teeth")
+    p2 = _part_float_param(
+        compound, "stage2_teeth", "pinion_teeth", "output_pinion_teeth")
+    g2 = _part_float_param(output_part, "teeth", "output_teeth")
+    if any(v is None or v <= 0.0 for v in (p1, g1, p2, g2)):
+        return None
+
+    compound_ratio = -float(p1) / float(g1)
+    speed_ratio = compound_ratio * (-float(p2) / float(g2))
+
+    time_s = np.linspace(0.0, 2.0 * np.pi, n_samples,
+                         endpoint=False, dtype=float)
+    input_arr = time_s.copy()
+    compound_arr = input_arr * compound_ratio
+    output_arr = input_arr * speed_ratio
+    input_vel = np.gradient(input_arr, time_s, edge_order=1)
+    compound_vel = np.gradient(compound_arr, time_s, edge_order=1)
+    output_vel = np.gradient(output_arr, time_s, edge_order=1)
+    compound_joint = next(j for j in revs if j.id not in (j_in.id, j_out.id))
+    return {
+        "port_traces": {},
+        "joint_positions": {
+            "input_port": input_arr,
+            "output_port": output_arr,
+            j_in.id: input_arr,
+            compound_joint.id: compound_arr,
+            j_out.id: output_arr,
+        },
+        "joint_velocities": {
+            "input_port": input_vel,
+            "output_port": output_vel,
+            j_in.id: input_vel,
+            compound_joint.id: compound_vel,
+            j_out.id: output_vel,
+        },
+        "time_s": time_s,
+        "topology": "spur_compound_gear_train",
+        "link_lengths_mm": {
+            "stage1_input_teeth": float(p1),
+            "stage1_output_teeth": float(g1),
+            "stage2_input_teeth": float(p2),
+            "stage2_output_teeth": float(g2),
+        },
+        "invalid_samples": 0,
+        "ratio_estimate": float(speed_ratio),
+    }
+
+
+def _find_part_with_role(parts: dict[str, Part], role_token: str) -> Part | None:
+    token = role_token.lower()
+    for part in parts.values():
+        haystack = f"{part.id} {part.role}".lower()
+        if token in haystack:
+            return part
+    return None
+
+
+def _solve_planetary_gearset(
+    ir: DesignIR,
+    n_samples: int,
+    *,
+    strict_geometry: bool,
+) -> dict[str, Any] | None:
+    """Simple fixed-ring or fixed-sun planetary velocity relation."""
+    del strict_geometry
+    if len(ir.parts) != 5:
+        return None
+    revs = [j for j in ir.joints if j.type == "revolute"]
+    if len(revs) != 3:
+        return None
+    fixed_ids = {p.id for p in ir.parts if p.fixed}
+    if not fixed_ids:
+        return None
+    input_port = ir.ports.get("input_port")
+    output_port = ir.ports.get("output_port")
+    if input_port is None or input_port.kind != "revolute_joint":
+        return None
+    if output_port is None or output_port.kind != "revolute_joint":
+        return None
+    j_in = next((j for j in revs if j.id == input_port.part), None)
+    j_out = next((j for j in revs if j.id == output_port.part), None)
+    if j_in is None or j_out is None or j_in.id == j_out.id:
+        return None
+    input_part_id = _joint_moving_part(j_in, fixed_ids)
+    output_part_id = _joint_moving_part(j_out, fixed_ids)
+    if input_part_id is None or output_part_id is None:
+        return None
+
+    parts = {part.id: part for part in ir.parts}
+    sun = _find_part_with_role(parts, "sun")
+    ring = _find_part_with_role(parts, "ring")
+    carrier = _find_part_with_role(parts, "carrier")
+    planet = _find_part_with_role(parts, "planet")
+    if sun is None or ring is None or carrier is None or planet is None:
+        return None
+    sun_teeth = _part_float_param(sun, "teeth", "sun_teeth")
+    ring_teeth = _part_float_param(ring, "teeth", "ring_teeth")
+    if sun_teeth is None:
+        sun_teeth = _float_param(ir, "sun_teeth")
+    if ring_teeth is None:
+        ring_teeth = _float_param(ir, "ring_teeth")
+    if (
+        sun_teeth is None or ring_teeth is None
+        or sun_teeth <= 0.0 or ring_teeth <= 0.0
+    ):
+        return None
+
+    fixed_member = str(ir.params.get("fixed_member", "")).lower()
+    if not fixed_member:
+        if ring.id in fixed_ids:
+            fixed_member = "ring"
+        elif sun.id in fixed_ids:
+            fixed_member = "sun"
+    input_part = parts.get(input_part_id)
+    output_part = parts.get(output_part_id)
+    if input_part is None or output_part is None:
+        return None
+
+    input_role = f"{input_part.id} {input_part.role}".lower()
+    output_role = f"{output_part.id} {output_part.role}".lower()
+    if fixed_member == "ring":
+        if "sun" not in input_role or "carrier" not in output_role:
+            return None
+        speed_ratio = float(sun_teeth) / float(sun_teeth + ring_teeth)
+    elif fixed_member == "sun":
+        if "carrier" not in input_role or "ring" not in output_role:
+            return None
+        speed_ratio = float(sun_teeth + ring_teeth) / float(ring_teeth)
+    else:
+        return None
+
+    time_s = np.linspace(0.0, 2.0 * np.pi, n_samples,
+                         endpoint=False, dtype=float)
+    input_arr = time_s.copy()
+    output_arr = input_arr * speed_ratio
+    input_vel = np.gradient(input_arr, time_s, edge_order=1)
+    output_vel = np.gradient(output_arr, time_s, edge_order=1)
+    return {
+        "port_traces": {},
+        "joint_positions": {
+            "input_port": input_arr,
+            "output_port": output_arr,
+            j_in.id: input_arr,
+            j_out.id: output_arr,
+        },
+        "joint_velocities": {
+            "input_port": input_vel,
+            "output_port": output_vel,
+            j_in.id: input_vel,
+            j_out.id: output_vel,
+        },
+        "time_s": time_s,
+        "topology": f"planetary_fixed_{fixed_member}",
+        "link_lengths_mm": {
+            "sun_teeth": float(sun_teeth),
+            "ring_teeth": float(ring_teeth),
+        },
+        "invalid_samples": 0,
+        "ratio_estimate": float(speed_ratio),
+    }
+
+
 @register_adapter
 class PlanarKinematics(SimAdapter):
     type_name = "planar_kinematics"
@@ -747,6 +975,10 @@ class PlanarKinematics(SimAdapter):
             candidates.append(_solve_lead_screw)
         if topology in ("auto", "belt_drive", "chain_drive"):
             candidates.append(_solve_belt_or_chain_drive)
+        if topology in ("auto", "spur_compound_gear_train"):
+            candidates.append(_solve_compound_gear_train)
+        if topology in ("auto", "planetary_reducer"):
+            candidates.append(_solve_planetary_gearset)
         for solver in candidates:
             solved = solver(ir, n_samples, strict_geometry=strict_geometry)
             if solved is not None:

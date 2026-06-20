@@ -104,9 +104,9 @@ def test_reference_solution_passes(suite_dir: Path, family: str, tmp_path):
 
 
 @pytest.mark.parametrize("family,expected_codes", [
-    ("contact_gear_pair_stub", {"capability_unavailable"}),
+    ("contact_gear_pair_stub", {"missing_contact"}),
 ])
-def test_tier3_stubs_surface_capability_unavailable(
+def test_tier3_stubs_surface_missing_contact(
     suite_dir: Path, family: str, expected_codes: set[str], tmp_path,
 ):
     matches = [d for d in suite_dir.iterdir()
@@ -114,7 +114,8 @@ def test_tier3_stubs_surface_capability_unavailable(
     task_dir = matches[0]
     report = evaluate(task_dir, task_dir / "reference_solution",
                        scratch_dir=tmp_path / family)
-    assert not report.evaluation_valid
+    assert report.evaluation_valid
+    assert not report.hard_gate_passed
     assert expected_codes.issubset(_codes(report))
 
 
@@ -263,9 +264,9 @@ def test_fake_oracle_not_used_without_explicit_opt_in(tmp_path):
     )
     codes = _codes(report)
     # The contact-gear-pair stub has no fake-oracle opt-in, so contact
-    # probes must surface capability_unavailable, never missing_contact.
-    assert "capability_unavailable" in codes, codes
-    assert "missing_contact" not in codes, codes
+    # probes must surface real missing-contact evidence, never a fake pass.
+    assert "missing_contact" in codes, codes
+    assert "capability_unavailable" not in codes, codes
 
 
 def test_tier_with_no_probes_is_not_applicable(suite_dir: Path, tmp_path):

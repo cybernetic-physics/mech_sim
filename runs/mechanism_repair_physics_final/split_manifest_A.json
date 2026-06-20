@@ -1,6 +1,6 @@
 {
-  "eligible_task_count": 60,
-  "excluded_diagnostic_task_count": 60,
+  "eligible_task_count": 80,
+  "excluded_diagnostic_task_count": 40,
   "headline_only": true,
   "schema": "mechanism_repair_physics.family_split.v1",
   "seed": 20260610,
@@ -25,6 +25,16 @@
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t07_lead_screw_linear_travel_s20266617",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t08_lead_screw_linear_travel_s20266618",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/lead_screw_t09_lead_screw_linear_travel_s20266619",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t00_planetary_fixed_ring_velocity_s20261610",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t01_planetary_fixed_sun_velocity_s20261611",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t02_planetary_fixed_ring_velocity_s20261612",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t03_planetary_fixed_sun_velocity_s20261613",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t04_planetary_fixed_ring_velocity_s20261614",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t06_planetary_fixed_ring_velocity_s20261616",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t07_planetary_fixed_sun_velocity_s20261617",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t08_planetary_fixed_ring_velocity_s20261618",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/planetary_reducer_t09_planetary_fixed_sun_velocity_s20261619",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t00_slider_crank_stroke_s20267610",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t01_slider_crank_stroke_precision_s20267611",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t02_reciprocating_pump_plunger_s20267612",
@@ -68,7 +78,15 @@
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t05_rack_pinion_conversion_s20265615",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t06_rack_pinion_conversion_s20265616",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t07_rack_pinion_conversion_s20265617",
-      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t09_rack_pinion_conversion_s20265619"
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t09_rack_pinion_conversion_s20265619",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t00_compound_gear_velocity_s20262610",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t01_compound_gear_velocity_s20262611",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t04_compound_gear_velocity_s20262614",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t05_compound_gear_velocity_s20262615",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t06_compound_gear_velocity_s20262616",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t07_compound_gear_velocity_s20262617",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t08_compound_gear_velocity_s20262618",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t09_compound_gear_velocity_s20262619"
     ],
     "val": [
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/belt_drive_t00_belt_pulley_ratio_s20263610",
@@ -78,7 +96,9 @@
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t00_fourbar_path_s20268610",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/fourbar_linkage_t07_fourbar_straight_line_approx_s20268617",
       "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t00_rack_pinion_conversion_s20265610",
-      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t08_rack_pinion_conversion_s20265618"
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/rack_pinion_t08_rack_pinion_conversion_s20265618",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t02_compound_gear_velocity_s20262612",
+      "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/spur_compound_gear_train_t03_compound_gear_velocity_s20262613"
     ]
   },
   "unseen_families": [

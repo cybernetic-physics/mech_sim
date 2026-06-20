@@ -643,6 +643,166 @@
     },
     {
       "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "spur_compound_gear_train_t03_compound_gear_velocity_s20262613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "spur_compound_gear_train_t03_compound_gear_velocity_s20262613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "spur_compound_gear_train_t03_compound_gear_velocity_s20262613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "spur_compound_gear_train_t03_compound_gear_velocity_s20262613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "spur_compound_gear_train_t03_compound_gear_velocity_s20262613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "spur_compound_gear_train_t03_compound_gear_velocity_s20262613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "spur_compound_gear_train_t03_compound_gear_velocity_s20262613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "spur_compound_gear_train_t03_compound_gear_velocity_s20262613",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "spur_compound_gear_train_t08_compound_gear_velocity_s20262618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "spur_compound_gear_train_t08_compound_gear_velocity_s20262618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "spur_compound_gear_train_t08_compound_gear_velocity_s20262618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "spur_compound_gear_train_t08_compound_gear_velocity_s20262618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "spur_compound_gear_train_t08_compound_gear_velocity_s20262618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "spur_compound_gear_train_t08_compound_gear_velocity_s20262618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "spur_compound_gear_train_t08_compound_gear_velocity_s20262618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "spur_compound_gear_train_t08_compound_gear_velocity_s20262618",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
       "family": "belt_drive",
       "method": "frozen_model",
       "seed": 20260612,
@@ -1439,13 +1599,173 @@
       "split": "external_style",
       "split_kind": "anti_shortcut",
       "task_id": "fourbar_linkage_t05_fourbar_path_s20268615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t09_compound_gear_velocity_s20262619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t09_compound_gear_velocity_s20262619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t09_compound_gear_velocity_s20262619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t09_compound_gear_velocity_s20262619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t09_compound_gear_velocity_s20262619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t09_compound_gear_velocity_s20262619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t09_compound_gear_velocity_s20262619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t09_compound_gear_velocity_s20262619",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t05_compound_gear_velocity_s20262615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t05_compound_gear_velocity_s20262615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t05_compound_gear_velocity_s20262615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t05_compound_gear_velocity_s20262615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t05_compound_gear_velocity_s20262615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t05_compound_gear_velocity_s20262615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t05_compound_gear_velocity_s20262615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "spur_compound_gear_train",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "external_style",
+      "split_kind": "anti_shortcut",
+      "task_id": "spur_compound_gear_train_t05_compound_gear_velocity_s20262615",
       "verifier_level": 2
     }
   ],
-  "full_planned_cells": 2880,
+  "full_planned_cells": 4080,
   "num_shards": 24,
   "out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
-  "planned_cells": 144,
+  "planned_cells": 176,
   "replay_args": [
     "--benchmark-dir",
     "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",

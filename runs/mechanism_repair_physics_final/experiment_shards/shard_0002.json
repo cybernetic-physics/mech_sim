@@ -3,6 +3,166 @@
   "cells": [
     {
       "budget": 32,
+      "family": "planetary_reducer",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "planetary_reducer_t04_planetary_fixed_ring_velocity_s20261614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "planetary_reducer_t04_planetary_fixed_ring_velocity_s20261614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "planetary_reducer_t04_planetary_fixed_ring_velocity_s20261614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "planetary_reducer_t04_planetary_fixed_ring_velocity_s20261614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "planetary_reducer_t04_planetary_fixed_ring_velocity_s20261614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "planetary_reducer_t04_planetary_fixed_ring_velocity_s20261614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "planetary_reducer_t04_planetary_fixed_ring_velocity_s20261614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "planetary_reducer_t04_planetary_fixed_ring_velocity_s20261614",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "planetary_reducer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "planetary_reducer_t05_planetary_fixed_sun_velocity_s20261615",
+      "verifier_level": 2
+    },
+    {
+      "budget": 32,
       "family": "slider_crank",
       "method": "frozen_model",
       "seed": 20260612,
@@ -722,10 +882,10 @@
       "verifier_level": 2
     }
   ],
-  "full_planned_cells": 2880,
+  "full_planned_cells": 4080,
   "num_shards": 24,
   "out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
-  "planned_cells": 72,
+  "planned_cells": 88,
   "replay_args": [
     "--benchmark-dir",
     "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",

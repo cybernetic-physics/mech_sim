@@ -13,11 +13,10 @@ dense score drops) or remove a required port (missing_port, hard-gate
 fails).
 
 The Tier-3 stubs (``contact_gear_pair_stub``, ``cycloidal_lowN_stub``)
-declare probes that require contact-force or torque-load adapters
-which are NOT registered in this build. Their reference solutions are
-otherwise valid, so the evaluator surfaces
-``capability_unavailable``; the benchmark runner counts those
-separately.
+declare contact-force or torque-load probes. When the contact adapter is
+available but the reference lacks credible contact geometry, the evaluator
+surfaces ``missing_contact``. If the adapter is unavailable in a deployment,
+the same probes surface ``capability_unavailable``.
 """
 
 from __future__ import annotations
@@ -839,8 +838,7 @@ class CycloidalLayoutRatioGenerator(TaskGenerator):
 
 
 # --------------------------------------------------------------------- #
-# Tier 3 stubs — contact-dynamics, expected to surface                  #
-# capability_unavailable until a contact adapter ships.                 #
+# Tier 3 stubs — contact-dynamics smoke tasks.                          #
 # --------------------------------------------------------------------- #
 
 
@@ -858,10 +856,10 @@ class ContactGearPairStubGenerator(TaskGenerator):
             "# Contact gear pair (stub)\n\n"
             f"Two-gear contact-loaded design with {teeth_in}/{teeth_out} "
             "teeth.\n\n"
-            "This task requires a contact-force-capable adapter that is "
-            "not registered in this build. The evaluator should surface "
-            "`capability_unavailable`. Once a Chrono / MuJoCo adapter "
-            "lands, only the eval config changes.\n"
+            "This task requires a contact-force-capable adapter and "
+            "credible contact geometry. In this stub, the reference lacks "
+            "contact geometry, so an available contact adapter should "
+            "surface `missing_contact`.\n"
         )
 
         ref_py = _two_gear_reference_py(teeth_in, teeth_out,
@@ -887,7 +885,7 @@ class ContactGearPairStubGenerator(TaskGenerator):
             },
             "capability": {
                 "requires_adapter": "contact_forces",
-                "expect_capability_unavailable": True,
+                "expect_capability_unavailable": False,
             },
         }
 
@@ -905,7 +903,8 @@ class ContactGearPairStubGenerator(TaskGenerator):
                      "required_pairs": ["pinion:gear"],
                      "min_rms_force_N": float(min_force),
                      "min_engagement_fraction": 0.2,
-                     "weight": 1.0, "severity": "critical"},
+                     "weight": 1.0, "severity": "critical",
+                     "hard_gate": True},
                 ],
                 "feedback": {
                     "public_metrics": [
@@ -914,7 +913,7 @@ class ContactGearPairStubGenerator(TaskGenerator):
                     ],
                     "hidden_metrics": [],
                 },
-                "hard_gate": {"require": ["mobility", "ports"]},
+                "hard_gate": {"require": ["mobility", "ports", "contact"]},
                 "adapters": {
                     "chrono_contact": {"samples": 720},
                 },
@@ -922,8 +921,7 @@ class ContactGearPairStubGenerator(TaskGenerator):
 
         expected = {
             "description": (
-                "Tier 3 contact_gear_pair_stub — capability-unavailable "
-                "regression."),
+                "Tier 3 contact_gear_pair_stub missing-contact regression."),
             "controls": [
                 {
                     "id": "missing_port",
@@ -935,10 +933,7 @@ class ContactGearPairStubGenerator(TaskGenerator):
                 {
                     "id": "no_contact_geometry",
                     "submission": "negative_solutions/no_contact_geometry",
-                    # Reference & negatives both surface
-                    # capability_unavailable until a contact adapter
-                    # registers; the runner counts these separately.
-                    "expected_failure_codes": ["capability_unavailable"],
+                    "expected_failure_codes": ["missing_contact"],
                     "expected_hard_gate_passed": False,
                     "expected_score_below": 0.001,
                 },

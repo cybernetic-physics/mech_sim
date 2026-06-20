@@ -73,16 +73,18 @@ def test_physics_preflight_materializes_required_families_and_manifests(
         for blocker in audit["paper_blockers"]
     )
     assert audit["family_counts"] == {family: 1 for family in REQUIRED_FAMILIES}
-    assert audit["headline_task_count"] == 6
+    assert audit["headline_task_count"] == 8
     assert audit["headline_family_counts"] == {
         "belt_drive": 1,
         "chain_drive": 1,
         "fourbar_linkage": 1,
         "lead_screw": 1,
+        "planetary_reducer": 1,
         "rack_pinion": 1,
         "slider_crank": 1,
+        "spur_compound_gear_train": 1,
     }
-    assert audit["diagnostic_task_count"] == 6
+    assert audit["diagnostic_task_count"] == 4
     assert audit["level_counts"] == {"2": 9, "3": 3}
     assert all(
         len(task["constraint_classes"]) >= 3
@@ -107,17 +109,22 @@ def test_physics_preflight_materializes_required_families_and_manifests(
             test_names = {
                 Path(path).name for path in split_manifest["splits"]["test"]
             }
-            assert len(test_names) == 2
+            assert len(test_names) == 3
+            assert any(name.startswith("planetary_reducer") for name in test_names)
             assert any(name.startswith("lead_screw") for name in test_names)
             assert any(name.startswith("slider_crank") for name in test_names)
         else:
             test_names = {
                 Path(path).name for path in split_manifest["splits"]["test"]
             }
-            assert len(test_names) == 3
+            assert len(test_names) == 4
             assert any(name.startswith("belt_drive") for name in test_names)
             assert any(name.startswith("chain_drive") for name in test_names)
             assert any(name.startswith("rack_pinion") for name in test_names)
+            assert any(
+                name.startswith("spur_compound_gear_train")
+                for name in test_names
+            )
 
     assert methods["required_methods"] == list(REQUIRED_METHODS)
     assert methods["primary_method"] == "mechanical_evolve_ttrl_tool_verified"
@@ -184,3 +191,39 @@ def test_rack_pinion_reference_uses_pitch_radius_velocity_probe(
     assert negative.evaluation_valid
     assert negative.hard_gate_passed
     assert "wrong_ratio" in _codes(negative)
+
+
+def test_gear_family_references_use_tooth_geometry_velocity_probes(
+    tmp_path: Path,
+) -> None:
+    out_dir = tmp_path / "mechanism_repair_physics"
+    tasks_root = out_dir / "tasks"
+    materialize_benchmark(
+        tasks_root=tasks_root,
+        tasks_per_family=1,
+        base_seed=20260610,
+    )
+
+    cases = [
+        ("spur_compound_gear_train", "wrong_output_gear_geometry"),
+        ("planetary_reducer", "wrong_ring_geometry"),
+    ]
+    for family, negative_name in cases:
+        task_dir = _family_task(tasks_root, family)
+        reference = evaluate(
+            task_dir,
+            task_dir / "reference_solution",
+            scratch_dir=out_dir / f"{family}_reference",
+        )
+        assert reference.evaluation_valid
+        assert reference.hard_gate_passed
+        assert reference.score > 0.99
+
+        negative = evaluate(
+            task_dir,
+            task_dir / "negative_solutions" / negative_name,
+            scratch_dir=out_dir / f"{family}_{negative_name}",
+        )
+        assert negative.evaluation_valid
+        assert negative.hard_gate_passed
+        assert "wrong_ratio" in _codes(negative)
