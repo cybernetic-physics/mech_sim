@@ -36,12 +36,50 @@ def _write_shard(run_dir: Path, index: int, cells: list[dict]) -> None:
 
 
 def _write_rows(run_dir: Path, index: int, rows: list[dict]) -> None:
+    shard_dir = run_dir / "shard_runs" / f"shard_{index:04d}"
+    materialized_rows = [
+        _row_with_default_evidence(shard_dir, row, row_index)
+        for row_index, row in enumerate(rows)
+    ]
     path = run_dir / "shard_runs" / f"shard_{index:04d}" / "cell_results.jsonl"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
-        "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows),
+        "".join(json.dumps(row, sort_keys=True) + "\n" for row in materialized_rows),
         encoding="utf-8",
     )
+
+
+def _row_with_default_evidence(
+    shard_dir: Path,
+    row: dict,
+    row_index: int,
+) -> dict:
+    out = dict(row)
+
+    def add_path(field: str, relative: str, text: str) -> None:
+        path = shard_dir / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+        out[field] = [relative]
+
+    if "raw_completion_paths" not in out and "raw_completion_path" not in out:
+        add_path("raw_completion_paths", f"raw/{row_index}.txt", "design\n")
+    if "verifier_output_paths" not in out and "verifier_output_path" not in out:
+        add_path("verifier_output_paths", f"verifier/{row_index}.json", "{}\n")
+    verifier_level = int(out.get("verifier_level", 1) or 1)
+    if (
+        verifier_level >= 2
+        and "cad_artifact_paths" not in out
+        and "cad_artifact_path" not in out
+    ):
+        add_path("cad_artifact_paths", f"cad/{row_index}.json", "{}\n")
+    if (
+        verifier_level >= 3
+        and "chrono_output_paths" not in out
+        and "chrono_output_path" not in out
+    ):
+        add_path("chrono_output_paths", f"chrono/{row_index}.json", "{}\n")
+    return out
 
 
 def test_resume_plan_selects_first_missing_output_shard(tmp_path: Path) -> None:
@@ -187,4 +225,59 @@ def test_resume_plan_rejects_ttrl_without_same_group_baseline(
             "ttrl_methods": ["mechanical_evolve_ttrl_tool_verified"],
             "missing_method": "llm_evolve_no_update",
         }
+    ]
+
+
+def test_resume_plan_rejects_missing_row_evidence(tmp_path: Path) -> None:
+    run_dir = tmp_path / "run"
+    expected = [_cell("task_a", "frozen_model")]
+    expected[0]["verifier_level"] = 3
+    row = {
+        **expected[0],
+        "raw_completion_paths": [],
+        "verifier_output_paths": [],
+        "cad_artifact_paths": [],
+        "chrono_output_paths": [],
+    }
+    _write_shard(run_dir, 0, expected)
+    _write_rows(run_dir, 0, [row])
+
+    report = build_report(run_dir=run_dir)
+
+    assert report["merge_ready"] is False
+    assert report["missing_evidence_count"] == 4
+    assert report["shards"][0]["status"] == "partial"
+    assert "missing evidence files" in report["shards"][0]["blockers"]
+    assert {
+        item["kind"] for item in report["shards"][0]["sample_missing_evidence"]
+    } == {
+        "raw_completions",
+        "verifier_outputs",
+        "cad_artifacts",
+        "chrono_outputs",
+    }
+
+
+def test_resume_plan_rejects_missing_learning_evidence(tmp_path: Path) -> None:
+    run_dir = tmp_path / "run"
+    expected = [
+        _cell("task_a", "llm_evolve_no_update"),
+        _cell("task_a", "mechanical_evolve_ttrl_tool_verified"),
+    ]
+    _write_shard(run_dir, 0, expected)
+    _write_rows(run_dir, 0, expected)
+
+    report = build_report(run_dir=run_dir)
+
+    assert report["merge_ready"] is False
+    assert report["missing_learning_count"] == 1
+    assert report["shards"][0]["status"] == "partial"
+    assert "missing learning evidence" in report["shards"][0]["blockers"]
+    assert report["shards"][0]["sample_missing_learning"][0]["missing"] == [
+        "training_logs",
+        "adapter_checkpoints",
+        "adapter_updates",
+        "trained_tokens",
+        "rl_datums",
+        "rl_trained_tokens",
     ]

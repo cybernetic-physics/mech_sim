@@ -14,16 +14,18 @@ import shlex
 from pathlib import Path
 from typing import Any
 
+from scripts.run_mechanism_repair_physics_experiment import (
+    LEARNING_METHODS,
+    TTRL_METHODS,
+    missing_evidence_for_row,
+    missing_learning_evidence,
+)
+
 
 DEFAULT_RUN_DIR = "runs/mechanism_repair_physics_final"
 DEFAULT_BUDGET = 32
 DEFAULT_PYTHON = ".venv/bin/python"
 PRIMARY_BASELINE = "llm_evolve_no_update"
-TTRL_METHODS = {
-    "mechanical_evolve_ttrl",
-    "mechanical_evolve_ttrl_tool_verified",
-    "mechanical_evolve_ttrl_confidence",
-}
 
 
 def main() -> int:
@@ -123,6 +125,12 @@ def build_report(
         "missing_rows": sum(int(item["missing_rows"]) for item in shard_reports),
         "duplicate_rows": sum(int(item["duplicate_rows"]) for item in shard_reports),
         "unexpected_rows": sum(int(item["unexpected_rows"]) for item in shard_reports),
+        "missing_evidence_count": sum(
+            int(item["missing_evidence_count"]) for item in shard_reports
+        ),
+        "missing_learning_count": sum(
+            int(item["missing_learning_count"]) for item in shard_reports
+        ),
         "merge_ready": not incomplete,
         "next_shard_index": next_shard_index,
         "resume_env": resume_env,
@@ -176,11 +184,39 @@ def summarize_shard(
     rows = read_jsonl(rows_path) if rows_path.is_file() else []
     observed_keys: set[tuple[str, str, int, str, int]] = set()
     duplicate_keys: list[tuple[str, str, int, str, int]] = []
+    expected_cell_by_key = {
+        cell_key(cell, default_budget=default_budget): cell
+        for cell in expected_cells
+    }
+    missing_evidence: list[dict[str, Any]] = []
+    missing_learning: list[dict[str, Any]] = []
     for row in rows:
         key = cell_key(row, default_budget=default_budget)
         if key in observed_keys:
             duplicate_keys.append(key)
         observed_keys.add(key)
+        cell = expected_cell_by_key.get(key)
+        if cell is None:
+            continue
+        audit_cell = {
+            **cell,
+            "verifier_level": int(cell.get("verifier_level", 1) or 1),
+        }
+        missing_evidence.extend(
+            missing_evidence_for_row(rows_path.parent, audit_cell, row)
+        )
+        method = str(row.get("method") or cell.get("method") or "")
+        if method in LEARNING_METHODS:
+            learning_missing = missing_learning_evidence(
+                rows_path.parent,
+                row,
+                require_rl_evidence=method in TTRL_METHODS,
+            )
+            if learning_missing:
+                missing_learning.append({
+                    "cell": audit_cell,
+                    "missing": learning_missing,
+                })
 
     missing_keys = sorted(expected_keys - observed_keys)
     unexpected_keys = sorted(observed_keys - expected_keys)
@@ -195,6 +231,10 @@ def summarize_shard(
         blockers.append("unexpected cells not in shard file")
     if duplicate_keys:
         blockers.append("duplicate cell rows")
+    if missing_evidence:
+        blockers.append("missing evidence files")
+    if missing_learning:
+        blockers.append("missing learning evidence")
 
     status = "complete" if not blockers else "partial"
     if not rows_path.is_file():
@@ -214,11 +254,15 @@ def summarize_shard(
         "missing_rows": len(missing_keys),
         "unexpected_rows": len(unexpected_keys),
         "duplicate_rows": len(duplicate_keys),
+        "missing_evidence_count": len(missing_evidence),
+        "missing_learning_count": len(missing_learning),
         "cell_results": str(rows_path),
         "blockers": blockers,
         "sample_missing": [key_text(key) for key in missing_keys[:10]],
         "sample_unexpected": [key_text(key) for key in unexpected_keys[:10]],
         "sample_duplicates": [key_text(key) for key in duplicate_keys[:10]],
+        "sample_missing_evidence": missing_evidence[:10],
+        "sample_missing_learning": missing_learning[:10],
         "ttrl_baseline_group_errors": ttrl_baseline_errors[:10],
     }
 
