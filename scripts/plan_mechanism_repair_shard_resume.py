@@ -314,9 +314,11 @@ def local_shard_command(
         "--cell-shard-file",
         str(run_dir / "experiment_shards" / f"{shard_name}.json"),
         "--shared-sft-root",
-        str(run_dir / "shared_sft_adapters"),
+        str(run_dir / "shared_sft"),
         "--resume-existing",
         "--skip-analysis",
+        "--audit-retries",
+        "0",
         "--evidence-layout",
         "bundled",
     ]
