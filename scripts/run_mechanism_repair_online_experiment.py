@@ -1155,7 +1155,7 @@ def method_spec(
     if method == "frozen_model":
         return EvalMethod(method, budget, 1, 0.2, 0.95)
     if method in {"verifier_gated", "verifier_gated_search"}:
-        return EvalMethod(method, budget, 1, 0.0, 1.0)
+        return EvalMethod(method, budget, 1, 0.8, 0.95)
     if method == "no_update_search":
         return EvalMethod(method, budget, 1, 0.9, 0.95)
     if method == "adaptive_evolution":

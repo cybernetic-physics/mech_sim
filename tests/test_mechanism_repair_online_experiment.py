@@ -353,6 +353,8 @@ def test_physics_method_specs_and_reward_channels() -> None:
 
     assert gated.samples_per_task == 32
     assert gated.max_turns == 1
+    assert gated.temperature == 0.8
+    assert gated.top_p == 0.95
     assert adaptive.max_turns == 4
     assert adaptive.temperature == 0.9
     assert sft.adapter_kind == "sft"
