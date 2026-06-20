@@ -163,6 +163,7 @@ def main() -> int:
         expected_coverage=expected,
         benchmark_readiness=benchmark_readiness,
         contract=contract,
+        path_root=out_dir,
     )
     failure_analysis = build_failure_analysis(rows, contract=contract)
     trace_pairs = build_trace_pairs(rows, contract=contract)
@@ -343,6 +344,7 @@ def analyze_rows(
     expected_coverage: dict[str, Any] | None = None,
     benchmark_readiness: dict[str, Any] | None = None,
     contract: AnalysisContract = DEFAULT_CONTRACT,
+    path_root: Path | None = None,
 ) -> dict[str, Any]:
     headline_rows = headline_metric_rows(rows, contract=contract)
     by_method: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -373,7 +375,11 @@ def analyze_rows(
     anti_shortcut = anti_shortcut_comparison(paired)
     method_comparisons = paired_method_comparisons(headline_rows, contract=contract)
     budget_audit = audit_budget(rows, contract=contract)
-    evidence_audit = audit_evidence(rows, contract=contract)
+    evidence_audit = audit_evidence(
+        rows,
+        contract=contract,
+        path_root=path_root,
+    )
     learning_audit = audit_ttrl_learning(rows, contract=contract)
     coverage_audit = audit_expected_coverage(rows, expected_coverage)
     family_method_summary = summarize_family_methods(headline_rows)
@@ -926,6 +932,7 @@ def audit_evidence(
     rows: list[dict[str, Any]],
     *,
     contract: AnalysisContract = DEFAULT_CONTRACT,
+    path_root: Path | None = None,
 ) -> dict[str, Any]:
     missing_raw_rows: list[dict[str, Any]] = []
     missing_verifier_rows: list[dict[str, Any]] = []
@@ -951,10 +958,10 @@ def audit_evidence(
         if not verifier_paths:
             missing_verifier_rows.append(ref)
         for path in raw_paths:
-            if not Path(path).is_file():
+            if not resolve_evidence_path(path, path_root).is_file():
                 missing_raw_files.append({**ref, "path": path})
         for path in verifier_paths:
-            if not Path(path).is_file():
+            if not resolve_evidence_path(path, path_root).is_file():
                 missing_verifier_files.append({**ref, "path": path})
         verifier_calls = int(row.get("verifier_calls", 0) or 0)
         if verifier_calls and len(verifier_paths) != verifier_calls:
@@ -964,30 +971,34 @@ def audit_evidence(
                 "verifier_output_paths": len(verifier_paths),
             })
         summary_path = str(row.get("summary_path") or "")
-        if summary_path and not Path(summary_path).is_file():
+        if summary_path and not resolve_evidence_path(summary_path, path_root).is_file():
             missing_summary_files.append({**ref, "path": summary_path})
         verifier_level = int(row.get("verifier_level", 0) or 0)
         if is_physics_contract(contract) and verifier_level >= 2:
             if not cad_paths:
                 missing_cad_rows.append(ref)
             for path in cad_paths:
-                if not Path(path).is_file():
+                if not resolve_evidence_path(path, path_root).is_file():
                     missing_cad_files.append({**ref, "path": path})
         if is_physics_contract(contract) and verifier_level >= 3:
             if not chrono_paths:
                 missing_chrono_rows.append(ref)
             for path in chrono_paths:
-                if not Path(path).is_file():
+                if not resolve_evidence_path(path, path_root).is_file():
                     missing_chrono_files.append({**ref, "path": path})
         if row["method"] in contract.learning_methods:
             trace_path = str(row.get("trace_path") or "")
-            if not trace_path or not Path(trace_path).is_file():
+            if not trace_path or not resolve_evidence_path(trace_path, path_root).is_file():
                 missing_ttrl_training_logs.append({**ref, "path": trace_path})
             adapter_path = str(row.get("adapter_path") or "")
-            if not adapter_path or not Path(adapter_path).exists():
+            if not adapter_path or not resolve_evidence_path(adapter_path, path_root).exists():
                 missing_ttrl_adapters.append({**ref, "path": adapter_path})
 
-    paired_with_evidence = count_paired_trace_evidence(rows, contract=contract)
+    paired_with_evidence = count_paired_trace_evidence(
+        rows,
+        contract=contract,
+        path_root=path_root,
+    )
     ok = not any([
         missing_raw_rows,
         missing_verifier_rows,
@@ -1095,6 +1106,7 @@ def count_paired_trace_evidence(
     rows: list[dict[str, Any]],
     *,
     contract: AnalysisContract = DEFAULT_CONTRACT,
+    path_root: Path | None = None,
 ) -> int:
     by_key_method: dict[tuple[Any, ...], dict[str, dict[str, Any]]] = defaultdict(dict)
     for row in rows:
@@ -1105,22 +1117,35 @@ def count_paired_trace_evidence(
         baseline = methods.get(contract.primary_baseline)
         if not primary or not baseline:
             continue
-        if row_has_evidence(primary, require_training=True) and row_has_evidence(
+        if row_has_evidence(
+            primary,
+            require_training=True,
+            path_root=path_root,
+        ) and row_has_evidence(
             baseline,
             require_training=False,
+            path_root=path_root,
         ):
             count += 1
     return count
 
 
-def row_has_evidence(row: dict[str, Any], *, require_training: bool) -> bool:
+def row_has_evidence(
+    row: dict[str, Any],
+    *,
+    require_training: bool,
+    path_root: Path | None = None,
+) -> bool:
     raw_paths = parse_paths(row.get("raw_completion_paths", []))
     verifier_paths = parse_paths(row.get("verifier_output_paths", []))
     if not raw_paths or not verifier_paths:
         return False
-    if any(not Path(path).is_file() for path in raw_paths):
+    if any(not resolve_evidence_path(path, path_root).is_file() for path in raw_paths):
         return False
-    if any(not Path(path).is_file() for path in verifier_paths):
+    if any(
+        not resolve_evidence_path(path, path_root).is_file()
+        for path in verifier_paths
+    ):
         return False
     verifier_calls = int(row.get("verifier_calls", 0) or 0)
     if verifier_calls and len(verifier_paths) != verifier_calls:
@@ -1128,11 +1153,25 @@ def row_has_evidence(row: dict[str, Any], *, require_training: bool) -> bool:
     if require_training:
         trace_path = str(row.get("trace_path") or "")
         adapter_path = str(row.get("adapter_path") or "")
-        if not trace_path or not Path(trace_path).is_file():
+        if not trace_path or not resolve_evidence_path(trace_path, path_root).is_file():
             return False
-        if not adapter_path or not Path(adapter_path).exists():
+        if not adapter_path or not resolve_evidence_path(adapter_path, path_root).exists():
             return False
     return True
+
+
+def resolve_evidence_path(raw: str, path_root: Path | None) -> Path:
+    path = Path(raw)
+    if not path.is_absolute():
+        return (path_root / path) if path_root is not None else path
+    if path.exists() or path_root is None:
+        return path
+    root = path_root.resolve()
+    parts = path.parts
+    for index in range(len(parts) - 1, -1, -1):
+        if parts[index] == root.name:
+            return root.joinpath(*parts[index + 1 :])
+    return path
 
 
 def row_ref(row: dict[str, Any]) -> dict[str, Any]:

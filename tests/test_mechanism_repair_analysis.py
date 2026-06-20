@@ -506,6 +506,102 @@ def test_physics_analysis_rejects_missing_level3_chrono_evidence(
     assert any("missing_chrono_rows=2" in item for item in audit["blockers"])
 
 
+def test_physics_analysis_reroots_synced_matx_evidence_paths(
+    tmp_path: Path,
+) -> None:
+    benchmark_dir = tmp_path / "physics"
+    benchmark_dir.mkdir()
+    methods = [
+        "llm_evolve_no_update",
+        "mechanical_evolve_ttrl_tool_verified",
+    ]
+    (benchmark_dir / "method_manifest.json").write_text(json.dumps({
+        "schema": "mechanism_repair_physics.method_manifest.v1",
+        "primary_method": "mechanical_evolve_ttrl_tool_verified",
+        "primary_baseline": "llm_evolve_no_update",
+        "primary_budget_expensive_verifier_calls": 32,
+        "eval_seeds": [20260610],
+        "required_methods": methods,
+        "success_threshold": {"level23_success_abs_delta_pct": 15.0},
+    }))
+    contract = load_analysis_contract(benchmark_dir)
+    path_root = tmp_path / "mechanism_repair_physics_final"
+    remote_root = (
+        "/matx/u/knatalia/corl_mechanism_repair_physics/repo/runs/"
+        "mechanism_repair_physics_final"
+    )
+    rows = []
+    for method in methods:
+        rel_dir = Path("shard_runs") / "shard_0000" / "evidence" / method
+        local_dir = path_root / rel_dir
+        local_dir.mkdir(parents=True)
+        raw = local_dir / "completion.txt"
+        verifier = local_dir / "verifier.json"
+        cad = local_dir / "artifact.step"
+        chrono = local_dir / "chrono.json"
+        summary = local_dir / "smoke_summary.json"
+        raw.write_text("design\n")
+        verifier.write_text('{"verified_score": 1.0}\n')
+        cad.write_text("ISO-10303-21;\n")
+        chrono.write_text('{"status": "ok"}\n')
+        summary.write_text('{"samples_per_task": 32}\n')
+
+        def remote(path: Path) -> str:
+            return f"{remote_root}/{path.relative_to(path_root)}"
+
+        primary = method == "mechanical_evolve_ttrl_tool_verified"
+        row = {
+            "split": "hidden_perturbation",
+            "family": "family_a",
+            "task_id": "level3_claim",
+            "seed": 20260610,
+            "method": method,
+            "verifier_level": 3,
+            "verified_repair_success": primary,
+            "verified_score": 1.0 if primary else 0.0,
+            "actual_verifier_calls": 32,
+            "actual_cad_calls": 1,
+            "actual_chrono_calls": 1,
+            "raw_completion_paths": [remote(raw)] * 32,
+            "verifier_output_paths": [remote(verifier)] * 32,
+            "cad_artifact_paths": [remote(cad)],
+            "chrono_output_paths": [remote(chrono)],
+            "summary_path": remote(summary),
+        }
+        if primary:
+            reward_log = local_dir / "reward_log.jsonl"
+            adapter = local_dir / "final_adapter"
+            reward_log.write_text('{"verified_score": 1.0}\n')
+            adapter.mkdir()
+            row.update({
+                "trace_path": remote(reward_log),
+                "adapter_path": remote(adapter),
+                "adapter_updates": 32,
+                "trained_tokens": 128,
+                "rl_trained_tokens": 128,
+                "n_rl_datums": 32,
+            })
+        rows.append(row)
+
+    stats = analyze_rows(
+        normalize_rows(rows),
+        bootstrap_samples=200,
+        seed=7,
+        contract=contract,
+        path_root=path_root,
+    )
+
+    evidence = stats["evidence_audit"]
+    assert evidence["raw_completions_present"] is True
+    assert evidence["verifier_outputs_present"] is True
+    assert evidence["cad_artifacts_present"] is True
+    assert evidence["chrono_outputs_present"] is True
+    assert evidence["training_logs_present"] is True
+    assert evidence["adapter_checkpoints_present"] is True
+    assert evidence["n_missing_summary_files"] == 0
+    assert evidence["matched_ttrl_vs_no_update_trace_pairs_with_evidence"] == 1
+
+
 def test_mechanistic_artifacts_include_goal_required_fields(
     tmp_path: Path,
 ) -> None:
