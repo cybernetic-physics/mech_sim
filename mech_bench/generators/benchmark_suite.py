@@ -85,6 +85,10 @@ from mech_bench.generators.contact_synth import (
     RackPinionContactStubGenerator,
     RatchetPawlEngagementStubGenerator,
 )
+from mech_bench.generators.contact_real import (
+    CamFollowerEccentricChronoGenerator,
+    GenevaIndexingPinChronoGenerator,
+)
 
 
 # Ordered: Tier 0 → Tier 3, families listed in the task description.
@@ -142,6 +146,8 @@ SUITE: list[type[TaskGenerator]] = [
     ContactGearPairStubGenerator,
     CycloidalLowNStubGenerator,
     CycloidalRealGeometryChronoGenerator,
+    CamFollowerEccentricChronoGenerator,
+    GenevaIndexingPinChronoGenerator,
     # Part B — Tier 3 additions (synthetic fake-oracle stubs)
     CamFollowerContactStubGenerator,
     RatchetPawlEngagementStubGenerator,

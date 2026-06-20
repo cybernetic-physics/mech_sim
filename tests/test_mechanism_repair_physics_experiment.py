@@ -31,14 +31,16 @@ def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
     )
     audit = manifest["audit"]
 
-    assert manifest["experiment_ready"] is False
+    assert manifest["experiment_ready"] is True
     assert manifest["task_count"] == 120
     assert audit["family_counts"] == {family: 10 for family in REQUIRED_FAMILIES}
     assert audit["headline_family_counts"] == {
         "belt_drive": 10,
+        "cam_follower": 10,
         "chain_drive": 10,
         "cycloidal_reducer": 10,
         "fourbar_linkage": 10,
+        "geneva_indexer": 10,
         "lead_screw": 10,
         "planetary_reducer": 10,
         "rack_pinion": 10,
@@ -47,26 +49,17 @@ def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
         "spur_compound_gear_train": 10,
     }
     assert audit["level_counts"] == {"2": 90, "3": 30}
-    assert audit["headline_task_count"] == 100
-    assert audit["diagnostic_task_count"] == 20
-    assert audit["level2plus_headline_count"] == 100
-    assert audit["level3_headline_count"] == 10
+    assert audit["headline_task_count"] == 120
+    assert audit["diagnostic_task_count"] == 0
+    assert audit["level2plus_headline_count"] == 120
+    assert audit["level3_headline_count"] == 30
     assert audit["blockers"] == []
-    assert audit["paper_blockers"]
-    assert any(
-        "only 100 headline tasks; need 120" in blocker
-        for blocker in audit["paper_blockers"]
-    )
-    assert any(
-        "20 diagnostic tasks excluded from headline result" in blocker
-        for blocker in audit["paper_blockers"]
-    )
+    assert audit["paper_blockers"] == []
 
     diagnostic_tasks = [
         task for task in audit["tasks"] if not task["headline_eligible"]
     ]
-    assert len(diagnostic_tasks) == 20
-    assert all(task["headline_demotion_reason"] for task in diagnostic_tasks)
+    assert diagnostic_tasks == []
 
     for task in audit["tasks"]:
         assert len(task["constraint_classes"]) >= 3
@@ -74,15 +67,9 @@ def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
         assert task["has_hidden_variant"] is True
         assert task["uses_fake_contact_oracle"] is False
         validation = task["validation"]
-        if int(task["verifier_level"]) >= 3:
-            assert validation == {
-                "skipped": True,
-                "reason": "level3_validation_skipped",
-            }
-        else:
-            assert validation["reference_passed"] is True
-            assert validation["reference_oracle_is_synthetic"] is False
-            assert validation["negative_failures"] == []
+        assert validation["reference_passed"] is True
+        assert validation["reference_oracle_is_synthetic"] is False
+        assert validation["negative_failures"] == []
 
     assert method_manifest["required_methods"] == list(REQUIRED_METHODS)
     assert method_manifest["eval_seeds"] == list(EVAL_SEEDS)
@@ -101,13 +88,13 @@ def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
         "hidden_perturbation",
     }
     assert {name: len(tasks) for name, tasks in plan["split_tasks"].items()} == {
-        "A": 40,
-        "B": 50,
+        "A": 60,
+        "B": 60,
         "external_style": 30,
-        "hidden_perturbation": 100,
+        "hidden_perturbation": 120,
     }
-    assert plan["planned_cells"] == 5280
-    assert plan["full_planned_cells"] == 5280
+    assert plan["planned_cells"] == 6480
+    assert plan["full_planned_cells"] == 6480
 
 
 def _write_json(path: Path, payload: dict) -> None:
@@ -614,7 +601,7 @@ def test_frozen_physics_benchmark_prompts_are_family_specific() -> None:
         (FROZEN_PHYSICS_BENCHMARK / "benchmark_manifest.json").read_text()
     )
     assert manifest["task_count"] == 120
-    assert manifest["experiment_ready"] is False
+    assert manifest["experiment_ready"] is True
 
     by_family = {row["family"]: row for row in manifest["tasks"]}
     assert set(by_family) == set(REQUIRED_FAMILIES)

@@ -1,0 +1,21 @@
+{
+  "family": "cam_follower",
+  "tier": "contact_dynamics",
+  "seed": 20269617,
+  "difficulty": 3,
+  "target_lift_mm": 16.0,
+  "contact_pair": "cam:follower",
+  "requires_adapter": "rigid_body_dynamics+contact_forces",
+  "task_id": "cam_follower_t07_cam_follower_eccentric_chrono_s20269617",
+  "source_task_id": "cam_follower_eccentric_chrono_s20269617",
+  "source_generator": "cam_follower_eccentric_chrono",
+  "verifier_level": 3,
+  "headline_eligible": true,
+  "hidden_perturbations": [
+    "tighter tolerance window",
+    "dimension/target perturbation inherited from generator",
+    "renamed semantic manifest for isomorphic checks"
+  ],
+  "trusted_asset_bridge": "reference solutions emit relative CAD artifacts and cad_mass_properties records consumed by trusted_asset_preflight",
+  "fake_contact_oracle_allowed": false
+}

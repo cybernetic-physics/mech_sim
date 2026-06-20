@@ -144,7 +144,7 @@
     },
     {
       "family": "cam_follower",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t00_cam_follower_contact_stub_s20269610/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t00_cam_follower_eccentric_chrono_s20269610/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -152,13 +152,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t00_cam_follower_contact_stub_s20269610/eval_config.public.toml",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t00_cam_follower_eccentric_chrono_s20269610/eval_config.public.toml",
+      "task_id": "cam_follower_t00_cam_follower_eccentric_chrono_s20269610",
       "verifier_level": 3
     },
     {
       "family": "cam_follower",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t01_cam_follower_contact_stub_s20269611/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t01_cam_follower_eccentric_chrono_s20269611/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -166,13 +166,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t01_cam_follower_contact_stub_s20269611/eval_config.public.toml",
-      "task_id": "cam_follower_t01_cam_follower_contact_stub_s20269611",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t01_cam_follower_eccentric_chrono_s20269611/eval_config.public.toml",
+      "task_id": "cam_follower_t01_cam_follower_eccentric_chrono_s20269611",
       "verifier_level": 3
     },
     {
       "family": "cam_follower",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t02_cam_follower_contact_stub_s20269612/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t02_cam_follower_eccentric_chrono_s20269612/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -180,13 +180,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t02_cam_follower_contact_stub_s20269612/eval_config.public.toml",
-      "task_id": "cam_follower_t02_cam_follower_contact_stub_s20269612",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t02_cam_follower_eccentric_chrono_s20269612/eval_config.public.toml",
+      "task_id": "cam_follower_t02_cam_follower_eccentric_chrono_s20269612",
       "verifier_level": 3
     },
     {
       "family": "cam_follower",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t03_cam_follower_contact_stub_s20269613/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t03_cam_follower_eccentric_chrono_s20269613/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -194,13 +194,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t03_cam_follower_contact_stub_s20269613/eval_config.public.toml",
-      "task_id": "cam_follower_t03_cam_follower_contact_stub_s20269613",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t03_cam_follower_eccentric_chrono_s20269613/eval_config.public.toml",
+      "task_id": "cam_follower_t03_cam_follower_eccentric_chrono_s20269613",
       "verifier_level": 3
     },
     {
       "family": "cam_follower",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t04_cam_follower_contact_stub_s20269614/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t04_cam_follower_eccentric_chrono_s20269614/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -208,13 +208,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t04_cam_follower_contact_stub_s20269614/eval_config.public.toml",
-      "task_id": "cam_follower_t04_cam_follower_contact_stub_s20269614",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t04_cam_follower_eccentric_chrono_s20269614/eval_config.public.toml",
+      "task_id": "cam_follower_t04_cam_follower_eccentric_chrono_s20269614",
       "verifier_level": 3
     },
     {
       "family": "cam_follower",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t05_cam_follower_contact_stub_s20269615/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t05_cam_follower_eccentric_chrono_s20269615/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -222,13 +222,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t05_cam_follower_contact_stub_s20269615/eval_config.public.toml",
-      "task_id": "cam_follower_t05_cam_follower_contact_stub_s20269615",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t05_cam_follower_eccentric_chrono_s20269615/eval_config.public.toml",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
       "verifier_level": 3
     },
     {
       "family": "cam_follower",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t06_cam_follower_contact_stub_s20269616/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t06_cam_follower_eccentric_chrono_s20269616/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -236,13 +236,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t06_cam_follower_contact_stub_s20269616/eval_config.public.toml",
-      "task_id": "cam_follower_t06_cam_follower_contact_stub_s20269616",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t06_cam_follower_eccentric_chrono_s20269616/eval_config.public.toml",
+      "task_id": "cam_follower_t06_cam_follower_eccentric_chrono_s20269616",
       "verifier_level": 3
     },
     {
       "family": "cam_follower",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t07_cam_follower_contact_stub_s20269617/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t07_cam_follower_eccentric_chrono_s20269617/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -250,13 +250,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t07_cam_follower_contact_stub_s20269617/eval_config.public.toml",
-      "task_id": "cam_follower_t07_cam_follower_contact_stub_s20269617",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t07_cam_follower_eccentric_chrono_s20269617/eval_config.public.toml",
+      "task_id": "cam_follower_t07_cam_follower_eccentric_chrono_s20269617",
       "verifier_level": 3
     },
     {
       "family": "cam_follower",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t08_cam_follower_contact_stub_s20269618/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t08_cam_follower_eccentric_chrono_s20269618/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -264,13 +264,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t08_cam_follower_contact_stub_s20269618/eval_config.public.toml",
-      "task_id": "cam_follower_t08_cam_follower_contact_stub_s20269618",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t08_cam_follower_eccentric_chrono_s20269618/eval_config.public.toml",
+      "task_id": "cam_follower_t08_cam_follower_eccentric_chrono_s20269618",
       "verifier_level": 3
     },
     {
       "family": "cam_follower",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t09_cam_follower_contact_stub_s20269619/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t09_cam_follower_eccentric_chrono_s20269619/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -278,8 +278,8 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t09_cam_follower_contact_stub_s20269619/eval_config.public.toml",
-      "task_id": "cam_follower_t09_cam_follower_contact_stub_s20269619",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/cam_follower_t09_cam_follower_eccentric_chrono_s20269619/eval_config.public.toml",
+      "task_id": "cam_follower_t09_cam_follower_eccentric_chrono_s20269619",
       "verifier_level": 3
     },
     {
@@ -704,7 +704,7 @@
     },
     {
       "family": "geneva_indexer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t00_geneva_indexing_stub_s20270610/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t00_geneva_indexing_pin_chrono_s20270610/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -712,13 +712,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t00_geneva_indexing_stub_s20270610/eval_config.public.toml",
-      "task_id": "geneva_indexer_t00_geneva_indexing_stub_s20270610",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t00_geneva_indexing_pin_chrono_s20270610/eval_config.public.toml",
+      "task_id": "geneva_indexer_t00_geneva_indexing_pin_chrono_s20270610",
       "verifier_level": 3
     },
     {
       "family": "geneva_indexer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t01_geneva_indexing_stub_s20270611/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -726,13 +726,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t01_geneva_indexing_stub_s20270611/eval_config.public.toml",
-      "task_id": "geneva_indexer_t01_geneva_indexing_stub_s20270611",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611/eval_config.public.toml",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
       "verifier_level": 3
     },
     {
       "family": "geneva_indexer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t02_geneva_indexing_stub_s20270612/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t02_geneva_indexing_pin_chrono_s20270612/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -740,13 +740,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t02_geneva_indexing_stub_s20270612/eval_config.public.toml",
-      "task_id": "geneva_indexer_t02_geneva_indexing_stub_s20270612",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t02_geneva_indexing_pin_chrono_s20270612/eval_config.public.toml",
+      "task_id": "geneva_indexer_t02_geneva_indexing_pin_chrono_s20270612",
       "verifier_level": 3
     },
     {
       "family": "geneva_indexer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t03_geneva_indexing_stub_s20270613/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t03_geneva_indexing_pin_chrono_s20270613/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -754,13 +754,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t03_geneva_indexing_stub_s20270613/eval_config.public.toml",
-      "task_id": "geneva_indexer_t03_geneva_indexing_stub_s20270613",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t03_geneva_indexing_pin_chrono_s20270613/eval_config.public.toml",
+      "task_id": "geneva_indexer_t03_geneva_indexing_pin_chrono_s20270613",
       "verifier_level": 3
     },
     {
       "family": "geneva_indexer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t04_geneva_indexing_stub_s20270614/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t04_geneva_indexing_pin_chrono_s20270614/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -768,13 +768,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t04_geneva_indexing_stub_s20270614/eval_config.public.toml",
-      "task_id": "geneva_indexer_t04_geneva_indexing_stub_s20270614",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t04_geneva_indexing_pin_chrono_s20270614/eval_config.public.toml",
+      "task_id": "geneva_indexer_t04_geneva_indexing_pin_chrono_s20270614",
       "verifier_level": 3
     },
     {
       "family": "geneva_indexer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t05_geneva_indexing_stub_s20270615/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t05_geneva_indexing_pin_chrono_s20270615/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -782,13 +782,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t05_geneva_indexing_stub_s20270615/eval_config.public.toml",
-      "task_id": "geneva_indexer_t05_geneva_indexing_stub_s20270615",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t05_geneva_indexing_pin_chrono_s20270615/eval_config.public.toml",
+      "task_id": "geneva_indexer_t05_geneva_indexing_pin_chrono_s20270615",
       "verifier_level": 3
     },
     {
       "family": "geneva_indexer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t06_geneva_indexing_stub_s20270616/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t06_geneva_indexing_pin_chrono_s20270616/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -796,13 +796,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t06_geneva_indexing_stub_s20270616/eval_config.public.toml",
-      "task_id": "geneva_indexer_t06_geneva_indexing_stub_s20270616",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t06_geneva_indexing_pin_chrono_s20270616/eval_config.public.toml",
+      "task_id": "geneva_indexer_t06_geneva_indexing_pin_chrono_s20270616",
       "verifier_level": 3
     },
     {
       "family": "geneva_indexer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t07_geneva_indexing_stub_s20270617/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t07_geneva_indexing_pin_chrono_s20270617/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -810,13 +810,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t07_geneva_indexing_stub_s20270617/eval_config.public.toml",
-      "task_id": "geneva_indexer_t07_geneva_indexing_stub_s20270617",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t07_geneva_indexing_pin_chrono_s20270617/eval_config.public.toml",
+      "task_id": "geneva_indexer_t07_geneva_indexing_pin_chrono_s20270617",
       "verifier_level": 3
     },
     {
       "family": "geneva_indexer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t08_geneva_indexing_stub_s20270618/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -824,13 +824,13 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t08_geneva_indexing_stub_s20270618/eval_config.public.toml",
-      "task_id": "geneva_indexer_t08_geneva_indexing_stub_s20270618",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618/eval_config.public.toml",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
       "verifier_level": 3
     },
     {
       "family": "geneva_indexer",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t09_geneva_indexing_stub_s20270619/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t09_geneva_indexing_pin_chrono_s20270619/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -838,8 +838,8 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t09_geneva_indexing_stub_s20270619/eval_config.public.toml",
-      "task_id": "geneva_indexer_t09_geneva_indexing_stub_s20270619",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/geneva_indexer_t09_geneva_indexing_pin_chrono_s20270619/eval_config.public.toml",
+      "task_id": "geneva_indexer_t09_geneva_indexing_pin_chrono_s20270619",
       "verifier_level": 3
     },
     {

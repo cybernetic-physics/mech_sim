@@ -163,6 +163,86 @@
     },
     {
       "budget": 32,
+      "family": "geneva_indexer",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "A",
+      "split_kind": "headline",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
       "family": "slider_crank",
       "method": "frozen_model",
       "seed": 20260611,
@@ -479,6 +559,86 @@
       "split": "B",
       "split_kind": "headline",
       "task_id": "cycloidal_reducer_t05_cycloidal_real_geometry_chrono_s20260615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "frozen_model",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "sft_seen_family",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "verifier_gated_search",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "adaptive_evolution",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260610,
+      "split": "B",
+      "split_kind": "headline",
+      "task_id": "geneva_indexer_t08_geneva_indexing_pin_chrono_s20270618",
       "verifier_level": 3
     },
     {
@@ -1603,6 +1763,166 @@
     },
     {
       "budget": 32,
+      "family": "geneva_indexer",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t01_geneva_indexing_pin_chrono_s20270611",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
       "family": "spur_compound_gear_train",
       "method": "frozen_model",
       "seed": 20260610,
@@ -1763,6 +2083,86 @@
     },
     {
       "budget": 32,
+      "family": "geneva_indexer",
+      "method": "frozen_model",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t07_geneva_indexing_pin_chrono_s20270617",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "sft_seen_family",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t07_geneva_indexing_pin_chrono_s20270617",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "llm_evolve_no_update",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t07_geneva_indexing_pin_chrono_s20270617",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "verifier_gated_search",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t07_geneva_indexing_pin_chrono_s20270617",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "adaptive_evolution",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t07_geneva_indexing_pin_chrono_s20270617",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t07_geneva_indexing_pin_chrono_s20270617",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t07_geneva_indexing_pin_chrono_s20270617",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "geneva_indexer",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260612,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "geneva_indexer_t07_geneva_indexing_pin_chrono_s20270617",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
       "family": "lead_screw",
       "method": "frozen_model",
       "seed": 20260612,
@@ -1920,6 +2320,86 @@
       "split_kind": "anti_shortcut",
       "task_id": "belt_drive_t01_belt_pulley_ratio_s20263611",
       "verifier_level": 2
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "frozen_model",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "sft_seen_family",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "llm_evolve_no_update",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "verifier_gated_search",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "adaptive_evolution",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_tool_verified",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+      "verifier_level": 3
+    },
+    {
+      "budget": 32,
+      "family": "cam_follower",
+      "method": "mechanical_evolve_ttrl_confidence",
+      "seed": 20260611,
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "cam_follower_t05_cam_follower_eccentric_chrono_s20269615",
+      "verifier_level": 3
     },
     {
       "budget": 32,
@@ -2722,10 +3202,10 @@
       "verifier_level": 2
     }
   ],
-  "full_planned_cells": 5280,
+  "full_planned_cells": 6480,
   "num_shards": 24,
   "out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
-  "planned_cells": 272,
+  "planned_cells": 320,
   "replay_args": [
     "--benchmark-dir",
     "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",

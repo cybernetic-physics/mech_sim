@@ -64,21 +64,15 @@ def test_physics_preflight_materializes_required_families_and_manifests(
     assert audit["experiment_ready"] is False
     assert "chrono_level3_validation_not_run" in audit["paper_blockers"]
     assert "reference_and_negative_validation_not_run" in audit["paper_blockers"]
-    assert any(
-        "diagnostic tasks excluded from headline result" in blocker
-        for blocker in audit["paper_blockers"]
-    )
-    assert any(
-        "headline tasks; need" in blocker
-        for blocker in audit["paper_blockers"]
-    )
     assert audit["family_counts"] == {family: 1 for family in REQUIRED_FAMILIES}
-    assert audit["headline_task_count"] == 10
+    assert audit["headline_task_count"] == 12
     assert audit["headline_family_counts"] == {
         "belt_drive": 1,
+        "cam_follower": 1,
         "chain_drive": 1,
         "cycloidal_reducer": 1,
         "fourbar_linkage": 1,
+        "geneva_indexer": 1,
         "lead_screw": 1,
         "planetary_reducer": 1,
         "rack_pinion": 1,
@@ -86,7 +80,7 @@ def test_physics_preflight_materializes_required_families_and_manifests(
         "slider_crank": 1,
         "spur_compound_gear_train": 1,
     }
-    assert audit["diagnostic_task_count"] == 2
+    assert audit["diagnostic_task_count"] == 0
     assert audit["level_counts"] == {"2": 9, "3": 3}
     assert all(
         len(task["constraint_classes"]) >= 3
@@ -111,16 +105,18 @@ def test_physics_preflight_materializes_required_families_and_manifests(
             test_names = {
                 Path(path).name for path in split_manifest["splits"]["test"]
             }
-            assert len(test_names) == 4
+            assert len(test_names) == 6
             assert any(name.startswith("planetary_reducer") for name in test_names)
             assert any(name.startswith("lead_screw") for name in test_names)
             assert any(name.startswith("slider_crank") for name in test_names)
             assert any(name.startswith("cycloidal_reducer") for name in test_names)
+            assert any(name.startswith("cam_follower") for name in test_names)
+            assert any(name.startswith("geneva_indexer") for name in test_names)
         else:
             test_names = {
                 Path(path).name for path in split_manifest["splits"]["test"]
             }
-            assert len(test_names) == 5
+            assert len(test_names) == 6
             assert any(name.startswith("belt_drive") for name in test_names)
             assert any(name.startswith("chain_drive") for name in test_names)
             assert any(name.startswith("rack_pinion") for name in test_names)
@@ -129,6 +125,7 @@ def test_physics_preflight_materializes_required_families_and_manifests(
                 name.startswith("spur_compound_gear_train")
                 for name in test_names
             )
+            assert any(name.startswith("geneva_indexer") for name in test_names)
 
     assert methods["required_methods"] == list(REQUIRED_METHODS)
     assert methods["primary_method"] == "mechanical_evolve_ttrl_tool_verified"

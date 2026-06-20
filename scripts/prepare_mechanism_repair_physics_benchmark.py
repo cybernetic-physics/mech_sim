@@ -91,8 +91,8 @@ FAMILY_SPECS: tuple[FamilySpec, ...] = (
             "fourbar_crank_rocker_sweep",
         ),
     ),
-    FamilySpec("cam_follower", 3, ("cam_follower_contact_stub",)),
-    FamilySpec("geneva_indexer", 3, ("geneva_indexing_stub",)),
+    FamilySpec("cam_follower", 3, ("cam_follower_eccentric_chrono",)),
+    FamilySpec("geneva_indexer", 3, ("geneva_indexing_pin_chrono",)),
     FamilySpec(
         "shaft_bearing_coupling",
         2,
@@ -947,10 +947,11 @@ def _default_port_kind(family: str, port_id: str) -> str | None:
             "spur_compound_gear_train",
             "belt_drive",
             "chain_drive",
-            "cam_follower",
             "geneva_indexer",
         }:
             return "revolute_joint"
+        if family == "cam_follower":
+            return "prismatic_joint"
     return None
 
 
