@@ -66,6 +66,14 @@ def test_launcher_refuses_multi_gpu_gres() -> None:
     assert "requested_gpu_count=2" in proc.stderr
 
 
+def test_selected_shard_refreshes_code_without_restaging_outputs() -> None:
+    text = SCRIPT.read_text(encoding="utf-8")
+
+    assert 'REFRESH_REMOTE_CODE="${REFRESH_REMOTE_CODE:-auto}"' in text
+    assert 'if [[ "$RESTAGE_REMOTE_REPO" == "0" && ! finalize_only ]]' in text
+    assert "tar -xf - -C '$remote_repo'" in text
+
+
 def test_default_refuses_broad_gpu_array_before_remote_contact() -> None:
     proc = run_launcher()
 
