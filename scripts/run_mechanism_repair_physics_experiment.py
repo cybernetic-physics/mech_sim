@@ -1129,16 +1129,24 @@ def analysis_requirement_blockers(out_dir: Path) -> list[str]:
     }:
         blockers.append("analysis_claim_audit.claim_status")
     else:
+        claim_blockers = claim.get("blockers")
+        if not isinstance(claim_blockers, list):
+            blockers.append("analysis_claim_audit.blockers")
+            claim_blockers = []
         explicit_status = stats.get("claim_status")
         if explicit_status and explicit_status != claim_status:
             blockers.append("claim_status disagrees with analysis_claim_audit")
         if claim_status == "supports_primary_hypothesis":
+            if claim_blockers:
+                blockers.append("analysis_claim_audit.supported_with_blockers")
             positive_blockers = positive_claim_support_blockers(stats)
             if positive_blockers:
                 blockers.append(
                     "analysis_claim_audit.unsupported_positive_claim: "
                     + ", ".join(positive_blockers)
                 )
+        elif not claim_blockers:
+            blockers.append("analysis_claim_audit.unsupported_without_blockers")
     return blockers
 
 

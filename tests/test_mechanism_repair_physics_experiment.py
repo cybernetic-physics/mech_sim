@@ -1163,6 +1163,78 @@ def test_supported_positive_claim_can_complete(tmp_path: Path) -> None:
     assert audit["claim_audit"]["claim_status"] == "supports_primary_hypothesis"
 
 
+def test_supported_claim_with_analysis_blockers_is_rejected(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    _write_complete_physics_rows(out_dir, plan, lambda _cell: (1, 1))
+    stats_path = out_dir / "stats.json"
+    stats = json.loads(stats_path.read_text())
+    stats["claim_status"] = "supports_primary_hypothesis"
+    stats["primary_comparison"] = {
+        "success_delta_pct": 25.0,
+        "success_delta_ci95": {"low": 1.0, "high": 50.0},
+        "success_sign_test_p_one_sided": 0.01,
+        "reward_delta_mean": 0.2,
+    }
+    stats["split_deltas"] = [
+        {
+            "split": split,
+            "success_delta": 0.2,
+            "success_delta_pct": 20.0,
+            "reward_delta": 0.2,
+        }
+        for split in ("hidden_perturbation", "external_style")
+    ]
+    stats["anti_shortcut_comparison"] = {
+        "splits": ["external_style", "hidden_perturbation"],
+        "n_paired_cells": 1,
+        "anti_shortcut_pass_rate_delta": 0.2,
+        "anti_shortcut_pass_rate_delta_pct": 20.0,
+    }
+    stats["paired_method_comparisons"] = {
+        "adaptive_evolution": {"primary_beats_on_success": True},
+        "verifier_gated_search": {"primary_beats_on_success": True},
+    }
+    stats["family_deltas"] = [
+        {"family": family, "success_delta": 0.2}
+        for family in REQUIRED_FAMILIES
+    ]
+    stats["leave_one_family_out"] = [
+        {
+            "removed_family": family,
+            "keeps_positive_success_delta": True,
+        }
+        for family in REQUIRED_FAMILIES
+    ]
+    stats["analysis_claim_audit"] = {
+        "claim_status": "supports_primary_hypothesis",
+        "blockers": ["contradictory leftover blocker"],
+    }
+    _write_json(stats_path, stats)
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert "analysis_claim_audit.supported_with_blockers" in (
+        audit["claim_audit"]["missing_analysis_requirements"]
+    )
+
+
 def test_missing_mechanistic_analysis_field_blocks_goal_completion(
     tmp_path: Path,
 ) -> None:
