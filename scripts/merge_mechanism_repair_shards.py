@@ -111,8 +111,8 @@ def run_legacy_source_merge(args: argparse.Namespace) -> int:
         else out_dir
     )
     source_dirs = [Path(item).expanduser().resolve() for item in args.source_dir]
-    merged: dict[tuple[str, str, int, str], dict[str, Any]] = {}
-    source_by_key: dict[tuple[str, str, int, str], str] = {}
+    merged: dict[tuple[str, str, int, str, int], dict[str, Any]] = {}
+    source_by_key: dict[tuple[str, str, int, str, int], str] = {}
     duplicates: list[dict[str, Any]] = []
 
     for source_dir in source_dirs:

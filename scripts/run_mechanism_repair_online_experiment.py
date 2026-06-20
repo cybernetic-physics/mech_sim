@@ -548,7 +548,7 @@ def main() -> int:
                             budget=budget,
                         ):
                             continue
-                        key = (split, task_id, seed, method)
+                        key = (split, task_id, seed, method, budget)
                         if key in seen_keys:
                             continue
                         task_split = write_one_task_split(
@@ -608,7 +608,7 @@ def main() -> int:
                 report_dir = run_root / split / str(seed) / f"eval_{method}"
                 missing = [
                     task_id for task_id in task_ids
-                    if (split, task_id, seed, method) not in seen_keys
+                    if (split, task_id, seed, method, budget) not in seen_keys
                     and cell_wanted(
                         shard_filter,
                         split=split,
@@ -1041,7 +1041,7 @@ def append_new_requested_rows(
     *,
     rows_path: Path,
     rows: list[dict[str, Any]],
-    seen_keys: set[tuple[str, str, int, str]],
+    seen_keys: set[tuple[str, str, int, str, int]],
     new_rows: list[dict[str, Any]],
     shard_filter: set[tuple[str, str, int, str, int]] | None,
     budget: int,
@@ -1269,10 +1269,7 @@ def unusable_resume_row_reasons(
     except (KeyError, TypeError, ValueError):
         return ["malformed_row_key"]
 
-    split, task_id, seed, method = key
-    row_budget = int(
-        row.get("budget", row.get("budget_verifier_calls", budget)) or budget
-    )
+    split, task_id, seed, method, row_budget = key
     verifier_level = int(
         row.get("verifier_level")
         or verifier_level_by_task.get(task_id, 0)
@@ -1309,10 +1306,9 @@ def unusable_resume_row_reasons(
 
 def row_key_text(row: dict[str, Any]) -> str:
     try:
-        split, task_id, seed, method = row_key(row)
+        split, task_id, seed, method, budget = row_key(row)
     except (KeyError, TypeError, ValueError):
         return "<malformed>"
-    budget = row.get("budget", row.get("budget_verifier_calls", ""))
     return f"{split}/{task_id}/seed{seed}/{method}/budget{budget}"
 
 
@@ -3280,12 +3276,19 @@ def parse_csv(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
-def row_key(row: dict[str, Any]) -> tuple[str, str, int, str]:
+def row_key(row: dict[str, Any]) -> tuple[str, str, int, str, int]:
     return (
         str(row["split"]),
         str(row["task_id"]),
         int(row["seed"]),
         str(row["method"]),
+        int(
+            row.get(
+                "budget",
+                row.get("budget_verifier_calls", PRIMARY_BUDGET),
+            )
+            or PRIMARY_BUDGET
+        ),
     )
 
 

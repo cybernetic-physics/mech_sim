@@ -239,7 +239,7 @@ def test_append_new_requested_rows_rejects_stale_summary_cells(
 ) -> None:
     rows_path = tmp_path / "cell_results.jsonl"
     rows: list[dict] = []
-    seen_keys: set[tuple[str, str, int, str]] = set()
+    seen_keys: set[tuple[str, str, int, str, int]] = set()
     shard_filter = online.cell_filter_from_shard(
         [
             {
@@ -290,6 +290,42 @@ def test_append_new_requested_rows_rejects_stale_summary_cells(
     }
     assert rows == [keep]
     assert [json.loads(line) for line in rows_path.read_text().splitlines()] == [keep]
+
+
+def test_append_new_requested_rows_allows_distinct_budgets_without_filter(
+    tmp_path: Path,
+) -> None:
+    rows_path = tmp_path / "cell_results.jsonl"
+    rows: list[dict] = []
+    seen_keys: set[tuple[str, str, int, str, int]] = set()
+    budget_16 = {
+        "split": "A",
+        "task_id": "task_keep",
+        "seed": 20260610,
+        "method": "frozen_model",
+        "budget": 16,
+    }
+    budget_32 = {**budget_16, "budget": 32}
+
+    counts = online.append_new_requested_rows(
+        rows_path=rows_path,
+        rows=rows,
+        seen_keys=seen_keys,
+        new_rows=[budget_16, budget_32, budget_32],
+        shard_filter=None,
+        budget=32,
+    )
+
+    assert counts == {
+        "appended": 2,
+        "duplicates": 1,
+        "skipped_unrequested": 0,
+    }
+    assert rows == [budget_16, budget_32]
+    assert [json.loads(line) for line in rows_path.read_text().splitlines()] == [
+        budget_16,
+        budget_32,
+    ]
 
 
 def test_physics_method_specs_and_reward_channels() -> None:
