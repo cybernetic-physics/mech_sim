@@ -2,6 +2,7 @@
   "budget_matched": false,
   "budget_mismatch_count": 0,
   "duplicate_cell_count": 0,
+  "extra_cell_count": 0,
   "full_planned_cells": 6480,
   "missing_accounting_count": 0,
   "missing_cell_count": 6480,
@@ -12,6 +13,7 @@
   "primary_expensive_budget_excess_count": 0,
   "sample_budget_mismatches": [],
   "sample_duplicate_cells": [],
+  "sample_extra_cells": [],
   "sample_missing_accounting": [],
   "sample_missing_cells": [
     {

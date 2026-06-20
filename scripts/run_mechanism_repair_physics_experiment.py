@@ -507,11 +507,29 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
     rows = load_rows(out_dir / "cell_results.jsonl")
     row_map: dict[tuple[str, str, int, str, int], dict[str, Any]] = {}
     duplicate_keys: list[str] = []
+    row_keys: list[tuple[str, str, int, str, int]] = []
     for row in rows:
         key = row_key(row, default_budget=int(plan["primary_budget"]))
+        row_keys.append(key)
         if key in row_map:
             duplicate_keys.append(cell_key_text(key))
         row_map[key] = row
+
+    expected_cell_keys = {
+        (
+            str(cell["split"]),
+            str(cell["task_id"]),
+            int(cell["seed"]),
+            str(cell["method"]),
+            int(cell["budget"]),
+        )
+        for cell in plan["expected_cells"]
+    }
+    extra_keys = sorted({
+        cell_key_text(key)
+        for key in row_keys
+        if key not in expected_cell_keys
+    })
 
     missing_cells: list[dict[str, Any]] = []
     budget_mismatches: list[dict[str, Any]] = []
@@ -648,6 +666,7 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
         "num_shards": int(plan.get("num_shards", 1)),
         "observed_rows": len(rows),
         "missing_cell_count": len(missing_cells),
+        "extra_cell_count": len(extra_keys),
         "duplicate_cell_count": len(duplicate_keys),
         "budget_mismatch_count": len(budget_mismatches),
         "primary_expensive_budget_excess_count": (
@@ -656,12 +675,14 @@ def audit_existing_experiment(*, out_dir: Path, plan: dict[str, Any]) -> dict[st
         "missing_accounting_count": len(missing_accounting),
         "budget_matched": (
             not missing_cells
+            and not extra_keys
             and not duplicate_keys
             and not budget_mismatches
             and not primary_expensive_budget_excesses
             and not missing_accounting
         ),
         "sample_missing_cells": missing_cells[:25],
+        "sample_extra_cells": extra_keys[:25],
         "sample_duplicate_cells": duplicate_keys[:25],
         "sample_budget_mismatches": budget_mismatches[:25],
         "sample_primary_expensive_budget_excesses": (
@@ -873,6 +894,8 @@ def build_blockers(
         blockers.append(
             "execute all required methods for all planned seeds/splits/tasks"
         )
+    if budget_audit.get("extra_cell_count", 0):
+        blockers.append("remove unplanned method/seed/task/budget cells")
     if budget_audit["duplicate_cell_count"]:
         blockers.append("deduplicate repeated method/seed/task/budget cells")
     if (

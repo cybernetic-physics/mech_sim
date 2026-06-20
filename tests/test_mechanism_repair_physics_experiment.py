@@ -848,6 +848,47 @@ def test_mismatched_result_csv_payload_blocks_goal_completion(
     )
 
 
+def test_extra_unplanned_result_cell_blocks_goal_completion(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    _write_complete_physics_rows(out_dir, plan, lambda _cell: (1, 1))
+    rows = [
+        json.loads(line)
+        for line in (out_dir / "cell_results.jsonl").read_text().splitlines()
+        if line.strip()
+    ]
+    extra = dict(rows[0])
+    extra["task_id"] = "unplanned_extra_task"
+    rows.append(extra)
+    _write_result_artifacts(out_dir, rows)
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert audit["budget_audit"]["missing_cell_count"] == 0
+    assert audit["budget_audit"]["extra_cell_count"] == 1
+    assert audit["budget_audit"]["budget_matched"] is False
+    assert any(
+        "unplanned" in item
+        for item in audit["claim_audit"]["blockers"]
+    )
+
+
 def test_missing_secondary_metric_blocks_goal_completion(tmp_path: Path) -> None:
     benchmark = tmp_path / "benchmark"
     out_dir = tmp_path / "run"
