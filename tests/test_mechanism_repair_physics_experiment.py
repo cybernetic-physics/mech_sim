@@ -130,9 +130,17 @@ def _write_complete_negative_stats(out_dir: Path) -> None:
                     "success_delta": 0.0,
                     "success_delta_pct": 0.0,
                     "reward_delta": 0.0,
-                }
+                },
+                {
+                    "split": "external_style",
+                    "success_delta": 0.0,
+                    "success_delta_pct": 0.0,
+                    "reward_delta": 0.0,
+                },
             ],
             "anti_shortcut_comparison": {
+                "splits": ["external_style", "hidden_perturbation"],
+                "n_paired_cells": 1,
                 "anti_shortcut_pass_rate_delta": 0.0,
                 "anti_shortcut_pass_rate_delta_pct": 0.0,
             },
@@ -889,6 +897,46 @@ def test_extra_unplanned_result_cell_blocks_goal_completion(
     )
 
 
+def test_missing_external_style_anti_shortcut_analysis_blocks_goal_completion(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "run"
+    _write_fake_benchmark(benchmark)
+    task_index = physics.load_task_index(benchmark)
+    plan = physics.build_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        methods=list(REQUIRED_METHODS),
+        splits=["A", "B"],
+        anti_shortcut_splits=["hidden_perturbation", "external_style"],
+        seeds=list(EVAL_SEEDS),
+        budgets=[PRIMARY_BUDGET],
+        limit_tasks=1,
+        task_index=task_index,
+    )
+    _write_complete_physics_rows(out_dir, plan, lambda _cell: (1, 1))
+    stats_path = out_dir / "stats.json"
+    stats = json.loads(stats_path.read_text())
+    stats["split_deltas"] = [
+        row for row in stats["split_deltas"]
+        if row["split"] != "external_style"
+    ]
+    stats["anti_shortcut_comparison"]["splits"] = ["hidden_perturbation"]
+    _write_json(stats_path, stats)
+
+    audit = physics.audit_existing_experiment(out_dir=out_dir, plan=plan)
+
+    assert audit["claim_audit"]["goal_complete"] is False
+    assert "split_deltas.external_style.success_delta" in (
+        audit["claim_audit"]["missing_analysis_requirements"]
+    )
+    assert (
+        "anti_shortcut_comparison.splits: external_style"
+        in audit["claim_audit"]["missing_analysis_requirements"]
+    )
+
+
 def test_missing_secondary_metric_blocks_goal_completion(tmp_path: Path) -> None:
     benchmark = tmp_path / "benchmark"
     out_dir = tmp_path / "run"
@@ -1028,9 +1076,17 @@ def test_supported_positive_claim_can_complete(tmp_path: Path) -> None:
             "success_delta": 0.2,
             "success_delta_pct": 20.0,
             "reward_delta": 0.2,
-        }
+        },
+        {
+            "split": "external_style",
+            "success_delta": 0.2,
+            "success_delta_pct": 20.0,
+            "reward_delta": 0.2,
+        },
     ]
     stats["anti_shortcut_comparison"] = {
+        "splits": ["external_style", "hidden_perturbation"],
+        "n_paired_cells": 1,
         "anti_shortcut_pass_rate_delta": 0.2,
         "anti_shortcut_pass_rate_delta_pct": 20.0,
     }

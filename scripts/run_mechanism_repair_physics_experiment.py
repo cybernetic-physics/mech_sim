@@ -1014,16 +1014,29 @@ def analysis_requirement_blockers(out_dir: Path) -> list[str]:
                 + ", ".join(missing_secondary)
             )
     split_deltas = stats.get("split_deltas")
-    if not isinstance(split_deltas, list) or not any(
-        isinstance(row, dict)
-        and row.get("split") == "hidden_perturbation"
-        and "success_delta" in row
+    if not isinstance(split_deltas, list):
+        split_deltas = []
+        blockers.append("split_deltas")
+    reported_split_deltas = {
+        str(row.get("split", ""))
         for row in split_deltas
-    ):
-        blockers.append("split_deltas.hidden_perturbation.success_delta")
+        if isinstance(row, dict) and "success_delta" in row
+    }
+    for split in DEFAULT_ANTI_SHORTCUT_SPLITS:
+        if split not in reported_split_deltas:
+            blockers.append(f"split_deltas.{split}.success_delta")
     anti = stats.get("anti_shortcut_comparison") or {}
     if "anti_shortcut_pass_rate_delta" not in anti:
         blockers.append("anti_shortcut_comparison.anti_shortcut_pass_rate_delta")
+    anti_splits = {str(split) for split in anti.get("splits", []) or []}
+    missing_anti_splits = sorted(set(DEFAULT_ANTI_SHORTCUT_SPLITS) - anti_splits)
+    if missing_anti_splits:
+        blockers.append(
+            "anti_shortcut_comparison.splits: "
+            + ", ".join(missing_anti_splits)
+        )
+    if int_value(anti.get("n_paired_cells", 0)) <= 0:
+        blockers.append("anti_shortcut_comparison.n_paired_cells")
     paired = stats.get("paired_method_comparisons") or {}
     for method in ("adaptive_evolution", "verifier_gated_search"):
         method_row = paired.get(method) or {}
