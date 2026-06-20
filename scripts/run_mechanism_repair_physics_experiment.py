@@ -291,6 +291,11 @@ def validate_benchmark(benchmark_dir: Path) -> list[str]:
     headline_tasks = [
         task for task in tasks if bool(task.get("headline_eligible", True))
     ]
+    headline_count = len(headline_tasks)
+    if headline_count < MIN_FINAL_TASKS:
+        blockers.append(
+            f"benchmark has {headline_count} headline tasks; need at least {MIN_FINAL_TASKS}"
+        )
     family_counts: dict[str, int] = {}
     for task in headline_tasks:
         family = str(task.get("family", ""))

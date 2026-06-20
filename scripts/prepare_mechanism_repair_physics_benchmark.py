@@ -107,6 +107,47 @@ STATIC_FIT_HEADLINE_SOURCE_GENERATORS = frozenset(
     {"keyed_shaft_hub_fit", "bearing_seat_clearance"}
 )
 
+
+def source_generator_headline_blocker(source_generator: str) -> str | None:
+    source_generator = str(source_generator)
+    terms = {
+        term
+        for term in re.split(r"[^a-z0-9]+", source_generator.lower())
+        if term
+    }
+    if FORBIDDEN_HEADLINE_SOURCE_TERMS & terms:
+        return "toy/stub/analytic/proxy evidence"
+    if source_generator in STATIC_FIT_HEADLINE_SOURCE_GENERATORS:
+        return "static-fit diagnostic task"
+    return None
+
+
+def task_is_headline_eligible(
+    *,
+    spec: FamilySpec,
+    source_generator: str,
+) -> bool:
+    return bool(spec.headline_eligible) and (
+        source_generator_headline_blocker(source_generator) is None
+    )
+
+
+def eval_config_headline_blocker(eval_config: dict[str, Any]) -> str | None:
+    probes = [probe for probe in eval_config.get("probes", []) if isinstance(probe, dict)]
+    probe_types = {str(probe.get("type") or "") for probe in probes}
+    has_analytic = "analytic_param_check" in probe_types
+    has_non_scalar_functional = bool(
+        probe_types
+        & {
+            "path_trace_chamfer",
+            "port_velocity_ratio",
+            *CONTACT_PROBES,
+        }
+    )
+    if has_analytic and not has_non_scalar_functional:
+        return "analytic-only functional verifier"
+    return None
+
 SPLITS = {
     "A": {
         "seen": (
@@ -532,6 +573,7 @@ def materialize_benchmark(
                 task_index=task_index,
             )
             task_dir = write_task_directory(task, tasks_root)
+            physics_contract = task.task_toml.get("mechanism_repair_physics", {})
             task_rows.append(
                 {
                     "task_id": task.task_id,
@@ -541,7 +583,12 @@ def materialize_benchmark(
                     "verifier_level": spec.verifier_level,
                     "seed": seed,
                     "task_dir": str(task_dir),
-                    "headline_eligible": bool(spec.headline_eligible),
+                    "headline_eligible": bool(
+                        physics_contract.get("headline_eligible", True)
+                    ),
+                    "headline_demotion_reason": str(
+                        physics_contract.get("headline_demotion_reason", "")
+                    ),
                 }
             )
 
@@ -995,6 +1042,11 @@ def upgrade_task_for_physics(
 ) -> GeneratedTask:
     task = copy.deepcopy(task)
     original_id = task.task_id
+    headline_eligible = task_is_headline_eligible(
+        spec=spec,
+        source_generator=source_generator,
+    )
+    demotion_reason = source_generator_headline_blocker(source_generator)
     task.task_id = f"{spec.name}_t{task_index:02d}_{original_id}"
     task.family = spec.name
 
@@ -1012,12 +1064,16 @@ def upgrade_task_for_physics(
         "source_task_id": original_id,
         "source_generator": source_generator,
         "verifier_level": int(spec.verifier_level),
-        "headline_eligible": bool(spec.headline_eligible),
+        "headline_eligible": headline_eligible,
         "min_constraint_classes": 3,
         "requires_hidden_variant": True,
         "requires_isomorphic_variant": True,
         "fake_contact_oracle_allowed": False,
     }
+    if demotion_reason:
+        task.task_toml["mechanism_repair_physics"][
+            "headline_demotion_reason"
+        ] = demotion_reason
     if spec.verifier_level == 3:
         task.task_toml["chrono_contact"] = {
             "contact_model": "nsc",
@@ -1041,6 +1097,14 @@ def upgrade_task_for_physics(
         family=spec.name,
         verifier_level=spec.verifier_level,
     )
+    if headline_eligible:
+        verifier_demotion_reason = eval_config_headline_blocker(task.eval_config_toml)
+        if verifier_demotion_reason:
+            headline_eligible = False
+            demotion_reason = verifier_demotion_reason
+            physics_contract = task.task_toml["mechanism_repair_physics"]
+            physics_contract["headline_eligible"] = False
+            physics_contract["headline_demotion_reason"] = demotion_reason
     hidden = task.eval_config_hidden_toml or copy.deepcopy(task.eval_config_toml)
     task.eval_config_hidden_toml = upgrade_eval_config(
         hidden,
@@ -1077,7 +1141,7 @@ def upgrade_task_for_physics(
             "source_generator": source_generator,
             "seed": int(seed),
             "verifier_level": int(spec.verifier_level),
-            "headline_eligible": bool(spec.headline_eligible),
+            "headline_eligible": headline_eligible,
             "hidden_perturbations": [
                 "tighter tolerance window",
                 "dimension/target perturbation inherited from generator",
@@ -1090,6 +1154,8 @@ def upgrade_task_for_physics(
             "fake_contact_oracle_allowed": False,
         }
     )
+    if demotion_reason:
+        task.metadata["headline_demotion_reason"] = demotion_reason
     return task
 
 
@@ -1604,6 +1670,9 @@ def audit_benchmark(
     headline_tasks = [task for task in task_audits if task["headline_eligible"]]
     level2plus = [task for task in headline_tasks if int(task["verifier_level"]) >= 2]
     level3 = [task for task in headline_tasks if int(task["verifier_level"]) >= 3]
+    headline_family_counts: dict[str, int] = defaultdict(int)
+    for task in headline_tasks:
+        headline_family_counts[str(task["family"])] += 1
 
     if len(family_counts) < len(REQUIRED_FAMILIES):
         structural_blockers.append(
@@ -1620,10 +1689,26 @@ def audit_benchmark(
             f"only {total_tasks} tasks; need "
             f"{len(REQUIRED_FAMILIES) * min_tasks_per_family}"
         )
-    if total_tasks and len(level2plus) / total_tasks < 0.40:
-        structural_blockers.append("Level-2/3 task share below 40 percent")
-    if total_tasks and len(level3) / total_tasks < 0.25:
-        structural_blockers.append("Level-3 task share below 25 percent")
+    min_headline_tasks = len(REQUIRED_FAMILIES) * min_tasks_per_family
+    if len(headline_tasks) < min_headline_tasks:
+        paper_blockers.append(
+            f"only {len(headline_tasks)} headline tasks; need {min_headline_tasks}"
+        )
+    for family in REQUIRED_FAMILIES:
+        count = int(headline_family_counts.get(family, 0))
+        if count < min_tasks_per_family:
+            paper_blockers.append(
+                f"{family}: only {count} headline tasks; need {min_tasks_per_family}"
+            )
+    if headline_tasks and len(level2plus) / len(headline_tasks) < 0.40:
+        paper_blockers.append("Level-2/3 headline task share below 40 percent")
+    if headline_tasks and len(level3) / len(headline_tasks) < 0.25:
+        paper_blockers.append("Level-3 headline task share below 25 percent")
+    diagnostic_tasks = [task for task in task_audits if not task["headline_eligible"]]
+    if diagnostic_tasks:
+        paper_blockers.append(
+            f"{len(diagnostic_tasks)} diagnostic tasks excluded from headline result"
+        )
 
     for task in task_audits:
         headline_blocker = paper_headline_source_blocker(task)
@@ -1693,8 +1778,11 @@ def audit_benchmark(
         "required_families": list(REQUIRED_FAMILIES),
         "min_tasks_per_family": int(min_tasks_per_family),
         "family_counts": dict(sorted(family_counts.items())),
+        "headline_family_counts": dict(sorted(headline_family_counts.items())),
         "level_counts": dict(sorted(level_counts.items())),
         "task_count": total_tasks,
+        "headline_task_count": len(headline_tasks),
+        "diagnostic_task_count": len(diagnostic_tasks),
         "level2plus_headline_count": len(level2plus),
         "level3_headline_count": len(level3),
         "tasks": sorted(task_audits, key=lambda row: row["task_id"]),
@@ -1729,6 +1817,9 @@ def load_task_records(tasks_root: Path) -> list[dict[str, Any]]:
                 "headline_eligible": bool(physics.get("headline_eligible", True)),
                 "source_generator": str(physics.get("source_generator", "")),
                 "source_task_id": str(physics.get("source_task_id", "")),
+                "headline_demotion_reason": str(
+                    physics.get("headline_demotion_reason", "")
+                ),
             }
         )
     return records
@@ -1942,12 +2033,15 @@ def build_split_manifest(
     unseen_families: set[str],
     seed: int,
 ) -> dict[str, Any]:
+    eligible_records = [
+        record for record in records if bool(record.get("headline_eligible", True))
+    ]
     train: list[str] = []
     val: list[str] = []
     test: list[str] = []
     for family in sorted(seen_families):
         family_records = sorted(
-            [r for r in records if r["family"] == family],
+            [r for r in eligible_records if r["family"] == family],
             key=lambda row: stable_shuffle_key(row["task_id"], seed),
         )
         cut = max(1, int(round(len(family_records) * 0.8)))
@@ -1957,7 +2051,7 @@ def build_split_manifest(
         test.extend(
             str(r["task_dir"])
             for r in sorted(
-                [row for row in records if row["family"] == family],
+                [row for row in eligible_records if row["family"] == family],
                 key=lambda row: stable_shuffle_key(row["task_id"], seed),
             )
         )
@@ -1967,6 +2061,9 @@ def build_split_manifest(
         "seed": int(seed),
         "seen_families": sorted(seen_families),
         "unseen_families": sorted(unseen_families),
+        "headline_only": True,
+        "eligible_task_count": len(eligible_records),
+        "excluded_diagnostic_task_count": len(records) - len(eligible_records),
         "splits": {
             "train": sorted(train),
             "val": sorted(val),
@@ -1980,7 +2077,16 @@ def build_hidden_split_manifest(
     records: list[dict[str, Any]],
     seed: int,
 ) -> dict[str, Any]:
-    tests = [str(r["task_dir"]) for r in sorted(records, key=lambda row: stable_shuffle_key(row["task_id"], seed))]
+    eligible_records = [
+        record for record in records if bool(record.get("headline_eligible", True))
+    ]
+    tests = [
+        str(r["task_dir"])
+        for r in sorted(
+            eligible_records,
+            key=lambda row: stable_shuffle_key(row["task_id"], seed),
+        )
+    ]
     return {
         "schema": "mechanism_repair_physics.hidden_split.v1",
         "split_name": "hidden_perturbation",
@@ -1988,6 +2094,9 @@ def build_hidden_split_manifest(
         "seen_families": [],
         "unseen_families": list(REQUIRED_FAMILIES),
         "eval_config": "eval_config.hidden.toml",
+        "headline_only": True,
+        "eligible_task_count": len(eligible_records),
+        "excluded_diagnostic_task_count": len(records) - len(eligible_records),
         "perturbations": [
             "dimension and target perturbation",
             "tighter hidden tolerance",
@@ -2005,7 +2114,9 @@ def build_external_style_split_manifest(
     selected = [
         r
         for r in records
-        if r["family"] in {"shaft_bearing_coupling", "spur_compound_gear_train", "fourbar_linkage"}
+        if bool(r.get("headline_eligible", True))
+        and r["family"]
+        in {"shaft_bearing_coupling", "spur_compound_gear_train", "fourbar_linkage"}
     ]
     tests = [
         str(r["task_dir"])
@@ -2017,6 +2128,21 @@ def build_external_style_split_manifest(
         "seed": int(seed),
         "seen_families": [],
         "unseen_families": sorted({r["family"] for r in selected}),
+        "headline_only": True,
+        "eligible_task_count": len(selected),
+        "excluded_diagnostic_task_count": (
+            len([
+                r
+                for r in records
+                if r["family"]
+                in {
+                    "shaft_bearing_coupling",
+                    "spur_compound_gear_train",
+                    "fourbar_linkage",
+                }
+            ])
+            - len(selected)
+        ),
         "positioning": (
             "CAD/design-style holdout; this does not claim CADBench/BenchCAD "
             "evaluation until those external tasks are actually imported."

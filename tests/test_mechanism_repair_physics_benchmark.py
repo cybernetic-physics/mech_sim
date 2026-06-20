@@ -66,14 +66,16 @@ def test_physics_preflight_materializes_required_families_and_manifests(
     assert "chrono_level3_validation_not_run" in audit["paper_blockers"]
     assert "reference_and_negative_validation_not_run" in audit["paper_blockers"]
     assert any(
-        "toy/stub/analytic/proxy evidence" in blocker
+        "diagnostic tasks excluded from headline result" in blocker
         for blocker in audit["paper_blockers"]
     )
     assert any(
-        "static-fit source_generator" in blocker
+        "headline tasks; need" in blocker
         for blocker in audit["paper_blockers"]
     )
     assert audit["family_counts"] == {family: 1 for family in REQUIRED_FAMILIES}
+    assert audit["headline_task_count"] == 1
+    assert audit["diagnostic_task_count"] == 11
     assert audit["level_counts"] == {"2": 8, "3": 4}
     assert all(
         len(task["constraint_classes"]) >= 3
@@ -93,7 +95,8 @@ def test_physics_preflight_materializes_required_families_and_manifests(
             set(split_manifest["seen_families"])
             & set(split_manifest["unseen_families"])
         )
-        assert split_manifest["splits"]["test"]
+        assert split_manifest["headline_only"] is True
+        assert split_manifest["splits"]["test"] == []
 
     assert methods["required_methods"] == list(REQUIRED_METHODS)
     assert methods["primary_method"] == "mechanical_evolve_ttrl_tool_verified"

@@ -3,12 +3,12 @@
   "budget_mismatch_count": 0,
   "duplicate_cell_count": 0,
   "extra_cell_count": 0,
-  "full_planned_cells": 6480,
+  "full_planned_cells": 384,
   "missing_accounting_count": 0,
-  "missing_cell_count": 6480,
+  "missing_cell_count": 384,
   "num_shards": 1,
   "observed_rows": 0,
-  "planned_cells": 6480,
+  "planned_cells": 384,
   "primary_budget": 32,
   "primary_expensive_budget_excess_count": 0,
   "sample_budget_mismatches": [],
@@ -18,253 +18,253 @@
   "sample_missing_cells": [
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "frozen_model",
       "seed": 20260610,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "sft_seen_family",
       "seed": 20260610,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "llm_evolve_no_update",
       "seed": 20260610,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "verifier_gated_search",
       "seed": 20260610,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "adaptive_evolution",
       "seed": 20260610,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "mechanical_evolve_ttrl",
       "seed": 20260610,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "mechanical_evolve_ttrl_tool_verified",
       "seed": 20260610,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "mechanical_evolve_ttrl_confidence",
       "seed": 20260610,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "frozen_model",
       "seed": 20260611,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "sft_seen_family",
       "seed": 20260611,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "llm_evolve_no_update",
       "seed": 20260611,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "verifier_gated_search",
       "seed": 20260611,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "adaptive_evolution",
       "seed": 20260611,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "mechanical_evolve_ttrl",
       "seed": 20260611,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "mechanical_evolve_ttrl_tool_verified",
       "seed": 20260611,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "mechanical_evolve_ttrl_confidence",
       "seed": 20260611,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "frozen_model",
       "seed": 20260612,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "sft_seen_family",
       "seed": 20260612,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "llm_evolve_no_update",
       "seed": 20260612,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "verifier_gated_search",
       "seed": 20260612,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "adaptive_evolution",
       "seed": 20260612,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "mechanical_evolve_ttrl",
       "seed": 20260612,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "mechanical_evolve_ttrl_tool_verified",
       "seed": 20260612,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "mechanical_evolve_ttrl_confidence",
       "seed": 20260612,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "verifier_level": 2
     },
     {
       "budget": 32,
-      "family": "cam_follower",
+      "family": "fourbar_linkage",
       "method": "frozen_model",
       "seed": 20260610,
-      "split": "A",
-      "split_kind": "headline",
-      "task_id": "cam_follower_t01_cam_follower_contact_stub_s20269611",
-      "verifier_level": 3
+      "split": "hidden_perturbation",
+      "split_kind": "anti_shortcut",
+      "task_id": "fourbar_linkage_t03_fourbar_dwell_path_s20268613",
+      "verifier_level": 2
     }
   ],
   "sample_primary_expensive_budget_excesses": [],

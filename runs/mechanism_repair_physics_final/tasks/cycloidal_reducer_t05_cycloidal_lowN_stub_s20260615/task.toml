@@ -28,11 +28,12 @@ canonical_family = "cycloidal_reducer"
 source_task_id = "cycloidal_lowN_stub_s20260615"
 source_generator = "cycloidal_lowN_stub"
 verifier_level = 3
-headline_eligible = true
+headline_eligible = false
 min_constraint_classes = 3
 requires_hidden_variant = true
 requires_isomorphic_variant = true
 fake_contact_oracle_allowed = false
+headline_demotion_reason = "toy/stub/analytic/proxy evidence"
 
 [chrono_contact]
 contact_model = "nsc"

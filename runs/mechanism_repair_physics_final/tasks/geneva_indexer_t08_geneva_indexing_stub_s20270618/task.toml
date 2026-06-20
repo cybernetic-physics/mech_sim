@@ -23,11 +23,12 @@ canonical_family = "geneva_indexer"
 source_task_id = "geneva_indexing_stub_s20270618"
 source_generator = "geneva_indexing_stub"
 verifier_level = 3
-headline_eligible = true
+headline_eligible = false
 min_constraint_classes = 3
 requires_hidden_variant = true
 requires_isomorphic_variant = true
 fake_contact_oracle_allowed = false
+headline_demotion_reason = "toy/stub/analytic/proxy evidence"
 
 [chrono_contact]
 contact_model = "nsc"

@@ -34,22 +34,30 @@ def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
     assert manifest["experiment_ready"] is False
     assert manifest["task_count"] == 120
     assert audit["family_counts"] == {family: 10 for family in REQUIRED_FAMILIES}
+    assert audit["headline_family_counts"] == {"fourbar_linkage": 8}
     assert audit["level_counts"] == {"2": 80, "3": 40}
-    assert audit["level2plus_headline_count"] == 120
-    assert audit["level3_headline_count"] == 40
+    assert audit["headline_task_count"] == 8
+    assert audit["diagnostic_task_count"] == 112
+    assert audit["level2plus_headline_count"] == 8
+    assert audit["level3_headline_count"] == 0
     assert audit["blockers"] == []
     assert audit["paper_blockers"]
     assert any(
-        "toy/stub/analytic/proxy evidence" in blocker
+        "only 8 headline tasks; need 120" in blocker
         for blocker in audit["paper_blockers"]
     )
     assert any(
-        "static-fit source_generator" in blocker
+        "112 diagnostic tasks excluded from headline result" in blocker
         for blocker in audit["paper_blockers"]
     )
 
+    diagnostic_tasks = [
+        task for task in audit["tasks"] if not task["headline_eligible"]
+    ]
+    assert len(diagnostic_tasks) == 112
+    assert all(task["headline_demotion_reason"] for task in diagnostic_tasks)
+
     for task in audit["tasks"]:
-        assert task["headline_eligible"] is True
         assert len(task["constraint_classes"]) >= 3
         assert task["effective_negative_control_count"] >= 2
         assert task["has_hidden_variant"] is True
@@ -69,8 +77,20 @@ def test_frozen_physics_benchmark_reports_current_readiness_blockers() -> None:
     assert plan["seeds"] == list(EVAL_SEEDS)
     assert plan["budgets"] == [PRIMARY_BUDGET]
     assert plan["anti_shortcut_splits"] == ["hidden_perturbation", "external_style"]
-    assert plan["planned_cells"] == 6480
-    assert plan["full_planned_cells"] == 6480
+    assert plan["split_tasks"].keys() == {
+        "A",
+        "B",
+        "external_style",
+        "hidden_perturbation",
+    }
+    assert {name: len(tasks) for name, tasks in plan["split_tasks"].items()} == {
+        "A": 0,
+        "B": 0,
+        "external_style": 8,
+        "hidden_perturbation": 8,
+    }
+    assert plan["planned_cells"] == 384
+    assert plan["full_planned_cells"] == 384
 
 
 def _write_json(path: Path, payload: dict) -> None:

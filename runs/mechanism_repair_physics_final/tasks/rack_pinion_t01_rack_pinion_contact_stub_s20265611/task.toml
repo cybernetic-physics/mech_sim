@@ -23,11 +23,12 @@ canonical_family = "rack_pinion"
 source_task_id = "rack_pinion_contact_stub_s20265611"
 source_generator = "rack_pinion_contact_stub"
 verifier_level = 3
-headline_eligible = true
+headline_eligible = false
 min_constraint_classes = 3
 requires_hidden_variant = true
 requires_isomorphic_variant = true
 fake_contact_oracle_allowed = false
+headline_demotion_reason = "toy/stub/analytic/proxy evidence"
 
 [chrono_contact]
 contact_model = "nsc"

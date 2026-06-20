@@ -4,8 +4,8 @@
     "hidden_perturbation",
     "external_style"
   ],
-  "expected_anti_shortcut_cells": 3600,
-  "missing_anti_shortcut_cells": 3600,
+  "expected_anti_shortcut_cells": 384,
+  "missing_anti_shortcut_cells": 384,
   "sample_missing_anti_shortcut_cells": [
     {
       "budget": 32,
@@ -249,12 +249,12 @@
     },
     {
       "budget": 32,
-      "family": "planetary_reducer",
+      "family": "fourbar_linkage",
       "method": "frozen_model",
       "seed": 20260610,
       "split": "hidden_perturbation",
       "split_kind": "anti_shortcut",
-      "task_id": "planetary_reducer_t05_planetary_fixed_sun_ratio_analytic_s20261615",
+      "task_id": "fourbar_linkage_t03_fourbar_dwell_path_s20268613",
       "verifier_level": 2
     }
   ],
