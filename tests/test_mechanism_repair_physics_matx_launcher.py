@@ -57,6 +57,8 @@ def test_sync_helper_documents_single_shard_audit() -> None:
     assert "This script does not query Slurm" in text
     assert 'SHARD_INDEX="${SHARD_INDEX:-0}"' in text
     assert "rsync -az --delete" in text
+    assert "remote_shared_sft_dir" in text
+    assert "local_shared_sft_dir" in text
     assert "scripts/plan_mechanism_repair_shard_resume.py" in text
     assert "--out-json" in text
     assert 'PRINT_FULL_AUDIT="${PRINT_FULL_AUDIT:-0}"' in text

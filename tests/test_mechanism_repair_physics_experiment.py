@@ -1982,6 +1982,28 @@ def test_sft_learning_evidence_accepts_adjacent_manifest_for_legacy_rows(
     assert audit["claim_audit"]["missing_learning_count"] == 0
 
 
+def test_resolve_path_reroots_shared_sft_under_parent_run_root(
+    tmp_path: Path,
+) -> None:
+    run_dir = tmp_path / "mechanism_repair_physics_final"
+    shard_dir = run_dir / "shard_runs" / "shard_0000"
+    shared_manifest = (
+        run_dir / "shared_sft" / "A" / "20260610" / "sft_train"
+        / "run_manifest.json"
+    )
+    shard_dir.mkdir(parents=True)
+    (run_dir / "experiment_shards").mkdir()
+    shared_manifest.parent.mkdir(parents=True)
+    shared_manifest.write_text("{}\n")
+    remote_manifest = (
+        "/matx/u/knatalia/corl_mechanism_repair_physics/repo/runs/"
+        "mechanism_repair_physics_final/shared_sft/A/20260610/"
+        "sft_train/run_manifest.json"
+    )
+
+    assert physics.resolve_path(shard_dir, remote_manifest) == shared_manifest
+
+
 def test_shards_partition_full_experiment_plan(tmp_path: Path) -> None:
     benchmark = tmp_path / "benchmark"
     out_dir = tmp_path / "run"

@@ -1921,10 +1921,23 @@ def resolve_path(out_dir: Path, raw: str) -> Path:
         return path
     out_dir = out_dir.resolve()
     parts = path.parts
-    for index in range(len(parts) - 1, -1, -1):
-        if parts[index] == out_dir.name:
-            return out_dir.joinpath(*parts[index + 1 :])
+    for root in resolve_path_roots(out_dir):
+        for index in range(len(parts) - 1, -1, -1):
+            if parts[index] == root.name:
+                return root.joinpath(*parts[index + 1 :])
     return path
+
+
+def resolve_path_roots(out_dir: Path) -> list[Path]:
+    roots = [out_dir]
+    for candidate in (out_dir, *out_dir.parents):
+        if (
+            (candidate / "method_manifest.json").is_file()
+            or (candidate / "experiment_shards").is_dir()
+        ):
+            roots.append(candidate)
+            break
+    return list(dict.fromkeys(roots))
 
 
 def parse_csv(raw: str) -> list[str]:
