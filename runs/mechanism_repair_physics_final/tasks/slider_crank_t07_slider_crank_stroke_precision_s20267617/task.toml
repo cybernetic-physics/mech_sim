@@ -11,7 +11,9 @@ expected_mobility = 1
 max_envelope_mm = [220, 80, 50]
 
 [objective]
-description = "Slider-crank stroke = 55.58 mm."
+description = "Slider-crank stroke = 55.58 mm and output slider trace matches the fixture."
+target_path_csv = "target_slider_path.csv"
+max_chamfer_mm = 0.35
 ground_required = true
 
 [mechanism_repair_physics]
@@ -19,9 +21,8 @@ canonical_family = "slider_crank"
 source_task_id = "slider_crank_stroke_precision_s20267617"
 source_generator = "slider_crank_stroke_precision"
 verifier_level = 2
-headline_eligible = false
+headline_eligible = true
 min_constraint_classes = 3
 requires_hidden_variant = true
 requires_isomorphic_variant = true
 fake_contact_oracle_allowed = false
-headline_demotion_reason = "analytic-only functional verifier"

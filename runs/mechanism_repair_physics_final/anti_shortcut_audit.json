@@ -4,8 +4,8 @@
     "hidden_perturbation",
     "external_style"
   ],
-  "expected_anti_shortcut_cells": 384,
-  "missing_anti_shortcut_cells": 384,
+  "expected_anti_shortcut_cells": 624,
+  "missing_anti_shortcut_cells": 624,
   "sample_missing_anti_shortcut_cells": [
     {
       "budget": 32,
@@ -249,12 +249,12 @@
     },
     {
       "budget": 32,
-      "family": "fourbar_linkage",
+      "family": "slider_crank",
       "method": "frozen_model",
       "seed": 20260610,
       "split": "hidden_perturbation",
       "split_kind": "anti_shortcut",
-      "task_id": "fourbar_linkage_t03_fourbar_dwell_path_s20268613",
+      "task_id": "slider_crank_t05_reciprocating_pump_plunger_s20267615",
       "verifier_level": 2
     }
   ],

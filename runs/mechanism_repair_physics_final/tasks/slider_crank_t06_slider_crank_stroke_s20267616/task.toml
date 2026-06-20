@@ -11,7 +11,9 @@ expected_mobility = 1
 max_envelope_mm = [200, 100, 50]
 
 [objective]
-description = "Centric slider-crank; declare stroke = 55.46 mm; mobility=1."
+description = "Centric slider-crank; declare stroke = 55.46 mm; match output slider trace; mobility=1."
+target_path_csv = "target_slider_path.csv"
+max_chamfer_mm = 0.35
 allow_massless_links = false
 ground_required = true
 
@@ -24,9 +26,8 @@ canonical_family = "slider_crank"
 source_task_id = "slider_crank_stroke_s20267616"
 source_generator = "slider_crank_stroke"
 verifier_level = 2
-headline_eligible = false
+headline_eligible = true
 min_constraint_classes = 3
 requires_hidden_variant = true
 requires_isomorphic_variant = true
 fake_contact_oracle_allowed = false
-headline_demotion_reason = "analytic-only functional verifier"

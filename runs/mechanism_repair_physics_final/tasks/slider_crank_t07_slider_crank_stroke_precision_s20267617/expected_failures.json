@@ -11,6 +11,15 @@
       "submission": "negative_solutions/wrong_stroke"
     },
     {
+      "id": "wrong_crank_geometry",
+      "expected_failure_codes": [
+        "path_error"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.8,
+      "submission": "negative_solutions/wrong_crank_geometry"
+    },
+    {
       "id": "wrong_joint_type",
       "expected_failure_codes": [
         "wrong_topology"

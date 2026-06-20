@@ -1432,7 +1432,7 @@
     },
     {
       "family": "slider_crank",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t02_slider_crank_quick_return_proxy_s20267612/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t02_reciprocating_pump_plunger_s20267612/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1440,8 +1440,8 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t02_slider_crank_quick_return_proxy_s20267612/eval_config.public.toml",
-      "task_id": "slider_crank_t02_slider_crank_quick_return_proxy_s20267612",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t02_reciprocating_pump_plunger_s20267612/eval_config.public.toml",
+      "task_id": "slider_crank_t02_reciprocating_pump_plunger_s20267612",
       "verifier_level": 2
     },
     {
@@ -1474,7 +1474,7 @@
     },
     {
       "family": "slider_crank",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t05_slider_crank_quick_return_proxy_s20267615/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t05_reciprocating_pump_plunger_s20267615/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1482,8 +1482,8 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t05_slider_crank_quick_return_proxy_s20267615/eval_config.public.toml",
-      "task_id": "slider_crank_t05_slider_crank_quick_return_proxy_s20267615",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t05_reciprocating_pump_plunger_s20267615/eval_config.public.toml",
+      "task_id": "slider_crank_t05_reciprocating_pump_plunger_s20267615",
       "verifier_level": 2
     },
     {
@@ -1516,7 +1516,7 @@
     },
     {
       "family": "slider_crank",
-      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t08_slider_crank_quick_return_proxy_s20267618/eval_config.hidden.toml",
+      "hidden_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t08_reciprocating_pump_plunger_s20267618/eval_config.hidden.toml",
       "hidden_variant_present": true,
       "isomorphic_variant_status": "manifested_not_executed",
       "perturbations": [
@@ -1524,8 +1524,8 @@
         "hidden metric withholding",
         "isomorphic renaming required by audit"
       ],
-      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t08_slider_crank_quick_return_proxy_s20267618/eval_config.public.toml",
-      "task_id": "slider_crank_t08_slider_crank_quick_return_proxy_s20267618",
+      "public_eval_config": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t08_reciprocating_pump_plunger_s20267618/eval_config.public.toml",
+      "task_id": "slider_crank_t08_reciprocating_pump_plunger_s20267618",
       "verifier_level": 2
     },
     {

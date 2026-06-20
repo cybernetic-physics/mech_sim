@@ -1,7 +1,7 @@
 {
   "audit": {
     "blockers": [],
-    "diagnostic_task_count": 112,
+    "diagnostic_task_count": 102,
     "experiment_ready": false,
     "family_counts": {
       "belt_drive": 10,
@@ -18,10 +18,11 @@
       "spur_compound_gear_train": 10
     },
     "headline_family_counts": {
-      "fourbar_linkage": 8
+      "fourbar_linkage": 8,
+      "slider_crank": 10
     },
-    "headline_task_count": 8,
-    "level2plus_headline_count": 8,
+    "headline_task_count": 18,
+    "level2plus_headline_count": 18,
     "level3_headline_count": 0,
     "level_counts": {
       "2": 80,
@@ -29,20 +30,60 @@
     },
     "min_tasks_per_family": 10,
     "paper_blockers": [
-      "112 diagnostic tasks excluded from headline result",
+      "102 diagnostic tasks excluded from headline result",
       "Level-3 headline task share below 25 percent",
       "belt_drive: only 0 headline tasks; need 10",
       "cam_follower: only 0 headline tasks; need 10",
+      "cam_follower_t00_cam_follower_contact_stub_s20269610: level3_validation_skipped",
+      "cam_follower_t01_cam_follower_contact_stub_s20269611: level3_validation_skipped",
+      "cam_follower_t02_cam_follower_contact_stub_s20269612: level3_validation_skipped",
+      "cam_follower_t03_cam_follower_contact_stub_s20269613: level3_validation_skipped",
+      "cam_follower_t04_cam_follower_contact_stub_s20269614: level3_validation_skipped",
+      "cam_follower_t05_cam_follower_contact_stub_s20269615: level3_validation_skipped",
+      "cam_follower_t06_cam_follower_contact_stub_s20269616: level3_validation_skipped",
+      "cam_follower_t07_cam_follower_contact_stub_s20269617: level3_validation_skipped",
+      "cam_follower_t08_cam_follower_contact_stub_s20269618: level3_validation_skipped",
+      "cam_follower_t09_cam_follower_contact_stub_s20269619: level3_validation_skipped",
       "chain_drive: only 0 headline tasks; need 10",
+      "chrono_level3_validation_not_run",
       "cycloidal_reducer: only 0 headline tasks; need 10",
+      "cycloidal_reducer_t00_cycloidal_lowN_stub_s20260610: level3_validation_skipped",
+      "cycloidal_reducer_t01_cycloidal_lowN_stub_s20260611: level3_validation_skipped",
+      "cycloidal_reducer_t02_cycloidal_lowN_stub_s20260612: level3_validation_skipped",
+      "cycloidal_reducer_t03_cycloidal_lowN_stub_s20260613: level3_validation_skipped",
+      "cycloidal_reducer_t04_cycloidal_lowN_stub_s20260614: level3_validation_skipped",
+      "cycloidal_reducer_t05_cycloidal_lowN_stub_s20260615: level3_validation_skipped",
+      "cycloidal_reducer_t06_cycloidal_lowN_stub_s20260616: level3_validation_skipped",
+      "cycloidal_reducer_t07_cycloidal_lowN_stub_s20260617: level3_validation_skipped",
+      "cycloidal_reducer_t08_cycloidal_lowN_stub_s20260618: level3_validation_skipped",
+      "cycloidal_reducer_t09_cycloidal_lowN_stub_s20260619: level3_validation_skipped",
       "fourbar_linkage: only 8 headline tasks; need 10",
       "geneva_indexer: only 0 headline tasks; need 10",
+      "geneva_indexer_t00_geneva_indexing_stub_s20270610: level3_validation_skipped",
+      "geneva_indexer_t01_geneva_indexing_stub_s20270611: level3_validation_skipped",
+      "geneva_indexer_t02_geneva_indexing_stub_s20270612: level3_validation_skipped",
+      "geneva_indexer_t03_geneva_indexing_stub_s20270613: level3_validation_skipped",
+      "geneva_indexer_t04_geneva_indexing_stub_s20270614: level3_validation_skipped",
+      "geneva_indexer_t05_geneva_indexing_stub_s20270615: level3_validation_skipped",
+      "geneva_indexer_t06_geneva_indexing_stub_s20270616: level3_validation_skipped",
+      "geneva_indexer_t07_geneva_indexing_stub_s20270617: level3_validation_skipped",
+      "geneva_indexer_t08_geneva_indexing_stub_s20270618: level3_validation_skipped",
+      "geneva_indexer_t09_geneva_indexing_stub_s20270619: level3_validation_skipped",
       "lead_screw: only 0 headline tasks; need 10",
-      "only 8 headline tasks; need 120",
+      "only 18 headline tasks; need 120",
       "planetary_reducer: only 0 headline tasks; need 10",
       "rack_pinion: only 0 headline tasks; need 10",
+      "rack_pinion_t00_rack_pinion_contact_stub_s20265610: level3_validation_skipped",
+      "rack_pinion_t01_rack_pinion_contact_stub_s20265611: level3_validation_skipped",
+      "rack_pinion_t02_rack_pinion_contact_stub_s20265612: level3_validation_skipped",
+      "rack_pinion_t03_rack_pinion_contact_stub_s20265613: level3_validation_skipped",
+      "rack_pinion_t04_rack_pinion_contact_stub_s20265614: level3_validation_skipped",
+      "rack_pinion_t05_rack_pinion_contact_stub_s20265615: level3_validation_skipped",
+      "rack_pinion_t06_rack_pinion_contact_stub_s20265616: level3_validation_skipped",
+      "rack_pinion_t07_rack_pinion_contact_stub_s20265617: level3_validation_skipped",
+      "rack_pinion_t08_rack_pinion_contact_stub_s20265618: level3_validation_skipped",
+      "rack_pinion_t09_rack_pinion_contact_stub_s20265619: level3_validation_skipped",
       "shaft_bearing_coupling: only 0 headline tasks; need 10",
-      "slider_crank: only 0 headline tasks; need 10",
       "spur_compound_gear_train: only 0 headline tasks; need 10"
     ],
     "passes": true,
@@ -456,13 +497,8 @@
         "task_id": "cam_follower_t00_cam_follower_contact_stub_s20269610",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -492,13 +528,8 @@
         "task_id": "cam_follower_t01_cam_follower_contact_stub_s20269611",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -528,13 +559,8 @@
         "task_id": "cam_follower_t02_cam_follower_contact_stub_s20269612",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -564,13 +590,8 @@
         "task_id": "cam_follower_t03_cam_follower_contact_stub_s20269613",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -600,13 +621,8 @@
         "task_id": "cam_follower_t04_cam_follower_contact_stub_s20269614",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -636,13 +652,8 @@
         "task_id": "cam_follower_t05_cam_follower_contact_stub_s20269615",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -672,13 +683,8 @@
         "task_id": "cam_follower_t06_cam_follower_contact_stub_s20269616",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -708,13 +714,8 @@
         "task_id": "cam_follower_t07_cam_follower_contact_stub_s20269617",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -744,13 +745,8 @@
         "task_id": "cam_follower_t08_cam_follower_contact_stub_s20269618",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -780,13 +776,8 @@
         "task_id": "cam_follower_t09_cam_follower_contact_stub_s20269619",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -1177,16 +1168,8 @@
         "task_id": "cycloidal_reducer_t00_cycloidal_lowN_stub_s20260610",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "power_balance_error",
-            "excessive_torque_ripple"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 0.5333333333333333
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -1217,16 +1200,8 @@
         "task_id": "cycloidal_reducer_t01_cycloidal_lowN_stub_s20260611",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "power_balance_error",
-            "excessive_torque_ripple"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 0.5333333333333333
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -1257,16 +1232,8 @@
         "task_id": "cycloidal_reducer_t02_cycloidal_lowN_stub_s20260612",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "power_balance_error",
-            "excessive_torque_ripple"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 0.5333333333333333
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -1297,16 +1264,8 @@
         "task_id": "cycloidal_reducer_t03_cycloidal_lowN_stub_s20260613",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "power_balance_error",
-            "excessive_torque_ripple"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 0.5333333333333333
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -1337,16 +1296,8 @@
         "task_id": "cycloidal_reducer_t04_cycloidal_lowN_stub_s20260614",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "power_balance_error",
-            "excessive_torque_ripple"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 0.5333333333333333
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -1377,16 +1328,8 @@
         "task_id": "cycloidal_reducer_t05_cycloidal_lowN_stub_s20260615",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "power_balance_error",
-            "excessive_torque_ripple"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 0.5333333333333333
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -1417,16 +1360,8 @@
         "task_id": "cycloidal_reducer_t06_cycloidal_lowN_stub_s20260616",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "power_balance_error",
-            "excessive_torque_ripple"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 0.5333333333333333
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -1457,16 +1392,8 @@
         "task_id": "cycloidal_reducer_t07_cycloidal_lowN_stub_s20260617",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "power_balance_error",
-            "excessive_torque_ripple"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 0.5333333333333333
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -1497,16 +1424,8 @@
         "task_id": "cycloidal_reducer_t08_cycloidal_lowN_stub_s20260618",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "power_balance_error",
-            "excessive_torque_ripple"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 0.5333333333333333
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -1537,16 +1456,8 @@
         "task_id": "cycloidal_reducer_t09_cycloidal_lowN_stub_s20260619",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "power_balance_error",
-            "excessive_torque_ripple"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 0.5333333333333333
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -1935,13 +1846,8 @@
         "task_id": "geneva_indexer_t00_geneva_indexing_stub_s20270610",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -1972,13 +1878,8 @@
         "task_id": "geneva_indexer_t01_geneva_indexing_stub_s20270611",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -2009,13 +1910,8 @@
         "task_id": "geneva_indexer_t02_geneva_indexing_stub_s20270612",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -2046,13 +1942,8 @@
         "task_id": "geneva_indexer_t03_geneva_indexing_stub_s20270613",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -2083,13 +1974,8 @@
         "task_id": "geneva_indexer_t04_geneva_indexing_stub_s20270614",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -2120,13 +2006,8 @@
         "task_id": "geneva_indexer_t05_geneva_indexing_stub_s20270615",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -2157,13 +2038,8 @@
         "task_id": "geneva_indexer_t06_geneva_indexing_stub_s20270616",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -2194,13 +2070,8 @@
         "task_id": "geneva_indexer_t07_geneva_indexing_stub_s20270617",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -2231,13 +2102,8 @@
         "task_id": "geneva_indexer_t08_geneva_indexing_stub_s20270618",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -2268,13 +2134,8 @@
         "task_id": "geneva_indexer_t09_geneva_indexing_stub_s20270619",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -3025,15 +2886,8 @@
         "task_id": "rack_pinion_t00_rack_pinion_contact_stub_s20265610",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "lockup"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -3064,15 +2918,8 @@
         "task_id": "rack_pinion_t01_rack_pinion_contact_stub_s20265611",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "lockup"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -3103,15 +2950,8 @@
         "task_id": "rack_pinion_t02_rack_pinion_contact_stub_s20265612",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "lockup"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -3142,15 +2982,8 @@
         "task_id": "rack_pinion_t03_rack_pinion_contact_stub_s20265613",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "lockup"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -3181,15 +3014,8 @@
         "task_id": "rack_pinion_t04_rack_pinion_contact_stub_s20265614",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "lockup"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -3220,15 +3046,8 @@
         "task_id": "rack_pinion_t05_rack_pinion_contact_stub_s20265615",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "lockup"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -3259,15 +3078,8 @@
         "task_id": "rack_pinion_t06_rack_pinion_contact_stub_s20265616",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "lockup"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -3298,15 +3110,8 @@
         "task_id": "rack_pinion_t07_rack_pinion_contact_stub_s20265617",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "lockup"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -3337,15 +3142,8 @@
         "task_id": "rack_pinion_t08_rack_pinion_contact_stub_s20265618",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "lockup"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -3376,15 +3174,8 @@
         "task_id": "rack_pinion_t09_rack_pinion_contact_stub_s20265619",
         "uses_fake_contact_oracle": false,
         "validation": {
-          "negative_failures": [],
-          "reference_codes": [
-            "lockup"
-          ],
-          "reference_evaluation_valid": true,
-          "reference_hard_gate_passed": true,
-          "reference_oracle_is_synthetic": false,
-          "reference_passed": true,
-          "reference_score": 1.0
+          "reason": "level3_validation_skipped",
+          "skipped": true
         },
         "verifier_level": 3
       },
@@ -3760,22 +3551,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "slider_crank",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "path_trace_chamfer",
           "trusted_asset_preflight"
         ],
         "source_generator": "slider_crank_stroke",
         "source_task_id": "slider_crank_stroke_s20267610",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t00_slider_crank_stroke_s20267610",
-        "task_hash": "3332f26f88ec9862e628a7d2eef8e2f5c2034f74dfb270759eac387cc5214362",
+        "task_hash": "f7e76a6495d29db240fc0d6fe06310852b720dc0fc7d55365b0dc81aa7c77690",
         "task_id": "slider_crank_t00_slider_crank_stroke_s20267610",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3785,7 +3577,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999996553514483
         },
         "verifier_level": 2
       },
@@ -3796,22 +3588,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "slider_crank",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "path_trace_chamfer",
           "trusted_asset_preflight"
         ],
         "source_generator": "slider_crank_stroke_precision",
         "source_task_id": "slider_crank_stroke_precision_s20267611",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t01_slider_crank_stroke_precision_s20267611",
-        "task_hash": "b3367628de847a40a4763a1a399231119696cf97e809842ac31b96735245334d",
+        "task_hash": "6cdbeb2b7cd2d57efc3214f170b9cda409bcff30e19cc61813bd5ba56f45d0fd",
         "task_id": "slider_crank_t01_slider_crank_stroke_precision_s20267611",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3821,7 +3614,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.999999618077366
         },
         "verifier_level": 2
       },
@@ -3832,23 +3625,24 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "slider_crank",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "path_trace_chamfer",
           "trusted_asset_preflight"
         ],
-        "source_generator": "slider_crank_quick_return_proxy",
-        "source_task_id": "slider_crank_quick_return_proxy_s20267612",
-        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t02_slider_crank_quick_return_proxy_s20267612",
-        "task_hash": "a95633f4505e162a56374f72a799a4841aa15c016d29b1bd9092378245307b1f",
-        "task_id": "slider_crank_t02_slider_crank_quick_return_proxy_s20267612",
+        "source_generator": "reciprocating_pump_plunger",
+        "source_task_id": "reciprocating_pump_plunger_s20267612",
+        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t02_reciprocating_pump_plunger_s20267612",
+        "task_hash": "d2ad5cb601a7496fbd6b12174a04130941e543cd72f61aea7586d4bcb0c060e6",
+        "task_id": "slider_crank_t02_reciprocating_pump_plunger_s20267612",
         "uses_fake_contact_oracle": false,
         "validation": {
           "negative_failures": [],
@@ -3857,7 +3651,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999996522107563
         },
         "verifier_level": 2
       },
@@ -3868,22 +3662,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "slider_crank",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "path_trace_chamfer",
           "trusted_asset_preflight"
         ],
         "source_generator": "slider_crank_stroke",
         "source_task_id": "slider_crank_stroke_s20267613",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t03_slider_crank_stroke_s20267613",
-        "task_hash": "37d39805e61af072fa30605529eeda9c9334c99c97d9b189ad788486f1c7f105",
+        "task_hash": "ae063b8e0d572b0052f24a86913d6ef15ba87ff9550a49e95bbaa6885f947e72",
         "task_id": "slider_crank_t03_slider_crank_stroke_s20267613",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3893,7 +3688,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999996329419738
         },
         "verifier_level": 2
       },
@@ -3904,22 +3699,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "slider_crank",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "path_trace_chamfer",
           "trusted_asset_preflight"
         ],
         "source_generator": "slider_crank_stroke_precision",
         "source_task_id": "slider_crank_stroke_precision_s20267614",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t04_slider_crank_stroke_precision_s20267614",
-        "task_hash": "2b6b7d7d86e1bdc378d90372de26181d8e5532335900946d042866d6bdeb8f03",
+        "task_hash": "187b6b79eaa402b03dcd4b024f3b07fcd399f1aa00db1fbac9b97eca7e7a999c",
         "task_id": "slider_crank_t04_slider_crank_stroke_precision_s20267614",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -3929,7 +3725,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999996622110703
         },
         "verifier_level": 2
       },
@@ -3940,23 +3736,24 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "slider_crank",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "path_trace_chamfer",
           "trusted_asset_preflight"
         ],
-        "source_generator": "slider_crank_quick_return_proxy",
-        "source_task_id": "slider_crank_quick_return_proxy_s20267615",
-        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t05_slider_crank_quick_return_proxy_s20267615",
-        "task_hash": "16d8a81ee25956246b871767dc6b164cf78ff1020acb192a7fe93bb82c7b0bef",
-        "task_id": "slider_crank_t05_slider_crank_quick_return_proxy_s20267615",
+        "source_generator": "reciprocating_pump_plunger",
+        "source_task_id": "reciprocating_pump_plunger_s20267615",
+        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t05_reciprocating_pump_plunger_s20267615",
+        "task_hash": "3480b5005baa4e40aa3270241ab1e02f2068a096b0465da0177ed78e782db84d",
+        "task_id": "slider_crank_t05_reciprocating_pump_plunger_s20267615",
         "uses_fake_contact_oracle": false,
         "validation": {
           "negative_failures": [],
@@ -3965,7 +3762,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999996356935309
         },
         "verifier_level": 2
       },
@@ -3976,22 +3773,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "slider_crank",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "path_trace_chamfer",
           "trusted_asset_preflight"
         ],
         "source_generator": "slider_crank_stroke",
         "source_task_id": "slider_crank_stroke_s20267616",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t06_slider_crank_stroke_s20267616",
-        "task_hash": "7fb0c43227374cb4383643043d9f4b49b5f7556ef726dd9f1228ab5d33f23f7e",
+        "task_hash": "e2501727704dd33ee9e316d4bd1e629f564ee16313f3fdcd05e895ff87d19f64",
         "task_id": "slider_crank_t06_slider_crank_stroke_s20267616",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -4001,7 +3799,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999996584208737
         },
         "verifier_level": 2
       },
@@ -4012,22 +3810,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "slider_crank",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "path_trace_chamfer",
           "trusted_asset_preflight"
         ],
         "source_generator": "slider_crank_stroke_precision",
         "source_task_id": "slider_crank_stroke_precision_s20267617",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t07_slider_crank_stroke_precision_s20267617",
-        "task_hash": "cfbca1fdd2b726af8e7cefda005cb30fcd7439899442ce61fd2137d8dc4e07e8",
+        "task_hash": "8f788ea59416984e279bcc36120f3f2adc21c8134ef339f14cd07fd61d7ec65b",
         "task_id": "slider_crank_t07_slider_crank_stroke_precision_s20267617",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -4037,7 +3836,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999996443752164
         },
         "verifier_level": 2
       },
@@ -4048,23 +3847,24 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "slider_crank",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "path_trace_chamfer",
           "trusted_asset_preflight"
         ],
-        "source_generator": "slider_crank_quick_return_proxy",
-        "source_task_id": "slider_crank_quick_return_proxy_s20267618",
-        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t08_slider_crank_quick_return_proxy_s20267618",
-        "task_hash": "9d2271f1de9c9b50a2e56e48c0d0219eca0dbfbed07f298d63a2ad0f91f90cf3",
-        "task_id": "slider_crank_t08_slider_crank_quick_return_proxy_s20267618",
+        "source_generator": "reciprocating_pump_plunger",
+        "source_task_id": "reciprocating_pump_plunger_s20267618",
+        "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t08_reciprocating_pump_plunger_s20267618",
+        "task_hash": "e5091b6550618344eecc3826ed3c9b2d09f4728e73f335c39b00ac837273a658",
+        "task_id": "slider_crank_t08_reciprocating_pump_plunger_s20267618",
         "uses_fake_contact_oracle": false,
         "validation": {
           "negative_failures": [],
@@ -4073,7 +3873,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999996282775161
         },
         "verifier_level": 2
       },
@@ -4084,22 +3884,23 @@
           "interface",
           "topology_mobility"
         ],
-        "effective_negative_control_count": 4,
+        "effective_negative_control_count": 5,
         "family": "slider_crank",
         "has_hidden_variant": true,
-        "headline_demotion_reason": "analytic-only functional verifier",
-        "headline_eligible": false,
-        "negative_control_count": 4,
+        "headline_demotion_reason": "",
+        "headline_eligible": true,
+        "negative_control_count": 5,
         "probe_types": [
           "dof_grubler",
           "required_ports",
           "analytic_param_check",
+          "path_trace_chamfer",
           "trusted_asset_preflight"
         ],
         "source_generator": "slider_crank_stroke",
         "source_task_id": "slider_crank_stroke_s20267619",
         "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t09_slider_crank_stroke_s20267619",
-        "task_hash": "ae4750e10b6f3593c67445a7e477d49ee4234233169bd80639851c244d6c0bf9",
+        "task_hash": "c5c96db01c2079d0726613d351522f3f7281bf73172dffc6f044adce738a8a9f",
         "task_id": "slider_crank_t09_slider_crank_stroke_s20267619",
         "uses_fake_contact_oracle": false,
         "validation": {
@@ -4109,7 +3910,7 @@
           "reference_hard_gate_passed": true,
           "reference_oracle_is_synthetic": false,
           "reference_passed": true,
-          "reference_score": 1.0
+          "reference_score": 0.9999996419762083
         },
         "verifier_level": 2
       },
@@ -4476,7 +4277,7 @@
     ],
     "tasks_root": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks",
     "validate": true,
-    "validate_level3": true,
+    "validate_level3": false,
     "validation_blockers": []
   },
   "base_seed": 20260610,
@@ -5311,8 +5112,8 @@
     },
     {
       "family": "slider_crank",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20267610,
       "source_family": "slider_crank_stroke",
       "source_generator": "slider_crank_stroke",
@@ -5322,8 +5123,8 @@
     },
     {
       "family": "slider_crank",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20267611,
       "source_family": "slider_crank_stroke_precision",
       "source_generator": "slider_crank_stroke_precision",
@@ -5333,19 +5134,19 @@
     },
     {
       "family": "slider_crank",
-      "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20267612,
-      "source_family": "slider_crank_quick_return_proxy",
-      "source_generator": "slider_crank_quick_return_proxy",
-      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t02_slider_crank_quick_return_proxy_s20267612",
-      "task_id": "slider_crank_t02_slider_crank_quick_return_proxy_s20267612",
+      "source_family": "reciprocating_pump_plunger",
+      "source_generator": "reciprocating_pump_plunger",
+      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t02_reciprocating_pump_plunger_s20267612",
+      "task_id": "slider_crank_t02_reciprocating_pump_plunger_s20267612",
       "verifier_level": 2
     },
     {
       "family": "slider_crank",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20267613,
       "source_family": "slider_crank_stroke",
       "source_generator": "slider_crank_stroke",
@@ -5355,8 +5156,8 @@
     },
     {
       "family": "slider_crank",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20267614,
       "source_family": "slider_crank_stroke_precision",
       "source_generator": "slider_crank_stroke_precision",
@@ -5366,19 +5167,19 @@
     },
     {
       "family": "slider_crank",
-      "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20267615,
-      "source_family": "slider_crank_quick_return_proxy",
-      "source_generator": "slider_crank_quick_return_proxy",
-      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t05_slider_crank_quick_return_proxy_s20267615",
-      "task_id": "slider_crank_t05_slider_crank_quick_return_proxy_s20267615",
+      "source_family": "reciprocating_pump_plunger",
+      "source_generator": "reciprocating_pump_plunger",
+      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t05_reciprocating_pump_plunger_s20267615",
+      "task_id": "slider_crank_t05_reciprocating_pump_plunger_s20267615",
       "verifier_level": 2
     },
     {
       "family": "slider_crank",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20267616,
       "source_family": "slider_crank_stroke",
       "source_generator": "slider_crank_stroke",
@@ -5388,8 +5189,8 @@
     },
     {
       "family": "slider_crank",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20267617,
       "source_family": "slider_crank_stroke_precision",
       "source_generator": "slider_crank_stroke_precision",
@@ -5399,19 +5200,19 @@
     },
     {
       "family": "slider_crank",
-      "headline_demotion_reason": "toy/stub/analytic/proxy evidence",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20267618,
-      "source_family": "slider_crank_quick_return_proxy",
-      "source_generator": "slider_crank_quick_return_proxy",
-      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t08_slider_crank_quick_return_proxy_s20267618",
-      "task_id": "slider_crank_t08_slider_crank_quick_return_proxy_s20267618",
+      "source_family": "reciprocating_pump_plunger",
+      "source_generator": "reciprocating_pump_plunger",
+      "task_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final/tasks/slider_crank_t08_reciprocating_pump_plunger_s20267618",
+      "task_id": "slider_crank_t08_reciprocating_pump_plunger_s20267618",
       "verifier_level": 2
     },
     {
       "family": "slider_crank",
-      "headline_demotion_reason": "analytic-only functional verifier",
-      "headline_eligible": false,
+      "headline_demotion_reason": "",
+      "headline_eligible": true,
       "seed": 20267619,
       "source_family": "slider_crank_stroke",
       "source_generator": "slider_crank_stroke",

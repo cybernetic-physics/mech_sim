@@ -11,6 +11,15 @@
       "expected_score_below": 0.5
     },
     {
+      "id": "wrong_crank_geometry",
+      "submission": "negative_solutions/wrong_crank_geometry",
+      "expected_failure_codes": [
+        "path_error"
+      ],
+      "expected_hard_gate_passed": true,
+      "expected_score_below": 0.8
+    },
+    {
       "id": "wrong_mobility_extra_fixed",
       "submission": "negative_solutions/wrong_mobility_extra_fixed",
       "expected_failure_codes": [

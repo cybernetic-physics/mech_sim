@@ -1,6 +1,6 @@
 [feedback]
-public_metrics = ["mobility.observed", "mobility.expected", "stroke.observed", "stroke.expected", "trusted_asset_preflight.parts_with_required_geometry"]
-hidden_metrics = ["stroke.error_pct", "trusted_asset_preflight.trusted_mass_properties_recomputed"]
+public_metrics = ["mobility.observed", "mobility.expected", "stroke.observed", "stroke.expected", "slider_path.chamfer", "slider_path.n_observed", "slider_path.n_target", "trusted_asset_preflight.parts_with_required_geometry"]
+hidden_metrics = ["stroke.error_pct", "slider_path.chamfer", "trusted_asset_preflight.trusted_mass_properties_recomputed"]
 
 [hard_gate]
 require = ["mobility", "ports", "trusted_asset_preflight"]
@@ -40,6 +40,16 @@ expected = 50.34
 comparator = "eq"
 tolerance_pct = 1.0
 failure_code = "wrong_ratio"
+weight = 1.0
+severity = "major"
+
+[[probes]]
+id = "slider_path"
+type = "path_trace_chamfer"
+moving_frame = "output_port"
+target_csv = "target_slider_path_hidden.csv"
+normalize = false
+max_chamfer = 0.25
 weight = 1.0
 severity = "major"
 

@@ -16,7 +16,7 @@
     32
   ],
   "expected_cells_materialized_in_audit": false,
-  "full_planned_cells": 384,
+  "full_planned_cells": 864,
   "headline_splits": [
     "A",
     "B"
@@ -37,7 +37,7 @@
   "missing_required_seeds": [],
   "num_shards": 1,
   "out_dir": "/Users/nataliakokoromyti/Projects/corl/runs/mechanism_repair_physics_final",
-  "planned_cells": 384,
+  "planned_cells": 864,
   "primary_baseline": "llm_evolve_no_update",
   "primary_budget": 32,
   "primary_method": "mechanical_evolve_ttrl_tool_verified",
@@ -60,7 +60,18 @@
   "shard_index": 0,
   "sharded": false,
   "split_tasks": {
-    "A": [],
+    "A": [
+      "slider_crank_t00_slider_crank_stroke_s20267610",
+      "slider_crank_t01_slider_crank_stroke_precision_s20267611",
+      "slider_crank_t02_reciprocating_pump_plunger_s20267612",
+      "slider_crank_t03_slider_crank_stroke_s20267613",
+      "slider_crank_t04_slider_crank_stroke_precision_s20267614",
+      "slider_crank_t05_reciprocating_pump_plunger_s20267615",
+      "slider_crank_t06_slider_crank_stroke_s20267616",
+      "slider_crank_t07_slider_crank_stroke_precision_s20267617",
+      "slider_crank_t08_reciprocating_pump_plunger_s20267618",
+      "slider_crank_t09_slider_crank_stroke_s20267619"
+    ],
     "B": [],
     "external_style": [
       "fourbar_linkage_t07_fourbar_straight_line_approx_s20268617",
@@ -74,13 +85,23 @@
     ],
     "hidden_perturbation": [
       "fourbar_linkage_t02_fourbar_straight_line_approx_s20268612",
+      "slider_crank_t05_reciprocating_pump_plunger_s20267615",
       "fourbar_linkage_t03_fourbar_dwell_path_s20268613",
+      "slider_crank_t01_slider_crank_stroke_precision_s20267611",
       "fourbar_linkage_t06_fourbar_wiper_arc_s20268616",
+      "slider_crank_t09_slider_crank_stroke_s20267619",
+      "slider_crank_t06_slider_crank_stroke_s20267616",
+      "slider_crank_t00_slider_crank_stroke_s20267610",
+      "slider_crank_t02_reciprocating_pump_plunger_s20267612",
+      "slider_crank_t03_slider_crank_stroke_s20267613",
       "fourbar_linkage_t01_fourbar_wiper_arc_s20268611",
+      "slider_crank_t04_slider_crank_stroke_precision_s20267614",
       "fourbar_linkage_t05_fourbar_path_s20268615",
       "fourbar_linkage_t08_fourbar_dwell_path_s20268618",
+      "slider_crank_t08_reciprocating_pump_plunger_s20267618",
       "fourbar_linkage_t07_fourbar_straight_line_approx_s20268617",
-      "fourbar_linkage_t00_fourbar_path_s20268610"
+      "fourbar_linkage_t00_fourbar_path_s20268610",
+      "slider_crank_t07_slider_crank_stroke_precision_s20267617"
     ]
   },
   "success_delta_threshold_pct": 15.0

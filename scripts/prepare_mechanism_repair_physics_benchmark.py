@@ -77,7 +77,7 @@ FAMILY_SPECS: tuple[FamilySpec, ...] = (
         (
             "slider_crank_stroke",
             "slider_crank_stroke_precision",
-            "slider_crank_quick_return_proxy",
+            "reciprocating_pump_plunger",
         ),
     ),
     FamilySpec(

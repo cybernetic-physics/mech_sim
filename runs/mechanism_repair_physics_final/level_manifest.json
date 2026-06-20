@@ -1205,7 +1205,7 @@
         "topology_mobility"
       ],
       "family": "slider_crank",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "slider_crank_t00_slider_crank_stroke_s20267610",
       "verifier_level": 2
     },
@@ -1217,7 +1217,7 @@
         "topology_mobility"
       ],
       "family": "slider_crank",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "slider_crank_t01_slider_crank_stroke_precision_s20267611",
       "verifier_level": 2
     },
@@ -1229,8 +1229,8 @@
         "topology_mobility"
       ],
       "family": "slider_crank",
-      "headline_eligible": false,
-      "task_id": "slider_crank_t02_slider_crank_quick_return_proxy_s20267612",
+      "headline_eligible": true,
+      "task_id": "slider_crank_t02_reciprocating_pump_plunger_s20267612",
       "verifier_level": 2
     },
     {
@@ -1241,7 +1241,7 @@
         "topology_mobility"
       ],
       "family": "slider_crank",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "slider_crank_t03_slider_crank_stroke_s20267613",
       "verifier_level": 2
     },
@@ -1253,7 +1253,7 @@
         "topology_mobility"
       ],
       "family": "slider_crank",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "slider_crank_t04_slider_crank_stroke_precision_s20267614",
       "verifier_level": 2
     },
@@ -1265,8 +1265,8 @@
         "topology_mobility"
       ],
       "family": "slider_crank",
-      "headline_eligible": false,
-      "task_id": "slider_crank_t05_slider_crank_quick_return_proxy_s20267615",
+      "headline_eligible": true,
+      "task_id": "slider_crank_t05_reciprocating_pump_plunger_s20267615",
       "verifier_level": 2
     },
     {
@@ -1277,7 +1277,7 @@
         "topology_mobility"
       ],
       "family": "slider_crank",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "slider_crank_t06_slider_crank_stroke_s20267616",
       "verifier_level": 2
     },
@@ -1289,7 +1289,7 @@
         "topology_mobility"
       ],
       "family": "slider_crank",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "slider_crank_t07_slider_crank_stroke_precision_s20267617",
       "verifier_level": 2
     },
@@ -1301,8 +1301,8 @@
         "topology_mobility"
       ],
       "family": "slider_crank",
-      "headline_eligible": false,
-      "task_id": "slider_crank_t08_slider_crank_quick_return_proxy_s20267618",
+      "headline_eligible": true,
+      "task_id": "slider_crank_t08_reciprocating_pump_plunger_s20267618",
       "verifier_level": 2
     },
     {
@@ -1313,7 +1313,7 @@
         "topology_mobility"
       ],
       "family": "slider_crank",
-      "headline_eligible": false,
+      "headline_eligible": true,
       "task_id": "slider_crank_t09_slider_crank_stroke_s20267619",
       "verifier_level": 2
     },

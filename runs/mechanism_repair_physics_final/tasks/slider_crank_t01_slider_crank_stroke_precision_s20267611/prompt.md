@@ -2,6 +2,7 @@
 
 Design a slider-crank with crank 24.37, coupler 77.32.
 * Declare `params.declared_stroke_mm` = 48.74 mm.
+* Match the simulated slider trace in `fixtures/target_slider_path.csv`.
 
 ## MechanismRepair-Physics canonical contract
 
@@ -24,7 +25,7 @@ Family mechanism:
   - gear train
 
 Task objective:
-- Slider-crank stroke = 48.74 mm.
+- Slider-crank stroke = 48.74 mm and output slider trace matches the fixture.
 
 Task-level requirements:
 - `required_ports`: ["input_port", "output_port"]

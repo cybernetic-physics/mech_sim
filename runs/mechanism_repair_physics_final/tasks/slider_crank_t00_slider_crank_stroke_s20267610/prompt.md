@@ -3,6 +3,7 @@
 Design a centric slider-crank with crank length 25.17 mm and coupler 72.29 mm.
 
 * Declare `params.declared_stroke_mm` = 50.34 mm (twice the crank length).
+* Match the simulated `output_port` slider trace in `fixtures/target_slider_path.csv`.
 * Required ports: `input_port` (revolute_joint, grounded), `output_port` (prismatic_joint).
 * Mobility = 1.
 
@@ -27,7 +28,7 @@ Family mechanism:
   - gear train
 
 Task objective:
-- Centric slider-crank; declare stroke = 50.34 mm; mobility=1.
+- Centric slider-crank; declare stroke = 50.34 mm; match output slider trace; mobility=1.
 
 Task-level requirements:
 - `required_ports`: ["input_port", "output_port"]

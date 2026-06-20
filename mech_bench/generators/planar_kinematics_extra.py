@@ -52,6 +52,39 @@ def _csv_text(rows: list[tuple[float, float]]) -> str:
     return buf.getvalue()
 
 
+def _slider_output_trace(
+    crank: float,
+    coupler: float,
+    *,
+    n: int = 360,
+) -> list[tuple[float, float]]:
+    out: list[tuple[float, float]] = []
+    previous: float | None = None
+    previous_branch = 1.0
+    for i in range(n):
+        theta = 2.0 * math.pi * i / n
+        bx = crank * math.cos(theta)
+        by = crank * math.sin(theta)
+        disc = coupler * coupler - by * by
+        if disc < 0.0:
+            continue
+        root = math.sqrt(disc)
+        s_plus = bx + root
+        s_minus = bx - root
+        if previous is None:
+            slider_x = s_plus
+            previous_branch = 1.0
+        elif abs(s_plus - previous) <= abs(s_minus - previous):
+            slider_x = s_plus if previous_branch >= 0 else s_minus
+            previous_branch = 1.0
+        else:
+            slider_x = s_minus
+            previous_branch = -1.0
+        previous = slider_x
+        out.append((slider_x, 0.0))
+    return out
+
+
 def _fourbar_coupler_trace(
     ground: float, crank: float, coupler: float, rocker: float,
     off_x: float, off_y: float,
@@ -812,9 +845,11 @@ class SliderCrankStrokePrecisionGenerator(TaskGenerator):
             "# Slider-crank stroke precision\n\n"
             f"Design a slider-crank with crank {crank}, coupler {coupler}.\n"
             f"* Declare `params.declared_stroke_mm` = {stroke} mm.\n"
+            "* Match the simulated slider trace in "
+            "`fixtures/target_slider_path.csv`.\n"
         )
 
-        def _cfg(tol_pct: float) -> dict[str, Any]:
+        def _cfg(tol_pct: float, csv: str, max_chamfer: float) -> dict[str, Any]:
             return {
                 "probes": [
                     dof_probe(expected=1),
@@ -830,21 +865,40 @@ class SliderCrankStrokePrecisionGenerator(TaskGenerator):
                         stroke, tolerance_pct=tol_pct,
                         failure_code="wrong_ratio",
                     ),
+                    {"id": "slider_path",
+                     "type": "path_trace_chamfer",
+                     "moving_frame": "output_port",
+                     "target_csv": csv,
+                     "normalize": False,
+                     "max_chamfer": float(max_chamfer),
+                     "weight": 1.0, "severity": "major"},
                 ],
                 "feedback": {
                     "public_metrics": [
                         "mobility.observed", "stroke.observed",
+                        "slider_path.chamfer",
                     ],
-                    "hidden_metrics": ["stroke.error_pct"],
+                    "hidden_metrics": [
+                        "stroke.error_pct",
+                        "slider_path.chamfer",
+                    ],
                 },
                 "hard_gate": {"require": ["mobility", "ports"]},
             }
 
         ref_py = make_basic_design_py(parts, joints, ports, params)
+        target_path = _slider_output_trace(crank, coupler, n=360)
+        hidden_path = _slider_output_trace(crank, coupler, n=240)
         negatives = {
             "wrong_stroke": make_negative_overlay(
                 f"    ir['params']['declared_stroke_mm'] = "
                 f"{round(stroke * 1.4, 4)}"
+            ),
+            "wrong_crank_geometry": make_negative_overlay(
+                "    for joint in ir['joints']:\n"
+                "        if joint['id'] == 'joint_bc':\n"
+                f"            joint['anchor_world_mm'] = "
+                f"({round(crank * 0.55, 4)}, 0.0, 0.0)"
             ),
             "wrong_joint_type": make_negative_overlay(
                 "    ir['ports']['output_port']['kind'] = "
@@ -858,6 +912,10 @@ class SliderCrankStrokePrecisionGenerator(TaskGenerator):
                  "expected_failure_codes": ["wrong_ratio"],
                  "expected_hard_gate_passed": True,
                  "expected_score_below": 0.5},
+                {"id": "wrong_crank_geometry",
+                 "expected_failure_codes": ["path_error"],
+                 "expected_hard_gate_passed": True,
+                 "expected_score_below": 0.8},
                 {"id": "wrong_joint_type",
                  "expected_failure_codes": ["wrong_topology"],
                  "expected_hard_gate_passed": False,
@@ -874,7 +932,12 @@ class SliderCrankStrokePrecisionGenerator(TaskGenerator):
                 "max_envelope_mm": [220, 80, 50],
             },
             "objective": {
-                "description": f"Slider-crank stroke = {stroke} mm.",
+                "description": (
+                    f"Slider-crank stroke = {stroke} mm and output "
+                    "slider trace matches the fixture."
+                ),
+                "target_path_csv": "target_slider_path.csv",
+                "max_chamfer_mm": 0.35,
                 "ground_required": True,
             },
         }
@@ -882,9 +945,20 @@ class SliderCrankStrokePrecisionGenerator(TaskGenerator):
             task_id=task_id, family=self.family,
             difficulty=int(difficulty), prompt_md=prompt,
             task_toml=task_toml,
-            eval_config_toml=_cfg(tol_pct=2.0),
-            eval_config_hidden_toml=_cfg(tol_pct=1.0),
-            fixtures={},
+            eval_config_toml=_cfg(
+                tol_pct=2.0,
+                csv="target_slider_path.csv",
+                max_chamfer=0.35,
+            ),
+            eval_config_hidden_toml=_cfg(
+                tol_pct=1.0,
+                csv="target_slider_path_hidden.csv",
+                max_chamfer=0.25,
+            ),
+            fixtures={
+                "target_slider_path.csv": _csv_text(target_path),
+                "target_slider_path_hidden.csv": _csv_text(hidden_path),
+            },
             reference_solution_py=ref_py,
             negative_solutions=negatives,
             expected_failures=expected,
@@ -1023,9 +1097,10 @@ class ReciprocatingPumpPlungerGenerator(TaskGenerator):
         prompt = (
             "# Reciprocating pump plunger\n\n"
             "Slider-crank-driven plunger; output stroke along one axis.\n"
+            "Match `fixtures/target_slider_path.csv` under actuation.\n"
         )
 
-        def _cfg(tol_pct: float) -> dict[str, Any]:
+        def _cfg(tol_pct: float, csv: str, max_chamfer: float) -> dict[str, Any]:
             return {
                 "probes": [
                     dof_probe(expected=1),
@@ -1041,22 +1116,41 @@ class ReciprocatingPumpPlungerGenerator(TaskGenerator):
                         stroke, tolerance_pct=tol_pct,
                         failure_code="wrong_ratio",
                     ),
+                    {"id": "slider_path",
+                     "type": "path_trace_chamfer",
+                     "moving_frame": "output_port",
+                     "target_csv": csv,
+                     "normalize": False,
+                     "max_chamfer": float(max_chamfer),
+                     "weight": 1.0, "severity": "major"},
                 ],
                 "feedback": {
                     "public_metrics": [
                         "mobility.observed", "stroke.observed",
+                        "slider_path.chamfer",
                     ],
-                    "hidden_metrics": ["stroke.error_pct"],
+                    "hidden_metrics": [
+                        "stroke.error_pct",
+                        "slider_path.chamfer",
+                    ],
                 },
                 "hard_gate": {"require": ["mobility", "ports"]},
             }
 
         ref_py = make_basic_design_py(parts, joints, ports, params)
+        target_path = _slider_output_trace(crank, coupler, n=360)
+        hidden_path = _slider_output_trace(crank, coupler, n=240)
         negatives = {
             "off_axis_slider": make_negative_overlay(
                 "    for j in ir['joints']:\n"
                 "        if j['id'] == 'joint_slide':\n"
                 "            j['axis_world'] = (0.7, 0.7, 0.0)"
+            ),
+            "wrong_crank_geometry": make_negative_overlay(
+                "    for joint in ir['joints']:\n"
+                "        if joint['id'] == 'joint_bc':\n"
+                f"            joint['anchor_world_mm'] = "
+                f"({round(crank * 0.5, 4)}, 0.0, 0.0)"
             ),
             "short_stroke": make_negative_overlay(
                 f"    ir['params']['declared_stroke_mm'] = "
@@ -1067,9 +1161,13 @@ class ReciprocatingPumpPlungerGenerator(TaskGenerator):
             f"Tier 1 {self.family} negatives.",
             [
                 {"id": "off_axis_slider",
-                 "expected_failure_codes": [],
+                 "expected_failure_codes": ["path_error"],
                  "expected_hard_gate_passed": True,
-                 "expected_score_below": 1.01},
+                 "expected_score_below": 0.8},
+                {"id": "wrong_crank_geometry",
+                 "expected_failure_codes": ["path_error"],
+                 "expected_hard_gate_passed": True,
+                 "expected_score_below": 0.8},
                 {"id": "short_stroke",
                  "expected_failure_codes": ["wrong_ratio"],
                  "expected_hard_gate_passed": True,
@@ -1086,7 +1184,9 @@ class ReciprocatingPumpPlungerGenerator(TaskGenerator):
                 "max_envelope_mm": [220, 80, 50],
             },
             "objective": {
-                "description": "Pump plunger; stroke target.",
+                "description": "Pump plunger; stroke and path target.",
+                "target_path_csv": "target_slider_path.csv",
+                "max_chamfer_mm": 0.35,
                 "ground_required": True,
             },
         }
@@ -1094,9 +1194,20 @@ class ReciprocatingPumpPlungerGenerator(TaskGenerator):
             task_id=task_id, family=self.family,
             difficulty=int(difficulty), prompt_md=prompt,
             task_toml=task_toml,
-            eval_config_toml=_cfg(tol_pct=2.0),
-            eval_config_hidden_toml=_cfg(tol_pct=1.0),
-            fixtures={},
+            eval_config_toml=_cfg(
+                tol_pct=2.0,
+                csv="target_slider_path.csv",
+                max_chamfer=0.35,
+            ),
+            eval_config_hidden_toml=_cfg(
+                tol_pct=1.0,
+                csv="target_slider_path_hidden.csv",
+                max_chamfer=0.25,
+            ),
+            fixtures={
+                "target_slider_path.csv": _csv_text(target_path),
+                "target_slider_path_hidden.csv": _csv_text(hidden_path),
+            },
             reference_solution_py=ref_py,
             negative_solutions=negatives,
             expected_failures=expected,
