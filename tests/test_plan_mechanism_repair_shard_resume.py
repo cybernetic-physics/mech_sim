@@ -169,6 +169,7 @@ def test_resume_plan_requires_clean_complete_shards_for_merge(tmp_path: Path) ->
         str(run_dir / "shard_runs"),
         "--require-all-shards",
         "2",
+        "--require-complete",
     ]
     assert "merge_mechanism_repair_shards.py" in report["merge_command_text"]
     assert report["complete_shard_count"] == 2

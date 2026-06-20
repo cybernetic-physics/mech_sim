@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from argparse import Namespace
 import json
 from pathlib import Path
 
 import pytest
 
+from scripts import merge_mechanism_repair_shards as merge
 from scripts.merge_mechanism_repair_shards import load_shard_rows
 
 
@@ -88,6 +90,42 @@ def test_merge_shard_rows_accepts_complete_expected_manifest(
     assert summaries[0]["expected_rows"] == 1
     assert summaries[0]["missing_cell_count"] == 0
     assert summaries[0]["unexpected_cell_count"] == 0
+
+
+def test_physics_shard_merge_forwards_require_complete_to_audit(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    benchmark_dir = tmp_path / "benchmark"
+    out_dir = tmp_path / "out"
+    shard_root = tmp_path / "shards"
+    row = _cell("task_a")
+    _write_row(shard_root / "shard_0000" / "cell_results.jsonl", row)
+    calls: list[list[str]] = []
+
+    monkeypatch.setattr(merge, "run_analysis", lambda **_kwargs: None)
+
+    def fake_subprocess_run(cmd: list[str], *, check: bool) -> None:
+        assert check is True
+        calls.append(cmd)
+
+    monkeypatch.setattr(merge.subprocess, "run", fake_subprocess_run)
+
+    rc = merge.run_physics_shard_merge(
+        Namespace(
+            benchmark_dir=str(benchmark_dir),
+            out_dir=str(out_dir),
+            shard_root=str(shard_root),
+            require_all_shards=0,
+            skip_analysis=False,
+            skip_physics_audit=False,
+            require_complete=True,
+        )
+    )
+
+    assert rc == 0
+    assert len(calls) == 1
+    assert "--require-complete" in calls[0]
 
 
 def test_merge_shard_rows_rejects_incomplete_expected_manifest(

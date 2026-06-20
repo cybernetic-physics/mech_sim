@@ -341,6 +341,7 @@ def merge_shards_command(
         str(run_dir / "shard_runs"),
         "--require-all-shards",
         str(int(shard_count)),
+        "--require-complete",
     ]
 
 

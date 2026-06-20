@@ -86,6 +86,14 @@ def main() -> int:
     parser.add_argument("--require-all-shards", type=int, default=0)
     parser.add_argument("--skip-analysis", action="store_true")
     parser.add_argument("--skip-physics-audit", action="store_true")
+    parser.add_argument(
+        "--require-complete",
+        action="store_true",
+        help=(
+            "when running the physics audit after merge, require the final "
+            "claim audit to prove docs/goals.md completion"
+        ),
+    )
     args = parser.parse_args()
 
     if args.source_dir:
@@ -181,17 +189,17 @@ def run_physics_shard_merge(args: argparse.Namespace) -> int:
     if not args.skip_analysis:
         run_analysis(out_dir=out_dir, benchmark_dir=benchmark_dir)
     if not args.skip_physics_audit:
-        subprocess.run(
-            [
-                sys.executable,
-                str(Path(__file__).with_name("run_mechanism_repair_physics_experiment.py")),
-                "--benchmark-dir",
-                str(benchmark_dir),
-                "--out-dir",
-                str(out_dir),
-            ],
-            check=True,
-        )
+        audit_cmd = [
+            sys.executable,
+            str(Path(__file__).with_name("run_mechanism_repair_physics_experiment.py")),
+            "--benchmark-dir",
+            str(benchmark_dir),
+            "--out-dir",
+            str(out_dir),
+        ]
+        if bool(getattr(args, "require_complete", False)):
+            audit_cmd.append("--require-complete")
+        subprocess.run(audit_cmd, check=True)
     print(json.dumps({
         "rows": len(rows),
         "jsonl": str(out_dir / "cell_results.jsonl"),
