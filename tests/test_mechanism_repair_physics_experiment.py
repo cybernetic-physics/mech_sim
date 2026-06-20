@@ -20,6 +20,52 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 FROZEN_PHYSICS_BENCHMARK = REPO_ROOT / "runs" / "mechanism_repair_physics_final"
 
 
+def test_frozen_physics_benchmark_matches_goal_contract() -> None:
+    manifest = json.loads(
+        (FROZEN_PHYSICS_BENCHMARK / "benchmark_manifest.json").read_text()
+    )
+    method_manifest = json.loads(
+        (FROZEN_PHYSICS_BENCHMARK / "method_manifest.json").read_text()
+    )
+    plan = json.loads(
+        (FROZEN_PHYSICS_BENCHMARK / "physics_experiment_plan.json").read_text()
+    )
+    audit = manifest["audit"]
+
+    assert manifest["experiment_ready"] is True
+    assert manifest["task_count"] == 120
+    assert audit["family_counts"] == {family: 10 for family in REQUIRED_FAMILIES}
+    assert audit["level_counts"] == {"2": 80, "3": 40}
+    assert audit["level2plus_headline_count"] == 120
+    assert audit["level3_headline_count"] == 40
+    assert audit["blockers"] == []
+    assert audit["paper_blockers"] == []
+
+    for task in audit["tasks"]:
+        assert task["headline_eligible"] is True
+        assert len(task["constraint_classes"]) >= 3
+        assert task["effective_negative_control_count"] >= 2
+        assert task["has_hidden_variant"] is True
+        assert task["uses_fake_contact_oracle"] is False
+        validation = task["validation"]
+        assert validation["reference_passed"] is True
+        assert validation["reference_oracle_is_synthetic"] is False
+        assert validation["negative_failures"] == []
+
+    assert method_manifest["required_methods"] == list(REQUIRED_METHODS)
+    assert method_manifest["eval_seeds"] == list(EVAL_SEEDS)
+    assert method_manifest["primary_budget_expensive_verifier_calls"] == PRIMARY_BUDGET
+    assert method_manifest["primary_method"] == "mechanical_evolve_ttrl_tool_verified"
+    assert method_manifest["primary_baseline"] == "llm_evolve_no_update"
+
+    assert plan["methods"] == list(REQUIRED_METHODS)
+    assert plan["seeds"] == list(EVAL_SEEDS)
+    assert plan["budgets"] == [PRIMARY_BUDGET]
+    assert plan["anti_shortcut_splits"] == ["hidden_perturbation", "external_style"]
+    assert plan["planned_cells"] == 6480
+    assert plan["full_planned_cells"] == 6480
+
+
 def _write_json(path: Path, payload: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
