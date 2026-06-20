@@ -272,8 +272,10 @@ def test_physics_analysis_uses_manifest_primary_and_learning_variants(
                 evidence_dir.mkdir(parents=True, exist_ok=True)
                 raw = evidence_dir / "completion.txt"
                 verifier = evidence_dir / "verifier.json"
+                cad = evidence_dir / "artifact.step"
                 raw.write_text("design\n")
                 verifier.write_text('{"verified_score": 1.0}\n')
+                cad.write_text("ISO-10303-21;\n")
                 success = method == "mechanical_evolve_ttrl_tool_verified"
                 reward = 1.0 if success else 0.1
                 if method == "llm_evolve_no_update":
@@ -292,6 +294,7 @@ def test_physics_analysis_uses_manifest_primary_and_learning_variants(
                     "actual_chrono_calls": 1,
                     "raw_completion_paths": [str(raw)] * 32,
                     "verifier_output_paths": [str(verifier)] * 32,
+                    "cad_artifact_paths": [str(cad)],
                     "failure_codes": "" if success else "wrong_ratio",
                 }
                 if method.startswith("mechanical_evolve_ttrl"):
@@ -412,6 +415,81 @@ def test_physics_headline_metric_excludes_level1_diagnostics(
         ["level23_verified_repair_success_at_32"]
         == 0.0
     )
+
+
+def test_physics_analysis_rejects_missing_level3_chrono_evidence(
+    tmp_path: Path,
+) -> None:
+    benchmark_dir = tmp_path / "physics"
+    benchmark_dir.mkdir()
+    methods = [
+        "llm_evolve_no_update",
+        "mechanical_evolve_ttrl_tool_verified",
+    ]
+    (benchmark_dir / "method_manifest.json").write_text(json.dumps({
+        "schema": "mechanism_repair_physics.method_manifest.v1",
+        "primary_method": "mechanical_evolve_ttrl_tool_verified",
+        "primary_baseline": "llm_evolve_no_update",
+        "primary_budget_expensive_verifier_calls": 32,
+        "eval_seeds": [20260610],
+        "required_methods": methods,
+        "success_threshold": {"level23_success_abs_delta_pct": 15.0},
+    }))
+    contract = load_analysis_contract(benchmark_dir)
+    rows = []
+    for method in methods:
+        evidence_dir = tmp_path / "evidence" / method
+        evidence_dir.mkdir(parents=True)
+        raw = evidence_dir / "completion.txt"
+        verifier = evidence_dir / "verifier.json"
+        cad = evidence_dir / "artifact.step"
+        raw.write_text("design\n")
+        verifier.write_text('{"verified_score": 1.0}\n')
+        cad.write_text("ISO-10303-21;\n")
+        primary = method == "mechanical_evolve_ttrl_tool_verified"
+        row = {
+            "split": "hidden_perturbation",
+            "family": "family_a",
+            "task_id": "level3_claim",
+            "seed": 20260610,
+            "method": method,
+            "verifier_level": 3,
+            "verified_repair_success": primary,
+            "verified_score": 1.0 if primary else 0.0,
+            "actual_verifier_calls": 32,
+            "actual_cad_calls": 1,
+            "actual_chrono_calls": 1,
+            "raw_completion_paths": [str(raw)] * 32,
+            "verifier_output_paths": [str(verifier)] * 32,
+            "cad_artifact_paths": [str(cad)],
+        }
+        if primary:
+            reward_log = evidence_dir / "reward_log.jsonl"
+            reward_log.write_text('{"verified_score": 1.0}\n')
+            adapter = evidence_dir / "final_adapter"
+            adapter.mkdir()
+            row.update({
+                "trace_path": str(reward_log),
+                "adapter_path": str(adapter),
+                "adapter_updates": 32,
+                "trained_tokens": 128,
+                "rl_trained_tokens": 128,
+                "n_rl_datums": 32,
+            })
+        rows.append(row)
+
+    stats = analyze_rows(
+        normalize_rows(rows),
+        bootstrap_samples=200,
+        seed=7,
+        contract=contract,
+    )
+    audit = build_claim_audit(stats)
+
+    assert stats["evidence_audit"]["chrono_outputs_present"] is False
+    assert stats["evidence_audit"]["n_missing_chrono_rows"] == 2
+    assert audit["claim_status"] == "does_not_support_primary_hypothesis"
+    assert any("missing_chrono_rows=2" in item for item in audit["blockers"])
 
 
 def test_mechanism_repair_analysis_summarizes_secondary_metrics(

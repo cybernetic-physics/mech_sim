@@ -832,6 +832,10 @@ def audit_evidence(
     missing_verifier_files: list[dict[str, Any]] = []
     verifier_count_mismatches: list[dict[str, Any]] = []
     missing_summary_files: list[dict[str, Any]] = []
+    missing_cad_rows: list[dict[str, Any]] = []
+    missing_cad_files: list[dict[str, Any]] = []
+    missing_chrono_rows: list[dict[str, Any]] = []
+    missing_chrono_files: list[dict[str, Any]] = []
     missing_ttrl_training_logs: list[dict[str, Any]] = []
     missing_ttrl_adapters: list[dict[str, Any]] = []
 
@@ -839,6 +843,8 @@ def audit_evidence(
         ref = row_ref(row)
         raw_paths = parse_paths(row.get("raw_completion_paths", []))
         verifier_paths = parse_paths(row.get("verifier_output_paths", []))
+        cad_paths = parse_paths(row.get("cad_artifact_paths", []))
+        chrono_paths = parse_paths(row.get("chrono_output_paths", []))
         if not raw_paths:
             missing_raw_rows.append(ref)
         if not verifier_paths:
@@ -859,6 +865,19 @@ def audit_evidence(
         summary_path = str(row.get("summary_path") or "")
         if summary_path and not Path(summary_path).is_file():
             missing_summary_files.append({**ref, "path": summary_path})
+        verifier_level = int(row.get("verifier_level", 0) or 0)
+        if is_physics_contract(contract) and verifier_level >= 2:
+            if not cad_paths:
+                missing_cad_rows.append(ref)
+            for path in cad_paths:
+                if not Path(path).is_file():
+                    missing_cad_files.append({**ref, "path": path})
+        if is_physics_contract(contract) and verifier_level >= 3:
+            if not chrono_paths:
+                missing_chrono_rows.append(ref)
+            for path in chrono_paths:
+                if not Path(path).is_file():
+                    missing_chrono_files.append({**ref, "path": path})
         if row["method"] in contract.learning_methods:
             trace_path = str(row.get("trace_path") or "")
             if not trace_path or not Path(trace_path).is_file():
@@ -875,6 +894,10 @@ def audit_evidence(
         missing_verifier_files,
         verifier_count_mismatches,
         missing_summary_files,
+        missing_cad_rows,
+        missing_cad_files,
+        missing_chrono_rows,
+        missing_chrono_files,
         missing_ttrl_training_logs,
         missing_ttrl_adapters,
     ])
@@ -884,6 +907,10 @@ def audit_evidence(
             not missing_verifier_rows
             and not missing_verifier_files
             and not verifier_count_mismatches
+        ),
+        "cad_artifacts_present": not missing_cad_rows and not missing_cad_files,
+        "chrono_outputs_present": (
+            not missing_chrono_rows and not missing_chrono_files
         ),
         "training_logs_present": not missing_ttrl_training_logs,
         "adapter_checkpoints_present": not missing_ttrl_adapters,
@@ -898,6 +925,10 @@ def audit_evidence(
         "n_missing_verifier_files": len(missing_verifier_files),
         "n_verifier_count_mismatches": len(verifier_count_mismatches),
         "n_missing_summary_files": len(missing_summary_files),
+        "n_missing_cad_rows": len(missing_cad_rows),
+        "n_missing_cad_files": len(missing_cad_files),
+        "n_missing_chrono_rows": len(missing_chrono_rows),
+        "n_missing_chrono_files": len(missing_chrono_files),
         "n_missing_ttrl_training_logs": len(missing_ttrl_training_logs),
         "n_missing_ttrl_adapters": len(missing_ttrl_adapters),
         "missing_raw_rows": missing_raw_rows[:100],
@@ -906,6 +937,10 @@ def audit_evidence(
         "missing_verifier_files": missing_verifier_files[:100],
         "verifier_count_mismatches": verifier_count_mismatches[:100],
         "missing_summary_files": missing_summary_files[:100],
+        "missing_cad_rows": missing_cad_rows[:100],
+        "missing_cad_files": missing_cad_files[:100],
+        "missing_chrono_rows": missing_chrono_rows[:100],
+        "missing_chrono_files": missing_chrono_files[:100],
         "missing_ttrl_training_logs": missing_ttrl_training_logs[:100],
         "missing_ttrl_adapters": missing_ttrl_adapters[:100],
     }
@@ -1480,6 +1515,10 @@ def build_claim_audit(stats: dict[str, Any]) -> dict[str, Any]:
             f"missing_verifier_rows={evidence.get('n_missing_verifier_rows', 0)}, "
             f"missing_raw_files={evidence.get('n_missing_raw_files', 0)}, "
             f"missing_verifier_files={evidence.get('n_missing_verifier_files', 0)}, "
+            f"missing_cad_rows={evidence.get('n_missing_cad_rows', 0)}, "
+            f"missing_cad_files={evidence.get('n_missing_cad_files', 0)}, "
+            f"missing_chrono_rows={evidence.get('n_missing_chrono_rows', 0)}, "
+            f"missing_chrono_files={evidence.get('n_missing_chrono_files', 0)}, "
             f"trace_pairs={evidence.get('matched_ttrl_vs_no_update_trace_pairs_with_evidence', 0)}"
         )
     learning = stats.get("learning_audit") or {}
