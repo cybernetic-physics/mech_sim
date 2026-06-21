@@ -1828,6 +1828,11 @@ def retain_ttrl_adapter_checkpoint(
     adapter_path = Path(
         str(payload.get("final_adapter") or manifest_path.parent / "final_adapter")
     )
+    require_adapter_checkpoint_with_weights(
+        adapter_path,
+        manifest_path=manifest_path,
+        label=f"TTRL {split}/{seed}/{method}/{task_id}",
+    )
     if retention == "full":
         payload["adapter_retention"] = {
             "mode": "full",
@@ -1939,6 +1944,36 @@ def adapter_file_manifest(adapter_path: Path) -> list[dict[str, Any]]:
 
 def is_adapter_weight_file(path: Path) -> bool:
     return path.name in ADAPTER_WEIGHT_FILE_NAMES or path.suffix == ".safetensors"
+
+
+def adapter_path_has_weight_file(adapter_path: Path) -> bool:
+    if adapter_path.is_file():
+        return is_adapter_weight_file(adapter_path)
+    if adapter_path.is_dir():
+        return any(
+            is_adapter_weight_file(path)
+            for path in adapter_path.rglob("*")
+            if path.is_file()
+        )
+    return False
+
+
+def require_adapter_checkpoint_with_weights(
+    adapter_path: Path,
+    *,
+    manifest_path: Path,
+    label: str,
+) -> None:
+    if not adapter_path.exists():
+        raise SystemExit(
+            f"{label} adapter checkpoint missing: {adapter_path} "
+            f"(manifest: {manifest_path})"
+        )
+    if not adapter_path_has_weight_file(adapter_path):
+        raise SystemExit(
+            f"{label} adapter checkpoint has no weight file: {adapter_path} "
+            f"(manifest: {manifest_path})"
+        )
 
 
 def sha256_file(path: Path) -> str:

@@ -1821,13 +1821,16 @@ def test_ttrl_runner_passes_lightweight_kbit_prepare_mode(
         (run_dir / "reward_log.jsonl").write_text(
             "\n".join(json.dumps(row) for row in rows) + "\n"
         )
+        adapter = run_dir / "final_adapter"
+        adapter.mkdir()
+        (adapter / "adapter_model.safetensors").write_bytes(b"weights")
         (run_dir / "run_manifest.json").write_text(
             json.dumps({
                 "adapter_updates": 1,
                 "trained_tokens": 16,
                 "rl_trained_tokens": 16,
                 "n_rl_datums": 4,
-                "final_adapter": str(run_dir / "final_adapter"),
+                "final_adapter": str(adapter),
                 "optimizer_guard": {
                     "attempted_steps": 1,
                     "successful_steps": 1,
@@ -1928,11 +1931,15 @@ def test_ttrl_runner_preserves_physics_method_and_reward_channel(
         (run_dir / "reward_log.jsonl").write_text(
             "\n".join(json.dumps(row) for row in rows) + "\n"
         )
+        adapter = run_dir / "final_adapter"
+        adapter.mkdir()
+        (adapter / "adapter_model.safetensors").write_bytes(b"weights")
         (run_dir / "run_manifest.json").write_text(
             json.dumps({
                 "adapter_updates": 1,
                 "trained_tokens": 16,
                 "rl_trained_tokens": 16,
+                "final_adapter": str(adapter),
                 "n_rl_datums": 4,
                 "optimizer_guard": {
                     "attempted_steps": 1,
@@ -2117,6 +2124,24 @@ def test_ttrl_metadata_retention_keeps_checkpoint_provenance(
     assert row["training_manifest_path"] == str(run_dir / "run_manifest.json")
 
 
+def test_ttrl_retention_rejects_missing_adapter_checkpoint(tmp_path: Path) -> None:
+    manifest = tmp_path / "run_manifest.json"
+    manifest.write_text(
+        json.dumps({"final_adapter": str(tmp_path / "missing_adapter")}) + "\n"
+    )
+
+    with pytest.raises(SystemExit, match="adapter checkpoint missing"):
+        online.retain_ttrl_adapter_checkpoint(
+            manifest_path=manifest,
+            split="A",
+            seed=20260610,
+            method="mechanical_evolve_ttrl",
+            task_id="task",
+            evidence_root=None,
+            retention="full",
+        )
+
+
 def test_optional_file_lock_enters_and_exits(tmp_path: Path) -> None:
     lock_path = tmp_path / "locks" / "sft.lock"
 
@@ -2149,12 +2174,16 @@ def test_ttrl_runner_rejects_reward_log_over_budget(
         (run_dir / "reward_log.jsonl").write_text(
             "\n".join(json.dumps(row) for row in rows) + "\n"
         )
+        adapter = run_dir / "final_adapter"
+        adapter.mkdir()
+        (adapter / "adapter_model.safetensors").write_bytes(b"weights")
         (run_dir / "run_manifest.json").write_text(
             json.dumps({
                 "adapter_updates": 1,
                 "trained_tokens": 16,
                 "rl_trained_tokens": 16,
                 "n_rl_datums": 5,
+                "final_adapter": str(adapter),
                 "optimizer_guard": {
                     "attempted_steps": 1,
                     "successful_steps": 1,
@@ -2255,14 +2284,16 @@ def test_ttrl_resume_discards_partial_zero_update_manifest(
         (run_dir / "reward_log.jsonl").write_text(
             "\n".join(json.dumps(row) for row in rows) + "\n"
         )
-        (run_dir / "final_adapter").mkdir()
+        adapter = run_dir / "final_adapter"
+        adapter.mkdir()
+        (adapter / "adapter_model.safetensors").write_bytes(b"weights")
         (run_dir / "run_manifest.json").write_text(
             json.dumps({
                 "adapter_updates": 1,
                 "trained_tokens": 16,
                 "rl_trained_tokens": 16,
                 "n_rl_datums": 4,
-                "final_adapter": str(run_dir / "final_adapter"),
+                "final_adapter": str(adapter),
                 "optimizer_guard": {
                     "attempted_steps": 1,
                     "successful_steps": 1,
