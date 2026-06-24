@@ -1834,10 +1834,17 @@ def retain_ttrl_adapter_checkpoint(
         label=f"TTRL {split}/{seed}/{method}/{task_id}",
     )
     if retention == "full":
+        pruned_payloads = prune_redundant_full_ttrl_adapter_payloads(adapter_path)
+        require_adapter_checkpoint_with_weights(
+            adapter_path,
+            manifest_path=manifest_path,
+            label=f"TTRL {split}/{seed}/{method}/{task_id}",
+        )
         payload["adapter_retention"] = {
             "mode": "full",
             "path": str(adapter_path),
             "weights_retained": True,
+            "pruned_redundant_payloads": pruned_payloads,
         }
         payload["adapter_checkpoint_paths"] = [str(adapter_path)]
         manifest_path.write_text(
@@ -1919,6 +1926,34 @@ def retain_ttrl_adapter_checkpoint(
         json.dumps(payload, indent=2, sort_keys=True, default=str) + "\n"
     )
     return str(checkpoint_dir)
+
+
+def prune_redundant_full_ttrl_adapter_payloads(adapter_path: Path) -> list[str]:
+    if not adapter_path.is_dir() or not adapter_checkpoint_has_top_level_weights(
+        adapter_path
+    ):
+        return []
+
+    pruned: list[str] = []
+    nested_ref = adapter_path / "ref"
+    if nested_ref.is_dir():
+        shutil.rmtree(nested_ref)
+        pruned.append("ref/")
+
+    tokenizer_json = adapter_path / "tokenizer.json"
+    if tokenizer_json.is_file():
+        tokenizer_json.unlink()
+        pruned.append("tokenizer.json")
+
+    return pruned
+
+
+def adapter_checkpoint_has_top_level_weights(path: Path) -> bool:
+    if path.is_file():
+        return is_adapter_weight_file(path)
+    if not path.is_dir():
+        return False
+    return any(is_adapter_weight_file(item) for item in path.iterdir() if item.is_file())
 
 
 def adapter_file_manifest(adapter_path: Path) -> list[dict[str, Any]]:

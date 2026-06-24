@@ -2124,6 +2124,54 @@ def test_ttrl_metadata_retention_keeps_checkpoint_provenance(
     assert row["training_manifest_path"] == str(run_dir / "run_manifest.json")
 
 
+def test_ttrl_full_retention_prunes_redundant_adapter_payloads(
+    tmp_path: Path,
+) -> None:
+    run_dir = tmp_path / "ttrl_full"
+    adapter = run_dir / "final_adapter"
+    ref = adapter / "ref"
+    ref.mkdir(parents=True)
+    (adapter / "adapter_config.json").write_text('{"r": 8}\n')
+    (adapter / "adapter_model.safetensors").write_bytes(b"root-weight-bytes")
+    (adapter / "tokenizer.json").write_text('{"large": "shared tokenizer"}\n')
+    (ref / "adapter_config.json").write_text('{"r": 8}\n')
+    (ref / "adapter_model.safetensors").write_bytes(b"ref-weight-bytes")
+    manifest = run_dir / "run_manifest.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                "adapter_updates": 1,
+                "trained_tokens": 16,
+                "final_adapter": str(adapter),
+            }
+        )
+        + "\n"
+    )
+
+    retained = online.retain_ttrl_adapter_checkpoint(
+        manifest_path=manifest,
+        split="A",
+        seed=20260610,
+        method="mechanical_evolve_ttrl",
+        task_id="task",
+        evidence_root=None,
+        retention="full",
+    )
+
+    payload = json.loads(manifest.read_text())
+    assert retained == str(adapter)
+    assert (adapter / "adapter_model.safetensors").is_file()
+    assert not ref.exists()
+    assert not (adapter / "tokenizer.json").exists()
+    assert payload["adapter_checkpoint_paths"] == [str(adapter)]
+    assert payload["adapter_retention"] == {
+        "mode": "full",
+        "path": str(adapter),
+        "weights_retained": True,
+        "pruned_redundant_payloads": ["ref/", "tokenizer.json"],
+    }
+
+
 def test_ttrl_retention_rejects_missing_adapter_checkpoint(tmp_path: Path) -> None:
     manifest = tmp_path / "run_manifest.json"
     manifest.write_text(
