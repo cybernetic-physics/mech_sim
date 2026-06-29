@@ -139,6 +139,16 @@ def test_launcher_can_sync_local_benchmark_without_shard_outputs() -> None:
     assert "local benchmark scaffold is incomplete" in text
 
 
+def test_launcher_can_use_preplanned_shards_without_regenerating() -> None:
+    text = SCRIPT.read_text(encoding="utf-8")
+
+    assert 'USE_PREPLANNED_SHARDS="${USE_PREPLANNED_SHARDS:-0}"' in text
+    assert "USE_PREPLANNED_SHARDS must be 0 or 1" in text
+    assert 'if [[ "$USE_PREPLANNED_SHARDS" == "1" ]]; then' in text
+    assert "Using preplanned experiment shards" in text
+    assert "missing preplanned shard file" in text
+
+
 def test_selected_shard_reset_requires_explicit_shard_indices() -> None:
     proc = run_launcher(RESET_SELECTED_SHARDS="1")
 

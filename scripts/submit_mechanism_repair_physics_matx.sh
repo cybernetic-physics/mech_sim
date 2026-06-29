@@ -34,6 +34,7 @@ REFRESH_REMOTE_CODE="${REFRESH_REMOTE_CODE:-auto}"
 SYNC_LOCAL_BENCHMARK="${SYNC_LOCAL_BENCHMARK:-auto}"
 RESET_SELECTED_SHARDS="${RESET_SELECTED_SHARDS:-0}"
 ALLOW_DESTRUCTIVE_RESTAGE="${ALLOW_DESTRUCTIVE_RESTAGE:-0}"
+USE_PREPLANNED_SHARDS="${USE_PREPLANNED_SHARDS:-0}"
 OUT_DIR="${OUT_DIR:-runs/mechanism_repair_physics_final}"
 METHODS="${METHODS-}"
 SPLITS="${SPLITS-}"
@@ -132,6 +133,7 @@ Useful overrides:
   SYNC_LOCAL_BENCHMARK=$SYNC_LOCAL_BENCHMARK
   RESET_SELECTED_SHARDS=$RESET_SELECTED_SHARDS
   ALLOW_DESTRUCTIVE_RESTAGE=$ALLOW_DESTRUCTIVE_RESTAGE
+  USE_PREPLANNED_SHARDS=$USE_PREPLANNED_SHARDS
   GRES=$GRES
   CONCURRENCY=$CONCURRENCY
   BASE_MODEL=$BASE_MODEL
@@ -330,6 +332,10 @@ if [[ "$SYNC_LOCAL_BENCHMARK" != "0" && "$SYNC_LOCAL_BENCHMARK" != "1" ]]; then
 fi
 if [[ "$RESET_SELECTED_SHARDS" != "0" && "$RESET_SELECTED_SHARDS" != "1" ]]; then
   echo "RESET_SELECTED_SHARDS must be 0 or 1" >&2
+  exit 2
+fi
+if [[ "$USE_PREPLANNED_SHARDS" != "0" && "$USE_PREPLANNED_SHARDS" != "1" ]]; then
+  echo "USE_PREPLANNED_SHARDS must be 0 or 1" >&2
   exit 2
 fi
 if [[ "$RESET_SELECTED_SHARDS" == "1" && -z "$SHARD_INDICES" ]]; then
@@ -776,30 +782,38 @@ if [[ -n "$EVAL_SEEDS" ]]; then
 fi
 shard_signature="grouping=split_task_seed_budget_v2;num_shards=$NUM_SHARDS;limit_tasks=$LIMIT_TASKS;methods=$METHODS;splits=$SPLITS;anti_shortcut_splits=$ANTI_SHORTCUT_SPLITS;eval_seeds=$EVAL_SEEDS"
 shard_plan_marker="$OUT_DIR/experiment_shards/.submission_signature"
-(
-  flock 9
-  current_shard_signature=""
-  if [[ -f "\$shard_plan_marker" ]]; then
-    current_shard_signature="\$(<"\$shard_plan_marker")"
-  fi
-  if [[ "\$current_shard_signature" != "\$shard_signature" || ! -f "\$shard_file" ]]; then
-    rm -rf "$OUT_DIR/experiment_shards"
-    mkdir -p "$OUT_DIR/experiment_shards"
-    echo "Regenerating experiment shards for \$shard_signature"
-    "\$repo_python" scripts/run_mechanism_repair_physics_experiment.py \\
-      --benchmark-dir "$OUT_DIR" \\
-      --out-dir "$OUT_DIR" \\
-      --write-shard-files "$NUM_SHARDS" \\
-      "\${limit_task_args[@]}" \\
-      "\${method_args[@]}" \\
-      "\${split_args[@]}" \\
-      "\${anti_shortcut_args[@]}" \\
-      "\${seed_args[@]}" \\
-      --dry-run
-    printf '%s\n' "\$shard_signature" > "\$shard_plan_marker"
-  fi
-) 9>"$REMOTE_ROOT/locks/experiment_shards_$source_commit_short.lock"
+if [[ "$USE_PREPLANNED_SHARDS" == "1" ]]; then
+  echo "Using preplanned experiment shards under $OUT_DIR/experiment_shards"
+else
+  (
+    flock 9
+    current_shard_signature=""
+    if [[ -f "\$shard_plan_marker" ]]; then
+      current_shard_signature="\$(<"\$shard_plan_marker")"
+    fi
+    if [[ "\$current_shard_signature" != "\$shard_signature" || ! -f "\$shard_file" ]]; then
+      rm -rf "$OUT_DIR/experiment_shards"
+      mkdir -p "$OUT_DIR/experiment_shards"
+      echo "Regenerating experiment shards for \$shard_signature"
+      "\$repo_python" scripts/run_mechanism_repair_physics_experiment.py \\
+        --benchmark-dir "$OUT_DIR" \\
+        --out-dir "$OUT_DIR" \\
+        --write-shard-files "$NUM_SHARDS" \\
+        "\${limit_task_args[@]}" \\
+        "\${method_args[@]}" \\
+        "\${split_args[@]}" \\
+        "\${anti_shortcut_args[@]}" \\
+        "\${seed_args[@]}" \\
+        --dry-run
+      printf '%s\n' "\$shard_signature" > "\$shard_plan_marker"
+    fi
+  ) 9>"$REMOTE_ROOT/locks/experiment_shards_$source_commit_short.lock"
+fi
 if [[ ! -f "\$shard_file" ]]; then
+  if [[ "$USE_PREPLANNED_SHARDS" == "1" ]]; then
+    echo "missing preplanned shard file: \$shard_file" >&2
+    exit 1
+  fi
   "\$repo_python" scripts/run_mechanism_repair_physics_experiment.py \\
     --benchmark-dir "$OUT_DIR" \\
     --out-dir "$OUT_DIR" \\
