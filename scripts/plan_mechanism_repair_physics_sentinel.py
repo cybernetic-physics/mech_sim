@@ -485,17 +485,103 @@ def audit_sentinel_run(
         "observed_cell_count": len(row_map),
         "missing_cell_count": len(missing),
         "duplicate_cell_count": len(duplicate_keys),
+        "missing_cell_summary": summarize_missing_cells(missing),
         "partial_artifact_summary": partial_artifact_summary,
         "primary_method": primary_method,
         "baseline_method": baseline_method,
         "budget": int(budget),
         "primary_pair_summary": pair_summary,
+        "primary_pair_completion_summary": summarize_primary_pair_completion(
+            planned_cells=planned_cells,
+            row_map=row_map,
+            primary_method=primary_method,
+            baseline_method=baseline_method,
+            budget=budget,
+        ),
         "by_split": summarize_pairs_by(pairs, "split"),
         "by_family": summarize_pairs_by(pairs, "family"),
         "by_verifier_level": summarize_pairs_by(pairs, "verifier_level"),
         "decision": decision,
         "sample_missing_cells": missing[:25],
         "sample_duplicate_keys": duplicate_keys[:25],
+    }
+
+
+def summarize_missing_cells(missing: list[dict[str, Any]]) -> dict[str, Any]:
+    def counts(field: str) -> dict[str, int]:
+        return dict(sorted(Counter(str(item.get(field, "")) for item in missing).items()))
+
+    return {
+        "by_method": counts("method"),
+        "by_split": counts("split"),
+        "by_seed": counts("seed"),
+        "by_family": counts("family"),
+        "by_verifier_level": counts("verifier_level"),
+    }
+
+
+def summarize_primary_pair_completion(
+    *,
+    planned_cells: list[dict[str, Any]],
+    row_map: dict[tuple[str, str, int, str, int], dict[str, Any]],
+    primary_method: str,
+    baseline_method: str,
+    budget: int,
+) -> dict[str, Any]:
+    groups: dict[tuple[str, str, int, int], dict[str, Any]] = {}
+    for cell in planned_cells:
+        if str(cell["method"]) not in {primary_method, baseline_method}:
+            continue
+        group = (
+            str(cell["split"]),
+            str(cell["task_id"]),
+            int(cell["seed"]),
+            int(cell.get("budget", budget)),
+        )
+        groups[group] = cell
+
+    complete = baseline_only = primary_only = neither = 0
+    sample_incomplete = []
+    for split, task_id, seed, group_budget in sorted(groups):
+        has_primary = (
+            split,
+            task_id,
+            seed,
+            primary_method,
+            group_budget,
+        ) in row_map
+        has_baseline = (
+            split,
+            task_id,
+            seed,
+            baseline_method,
+            group_budget,
+        ) in row_map
+        if has_primary and has_baseline:
+            complete += 1
+            continue
+        if has_baseline:
+            baseline_only += 1
+        elif has_primary:
+            primary_only += 1
+        else:
+            neither += 1
+        if len(sample_incomplete) < 25:
+            sample_incomplete.append({
+                "split": split,
+                "task_id": task_id,
+                "seed": int(seed),
+                "budget": int(group_budget),
+                "has_primary": bool(has_primary),
+                "has_baseline": bool(has_baseline),
+            })
+    return {
+        "planned_pair_count": len(groups),
+        "complete_pair_count": complete,
+        "baseline_only_count": baseline_only,
+        "primary_only_count": primary_only,
+        "neither_count": neither,
+        "sample_incomplete_pairs": sample_incomplete,
     }
 
 

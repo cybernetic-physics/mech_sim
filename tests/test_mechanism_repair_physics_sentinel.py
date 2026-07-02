@@ -136,6 +136,66 @@ def test_sentinel_audit_reports_primary_delta(tmp_path: Path) -> None:
     assert audit["decision"]["status"] == "promising"
 
 
+def test_sentinel_audit_groups_missing_cells_and_pair_completion(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "sentinel"
+    _write_fake_benchmark(benchmark)
+    plan = build_sentinel_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        splits=["hidden_perturbation"],
+        seeds=[EVAL_SEEDS[0]],
+        primary_method=PRIMARY_METHOD,
+        baseline_method=PRIMARY_BASELINE,
+        calibrator_methods=[],
+        budget=PRIMARY_BUDGET,
+        tasks_per_family_per_split=1,
+        min_effect_pp=5.0,
+    )
+    first_baseline = next(
+        cell
+        for cell in plan["expected_cells"]
+        if cell["method"] == PRIMARY_BASELINE
+    )
+    row = {
+        "split": first_baseline["split"],
+        "task_id": first_baseline["task_id"],
+        "seed": first_baseline["seed"],
+        "method": first_baseline["method"],
+        "budget": first_baseline["budget"],
+        "verified_repair_success_at_32": False,
+    }
+    shard_dir = out_dir / "shard_runs" / "shard_0000"
+    shard_dir.mkdir(parents=True)
+    (shard_dir / "cell_results.jsonl").write_text(
+        json.dumps(row, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    audit = audit_sentinel_run(
+        out_dir=out_dir,
+        planned_cells=plan["expected_cells"],
+        primary_method=PRIMARY_METHOD,
+        baseline_method=PRIMARY_BASELINE,
+        budget=PRIMARY_BUDGET,
+        min_effect_pp=5.0,
+    )
+
+    missing = audit["missing_cell_summary"]
+    pair_completion = audit["primary_pair_completion_summary"]
+    assert audit["observed_cell_count"] == 1
+    assert audit["missing_cell_count"] == len(plan["expected_cells"]) - 1
+    assert missing["by_method"][PRIMARY_METHOD] == 12
+    assert missing["by_method"][PRIMARY_BASELINE] == 11
+    assert pair_completion["planned_pair_count"] == 12
+    assert pair_completion["complete_pair_count"] == 0
+    assert pair_completion["baseline_only_count"] == 1
+    assert pair_completion["primary_only_count"] == 0
+    assert pair_completion["neither_count"] == 11
+
+
 def test_sentinel_audit_reports_partial_artifacts_without_counting_rows(
     tmp_path: Path,
 ) -> None:
