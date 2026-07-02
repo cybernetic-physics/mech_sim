@@ -116,6 +116,23 @@ for path in shard_dir.rglob("smoke_summary.json"):
         for row in payload.get("all_samples", []) or []
         if row.get("task_id")
     })
+sample_checkpoints = {
+    "checkpoint_count": 0,
+    "invalid_count": 0,
+    "task_count": 0,
+}
+checkpoint_tasks = set()
+for path in shard_dir.rglob("sample_outcome.json"):
+    sample_checkpoints["checkpoint_count"] += 1
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        sample_checkpoints["invalid_count"] += 1
+        continue
+    outcome = payload.get("outcome") or {}
+    if isinstance(outcome, dict) and outcome.get("task_id"):
+        checkpoint_tasks.add(str(outcome["task_id"]))
+sample_checkpoints["task_count"] = len(checkpoint_tasks)
 summary = {
     "planned_cell_count": audit.get("planned_cell_count"),
     "observed_cell_count": audit.get("observed_cell_count"),
@@ -123,6 +140,7 @@ summary = {
     "duplicate_cell_count": audit.get("duplicate_cell_count"),
     "primary_pair_summary": audit.get("primary_pair_summary"),
     "decision": audit.get("decision"),
+    "synced_sample_checkpoints": sample_checkpoints,
     "synced_sample_summaries": sample_summary,
     "synced_shard_index": int(sys.argv[2]),
 }

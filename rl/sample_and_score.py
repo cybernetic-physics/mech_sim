@@ -42,6 +42,7 @@ from rl.mech_bench_reward import RewardResult, score_completion  # noqa: E402
 from rl import chat_rollout as cr  # noqa: E402
 
 
+SAMPLE_OUTCOME_CHECKPOINT = "sample_outcome.json"
 SYSTEM_PROMPT_PATH = REPO_ROOT / "rl" / "agent_prompt_rl.md"
 STRICT_FENCED_OUTPUT_INSTRUCTION = (
     "/no_think\n"
@@ -1482,20 +1483,60 @@ def load_resumable_outcomes(
     args: argparse.Namespace,
     task_dirs: list[Path],
 ) -> list[SampleOutcome]:
+    by_key: dict[tuple[str, int], SampleOutcome] = {}
     if not path.is_file():
-        return []
-    try:
-        summary = json.loads(path.read_text())
-    except json.JSONDecodeError:
-        return []
-    if not resume_summary_compatible(summary, args=args, task_dirs=task_dirs):
-        return []
-    outcomes = []
+        summary = None
+    else:
+        try:
+            summary = json.loads(path.read_text())
+        except json.JSONDecodeError:
+            summary = None
     requested = {path.name for path in task_dirs}
-    for row in summary.get("all_samples", []) or []:
-        if str(row.get("task_id") or "") not in requested:
-            continue
-        outcomes.append(sample_outcome_from_dict(row))
+    if (
+        isinstance(summary, dict)
+        and resume_summary_compatible(summary, args=args, task_dirs=task_dirs)
+    ):
+        for row in summary.get("all_samples", []) or []:
+            if str(row.get("task_id") or "") not in requested:
+                continue
+            outcome = sample_outcome_from_dict(row)
+            by_key[(outcome.task_id, int(outcome.sample_idx))] = outcome
+    for outcome in load_resumable_outcome_checkpoints(
+        path.parent,
+        args=args,
+        task_dirs=task_dirs,
+    ):
+        by_key.setdefault((outcome.task_id, int(outcome.sample_idx)), outcome)
+    return [by_key[key] for key in sorted(by_key)]
+
+
+def load_resumable_outcome_checkpoints(
+    report_dir: Path,
+    *,
+    args: argparse.Namespace,
+    task_dirs: list[Path],
+) -> list[SampleOutcome]:
+    outcomes: list[SampleOutcome] = []
+    for task_dir in task_dirs:
+        for sample_dir in sorted(report_dir.glob("sample_*")):
+            if not re.fullmatch(r"sample_\d+", sample_dir.name):
+                continue
+            path = sample_dir / task_dir.name / SAMPLE_OUTCOME_CHECKPOINT
+            if not path.is_file():
+                continue
+            try:
+                payload = json.loads(path.read_text())
+            except json.JSONDecodeError:
+                continue
+            if not resume_checkpoint_compatible(payload, args=args):
+                continue
+            row = payload.get("outcome")
+            if not isinstance(row, dict):
+                continue
+            outcome = sample_outcome_from_dict(row)
+            if outcome.task_id != task_dir.name:
+                continue
+            outcomes.append(outcome)
     return outcomes
 
 
@@ -1537,6 +1578,42 @@ def resume_summary_compatible(
     )
     for key, expected in checks:
         if summary.get(key) != expected:
+            return False
+    return True
+
+
+def resume_checkpoint_compatible(
+    payload: dict[str, Any],
+    *,
+    args: argparse.Namespace,
+) -> bool:
+    if payload.get("version") != "mech_bench.sample_outcome_checkpoint.v1":
+        return False
+    metadata = payload.get("metadata")
+    if not isinstance(metadata, dict):
+        return False
+    checks = (
+        ("model", args.base_model),
+        ("model_path", args.model_path),
+        ("sglang_lora_path", args.sglang_lora_path),
+        ("rollout_backend", args.rollout_backend),
+        ("local_device", args.local_device),
+        ("local_torch_dtype", args.local_torch_dtype),
+        ("seed", args.seed),
+        ("samples_per_task", args.samples_per_task),
+        ("max_turns", args.max_turns),
+        ("max_tokens", args.max_tokens),
+        ("timeout", args.timeout),
+        ("sampler_retries", args.sampler_retries),
+        ("audit_retries", args.audit_retries),
+        ("max_verifier_calls_per_task", args.max_verifier_calls_per_task),
+        ("temperature", args.temperature),
+        ("top_p", args.top_p),
+        ("pass_threshold", args.pass_threshold),
+        ("archive_feedback", bool(args.archive_feedback)),
+    )
+    for key, expected in checks:
+        if metadata.get(key) != expected:
             return False
     return True
 
@@ -1637,6 +1714,48 @@ def build_smoke_summary(
 def write_summary_atomic(path: Path, summary: dict[str, Any]) -> None:
     temp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
     temp.write_text(json.dumps(summary, indent=2, default=str))
+    temp.replace(path)
+
+
+def write_sample_outcome_checkpoint(
+    report_dir: Path,
+    *,
+    args: argparse.Namespace,
+    outcome: SampleOutcome,
+) -> None:
+    out_dir = (
+        report_dir
+        / f"sample_{int(outcome.sample_idx)}"
+        / outcome.task_id
+    )
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / SAMPLE_OUTCOME_CHECKPOINT
+    metadata = {
+        "model": args.base_model,
+        "model_path": args.model_path,
+        "sglang_lora_path": args.sglang_lora_path,
+        "rollout_backend": args.rollout_backend,
+        "local_device": args.local_device,
+        "local_torch_dtype": args.local_torch_dtype,
+        "seed": args.seed,
+        "samples_per_task": args.samples_per_task,
+        "max_turns": args.max_turns,
+        "max_tokens": args.max_tokens,
+        "timeout": args.timeout,
+        "sampler_retries": args.sampler_retries,
+        "audit_retries": args.audit_retries,
+        "max_verifier_calls_per_task": args.max_verifier_calls_per_task,
+        "temperature": args.temperature,
+        "top_p": args.top_p,
+        "pass_threshold": args.pass_threshold,
+        "archive_feedback": bool(args.archive_feedback),
+    }
+    temp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    temp.write_text(json.dumps({
+        "version": "mech_bench.sample_outcome_checkpoint.v1",
+        "metadata": metadata,
+        "outcome": outcome.to_dict(),
+    }, indent=2, default=str))
     temp.replace(path)
 
 
@@ -1989,6 +2108,7 @@ def main(argv: list[str] | None = None) -> int:
             o.turn_traces = actual_turn_traces
             if audit_retry_count:
                 o.audit_retry_count = audit_retry_count
+            write_sample_outcome_checkpoint(out_root, args=args, outcome=o)
             outs.append(o)
             new_outs.append(o)
             if progress_hook is not None:
