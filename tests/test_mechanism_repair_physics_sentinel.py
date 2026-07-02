@@ -268,6 +268,14 @@ def test_sentinel_audit_reports_partial_artifacts_without_counting_rows(
     assert partial["terminal_completion_count"] == 1
     assert partial["terminal_completion_task_count"] == 1
     assert partial["terminal_completion_by_method"] == {PRIMARY_BASELINE: 1}
+    assert partial["planned_terminal_completion_by_method"] == {
+        PRIMARY_BASELINE: 96
+    }
+    assert partial["terminal_completion_progress_by_method"][PRIMARY_BASELINE] == {
+        "observed": 1,
+        "planned": 96,
+        "fraction": 1 / 96,
+    }
 
 
 def _write_fake_benchmark(root: Path) -> None:

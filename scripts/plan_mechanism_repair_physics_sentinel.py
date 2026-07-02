@@ -30,6 +30,7 @@ DEFAULT_OUT_DIR = "runs/mechanism_repair_physics_sentinel"
 DEFAULT_SPLITS = ("hidden_perturbation", "isomorphic")
 DEFAULT_CALIBRATOR_METHODS = ("frozen_model", "sft_seen_family")
 DEFAULT_MIN_EFFECT_PP = 5.0
+DEFAULT_FEEDBACK_TURNS = 4
 BENCHMARK_FILES = (
     "benchmark_manifest.json",
     "method_manifest.json",
@@ -455,6 +456,8 @@ def audit_sentinel_run(
     rows = load_rows_for_audit(out_dir, source_run_dirs=source_run_dirs)
     partial_artifact_summary = summarize_partial_artifacts(
         out_dir,
+        planned_cells=planned_cells,
+        budget=budget,
         source_run_dirs=source_run_dirs,
     )
     row_map: dict[tuple[str, str, int, str, int], dict[str, Any]] = {}
@@ -805,6 +808,8 @@ def load_rows_for_audit(
 def summarize_partial_artifacts(
     out_dir: Path,
     *,
+    planned_cells: list[dict[str, Any]],
+    budget: int,
     source_run_dirs: list[Path],
 ) -> dict[str, Any]:
     roots = [out_dir, *source_run_dirs]
@@ -818,6 +823,8 @@ def summarize_partial_artifacts(
         "terminal_completion_count": 0,
         "terminal_completion_task_count": 0,
         "terminal_completion_by_method": {},
+        "planned_terminal_completion_by_method": {},
+        "terminal_completion_progress_by_method": {},
     }
     terminal_tasks: set[str] = set()
     terminal_by_method: Counter[str] = Counter()
@@ -857,7 +864,50 @@ def summarize_partial_artifacts(
                 terminal_by_method[method_from_artifact_path(path)] += 1
     summary["terminal_completion_task_count"] = len(terminal_tasks)
     summary["terminal_completion_by_method"] = dict(sorted(terminal_by_method.items()))
+    planned_by_method = planned_terminal_completions_by_method(
+        planned_cells,
+        budget=budget,
+    )
+    summary["planned_terminal_completion_by_method"] = planned_by_method
+    summary["terminal_completion_progress_by_method"] = {
+        method: {
+            "observed": int(terminal_by_method.get(method, 0)),
+            "planned": int(planned),
+            "fraction": (
+                float(terminal_by_method.get(method, 0)) / float(planned)
+                if planned else None
+            ),
+        }
+        for method, planned in sorted(planned_by_method.items())
+    }
     return summary
+
+
+def planned_terminal_completions_by_method(
+    planned_cells: list[dict[str, Any]],
+    *,
+    budget: int,
+) -> dict[str, int]:
+    by_method = Counter(str(cell.get("method") or "") for cell in planned_cells)
+    out: dict[str, int] = {}
+    for method, cell_count in sorted(by_method.items()):
+        per_cell = planned_terminal_completions_per_cell(
+            method,
+            budget=budget,
+        )
+        if per_cell > 0:
+            out[method] = int(cell_count) * per_cell
+    return out
+
+
+def planned_terminal_completions_per_cell(method: str, *, budget: int) -> int:
+    if method in {"frozen_model", "sft_model", "sft_seen_family"}:
+        return int(budget)
+    if method in {"verifier_gated", "verifier_gated_search", "no_update_search"}:
+        return int(budget)
+    if method in {"llm_evolve_no_update", "adaptive_evolution"}:
+        return int(budget) // DEFAULT_FEEDBACK_TURNS
+    return 0
 
 
 def method_from_artifact_path(path: Path) -> str:
