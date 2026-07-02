@@ -133,6 +133,17 @@ for path in shard_dir.rglob("sample_outcome.json"):
     if isinstance(outcome, dict) and outcome.get("task_id"):
         checkpoint_tasks.add(str(outcome["task_id"]))
 sample_checkpoints["task_count"] = len(checkpoint_tasks)
+terminal_completions = {
+    "completion_count": 0,
+    "task_count": 0,
+}
+completion_tasks = set()
+for path in shard_dir.rglob("completion.txt"):
+    parts = path.parts
+    if len(parts) >= 3 and parts[-3].startswith("sample_"):
+        terminal_completions["completion_count"] += 1
+        completion_tasks.add(parts[-2])
+terminal_completions["task_count"] = len(completion_tasks)
 summary = {
     "planned_cell_count": audit.get("planned_cell_count"),
     "observed_cell_count": audit.get("observed_cell_count"),
@@ -142,6 +153,7 @@ summary = {
     "decision": audit.get("decision"),
     "synced_sample_checkpoints": sample_checkpoints,
     "synced_sample_summaries": sample_summary,
+    "synced_terminal_completions": terminal_completions,
     "synced_shard_index": int(sys.argv[2]),
 }
 print(json.dumps(summary, indent=2, sort_keys=True))
