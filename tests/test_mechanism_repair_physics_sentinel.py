@@ -42,6 +42,16 @@ def test_sentinel_plan_writes_staged_primary_pair_and_calibrators(
 
     assert plan["planned_cells"] == 192
     assert "USE_PREPLANNED_SHARDS=1" in plan["first_stage_submit_command"]
+    assert "SHARD_INDICES=0" in plan["stage_submit_commands"][0]["command"]
+    assert "RESTAGE_REMOTE_REPO=1" in plan["stage_submit_commands"][0]["command"]
+    assert "ALLOW_DESTRUCTIVE_RESTAGE=1" in plan["stage_submit_commands"][0]["command"]
+    assert "SHARD_INDICES=1" in plan["stage_submit_commands"][1]["command"]
+    assert "RESTAGE_REMOTE_REPO=0" in plan["stage_submit_commands"][1]["command"]
+    assert "REFRESH_REMOTE_CODE=1" in plan["stage_submit_commands"][1]["command"]
+    assert "ALLOW_DESTRUCTIVE_RESTAGE=1" not in plan["stage_submit_commands"][1]["command"]
+    assert "sync_mechanism_repair_physics_sentinel_from_matx.sh" in (
+        plan["sync_audit_command"]
+    )
     assert [stage["planned_cells"] for stage in plan["stages"]] == [48, 48, 96]
     assert plan["selected_task_summary"]["by_verifier_level"] == {"2": 18, "3": 6}
     assert (out_dir / "tasks").is_dir()

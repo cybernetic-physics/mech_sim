@@ -286,7 +286,26 @@ def build_sentinel_plan(
             ),
         },
         "first_stage_local_command": local_stage_command(out_dir, 0),
-        "first_stage_submit_command": first_stage_submit_command(out_dir, len(stages)),
+        "first_stage_submit_command": stage_submit_command(
+            out_dir,
+            shard_index=0,
+            num_shards=len(stages),
+            fresh_remote_root=True,
+        ),
+        "stage_submit_commands": [
+            {
+                "stage": stage["stage"],
+                "shard_index": int(stage["shard_index"]),
+                "command": stage_submit_command(
+                    out_dir,
+                    shard_index=int(stage["shard_index"]),
+                    num_shards=len(stages),
+                    fresh_remote_root=int(stage["shard_index"]) == 0,
+                ),
+            }
+            for stage in stages
+        ],
+        "sync_audit_command": sync_audit_command(out_dir, shard_index=0),
     }
 
 
@@ -713,23 +732,50 @@ def local_stage_command(out_dir: Path, shard_index: int) -> str:
     ])
 
 
-def first_stage_submit_command(out_dir: Path, num_shards: int) -> str:
+def stage_submit_command(
+    out_dir: Path,
+    *,
+    shard_index: int,
+    num_shards: int,
+    fresh_remote_root: bool,
+) -> str:
     submit_out_dir = repo_relative_path(out_dir)
-    return " ".join([
+    parts = [
         "OUT_DIR=" + shell_token(submit_out_dir),
         "REMOTE_ROOT=/matx/u/knatalia/corl_mechanism_repair_physics_sentinel",
         "JOB_NAME=corl_mech_sent",
         f"NUM_SHARDS={int(num_shards)}",
-        "SHARD_INDICES=0",
+        f"SHARD_INDICES={int(shard_index)}",
         "MAX_ARRAY_TASKS=1",
         "ARRAY_CONCURRENCY=1",
         "USE_PREPLANNED_SHARDS=1",
-        "RESTAGE_REMOTE_REPO=1",
-        "ALLOW_DESTRUCTIVE_RESTAGE=1",
         "SYNC_LOCAL_BENCHMARK=1",
         "SUBMIT_DEPENDENTS=0",
+    ]
+    if fresh_remote_root:
+        parts.extend([
+            "RESTAGE_REMOTE_REPO=1",
+            "ALLOW_DESTRUCTIVE_RESTAGE=1",
+        ])
+    else:
+        parts.extend([
+            "RESTAGE_REMOTE_REPO=0",
+            "REFRESH_REMOTE_CODE=1",
+        ])
+    parts.extend([
         "scripts/submit_mechanism_repair_physics_matx.sh",
         "--submit",
+    ])
+    return " ".join(parts)
+
+
+def sync_audit_command(out_dir: Path, *, shard_index: int) -> str:
+    return " ".join([
+        "OUT_DIR=" + shell_token(repo_relative_path(out_dir)),
+        "LOCAL_RUN_DIR=" + shell_token(repo_relative_path(out_dir)),
+        "REMOTE_ROOT=/matx/u/knatalia/corl_mechanism_repair_physics_sentinel",
+        f"SHARD_INDEX={int(shard_index)}",
+        "scripts/sync_mechanism_repair_physics_sentinel_from_matx.sh",
     ])
 
 
