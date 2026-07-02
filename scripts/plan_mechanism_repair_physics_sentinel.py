@@ -440,6 +440,10 @@ def audit_sentinel_run(
         for cell in planned_cells
     }
     rows = load_rows_for_audit(out_dir, source_run_dirs=source_run_dirs)
+    partial_artifact_summary = summarize_partial_artifacts(
+        out_dir,
+        source_run_dirs=source_run_dirs,
+    )
     row_map: dict[tuple[str, str, int, str, int], dict[str, Any]] = {}
     duplicate_keys = []
     for row in rows:
@@ -481,6 +485,7 @@ def audit_sentinel_run(
         "observed_cell_count": len(row_map),
         "missing_cell_count": len(missing),
         "duplicate_cell_count": len(duplicate_keys),
+        "partial_artifact_summary": partial_artifact_summary,
         "primary_method": primary_method,
         "baseline_method": baseline_method,
         "budget": int(budget),
@@ -696,6 +701,60 @@ def load_rows_for_audit(
             seen_paths.add(path)
             rows.extend(read_jsonl(path))
     return rows
+
+
+def summarize_partial_artifacts(
+    out_dir: Path,
+    *,
+    source_run_dirs: list[Path],
+) -> dict[str, Any]:
+    roots = [out_dir, *source_run_dirs]
+    summary = {
+        "smoke_summary_count": 0,
+        "complete_smoke_summary_count": 0,
+        "incomplete_smoke_summary_count": 0,
+        "invalid_smoke_summary_count": 0,
+        "sample_outcome_checkpoint_count": 0,
+        "invalid_sample_outcome_checkpoint_count": 0,
+        "terminal_completion_count": 0,
+        "terminal_completion_task_count": 0,
+    }
+    terminal_tasks: set[str] = set()
+    seen_paths: set[Path] = set()
+    for root in roots:
+        for path in sorted(root.glob("shard_runs/shard_*/online_runs/**/smoke_summary.json")):
+            if path in seen_paths:
+                continue
+            seen_paths.add(path)
+            summary["smoke_summary_count"] += 1
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                summary["invalid_smoke_summary_count"] += 1
+                continue
+            if payload.get("complete", True):
+                summary["complete_smoke_summary_count"] += 1
+            else:
+                summary["incomplete_smoke_summary_count"] += 1
+        for path in sorted(root.glob("shard_runs/shard_*/online_runs/**/sample_outcome.json")):
+            if path in seen_paths:
+                continue
+            seen_paths.add(path)
+            summary["sample_outcome_checkpoint_count"] += 1
+            try:
+                json.loads(path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                summary["invalid_sample_outcome_checkpoint_count"] += 1
+        for path in sorted(root.glob("shard_runs/shard_*/online_runs/**/completion.txt")):
+            if path in seen_paths:
+                continue
+            seen_paths.add(path)
+            parts = path.parts
+            if len(parts) >= 3 and parts[-3].startswith("sample_"):
+                summary["terminal_completion_count"] += 1
+                terminal_tasks.add(parts[-2])
+    summary["terminal_completion_task_count"] = len(terminal_tasks)
+    return summary
 
 
 def summarize_selected_tasks(selected: list[dict[str, Any]]) -> dict[str, Any]:

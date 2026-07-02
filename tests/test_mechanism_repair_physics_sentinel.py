@@ -136,6 +136,68 @@ def test_sentinel_audit_reports_primary_delta(tmp_path: Path) -> None:
     assert audit["decision"]["status"] == "promising"
 
 
+def test_sentinel_audit_reports_partial_artifacts_without_counting_rows(
+    tmp_path: Path,
+) -> None:
+    benchmark = tmp_path / "benchmark"
+    out_dir = tmp_path / "sentinel"
+    _write_fake_benchmark(benchmark)
+    plan = build_sentinel_plan(
+        benchmark_dir=benchmark,
+        out_dir=out_dir,
+        splits=["hidden_perturbation"],
+        seeds=[EVAL_SEEDS[0]],
+        primary_method=PRIMARY_METHOD,
+        baseline_method=PRIMARY_BASELINE,
+        calibrator_methods=[],
+        budget=PRIMARY_BUDGET,
+        tasks_per_family_per_split=1,
+        min_effect_pp=5.0,
+    )
+    task_id = plan["expected_cells"][0]["task_id"]
+    eval_dir = (
+        out_dir
+        / "shard_runs"
+        / "shard_0000"
+        / "online_runs"
+        / "hidden_perturbation"
+        / str(EVAL_SEEDS[0])
+        / f"eval_{PRIMARY_BASELINE}"
+    )
+    task_dir = eval_dir / "sample_0" / task_id
+    task_dir.mkdir(parents=True)
+    (task_dir / "completion.txt").write_text("terminal code", encoding="utf-8")
+    (task_dir / "sample_outcome.json").write_text(
+        json.dumps({
+            "version": "mech_bench.sample_outcome_checkpoint.v1",
+            "outcome": {"task_id": task_id, "sample_idx": 0},
+        }),
+        encoding="utf-8",
+    )
+    (eval_dir / "smoke_summary.json").write_text(
+        json.dumps({"complete": False, "all_samples": []}),
+        encoding="utf-8",
+    )
+
+    audit = audit_sentinel_run(
+        out_dir=out_dir,
+        planned_cells=plan["expected_cells"],
+        primary_method=PRIMARY_METHOD,
+        baseline_method=PRIMARY_BASELINE,
+        budget=PRIMARY_BUDGET,
+        min_effect_pp=5.0,
+    )
+
+    partial = audit["partial_artifact_summary"]
+    assert audit["observed_cell_count"] == 0
+    assert audit["missing_cell_count"] == len(plan["expected_cells"])
+    assert partial["smoke_summary_count"] == 1
+    assert partial["incomplete_smoke_summary_count"] == 1
+    assert partial["sample_outcome_checkpoint_count"] == 1
+    assert partial["terminal_completion_count"] == 1
+    assert partial["terminal_completion_task_count"] == 1
+
+
 def _write_fake_benchmark(root: Path) -> None:
     root.mkdir(parents=True, exist_ok=True)
     tasks = []
