@@ -1917,6 +1917,10 @@ def test_ttrl_runner_passes_lightweight_kbit_prepare_mode(
                 "trained_tokens": 16,
                 "rl_trained_tokens": 16,
                 "n_rl_datums": 4,
+                "reward_channel": "artifact_progress",
+                "artifact_progress_reward_version": (
+                    online.ARTIFACT_PROGRESS_REWARD_VERSION
+                ),
                 "final_adapter": str(adapter),
                 "optimizer_guard": {
                     "attempted_steps": 1,
@@ -2028,6 +2032,7 @@ def test_ttrl_runner_preserves_physics_method_and_reward_channel(
                 "rl_trained_tokens": 16,
                 "final_adapter": str(adapter),
                 "n_rl_datums": 4,
+                "reward_channel": "verified_score",
                 "optimizer_guard": {
                     "attempted_steps": 1,
                     "successful_steps": 1,
@@ -2133,6 +2138,10 @@ def test_ttrl_metadata_retention_keeps_checkpoint_provenance(
                 "trained_tokens": 16,
                 "rl_trained_tokens": 16,
                 "n_rl_datums": 4,
+                "reward_channel": "artifact_progress",
+                "artifact_progress_reward_version": (
+                    online.ARTIFACT_PROGRESS_REWARD_VERSION
+                ),
                 "final_adapter": str(adapter),
                 "optimizer_guard": {
                     "attempted_steps": 1,
@@ -2318,6 +2327,10 @@ def test_ttrl_runner_rejects_reward_log_over_budget(
                 "trained_tokens": 16,
                 "rl_trained_tokens": 16,
                 "n_rl_datums": 5,
+                "reward_channel": "artifact_progress",
+                "artifact_progress_reward_version": (
+                    online.ARTIFACT_PROGRESS_REWARD_VERSION
+                ),
                 "final_adapter": str(adapter),
                 "optimizer_guard": {
                     "attempted_steps": 1,
@@ -2428,6 +2441,10 @@ def test_ttrl_resume_discards_partial_zero_update_manifest(
                 "trained_tokens": 16,
                 "rl_trained_tokens": 16,
                 "n_rl_datums": 4,
+                "reward_channel": "artifact_progress",
+                "artifact_progress_reward_version": (
+                    online.ARTIFACT_PROGRESS_REWARD_VERSION
+                ),
                 "final_adapter": str(adapter),
                 "optimizer_guard": {
                     "attempted_steps": 1,
@@ -2542,6 +2559,30 @@ def test_learning_manifest_rejects_missing_ttrl_token_evidence(
             label="TTRL task",
             expected_adapter_updates=4,
             min_rl_datums=4,
+        )
+
+
+def test_learning_manifest_rejects_stale_artifact_progress_version(
+    tmp_path: Path,
+) -> None:
+    with pytest.raises(SystemExit, match="artifact_progress_reward_version"):
+        require_learning_manifest(
+            {
+                "adapter_updates": 4,
+                "n_rl_datums": 4,
+                "trained_tokens": 16,
+                "rl_trained_tokens": 16,
+                "reward_channel": "artifact_progress",
+                "optimizer_guard": {
+                    "attempted_steps": 4,
+                    "successful_steps": 4,
+                },
+            },
+            manifest_path=tmp_path / "run_manifest.json",
+            label="TTRL task",
+            expected_adapter_updates=4,
+            min_rl_datums=4,
+            expected_reward_channel="artifact_progress",
         )
 
 

@@ -38,6 +38,7 @@ from rl.train_grpo import _contract_from_task  # noqa: E402
 SYSTEM_PROMPT_PATH = REPO_ROOT / "rl" / "agent_prompt_rl.md"
 SCHEMA = "mech_bench.true_grpo_trl.v1"
 REWARD_CHANNELS = ("verified_score", "score", "artifact_progress")
+ARTIFACT_PROGRESS_REWARD_VERSION = "artifact_progress.v2.strict_caps"
 SGLANG_OPTIONAL_CHAT_KEYS = (
     "continue_final_message",
     "separate_reasoning",
@@ -1731,6 +1732,11 @@ def main() -> int:
         "uses_value_head": False,
         "reward": f"mech_bench {args.reward_channel} * reward_scale",
         "reward_channel": args.reward_channel,
+        "artifact_progress_reward_version": (
+            ARTIFACT_PROGRESS_REWARD_VERSION
+            if args.reward_channel == "artifact_progress"
+            else None
+        ),
         "reward_scale": float(args.reward_scale),
         "max_cad_audits": args.max_cad_audits,
         "max_chrono_audits": args.max_chrono_audits,

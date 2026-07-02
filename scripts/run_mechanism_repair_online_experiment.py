@@ -82,6 +82,7 @@ SAMPLE_METHOD_IMPLEMENTATIONS = {
     "no_update_search": "diverse_no_update_best_of_k",
 }
 TTRL_METHOD_IMPLEMENTATION = "online_grpo_lora_verifier_reward"
+ARTIFACT_PROGRESS_REWARD_VERSION = "artifact_progress.v2.strict_caps"
 ADAPTER_WEIGHT_FILE_NAMES = {
     "adapter_model.safetensors",
     "adapter_model.bin",
@@ -1728,6 +1729,10 @@ def run_or_load_ttrl_cell(
                 label=f"TTRL {task_id}",
                 expected_adapter_updates=int(ttrl_steps),
                 min_rl_datums=int(budget),
+                expected_reward_channel=str(
+                    reward_channel
+                    or getattr(args, "ttrl_reward_channel", "artifact_progress")
+                ),
             )
         except SystemExit as exc:
             if resume_existing and attempt == 0:
@@ -2036,7 +2041,23 @@ def require_learning_manifest(
     label: str,
     expected_adapter_updates: int,
     min_rl_datums: int = 0,
+    expected_reward_channel: str | None = None,
 ) -> None:
+    if expected_reward_channel:
+        reward_channel = str(payload.get("reward_channel") or "")
+        if reward_channel != expected_reward_channel:
+            raise SystemExit(
+                f"{label} wrote reward_channel={reward_channel or '<missing>'}; "
+                f"expected {expected_reward_channel}: {manifest_path}"
+            )
+        if expected_reward_channel == "artifact_progress":
+            version = str(payload.get("artifact_progress_reward_version") or "")
+            if version != ARTIFACT_PROGRESS_REWARD_VERSION:
+                raise SystemExit(
+                    f"{label} wrote artifact_progress_reward_version="
+                    f"{version or '<missing>'}; expected "
+                    f"{ARTIFACT_PROGRESS_REWARD_VERSION}: {manifest_path}"
+                )
     updates = int(payload.get("adapter_updates", 0) or 0)
     expected = int(expected_adapter_updates)
     if updates != expected:
@@ -2322,6 +2343,9 @@ def row_from_ttrl_reward_log(
             training["reward_channel"]
             or reward_channel_for_method(method, default="artifact_progress")
         ),
+        "artifact_progress_reward_version": training[
+            "artifact_progress_reward_version"
+        ],
         "rollout_backend": training["rollout_backend"],
         "samples_per_task": int(budget),
         "sampling_temperature": training["sampling_temperature"],
@@ -3236,6 +3260,9 @@ def training_metadata_from_manifest(path: Path) -> dict[str, Any]:
         "rl_trained_tokens": int(payload.get("rl_trained_tokens", 0) or 0),
         "n_rl_datums": int(payload.get("n_rl_datums", 0) or 0),
         "reward_channel": str(payload.get("reward_channel") or ""),
+        "artifact_progress_reward_version": str(
+            payload.get("artifact_progress_reward_version") or ""
+        ),
         "rollout_backend": (
             "sglang_chat"
             if payload.get("rollout_openai_base_url")
@@ -3268,6 +3295,7 @@ def empty_training_metadata() -> dict[str, Any]:
         "rl_trained_tokens": 0,
         "n_rl_datums": 0,
         "reward_channel": "",
+        "artifact_progress_reward_version": "",
         "rollout_backend": "",
         "sampling_temperature": 0.0,
         "sampling_top_p": 1.0,
