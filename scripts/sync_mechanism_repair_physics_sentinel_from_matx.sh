@@ -64,7 +64,13 @@ remote_shared_sft_dir="$remote_out_dir/shared_sft"
 local_shared_sft_dir="$LOCAL_RUN_DIR/shared_sft"
 
 mkdir -p "$(dirname "$local_shard_dir")"
-rsync -az --delete "$REMOTE_HOST:$remote_shard_dir/" "$local_shard_dir/"
+# terminal_recovery*.json files are local-only forensic artifacts generated
+# from terminal completion.txt files. Keep --delete for the remote shard mirror,
+# but protect those local recovery records from receiver-side deletion.
+rsync -az --delete \
+  --filter='P terminal_recovery.json' \
+  --filter='P terminal_recovery_summary.json' \
+  "$REMOTE_HOST:$remote_shard_dir/" "$local_shard_dir/"
 if ssh "$REMOTE_HOST" "test -d '$remote_shared_sft_dir'"; then
   mkdir -p "$local_shared_sft_dir"
   rsync -az --delete "$REMOTE_HOST:$remote_shared_sft_dir/" "$local_shared_sft_dir/"

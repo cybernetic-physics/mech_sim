@@ -87,6 +87,9 @@ def test_sentinel_sync_helper_documents_no_slurm_polling() -> None:
 
     assert "This script does not query" in text
     assert "rsync -az --delete" in text
+    assert "--filter='P terminal_recovery.json'" in text
+    assert "--filter='P terminal_recovery_summary.json'" in text
+    assert "local-only forensic artifacts" in text
     assert "--audit-only" in text
     assert "sentinel_audit.json" in text
     assert "primary_pair_summary" in text
