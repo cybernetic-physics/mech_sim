@@ -2097,6 +2097,10 @@ def rows_from_sample_summary(
     evidence_layout: str = "files",
     sft_manifest: Path | None = None,
 ) -> list[dict[str, Any]]:
+    if summary.get("complete", True) is False:
+        raise SystemExit(
+            "refusing to convert incomplete sample summary into cell rows"
+        )
     method_metadata = sample_method_implementation_metadata(
         method=method,
         summary=summary,

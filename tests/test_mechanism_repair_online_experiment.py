@@ -735,6 +735,37 @@ def test_rows_from_sample_summary_uses_total_budget_and_canonical_family(
     assert row["archive_feedback"] is False
 
 
+def test_rows_from_sample_summary_rejects_incomplete_checkpoint_summary(
+    tmp_path: Path,
+) -> None:
+    summary = {
+        "complete": False,
+        "all_samples": [
+            {
+                "task_id": "planet_task",
+                "family": "planetary",
+                "sample_idx": 0,
+                "verified_score": 1.0,
+                "evaluation_valid": True,
+                "hard_gate_passed": True,
+                "failure_codes": [],
+                "verifier_calls": 1,
+            },
+        ],
+    }
+
+    with pytest.raises(SystemExit, match="incomplete sample summary"):
+        rows_from_sample_summary(
+            summary=summary,
+            method="frozen_model",
+            split="A",
+            seed=20260607,
+            budget=1,
+            trace_root=tmp_path / "trace",
+            family_by_task={"planet_task": "planetary"},
+        )
+
+
 def test_rows_from_sample_summary_records_archive_feedback_method(
     tmp_path: Path,
 ) -> None:
