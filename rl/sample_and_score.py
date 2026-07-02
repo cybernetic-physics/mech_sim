@@ -33,7 +33,7 @@ import tomllib
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, Callable
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -1789,14 +1789,48 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
 
-    def _go(td: Path, task_idx: int) -> list[SampleOutcome]:
-        outs: list[SampleOutcome] = [
+    started = time.perf_counter()
+    requested_task_names = {td.name for td in task_dirs}
+    all_outcomes: list[SampleOutcome] = [
+        item
+        for (task_id, _sample_idx), item in sorted(
+            resumable_by_task_sample.items()
+        )
+        if task_id in requested_task_names
+    ]
+    progress_lock = threading.Lock()
+
+    def write_progress(complete: bool) -> None:
+        write_summary_atomic(
+            out_path,
+            build_smoke_summary(
+                args=args,
+                tasks_root=tasks_root,
+                started=started,
+                all_outcomes=all_outcomes,
+                complete=complete,
+            ),
+        )
+
+    def record_sample_progress(outcome: SampleOutcome) -> None:
+        with progress_lock:
+            all_outcomes.append(outcome)
+            write_progress(complete=False)
+
+    def _go(
+        td: Path,
+        task_idx: int,
+        progress_hook: Callable[[SampleOutcome], None] | None = None,
+    ) -> list[SampleOutcome]:
+        prior_outs: list[SampleOutcome] = [
             item
             for (_task_id, _sample_idx), item in sorted(
                 resumable_by_task_sample.items()
             )
             if _task_id == td.name
         ]
+        outs = list(prior_outs)
+        new_outs: list[SampleOutcome] = []
         existing_sample_indices = {
             int(item.sample_idx)
             for item in outs
@@ -1956,6 +1990,9 @@ def main(argv: list[str] | None = None) -> int:
             if audit_retry_count:
                 o.audit_retry_count = audit_retry_count
             outs.append(o)
+            new_outs.append(o)
+            if progress_hook is not None:
+                progress_hook(o)
             mark = "PASS" if o.passed() else "FAIL"
             score = (o.reward.verified_score
                      if o.reward is not None else 0.0)
@@ -1966,37 +2003,21 @@ def main(argv: list[str] | None = None) -> int:
                 f"err={o.error[:60]}",
                 file=sys.stderr,
             )
-        return outs
-
-    started = time.perf_counter()
-    all_outcomes: list[SampleOutcome] = []
-    def write_progress(complete: bool) -> None:
-        write_summary_atomic(
-            out_path,
-            build_smoke_summary(
-                args=args,
-                tasks_root=tasks_root,
-                started=started,
-                all_outcomes=all_outcomes,
-                complete=complete,
-            ),
-        )
+        return new_outs
 
     if args.concurrency <= 1:
         for i, td in enumerate(task_dirs):
-            all_outcomes.extend(_go(td, i))
-            write_progress(complete=False)
+            _go(td, i, record_sample_progress)
     else:
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=args.concurrency
         ) as pool:
             futures = [
-                pool.submit(_go, td, i)
+                pool.submit(_go, td, i, record_sample_progress)
                 for i, td in enumerate(task_dirs)
             ]
             for fut in concurrent.futures.as_completed(futures):
-                all_outcomes.extend(fut.result())
-                write_progress(complete=False)
+                fut.result()
 
     summary = build_smoke_summary(
         args=args,
