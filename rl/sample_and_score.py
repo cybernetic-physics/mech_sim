@@ -1436,6 +1436,210 @@ def archive_feedback_text(outcomes: list[SampleOutcome], limit: int = 4) -> str:
     return "\n".join(lines)
 
 
+def sample_outcome_from_dict(row: dict[str, Any]) -> SampleOutcome:
+    reward = None
+    if "verified_score" in row or "score" in row:
+        reward = RewardResult(
+            score=float(row.get("score", row.get("verified_score", 0.0)) or 0.0),
+            verified_score=float(row.get("verified_score", 0.0) or 0.0),
+            hard_gate_passed=bool(row.get("hard_gate_passed", False)),
+            evaluation_valid=bool(row.get("evaluation_valid", False)),
+            failure_codes=list(row.get("failure_codes") or []),
+            feedback=list(row.get("feedback") or []),
+            submission_path=str(row.get("submission_path") or ""),
+            design_py_extracted=bool(row.get("design_py_extracted", False)),
+            raw_score_json=str(row.get("raw_score_json") or ""),
+            cad_audits=int(row.get("cad_audits", 0) or 0),
+            chrono_audits=int(row.get("chrono_audits", 0) or 0),
+            physical_metrics=dict(row.get("physical_metrics") or {}),
+            no_procedural_fallback=row.get("no_procedural_fallback"),
+        )
+    return SampleOutcome(
+        task_id=str(row.get("task_id") or ""),
+        family=str(row.get("family") or ""),
+        tier=str(row.get("tier") or ""),
+        sample_idx=int(row.get("sample_idx", 0) or 0),
+        sample_duration_s=float(row.get("sample_duration_s", 0.0) or 0.0),
+        sample_tokens_in=int(row.get("sample_tokens_in", 0) or 0),
+        sample_tokens_out=int(row.get("sample_tokens_out", 0) or 0),
+        completion_chars=int(row.get("completion_chars", 0) or 0),
+        reward=reward,
+        verifier_calls=int(row.get("verifier_calls", 0) or 0),
+        cad_audits=int(row.get("cad_audits", 0) or 0),
+        chrono_audits=int(row.get("chrono_audits", 0) or 0),
+        audit_retry_count=int(row.get("audit_retry_count", 0) or 0),
+        sampler_http_400_count=int(row.get("sampler_http_400_count", 0) or 0),
+        sampler_retry_count=int(row.get("sampler_retry_count", 0) or 0),
+        pass_threshold=float(row.get("strict_pass_threshold", 1.0) or 1.0),
+        error=str(row.get("error") or ""),
+        turn_traces=list(row.get("turn_traces") or []),
+    )
+
+
+def load_resumable_outcomes(
+    path: Path,
+    *,
+    args: argparse.Namespace,
+    task_dirs: list[Path],
+) -> list[SampleOutcome]:
+    if not path.is_file():
+        return []
+    try:
+        summary = json.loads(path.read_text())
+    except json.JSONDecodeError:
+        return []
+    if not resume_summary_compatible(summary, args=args, task_dirs=task_dirs):
+        return []
+    outcomes = []
+    requested = {path.name for path in task_dirs}
+    for row in summary.get("all_samples", []) or []:
+        if str(row.get("task_id") or "") not in requested:
+            continue
+        outcomes.append(sample_outcome_from_dict(row))
+    return outcomes
+
+
+def resume_summary_compatible(
+    summary: dict[str, Any],
+    *,
+    args: argparse.Namespace,
+    task_dirs: list[Path],
+) -> bool:
+    if summary.get("version") != "mech_bench.local_rl_smoke.v1":
+        return False
+    requested = {path.name for path in task_dirs}
+    observed = {
+        str(row.get("task_id") or "")
+        for row in summary.get("all_samples", []) or []
+        if row.get("task_id")
+    }
+    if not observed.issubset(requested):
+        return False
+    checks = (
+        ("model", args.base_model),
+        ("model_path", args.model_path),
+        ("sglang_lora_path", args.sglang_lora_path),
+        ("rollout_backend", args.rollout_backend),
+        ("local_device", args.local_device),
+        ("local_torch_dtype", args.local_torch_dtype),
+        ("seed", args.seed),
+        ("samples_per_task", args.samples_per_task),
+        ("max_turns", args.max_turns),
+        ("max_tokens", args.max_tokens),
+        ("timeout", args.timeout),
+        ("sampler_retries", args.sampler_retries),
+        ("audit_retries", args.audit_retries),
+        ("max_verifier_calls_per_task", args.max_verifier_calls_per_task),
+        ("temperature", args.temperature),
+        ("top_p", args.top_p),
+        ("pass_threshold", args.pass_threshold),
+        ("archive_feedback", bool(args.archive_feedback)),
+    )
+    for key, expected in checks:
+        if summary.get(key) != expected:
+            return False
+    return True
+
+
+def build_smoke_summary(
+    *,
+    args: argparse.Namespace,
+    tasks_root: Path,
+    started: float,
+    all_outcomes: list[SampleOutcome],
+    complete: bool,
+) -> dict[str, Any]:
+    by_task: dict[str, list[SampleOutcome]] = {}
+    for o in all_outcomes:
+        by_task.setdefault(o.task_id, []).append(o)
+    best: list[dict] = []
+    n_strict_passed = 0
+    n_verifier_valid_passed = 0
+    for tid, lst in by_task.items():
+        winner = max(
+            lst,
+            key=lambda o: (
+                o.reward.verified_score if o.reward else 0.0
+            ),
+        )
+        best.append(winner.to_dict())
+        if winner.passed():
+            n_strict_passed += 1
+        if winner.verifier_valid_passed():
+            n_verifier_valid_passed += 1
+
+    n_strict_passed_raw = sum(1 for o in all_outcomes if o.passed())
+    n_verifier_valid_passed_raw = sum(
+        1 for o in all_outcomes if o.verifier_valid_passed()
+    )
+    n_verifier_calls = sum(int(o.verifier_calls or 0) for o in all_outcomes)
+    n_cad_audits = sum(int(o.cad_audits or 0) for o in all_outcomes)
+    n_chrono_audits = sum(int(o.chrono_audits or 0) for o in all_outcomes)
+
+    return {
+        "version": "mech_bench.local_rl_smoke.v1",
+        "complete": bool(complete),
+        "agent": args.rollout_backend,
+        "model": args.base_model,
+        "model_path": args.model_path,
+        "sglang_lora_path": args.sglang_lora_path,
+        "rollout_backend": args.rollout_backend,
+        "local_device": args.local_device,
+        "local_torch_dtype": args.local_torch_dtype,
+        "local_trust_remote_code": bool(args.local_trust_remote_code),
+        "seed": args.seed,
+        "temperature": args.temperature,
+        "top_p": args.top_p,
+        "max_tokens": args.max_tokens,
+        "timeout": args.timeout,
+        "sampler_retries": args.sampler_retries,
+        "audit_retries": args.audit_retries,
+        "max_verifier_calls_per_task": args.max_verifier_calls_per_task,
+        "n_audit_retries": sum(
+            int(getattr(o, "audit_retry_count", 0) or 0)
+            for o in all_outcomes
+        ),
+        "tasks_root": str(args.tasks),
+        "split_file": str(args.split_file) if args.split_file else None,
+        "n_tasks": len(by_task),
+        "samples_per_task": args.samples_per_task,
+        "max_turns": args.max_turns,
+        "archive_feedback": bool(args.archive_feedback),
+        "pass_threshold": args.pass_threshold,
+        "n_passed_best_of_k": n_strict_passed,
+        "pass_rate_best_of_k": (
+            n_strict_passed / len(by_task) if by_task else 0.0
+        ),
+        "n_verifier_valid_best_of_k": n_verifier_valid_passed,
+        "verifier_valid_pass_rate_best_of_k": (
+            n_verifier_valid_passed / len(by_task) if by_task else 0.0
+        ),
+        "n_samples": len(all_outcomes),
+        "n_verifier_calls": n_verifier_calls,
+        "n_cad_audits": n_cad_audits,
+        "n_chrono_audits": n_chrono_audits,
+        "n_passed_raw": n_strict_passed_raw,
+        "pass_rate_raw": (
+            n_strict_passed_raw / len(all_outcomes)
+            if all_outcomes else 0.0
+        ),
+        "n_verifier_valid_raw": n_verifier_valid_passed_raw,
+        "verifier_valid_pass_rate_raw": (
+            n_verifier_valid_passed_raw / len(all_outcomes)
+            if all_outcomes else 0.0
+        ),
+        "wall_clock_s": time.perf_counter() - started,
+        "tasks": best,
+        "all_samples": [o.to_dict() for o in all_outcomes],
+    }
+
+
+def write_summary_atomic(path: Path, summary: dict[str, Any]) -> None:
+    temp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    temp.write_text(json.dumps(summary, indent=2, default=str))
+    temp.replace(path)
+
+
 # --------------------------------------------------------------------- #
 # CLI                                                                   #
 # --------------------------------------------------------------------- #
@@ -1469,6 +1673,14 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--local-trust-remote-code", action="store_true")
     p.add_argument("--tasks", default="tasks")
     p.add_argument("--report-dir", required=True)
+    p.add_argument(
+        "--resume-existing",
+        action="store_true",
+        help=(
+            "reuse compatible samples from an existing smoke_summary.json and "
+            "continue missing task/sample pairs"
+        ),
+    )
     p.add_argument("--system-prompt-file", default=str(SYSTEM_PROMPT_PATH))
     p.add_argument("--samples-per-task", type=int, default=1)
     p.add_argument("--concurrency", type=int, default=1)
@@ -1509,6 +1721,7 @@ def main(argv: list[str] | None = None) -> int:
     tasks_root = (REPO_ROOT / args.tasks).resolve()
     out_root = Path(args.report_dir).resolve()
     out_root.mkdir(parents=True, exist_ok=True)
+    out_path = out_root / "smoke_summary.json"
     system_prompt = Path(args.system_prompt_file).read_text()
 
     only = (
@@ -1561,15 +1774,41 @@ def main(argv: list[str] | None = None) -> int:
         f"concurrency={args.concurrency}",
         file=sys.stderr,
     )
+    resumable = (
+        load_resumable_outcomes(out_path, args=args, task_dirs=task_dirs)
+        if args.resume_existing
+        else []
+    )
+    resumable_by_task_sample = {
+        (item.task_id, int(item.sample_idx)): item
+        for item in resumable
+    }
+    if resumable:
+        print(
+            f"[resume] loaded {len(resumable)} existing samples from {out_path}",
+            file=sys.stderr,
+        )
 
     def _go(td: Path, task_idx: int) -> list[SampleOutcome]:
-        outs: list[SampleOutcome] = []
+        outs: list[SampleOutcome] = [
+            item
+            for (_task_id, _sample_idx), item in sorted(
+                resumable_by_task_sample.items()
+            )
+            if _task_id == td.name
+        ]
+        existing_sample_indices = {
+            int(item.sample_idx)
+            for item in outs
+        }
         verifier_call_cap = max(0, int(args.max_verifier_calls_per_task or 0))
         required_cad_audits, required_chrono_audits = _task_required_audits(
             td,
             max_turns=int(args.max_turns or 1),
         )
         for k in range(args.samples_per_task):
+            if k in existing_sample_indices:
+                continue
             if verifier_call_cap and actual_verifier_calls_total(outs) >= verifier_call_cap:
                 break
             o = None
@@ -1731,9 +1970,22 @@ def main(argv: list[str] | None = None) -> int:
 
     started = time.perf_counter()
     all_outcomes: list[SampleOutcome] = []
+    def write_progress(complete: bool) -> None:
+        write_summary_atomic(
+            out_path,
+            build_smoke_summary(
+                args=args,
+                tasks_root=tasks_root,
+                started=started,
+                all_outcomes=all_outcomes,
+                complete=complete,
+            ),
+        )
+
     if args.concurrency <= 1:
         for i, td in enumerate(task_dirs):
             all_outcomes.extend(_go(td, i))
+            write_progress(complete=False)
     else:
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=args.concurrency
@@ -1744,91 +1996,16 @@ def main(argv: list[str] | None = None) -> int:
             ]
             for fut in concurrent.futures.as_completed(futures):
                 all_outcomes.extend(fut.result())
+                write_progress(complete=False)
 
-    # Per-task: best-of-K reward (max verified_score across samples).
-    by_task: dict[str, list[SampleOutcome]] = {}
-    for o in all_outcomes:
-        by_task.setdefault(o.task_id, []).append(o)
-    best: list[dict] = []
-    n_strict_passed = 0
-    n_verifier_valid_passed = 0
-    for tid, lst in by_task.items():
-        winner = max(
-            lst,
-            key=lambda o: (
-                o.reward.verified_score if o.reward else 0.0
-            ),
-        )
-        best.append(winner.to_dict())
-        if winner.passed():
-            n_strict_passed += 1
-        if winner.verifier_valid_passed():
-            n_verifier_valid_passed += 1
-
-    n_strict_passed_raw = sum(1 for o in all_outcomes if o.passed())
-    n_verifier_valid_passed_raw = sum(
-        1 for o in all_outcomes if o.verifier_valid_passed()
+    summary = build_smoke_summary(
+        args=args,
+        tasks_root=tasks_root,
+        started=started,
+        all_outcomes=all_outcomes,
+        complete=True,
     )
-    n_verifier_calls = sum(int(o.verifier_calls or 0) for o in all_outcomes)
-    n_cad_audits = sum(int(o.cad_audits or 0) for o in all_outcomes)
-    n_chrono_audits = sum(int(o.chrono_audits or 0) for o in all_outcomes)
-
-    summary = {
-        "version": "mech_bench.local_rl_smoke.v1",
-        "agent": args.rollout_backend,
-        "model": args.base_model,
-        "model_path": args.model_path,
-        "sglang_lora_path": args.sglang_lora_path,
-        "rollout_backend": args.rollout_backend,
-        "local_device": args.local_device,
-        "local_torch_dtype": args.local_torch_dtype,
-        "local_trust_remote_code": bool(args.local_trust_remote_code),
-        "seed": args.seed,
-        "temperature": args.temperature,
-        "top_p": args.top_p,
-        "max_tokens": args.max_tokens,
-        "timeout": args.timeout,
-        "sampler_retries": args.sampler_retries,
-        "audit_retries": args.audit_retries,
-        "n_audit_retries": sum(
-            int(getattr(o, "audit_retry_count", 0) or 0)
-            for o in all_outcomes
-        ),
-        "tasks_root": str(args.tasks),
-        "split_file": str(args.split_file) if args.split_file else None,
-        "n_tasks": len(by_task),
-        "samples_per_task": args.samples_per_task,
-        "max_turns": args.max_turns,
-        "archive_feedback": bool(args.archive_feedback),
-        "pass_threshold": args.pass_threshold,
-        "n_passed_best_of_k": n_strict_passed,
-        "pass_rate_best_of_k": (
-            n_strict_passed / len(by_task) if by_task else 0.0
-        ),
-        "n_verifier_valid_best_of_k": n_verifier_valid_passed,
-        "verifier_valid_pass_rate_best_of_k": (
-            n_verifier_valid_passed / len(by_task) if by_task else 0.0
-        ),
-        "n_samples": len(all_outcomes),
-        "n_verifier_calls": n_verifier_calls,
-        "n_cad_audits": n_cad_audits,
-        "n_chrono_audits": n_chrono_audits,
-        "n_passed_raw": n_strict_passed_raw,
-        "pass_rate_raw": (
-            n_strict_passed_raw / len(all_outcomes)
-            if all_outcomes else 0.0
-        ),
-        "n_verifier_valid_raw": n_verifier_valid_passed_raw,
-        "verifier_valid_pass_rate_raw": (
-            n_verifier_valid_passed_raw / len(all_outcomes)
-            if all_outcomes else 0.0
-        ),
-        "wall_clock_s": time.perf_counter() - started,
-        "tasks": best,
-        "all_samples": [o.to_dict() for o in all_outcomes],
-    }
-    out_path = out_root / "smoke_summary.json"
-    out_path.write_text(json.dumps(summary, indent=2, default=str))
+    write_summary_atomic(out_path, summary)
     print(f"\nwrote {out_path}", file=sys.stderr)
     print(json.dumps({
         "model": summary["model_path"] or summary["model"],

@@ -1482,7 +1482,7 @@ def run_or_load_eval_summary(
     if resume_existing and summary_path.is_file():
         summary = json.loads(summary_path.read_text())
         requested_tasks = set(read_ids(test_file))
-        if requested_tasks.issubset(sample_summary_task_ids(summary)):
+        if sample_summary_complete_for_request(summary, requested_tasks):
             return summary
     if not resume_existing and report_dir.exists():
         shutil.rmtree(report_dir)
@@ -1540,6 +1540,7 @@ def run_or_load_eval_summary(
         bool(getattr(args, "local_trust_remote_code", False)),
         "--local-trust-remote-code",
     )
+    add_flag(cmd, resume_existing, "--resume-existing")
     if method.adapter_kind == "sft":
         manifest_path = sft_manifest or (
             report_dir.parent / "sft_train" / "run_manifest.json"
@@ -1561,6 +1562,15 @@ def sample_summary_task_ids(summary: dict[str, Any]) -> set[str]:
         for row in summary.get("all_samples", []) or []
         if row.get("task_id")
     }
+
+
+def sample_summary_complete_for_request(
+    summary: dict[str, Any],
+    requested_tasks: set[str],
+) -> bool:
+    if not requested_tasks.issubset(sample_summary_task_ids(summary)):
+        return False
+    return bool(summary.get("complete", True))
 
 
 def run_or_load_ttrl_cell(

@@ -460,6 +460,79 @@ def test_max_verifier_calls_per_task_caps_multiturn_budget(
     assert sum(item["verifier_calls"] for item in summary["all_samples"]) == 6
 
 
+def test_resume_existing_reuses_completed_samples_and_continues_missing_tasks(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    tasks = tmp_path / "tasks"
+    task_a = tasks / "task_a"
+    task_b = tasks / "task_b"
+    for task_dir in (task_a, task_b):
+        task_dir.mkdir(parents=True)
+        (task_dir / "task.toml").write_text(
+            'family = "cycloidal"\n'
+            'tier = "contact_dynamics"\n'
+        )
+    split_a = tmp_path / "split_a.txt"
+    split_a.write_text("task_a\n")
+    split_all = tmp_path / "split_all.txt"
+    split_all.write_text("task_a\ntask_b\n")
+    system_prompt = tmp_path / "system.md"
+    system_prompt.write_text("system")
+    report_dir = tmp_path / "report"
+    calls: list[str] = []
+
+    def fake_run_one(task_dir, **kwargs):
+        calls.append(task_dir.name)
+        outcome = _outcome(
+            RewardResult(
+                score=1.0,
+                verified_score=1.0,
+                hard_gate_passed=True,
+                evaluation_valid=True,
+                failure_codes=[],
+            )
+        )
+        outcome.task_id = task_dir.name
+        outcome.sample_idx = int(kwargs["sample_idx"])
+        outcome.completion_chars = 101 if task_dir.name == "task_a" else 202
+        outcome.verifier_calls = 1
+        return outcome
+
+    monkeypatch.setattr(sample_and_score, "run_one", fake_run_one)
+
+    base_args = [
+        "--tasks", str(tasks),
+        "--report-dir", str(report_dir),
+        "--system-prompt-file", str(system_prompt),
+        "--samples-per-task", "1",
+        "--seed", "20260610",
+    ]
+    assert sample_and_score.main([*base_args, "--split-file", str(split_a)]) == 0
+    partial_summary_path = report_dir / "smoke_summary.json"
+    partial_summary = json.loads(partial_summary_path.read_text())
+    partial_summary["complete"] = False
+    partial_summary_path.write_text(json.dumps(partial_summary))
+
+    calls.clear()
+    assert sample_and_score.main([
+        *base_args,
+        "--split-file", str(split_all),
+        "--resume-existing",
+    ]) == 0
+
+    summary = json.loads(partial_summary_path.read_text())
+    assert calls == ["task_b"]
+    assert summary["complete"] is True
+    assert {row["task_id"] for row in summary["all_samples"]} == {
+        "task_a",
+        "task_b",
+    }
+    by_task = {row["task_id"]: row for row in summary["all_samples"]}
+    assert by_task["task_a"]["completion_chars"] == 101
+    assert by_task["task_b"]["completion_chars"] == 202
+
+
 def test_archive_feedback_text_summarizes_prior_candidates() -> None:
     good = _outcome(
         RewardResult(
