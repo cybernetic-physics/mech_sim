@@ -600,6 +600,65 @@ def test_resume_existing_recovers_from_sample_outcome_checkpoint_without_summary
     assert by_task["task_b"]["completion_chars"] == 202
 
 
+def test_resume_existing_does_not_treat_terminal_completion_as_exact_checkpoint(
+    monkeypatch,
+    tmp_path,
+    capsys,
+) -> None:
+    tasks = tmp_path / "tasks"
+    task_a = tasks / "task_a"
+    task_b = tasks / "task_b"
+    for task_dir in (task_a, task_b):
+        task_dir.mkdir(parents=True)
+        (task_dir / "task.toml").write_text(
+            'family = "cycloidal"\n'
+            'tier = "contact_dynamics"\n'
+        )
+    split_all = tmp_path / "split_all.txt"
+    split_all.write_text("task_a\ntask_b\n")
+    system_prompt = tmp_path / "system.md"
+    system_prompt.write_text("system")
+    report_dir = tmp_path / "report"
+    legacy_dir = report_dir / "sample_0" / "task_a"
+    legacy_dir.mkdir(parents=True)
+    (legacy_dir / "completion.txt").write_text("legacy terminal completion")
+    calls: list[str] = []
+
+    def fake_run_one(task_dir, **kwargs):
+        calls.append(task_dir.name)
+        outcome = _outcome(
+            RewardResult(
+                score=1.0,
+                verified_score=1.0,
+                hard_gate_passed=True,
+                evaluation_valid=True,
+                failure_codes=[],
+            )
+        )
+        outcome.task_id = task_dir.name
+        outcome.sample_idx = int(kwargs["sample_idx"])
+        outcome.verifier_calls = 1
+        return outcome
+
+    monkeypatch.setattr(sample_and_score, "run_one", fake_run_one)
+
+    rc = sample_and_score.main([
+        "--tasks", str(tasks),
+        "--report-dir", str(report_dir),
+        "--system-prompt-file", str(system_prompt),
+        "--samples-per-task", "1",
+        "--seed", "20260610",
+        "--split-file", str(split_all),
+        "--resume-existing",
+    ])
+
+    assert rc == 0
+    assert calls == ["task_a", "task_b"]
+    captured = capsys.readouterr()
+    assert "terminal-only completion artifacts" in captured.err
+    assert "sample_outcome checkpoints" in captured.err
+
+
 def test_archive_feedback_text_summarizes_prior_candidates() -> None:
     good = _outcome(
         RewardResult(

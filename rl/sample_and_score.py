@@ -1540,6 +1540,30 @@ def load_resumable_outcome_checkpoints(
     return outcomes
 
 
+def count_nonresumable_terminal_completions(
+    report_dir: Path,
+    *,
+    task_dirs: list[Path],
+    resumable_keys: set[tuple[str, int]],
+) -> tuple[int, int]:
+    count = 0
+    tasks: set[str] = set()
+    for task_dir in task_dirs:
+        for sample_dir in sorted(report_dir.glob("sample_*")):
+            m = re.fullmatch(r"sample_(\d+)", sample_dir.name)
+            if not m:
+                continue
+            sample_idx = int(m.group(1))
+            key = (task_dir.name, sample_idx)
+            if key in resumable_keys:
+                continue
+            completion_path = sample_dir / task_dir.name / "completion.txt"
+            if completion_path.is_file():
+                count += 1
+                tasks.add(task_dir.name)
+    return count, len(tasks)
+
+
 def resume_summary_compatible(
     summary: dict[str, Any],
     *,
@@ -1907,6 +1931,23 @@ def main(argv: list[str] | None = None) -> int:
             f"[resume] loaded {len(resumable)} existing samples from {out_path}",
             file=sys.stderr,
         )
+    if args.resume_existing:
+        terminal_only_count, terminal_only_task_count = (
+            count_nonresumable_terminal_completions(
+                out_root,
+                task_dirs=task_dirs,
+                resumable_keys=set(resumable_by_task_sample),
+            )
+        )
+        if terminal_only_count:
+            print(
+                "[resume] ignoring "
+                f"{terminal_only_count} terminal-only completion artifacts "
+                f"across {terminal_only_task_count} tasks; exact "
+                "sample_outcome checkpoints or a compatible smoke_summary "
+                "are required for resumable evidence",
+                file=sys.stderr,
+            )
 
     started = time.perf_counter()
     requested_task_names = {td.name for td in task_dirs}
