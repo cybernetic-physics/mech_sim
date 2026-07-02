@@ -46,6 +46,7 @@ def test_recover_terminal_completion_writes_nonresumable_evidence(
     assert summary["complete"] is False
     assert summary["resumable_checkpoint_count"] == 0
     assert summary["recovered_terminal_completion_count"] == 1
+    assert summary["newly_recovered_terminal_completion_count"] == 1
     assert not (completion_dir / "sample_outcome.json").exists()
     recovery_path = completion_dir / "terminal_recovery.json"
     assert recovery_path.is_file()
@@ -124,3 +125,42 @@ def test_recover_terminal_completion_skips_exact_checkpoints(
     assert summary["recovered_terminal_completion_count"] == 0
     assert summary["skipped_existing_checkpoint_count"] == 1
     assert not (completion_dir / "terminal_recovery.json").exists()
+
+
+def test_recover_terminal_completion_counts_existing_recoveries(
+    tmp_path: Path,
+) -> None:
+    tasks_root = tmp_path / "tasks"
+    task_dir = tasks_root / "task_a"
+    task_dir.mkdir(parents=True)
+    (task_dir / "task.toml").write_text('family = "x"\n')
+    report_dir = tmp_path / "report"
+    completion_dir = report_dir / "sample_0" / "task_a"
+    completion_dir.mkdir(parents=True)
+    (completion_dir / "completion.txt").write_text("design")
+    (completion_dir / "terminal_recovery.json").write_text(json.dumps({
+        "version": recover.RECOVERY_VERSION,
+        "task_id": "task_a",
+        "sample_idx": 0,
+        "outcome": {
+            "task_id": "task_a",
+            "sample_idx": 0,
+            "verified_score": 1.0,
+            "evaluation_valid": True,
+            "hard_gate_passed": True,
+            "failure_codes": [],
+        },
+    }))
+
+    summary = recover.recover_terminal_completion_evidence(
+        report_dir=report_dir,
+        tasks_root=tasks_root,
+        scorer=lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            AssertionError("should not rescore existing recovery")
+        ),
+    )
+
+    assert summary["recovered_terminal_completion_count"] == 1
+    assert summary["newly_recovered_terminal_completion_count"] == 0
+    assert summary["skipped_existing_recovery_count"] == 1
+    assert summary["recovered"][0]["verified_score"] == 1.0

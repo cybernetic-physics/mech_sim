@@ -87,6 +87,7 @@ def recover_terminal_completion_evidence(
         candidates = candidates[:limit]
 
     recovered: list[dict[str, Any]] = []
+    newly_recovered = 0
     skipped_existing_checkpoint = 0
     skipped_existing_recovery = 0
     skipped_missing_task = 0
@@ -99,6 +100,17 @@ def recover_terminal_completion_evidence(
             continue
         recovery_path = sample_dir / "terminal_recovery.json"
         if recovery_path.is_file() and not overwrite:
+            try:
+                payload = json.loads(recovery_path.read_text(encoding="utf-8"))
+                recovered.append(
+                    compact_recovery_row(payload, recovery_path=recovery_path)
+                )
+            except json.JSONDecodeError:
+                errors.append({
+                    "task_id": task_id,
+                    "sample_idx": candidate["sample_idx"],
+                    "reason": "invalid_existing_terminal_recovery",
+                })
             skipped_existing_recovery += 1
             continue
         task_dir = task_map.get(task_id)
@@ -137,6 +149,7 @@ def recover_terminal_completion_evidence(
             })
             continue
         write_json_atomic(recovery_path, record)
+        newly_recovered += 1
         recovered.append(compact_recovery_row(record, recovery_path=recovery_path))
 
     summary = {
@@ -144,6 +157,7 @@ def recover_terminal_completion_evidence(
         "complete": False,
         "resumable_checkpoint_count": 0,
         "recovered_terminal_completion_count": len(recovered),
+        "newly_recovered_terminal_completion_count": newly_recovered,
         "candidate_completion_count": len(candidates),
         "skipped_existing_checkpoint_count": skipped_existing_checkpoint,
         "skipped_existing_recovery_count": skipped_existing_recovery,
