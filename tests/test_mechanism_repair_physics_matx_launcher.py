@@ -112,6 +112,18 @@ def test_launcher_defaults_to_no_server_local_cuda_rollout() -> None:
     assert '--local-torch-dtype "$LOCAL_TORCH_DTYPE"' in text
 
 
+def test_launcher_uses_runtime_scratch_for_auto_chrono_env() -> None:
+    text = SCRIPT.read_text(encoding="utf-8")
+
+    assert 'CHRONO_CONDA_PKGS_DIR="$JOB_RUNTIME_ROOT/conda_pkgs_chrono"' in text
+    assert (
+        'chrono_env_prefix="$JOB_RUNTIME_ROOT/chrono_env_py\\${chrono_python_version//./}"'
+        in text
+    )
+    assert 'CHRONO_CONDA_PKGS_DIR="$REMOTE_ROOT/conda_pkgs_chrono"' not in text
+    assert 'chrono_env_prefix="$REMOTE_ROOT/chrono_env_py' not in text
+
+
 def test_launcher_refuses_multi_gpu_gres() -> None:
     proc = run_launcher(SHARD_INDICES="0", GRES="gpu:l40s:2")
 

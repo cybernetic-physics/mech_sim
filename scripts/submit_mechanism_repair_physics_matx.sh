@@ -205,7 +205,7 @@ if [[ "$SGLANG_VENV" == "auto" ]]; then
   SGLANG_VENV="$JOB_RUNTIME_ROOT/sglang_venv"
 fi
 if [[ "$CHRONO_CONDA_PKGS_DIR" == "auto" ]]; then
-  CHRONO_CONDA_PKGS_DIR="$REMOTE_ROOT/conda_pkgs_chrono"
+  CHRONO_CONDA_PKGS_DIR="$JOB_RUNTIME_ROOT/conda_pkgs_chrono"
 fi
 if [[ "$SLURM_OUTPUT" == "auto" ]]; then
   SLURM_OUTPUT="$remote_logs/%x-%A_%a.out"
@@ -635,7 +635,7 @@ if [[ "$ENABLE_CHRONO_ENV" == "1" ]]; then
   fi
   chrono_env_prefix="$CHRONO_ENV_PREFIX"
   if [[ "\$chrono_env_prefix" == "auto" ]]; then
-    chrono_env_prefix="$REMOTE_ROOT/chrono_env_py\${chrono_python_version//./}"
+    chrono_env_prefix="$JOB_RUNTIME_ROOT/chrono_env_py\${chrono_python_version//./}"
   fi
   chrono_bootstrap_args=(
     scripts/bootstrap_chrono_env.py
@@ -962,7 +962,7 @@ if [[ "$ENABLE_CHRONO_ENV" == "1" ]]; then
   fi
   chrono_env_prefix="$CHRONO_ENV_PREFIX"
   if [[ "\$chrono_env_prefix" == "auto" ]]; then
-    chrono_env_prefix="$REMOTE_ROOT/chrono_env_py\${chrono_python_version//./}"
+    chrono_env_prefix="$JOB_RUNTIME_ROOT/chrono_env_py\${chrono_python_version//./}"
   fi
   chrono_bootstrap_args=(
     scripts/bootstrap_chrono_env.py
@@ -1058,7 +1058,7 @@ if [[ "$ENABLE_CHRONO_ENV" == "1" ]]; then
   fi
   chrono_env_prefix="$CHRONO_ENV_PREFIX"
   if [[ "\$chrono_env_prefix" == "auto" ]]; then
-    chrono_env_prefix="$REMOTE_ROOT/chrono_env_py\${chrono_python_version//./}"
+    chrono_env_prefix="$JOB_RUNTIME_ROOT/chrono_env_py\${chrono_python_version//./}"
   fi
   chrono_bootstrap_args=(
     scripts/bootstrap_chrono_env.py
