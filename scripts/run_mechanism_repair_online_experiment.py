@@ -493,6 +493,7 @@ def main() -> int:
                 out_dir=out_dir,
                 budget=budget,
                 verifier_level_by_task=verifier_level_by_task,
+                default_ttrl_reward_channel=str(args.ttrl_reward_channel),
             )
             if dropped_rows:
                 rewrite_rows(rows_path, rows)
@@ -1248,6 +1249,7 @@ def prune_unusable_resume_rows(
     out_dir: Path,
     budget: int,
     verifier_level_by_task: dict[str, int],
+    default_ttrl_reward_channel: str = "artifact_progress",
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     kept: list[dict[str, Any]] = []
     dropped: list[dict[str, Any]] = []
@@ -1257,6 +1259,7 @@ def prune_unusable_resume_rows(
             out_dir=out_dir,
             budget=budget,
             verifier_level_by_task=verifier_level_by_task,
+            default_ttrl_reward_channel=default_ttrl_reward_channel,
         )
         if reasons:
             dropped.append({
@@ -1274,6 +1277,7 @@ def unusable_resume_row_reasons(
     out_dir: Path,
     budget: int,
     verifier_level_by_task: dict[str, int],
+    default_ttrl_reward_channel: str = "artifact_progress",
 ) -> list[str]:
     reasons: list[str] = []
     try:
@@ -1282,6 +1286,18 @@ def unusable_resume_row_reasons(
         return ["malformed_row_key"]
 
     split, task_id, seed, method, row_budget = key
+    if method in TTRL_METHODS:
+        expected_reward_channel = reward_channel_for_method(
+            method,
+            default=default_ttrl_reward_channel,
+        )
+        reward_channel = str(row.get("reward_channel") or "")
+        if reward_channel != expected_reward_channel:
+            reasons.append("ttrl_reward_channel_mismatch")
+        if expected_reward_channel == "artifact_progress":
+            version = str(row.get("artifact_progress_reward_version") or "")
+            if version != ARTIFACT_PROGRESS_REWARD_VERSION:
+                reasons.append("stale_artifact_progress_reward_version")
     verifier_level = int(
         row.get("verifier_level")
         or verifier_level_by_task.get(task_id, 0)

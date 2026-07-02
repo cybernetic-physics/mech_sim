@@ -642,6 +642,78 @@ def test_prune_unusable_physics_resume_rows_keeps_complete_row(
     assert dropped == []
 
 
+def test_prune_unusable_resume_rows_drops_stale_ttrl_reward_version(
+    tmp_path: Path,
+) -> None:
+    for relative in (
+        "raw/complete.txt",
+        "verifier/complete.json",
+        "cad/complete.json",
+        "chrono/complete.json",
+        "training/reward_log.jsonl",
+    ):
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("{}\n")
+    adapter = tmp_path / "adapter"
+    adapter.mkdir()
+    (adapter / "adapter_model.safetensors").write_bytes(b"weights")
+    row = {
+        "split": "hidden_perturbation",
+        "task_id": "level3_task",
+        "seed": 20260610,
+        "method": "mechanical_evolve_ttrl_tool_verified",
+        "budget": 32,
+        "actual_verifier_calls": 32,
+        "actual_cad_calls": 1,
+        "actual_chrono_calls": 1,
+        "verifier_level": 3,
+        "reward_channel": "artifact_progress",
+        "adapter_updates": 32,
+        "trained_tokens": 128,
+        "rl_trained_tokens": 128,
+        "n_rl_datums": 32,
+        "raw_completion_paths": ["raw/complete.txt"],
+        "verifier_output_paths": ["verifier/complete.json"],
+        "cad_artifact_paths": ["cad/complete.json"],
+        "chrono_output_paths": ["chrono/complete.json"],
+        "training_log_paths": ["training/reward_log.jsonl"],
+        "adapter_checkpoint_paths": ["adapter"],
+    }
+
+    kept, dropped = online.prune_unusable_resume_rows(
+        [row],
+        out_dir=tmp_path,
+        budget=32,
+        verifier_level_by_task={"level3_task": 3},
+    )
+
+    assert kept == []
+    assert dropped == [
+        {
+            "key": (
+                "hidden_perturbation/level3_task/seed20260610/"
+                "mechanical_evolve_ttrl_tool_verified/budget32"
+            ),
+            "reasons": ["stale_artifact_progress_reward_version"],
+        }
+    ]
+
+    current_row = dict(
+        row,
+        artifact_progress_reward_version=online.ARTIFACT_PROGRESS_REWARD_VERSION,
+    )
+    kept, dropped = online.prune_unusable_resume_rows(
+        [current_row],
+        out_dir=tmp_path,
+        budget=32,
+        verifier_level_by_task={"level3_task": 3},
+    )
+
+    assert kept == [current_row]
+    assert dropped == []
+
+
 def test_write_results_bundle_overwrites_empty_csvs(tmp_path: Path) -> None:
     (tmp_path / "results.csv").write_text("stale\n")
     (tmp_path / "cell_results.csv").write_text("stale\n")
