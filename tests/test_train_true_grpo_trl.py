@@ -434,8 +434,54 @@ def test_artifact_progress_caps_invalid_artifact_reward() -> None:
         reward_channel="artifact_progress",
     )
 
-    assert reward == pytest.approx(0.20)
+    assert reward == pytest.approx(0.08)
     assert features["has_no_invalid_artifact_code"] is False
+
+
+def test_artifact_progress_caps_physically_failing_reward() -> None:
+    complete = (
+        "```python\n"
+        "from pathlib import Path\n"
+        "def build_design(out_dir: Path) -> dict:\n"
+        "    return {'schema_version':'design_ir.v2','parts':[],"
+        "'joints':[],'ports':{'input_port':{},'output_port':{}},"
+        "'params':{}}\n"
+        "```"
+    )
+    physically_failing = RewardResult(
+        score=0.0,
+        verified_score=0.0,
+        hard_gate_passed=False,
+        evaluation_valid=True,
+        failure_codes=["missing_contact"],
+        design_py_extracted=True,
+    )
+    verified_pass = RewardResult(
+        score=1.0,
+        verified_score=1.0,
+        hard_gate_passed=True,
+        evaluation_valid=True,
+        failure_codes=[],
+        design_py_extracted=True,
+    )
+
+    failing_reward, failing_features = _reward_base(
+        complete,
+        physically_failing,
+        reward_channel="artifact_progress",
+    )
+    pass_reward, pass_features = _reward_base(
+        complete,
+        verified_pass,
+        reward_channel="artifact_progress",
+    )
+
+    assert failing_features["evaluation_valid"] is True
+    assert failing_features["hard_gate_passed"] is False
+    assert failing_reward == pytest.approx(0.55)
+    assert pass_features["hard_gate_passed"] is True
+    assert pass_reward == pytest.approx(1.0)
+    assert pass_reward - failing_reward >= 0.40
 
 
 def test_parse_max_memory_accepts_comma_map_and_json() -> None:

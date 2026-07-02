@@ -1016,7 +1016,21 @@ def _artifact_progress_reward(
     reward += 0.35 * max(0.0, min(1.0, float(result.score)))
     reward += 0.10 * max(0.0, min(1.0, float(result.verified_score)))
     if invalid_artifact:
-        reward = min(reward, 0.20 if syntax_ok and extracted else 0.05)
+        reward = min(reward, 0.08 if syntax_ok and extracted else 0.02)
+    elif not result.evaluation_valid:
+        reward = min(reward, 0.30)
+    elif not result.hard_gate_passed or result.failure_codes:
+        partial_score = max(
+            0.0,
+            min(
+                1.0,
+                max(
+                    float(result.score),
+                    float(result.verified_score),
+                ),
+            ),
+        )
+        reward = min(reward, 0.55 + 0.20 * partial_score)
     return max(0.0, min(1.0, reward)), features
 
 
