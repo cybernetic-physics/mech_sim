@@ -90,6 +90,8 @@ def test_sentinel_sync_helper_documents_no_slurm_polling() -> None:
     assert "--audit-only" in text
     assert "sentinel_audit.json" in text
     assert "primary_pair_summary" in text
+    assert "synced_sample_summaries" in text
+    assert "smoke_summary.json" in text
 
 
 def test_help_documents_finalize_only() -> None:

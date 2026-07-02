@@ -84,12 +84,38 @@ trap cleanup EXIT
 if [[ "$PRINT_FULL_AUDIT" == "1" ]]; then
   cat "$audit_stdout"
 else
-  "$PYTHON" - "$LOCAL_RUN_DIR/sentinel_audit.json" "$SHARD_INDEX" <<'PY'
+  "$PYTHON" - "$LOCAL_RUN_DIR/sentinel_audit.json" "$SHARD_INDEX" "$local_shard_dir" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 audit = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+shard_dir = Path(sys.argv[3])
+sample_summary = {
+    "summary_count": 0,
+    "complete_count": 0,
+    "incomplete_count": 0,
+    "invalid_count": 0,
+    "sample_count": 0,
+    "task_count": 0,
+}
+for path in shard_dir.rglob("smoke_summary.json"):
+    sample_summary["summary_count"] += 1
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        sample_summary["invalid_count"] += 1
+        continue
+    if payload.get("complete", True):
+        sample_summary["complete_count"] += 1
+    else:
+        sample_summary["incomplete_count"] += 1
+    sample_summary["sample_count"] += len(payload.get("all_samples", []) or [])
+    sample_summary["task_count"] += len({
+        str(row.get("task_id") or "")
+        for row in payload.get("all_samples", []) or []
+        if row.get("task_id")
+    })
 summary = {
     "planned_cell_count": audit.get("planned_cell_count"),
     "observed_cell_count": audit.get("observed_cell_count"),
@@ -97,6 +123,7 @@ summary = {
     "duplicate_cell_count": audit.get("duplicate_cell_count"),
     "primary_pair_summary": audit.get("primary_pair_summary"),
     "decision": audit.get("decision"),
+    "synced_sample_summaries": sample_summary,
     "synced_shard_index": int(sys.argv[2]),
 }
 print(json.dumps(summary, indent=2, sort_keys=True))
