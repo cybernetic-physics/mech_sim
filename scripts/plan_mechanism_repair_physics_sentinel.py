@@ -817,8 +817,10 @@ def summarize_partial_artifacts(
         "invalid_sample_outcome_checkpoint_count": 0,
         "terminal_completion_count": 0,
         "terminal_completion_task_count": 0,
+        "terminal_completion_by_method": {},
     }
     terminal_tasks: set[str] = set()
+    terminal_by_method: Counter[str] = Counter()
     seen_paths: set[Path] = set()
     for root in roots:
         for path in sorted(root.glob("shard_runs/shard_*/online_runs/**/smoke_summary.json")):
@@ -852,8 +854,17 @@ def summarize_partial_artifacts(
             if len(parts) >= 3 and parts[-3].startswith("sample_"):
                 summary["terminal_completion_count"] += 1
                 terminal_tasks.add(parts[-2])
+                terminal_by_method[method_from_artifact_path(path)] += 1
     summary["terminal_completion_task_count"] = len(terminal_tasks)
+    summary["terminal_completion_by_method"] = dict(sorted(terminal_by_method.items()))
     return summary
+
+
+def method_from_artifact_path(path: Path) -> str:
+    for part in path.parts:
+        if part.startswith("eval_") and len(part) > len("eval_"):
+            return part[len("eval_"):]
+    return "unknown"
 
 
 def summarize_selected_tasks(selected: list[dict[str, Any]]) -> dict[str, Any]:
