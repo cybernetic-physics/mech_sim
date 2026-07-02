@@ -749,6 +749,7 @@ def stage_submit_command(
         "MAX_ARRAY_TASKS=1",
         "ARRAY_CONCURRENCY=1",
         "USE_PREPLANNED_SHARDS=1",
+        "RESUME_EXISTING=1",
         "SYNC_LOCAL_BENCHMARK=1",
         "SUBMIT_DEPENDENTS=0",
     ]
