@@ -148,6 +148,7 @@ def main() -> int:
         "primary_delta": audit["primary_pair_summary"]["delta_success_rate"],
         "decision": audit["decision"],
         "first_stage_submit_command": plan["first_stage_submit_command"],
+        "first_stage_resume_command": plan["first_stage_resume_command"],
     }, indent=2, sort_keys=True))
     return 0
 
@@ -292,6 +293,12 @@ def build_sentinel_plan(
             num_shards=len(stages),
             fresh_remote_root=True,
         ),
+        "first_stage_resume_command": stage_submit_command(
+            out_dir,
+            shard_index=0,
+            num_shards=len(stages),
+            fresh_remote_root=False,
+        ),
         "stage_submit_commands": [
             {
                 "stage": stage["stage"],
@@ -301,6 +308,12 @@ def build_sentinel_plan(
                     shard_index=int(stage["shard_index"]),
                     num_shards=len(stages),
                     fresh_remote_root=int(stage["shard_index"]) == 0,
+                ),
+                "resume_command": stage_submit_command(
+                    out_dir,
+                    shard_index=int(stage["shard_index"]),
+                    num_shards=len(stages),
+                    fresh_remote_root=False,
                 ),
             }
             for stage in stages
