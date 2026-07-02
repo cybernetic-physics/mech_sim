@@ -86,6 +86,14 @@ def main() -> int:
         action="store_true",
         help="print the plan/audit without writing the sentinel run tree",
     )
+    parser.add_argument(
+        "--audit-only",
+        action="store_true",
+        help=(
+            "audit an existing sentinel run tree without copying benchmark "
+            "scaffold files or rewriting experiment_shards"
+        ),
+    )
     args = parser.parse_args()
 
     benchmark_dir = Path(args.benchmark_dir).expanduser().resolve()
@@ -103,7 +111,7 @@ def main() -> int:
         min_effect_pp=float(args.min_effect_pp),
     )
 
-    if not args.dry_run:
+    if not args.dry_run and not args.audit_only:
         materialize_benchmark_scaffold(source_dir=benchmark_dir, out_dir=out_dir)
         write_sentinel_artifacts(out_dir=out_dir, plan=plan)
 

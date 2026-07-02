@@ -12,6 +12,11 @@ SCRIPT = PROJECT_ROOT / "scripts" / "submit_mechanism_repair_physics_matx.sh"
 SYNC_SCRIPT = (
     PROJECT_ROOT / "scripts" / "sync_mechanism_repair_physics_shard_from_matx.sh"
 )
+SENTINEL_SYNC_SCRIPT = (
+    PROJECT_ROOT
+    / "scripts"
+    / "sync_mechanism_repair_physics_sentinel_from_matx.sh"
+)
 
 
 def run_launcher(*args: str, **env_overrides: str) -> subprocess.CompletedProcess[str]:
@@ -51,6 +56,18 @@ def test_sync_helper_is_valid_bash() -> None:
     assert proc.returncode == 0, proc.stderr
 
 
+def test_sentinel_sync_helper_is_valid_bash() -> None:
+    proc = subprocess.run(
+        ["bash", "-n", str(SENTINEL_SYNC_SCRIPT)],
+        cwd=PROJECT_ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert proc.returncode == 0, proc.stderr
+
+
 def test_sync_helper_documents_single_shard_audit() -> None:
     text = SYNC_SCRIPT.read_text(encoding="utf-8")
 
@@ -63,6 +80,16 @@ def test_sync_helper_documents_single_shard_audit() -> None:
     assert "--out-json" in text
     assert 'PRINT_FULL_AUDIT="${PRINT_FULL_AUDIT:-0}"' in text
     assert "synced_shard_status" in text
+
+
+def test_sentinel_sync_helper_documents_no_slurm_polling() -> None:
+    text = SENTINEL_SYNC_SCRIPT.read_text(encoding="utf-8")
+
+    assert "This script does not query" in text
+    assert "rsync -az --delete" in text
+    assert "--audit-only" in text
+    assert "sentinel_audit.json" in text
+    assert "primary_pair_summary" in text
 
 
 def test_help_documents_finalize_only() -> None:
