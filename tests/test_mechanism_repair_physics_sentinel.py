@@ -249,6 +249,14 @@ def test_sentinel_audit_reports_partial_artifacts_without_counting_rows(
         json.dumps({"complete": False, "all_samples": []}),
         encoding="utf-8",
     )
+    (eval_dir / "terminal_recovery_summary.json").write_text(
+        json.dumps({
+            "version": "mech_bench.terminal_completion_recovery_summary.v1",
+            "complete": False,
+            "recovered_terminal_completion_count": 1,
+        }),
+        encoding="utf-8",
+    )
 
     audit = audit_sentinel_run(
         out_dir=out_dir,
@@ -265,6 +273,9 @@ def test_sentinel_audit_reports_partial_artifacts_without_counting_rows(
     assert partial["smoke_summary_count"] == 1
     assert partial["incomplete_smoke_summary_count"] == 1
     assert partial["sample_outcome_checkpoint_count"] == 1
+    assert partial["terminal_recovery_summary_count"] == 1
+    assert partial["terminal_recovered_completion_count"] == 1
+    assert partial["terminal_recovery_by_method"] == {PRIMARY_BASELINE: 1}
     assert partial["terminal_completion_count"] == 1
     assert partial["terminal_completion_task_count"] == 1
     assert partial["terminal_completion_by_method"] == {PRIMARY_BASELINE: 1}

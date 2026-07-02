@@ -820,6 +820,9 @@ def summarize_partial_artifacts(
         "invalid_smoke_summary_count": 0,
         "sample_outcome_checkpoint_count": 0,
         "invalid_sample_outcome_checkpoint_count": 0,
+        "terminal_recovery_summary_count": 0,
+        "terminal_recovered_completion_count": 0,
+        "terminal_recovery_by_method": {},
         "terminal_completion_count": 0,
         "terminal_completion_task_count": 0,
         "terminal_completion_by_method": {},
@@ -828,6 +831,7 @@ def summarize_partial_artifacts(
     }
     terminal_tasks: set[str] = set()
     terminal_by_method: Counter[str] = Counter()
+    terminal_recovery_by_method: Counter[str] = Counter()
     seen_paths: set[Path] = set()
     for root in roots:
         for path in sorted(root.glob("shard_runs/shard_*/online_runs/**/smoke_summary.json")):
@@ -853,6 +857,20 @@ def summarize_partial_artifacts(
                 json.loads(path.read_text(encoding="utf-8"))
             except json.JSONDecodeError:
                 summary["invalid_sample_outcome_checkpoint_count"] += 1
+        for path in sorted(root.glob("shard_runs/shard_*/online_runs/**/terminal_recovery_summary.json")):
+            if path in seen_paths:
+                continue
+            seen_paths.add(path)
+            summary["terminal_recovery_summary_count"] += 1
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                continue
+            recovered = int(
+                payload.get("recovered_terminal_completion_count", 0) or 0
+            )
+            summary["terminal_recovered_completion_count"] += recovered
+            terminal_recovery_by_method[method_from_artifact_path(path)] += recovered
         for path in sorted(root.glob("shard_runs/shard_*/online_runs/**/completion.txt")):
             if path in seen_paths:
                 continue
@@ -863,6 +881,9 @@ def summarize_partial_artifacts(
                 terminal_tasks.add(parts[-2])
                 terminal_by_method[method_from_artifact_path(path)] += 1
     summary["terminal_completion_task_count"] = len(terminal_tasks)
+    summary["terminal_recovery_by_method"] = dict(
+        sorted(terminal_recovery_by_method.items())
+    )
     summary["terminal_completion_by_method"] = dict(sorted(terminal_by_method.items()))
     planned_by_method = planned_terminal_completions_by_method(
         planned_cells,
