@@ -41,7 +41,7 @@ from rl.train_grpo import _contract_from_task  # noqa: E402
 SYSTEM_PROMPT_PATH = REPO_ROOT / "rl" / "agent_prompt_rl.md"
 SCHEMA = "mech_bench.true_grpo_trl.v1"
 REWARD_CHANNELS = ("verified_score", "score", "artifact_progress")
-ARTIFACT_PROGRESS_REWARD_VERSION = "artifact_progress.v3.feedback_rollout"
+ARTIFACT_PROGRESS_REWARD_VERSION = "artifact_progress.v4.feedback_rollout"
 FEEDBACK_ROLLOUT_TRACE_SCHEMA = "mech_bench.feedback_rollout_trace.v1"
 SGLANG_OPTIONAL_CHAT_KEYS = (
     "continue_final_message",

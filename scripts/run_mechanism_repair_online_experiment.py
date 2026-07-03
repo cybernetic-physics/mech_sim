@@ -82,7 +82,7 @@ SAMPLE_METHOD_IMPLEMENTATIONS = {
     "no_update_search": "diverse_no_update_best_of_k",
 }
 TTRL_METHOD_IMPLEMENTATION = "online_grpo_lora_verifier_reward"
-ARTIFACT_PROGRESS_REWARD_VERSION = "artifact_progress.v3.feedback_rollout"
+ARTIFACT_PROGRESS_REWARD_VERSION = "artifact_progress.v4.feedback_rollout"
 ADAPTER_WEIGHT_FILE_NAMES = {
     "adapter_model.safetensors",
     "adapter_model.bin",
