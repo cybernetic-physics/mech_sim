@@ -42,6 +42,7 @@ ANTI_SHORTCUT_SPLITS="${ANTI_SHORTCUT_SPLITS-__default__}"
 EVAL_SEEDS="${EVAL_SEEDS-}"
 BASE_MODEL="${BASE_MODEL:-Qwen/Qwen2.5-Coder-1.5B-Instruct}"
 ROLLOUT_BACKEND="${ROLLOUT_BACKEND:-transformers_local}"
+TTRL_ROLLOUT_OPENAI="${TTRL_ROLLOUT_OPENAI:-auto}"
 LOCAL_DEVICE="${LOCAL_DEVICE:-cuda}"
 LOCAL_TORCH_DTYPE="${LOCAL_TORCH_DTYPE:-bfloat16}"
 LOCAL_TRUST_REMOTE_CODE="${LOCAL_TRUST_REMOTE_CODE:-0}"
@@ -138,6 +139,7 @@ Useful overrides:
   CONCURRENCY=$CONCURRENCY
   BASE_MODEL=$BASE_MODEL
   ROLLOUT_BACKEND=$ROLLOUT_BACKEND
+  TTRL_ROLLOUT_OPENAI=$TTRL_ROLLOUT_OPENAI
   LOCAL_DEVICE=$LOCAL_DEVICE
   LOCAL_TORCH_DTYPE=$LOCAL_TORCH_DTYPE
   LOCAL_TRUST_REMOTE_CODE=$LOCAL_TRUST_REMOTE_CODE
@@ -858,6 +860,13 @@ local_trust_args=()
 if [[ "$LOCAL_TRUST_REMOTE_CODE" == "1" ]]; then
   local_trust_args+=(--local-trust-remote-code)
 fi
+ttrl_rollout_args=()
+if [[ "$TTRL_ROLLOUT_OPENAI" == "1" || ( "$TTRL_ROLLOUT_OPENAI" == "auto" && "$ROLLOUT_BACKEND" == "sglang_chat" ) ]]; then
+  ttrl_rollout_args+=(--ttrl-rollout-openai)
+elif [[ "$TTRL_ROLLOUT_OPENAI" != "0" && "$TTRL_ROLLOUT_OPENAI" != "auto" ]]; then
+  echo "TTRL_ROLLOUT_OPENAI must be 0, 1, or auto" >&2
+  exit 2
+fi
 
 exec env CUDA_VISIBLE_DEVICES="\$train_cuda_visible_devices" \\
   "\$repo_python" scripts/run_mechanism_repair_online_experiment.py \\
@@ -902,6 +911,7 @@ exec env CUDA_VISIBLE_DEVICES="\$train_cuda_visible_devices" \\
   --ttrl-kbit-prepare-mode "$TTRL_KBIT_PREPARE_MODE" \\
   --ttrl-device-map "$TTRL_DEVICE_MAP" \\
   "\${ttrl_gradient_args[@]}" \\
+  "\${ttrl_rollout_args[@]}" \\
   --ttrl-trust-remote-code \\
   --max-context-tokens "$TTRL_MAX_CONTEXT_TOKENS" \\
   --max-tokens "$TTRL_MAX_TOKENS" \\
