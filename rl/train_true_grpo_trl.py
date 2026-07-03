@@ -19,6 +19,7 @@ import shutil
 import sys
 import tempfile
 import time
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -28,7 +29,9 @@ sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(REPO_ROOT / "rl"))
 
 import mech_env as env  # noqa: E402
-from rl.mech_bench_reward import extract_design_py, score_completion  # noqa: E402
+from rl.mech_bench_reward import RewardResult, extract_design_py, score_completion  # noqa: E402
+from rl.chat_rollout import TurnTrace  # noqa: E402
+from rl.chat_rollout import _format_verifier_feedback  # noqa: E402
 from rl.chat_rollout import _load_sglang_lora_adapter  # noqa: E402
 from rl.chat_rollout import _maybe_filter_sglang_lora_adapter  # noqa: E402
 from rl.train_grpo import _build_user_prompt  # noqa: E402
@@ -38,7 +41,8 @@ from rl.train_grpo import _contract_from_task  # noqa: E402
 SYSTEM_PROMPT_PATH = REPO_ROOT / "rl" / "agent_prompt_rl.md"
 SCHEMA = "mech_bench.true_grpo_trl.v1"
 REWARD_CHANNELS = ("verified_score", "score", "artifact_progress")
-ARTIFACT_PROGRESS_REWARD_VERSION = "artifact_progress.v2.strict_caps"
+ARTIFACT_PROGRESS_REWARD_VERSION = "artifact_progress.v3.feedback_rollout"
+FEEDBACK_ROLLOUT_TRACE_SCHEMA = "mech_bench.feedback_rollout_trace.v1"
 SGLANG_OPTIONAL_CHAT_KEYS = (
     "continue_final_message",
     "separate_reasoning",
@@ -865,6 +869,88 @@ def _parse_max_memory(value: str | None) -> dict[int | str, str] | None:
     return parsed or None
 
 
+def _prompt_metadata_key(prompt: Any) -> str:
+    try:
+        return json.dumps(
+            prompt,
+            sort_keys=True,
+            ensure_ascii=True,
+            separators=(",", ":"),
+        )
+    except TypeError:
+        return str(prompt)
+
+
+def _prompt_task_metadata(rows: list[dict[str, Any]]) -> dict[str, dict[str, str]]:
+    metadata: dict[str, dict[str, str]] = {}
+    for row in rows:
+        task_dir = row.get("task_dir")
+        task_id = row.get("task_id")
+        if not task_dir:
+            continue
+        metadata[_prompt_metadata_key(row.get("prompt"))] = {
+            "task_dir": str(task_dir),
+            "task_id": str(task_id or Path(str(task_dir)).name),
+        }
+    return metadata
+
+
+def _feedback_rollout_trace_payload(
+    *,
+    final_text: str,
+    turns: list[dict[str, Any]],
+    prompt_index: int,
+) -> str:
+    return json.dumps(
+        {
+            "schema": FEEDBACK_ROLLOUT_TRACE_SCHEMA,
+            "prompt_index": int(prompt_index),
+            "final_text": final_text,
+            "turns": turns,
+        },
+        sort_keys=True,
+        default=str,
+    )
+
+
+def _parse_feedback_rollout_trace(text: str) -> dict[str, Any] | None:
+    if FEEDBACK_ROLLOUT_TRACE_SCHEMA not in text:
+        return None
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    if payload.get("schema") != FEEDBACK_ROLLOUT_TRACE_SCHEMA:
+        return None
+    turns = payload.get("turns")
+    if not isinstance(turns, list):
+        return None
+    return payload
+
+
+def _reward_result_from_feedback_turn(turn: dict[str, Any]) -> RewardResult:
+    return RewardResult(
+        score=float(turn.get("score", 0.0) or 0.0),
+        verified_score=float(turn.get("verified_score", 0.0) or 0.0),
+        hard_gate_passed=bool(turn.get("hard_gate_passed", False)),
+        evaluation_valid=bool(turn.get("evaluation_valid", False)),
+        failure_codes=[str(item) for item in (turn.get("failure_codes") or [])],
+        feedback=[
+            dict(item)
+            for item in (turn.get("feedback") or [])
+            if isinstance(item, dict)
+        ],
+        submission_path=str(turn.get("submission_path") or ""),
+        design_py_extracted=bool(turn.get("design_py_extracted", False)),
+        cad_audits=int(turn.get("cad_audits", 0) or 0),
+        chrono_audits=int(turn.get("chrono_audits", 0) or 0),
+        physical_metrics=dict(turn.get("physical_metrics") or {}),
+        no_procedural_fallback=turn.get("no_procedural_fallback"),
+    )
+
+
 def _make_reward_func(
     *,
     log_path: Path,
@@ -896,8 +982,107 @@ def _make_reward_func(
                 raw_text = str(rollout_completion_text[idx])
             else:
                 raw_text = _completion_text(completion)
-            text = _standalone_reward_text(raw_text)
             task_path = Path(task_dir[idx]).resolve()
+            trace = _parse_feedback_rollout_trace(raw_text)
+            if trace is not None:
+                episode_reward = 0.0
+                wrote_turn = False
+                for trace_turn_idx, raw_turn in enumerate(trace["turns"]):
+                    if not isinstance(raw_turn, dict):
+                        continue
+                    turn_text = str(
+                        raw_turn.get("completion_text")
+                        or trace.get("final_text")
+                        or ""
+                    )
+                    text = _standalone_reward_text(turn_text)
+                    result = _reward_result_from_feedback_turn(raw_turn)
+                    reward_base, reward_features = _reward_base(
+                        text,
+                        result,
+                        reward_channel=reward_channel,
+                    )
+                    reward = reward_base * float(reward_scale)
+                    episode_reward = reward
+                    cad_audits_used = max(
+                        cad_audits_used,
+                        int(
+                            raw_turn.get(
+                                "cad_audits_used_after",
+                                cad_audits_used,
+                            )
+                            or 0
+                        ),
+                    )
+                    chrono_audits_used = max(
+                        chrono_audits_used,
+                        int(
+                            raw_turn.get(
+                                "chrono_audits_used_after",
+                                chrono_audits_used,
+                            )
+                            or 0
+                        ),
+                    )
+                    rows.append({
+                        "ts": time.time(),
+                        "task_id": ids[idx],
+                        "task_dir": str(task_path),
+                        "reward": reward,
+                        "reward_base": reward_base,
+                        "reward_channel": reward_channel,
+                        "reward_features": reward_features,
+                        "completion_text": text,
+                        "completion_preview": text[:4000],
+                        "raw_completion_text": (
+                            turn_text if turn_text != text else None
+                        ),
+                        "standalone_helpers_injected": turn_text != text,
+                        "cad_audit_cap": max_cad_audits,
+                        "chrono_audit_cap": max_chrono_audits,
+                        "cad_audits_used_after": int(
+                            raw_turn.get(
+                                "cad_audits_used_after",
+                                cad_audits_used,
+                            )
+                            or 0
+                        ),
+                        "chrono_audits_used_after": int(
+                            raw_turn.get(
+                                "chrono_audits_used_after",
+                                chrono_audits_used,
+                            )
+                            or 0
+                        ),
+                        "cad_audit_budget_exhausted_before": bool(
+                            raw_turn.get(
+                                "cad_audit_budget_exhausted_before",
+                                False,
+                            )
+                        ),
+                        "chrono_audit_budget_exhausted_before": bool(
+                            raw_turn.get(
+                                "chrono_audit_budget_exhausted_before",
+                                False,
+                            )
+                        ),
+                        "feedback_rollout_trace_schema": (
+                            FEEDBACK_ROLLOUT_TRACE_SCHEMA
+                        ),
+                        "feedback_rollout_prompt_index": int(
+                            trace.get("prompt_index", idx) or idx
+                        ),
+                        "feedback_rollout_turn_idx": int(
+                            raw_turn.get("turn_idx", trace_turn_idx) or 0
+                        ),
+                        "feedback_rollout_turn_count": len(trace["turns"]),
+                        **result.to_dict(),
+                    })
+                    wrote_turn = True
+                rewards.append(episode_reward if wrote_turn else 0.0)
+                continue
+
+            text = _standalone_reward_text(raw_text)
             candidate_scratch = scratch_root / f"reward_{time.time_ns()}_{idx}"
             candidate_scratch.mkdir(parents=True, exist_ok=True)
             skip_cad_audit = (
@@ -1176,6 +1361,34 @@ def _messages_for_rollout(
     return messages
 
 
+def _prompt_text_from_messages(
+    tokenizer: Any,
+    messages: list[dict[str, str]],
+    *,
+    include_assistant_prefill: bool = False,
+) -> str:
+    apply_chat_template = getattr(tokenizer, "apply_chat_template", None)
+    if callable(apply_chat_template):
+        kwargs = {
+            "tokenize": False,
+            "add_generation_prompt": not include_assistant_prefill,
+        }
+        if include_assistant_prefill:
+            try:
+                return apply_chat_template(
+                    messages,
+                    continue_final_message=True,
+                    **kwargs,
+                )
+            except TypeError:
+                pass
+        return apply_chat_template(messages, **kwargs)
+    return "\n".join(
+        f"{item.get('role', 'user')}: {item.get('content', '')}"
+        for item in messages
+    )
+
+
 def _prompt_text_for_rollout(
     tokenizer: Any,
     prompt: Any,
@@ -1190,22 +1403,10 @@ def _prompt_text_for_rollout(
             require_fenced_output=require_fenced_output,
             include_assistant_prefill=include_assistant_prefill,
         )
-        kwargs = {
-            "tokenize": False,
-            "add_generation_prompt": not include_assistant_prefill,
-        }
-        if include_assistant_prefill:
-            try:
-                return apply_chat_template(
-                    messages,
-                    continue_final_message=True,
-                    **kwargs,
-                )
-            except TypeError:
-                pass
-        return apply_chat_template(
+        return _prompt_text_from_messages(
+            tokenizer,
             messages,
-            **kwargs,
+            include_assistant_prefill=include_assistant_prefill,
         )
     return str(prompt)
 
@@ -1256,6 +1457,12 @@ def _make_openai_chat_rollout_func(
     timeout_s: float,
     lora_path: str | None,
     retry_telemetry_path: Path | None = None,
+    prompt_task_metadata: dict[str, dict[str, str]] | None = None,
+    rollout_feedback_turns: int = 1,
+    reward_timeout_s: float = 60.0,
+    scratch_root: Path | None = None,
+    max_cad_audits: int | None = None,
+    max_chrono_audits: int | None = None,
 ):
     try:
         import requests  # type: ignore[import-untyped]
@@ -1265,40 +1472,52 @@ def _make_openai_chat_rollout_func(
     filtered_lora_path = (
         _maybe_filter_sglang_lora_adapter(lora_path) if lora_path else None
     )
+    feedback_turns = max(1, int(rollout_feedback_turns))
+    prompt_task_metadata = prompt_task_metadata or {}
+    if feedback_turns > 1 and not prompt_task_metadata:
+        raise RuntimeError(
+            "feedback rollouts require prompt-to-task metadata"
+        )
+    if scratch_root is None:
+        scratch_root = Path(tempfile.mkdtemp(prefix="mech_true_grpo_rollout_"))
+    cad_audits_used = 0
+    chrono_audits_used = 0
 
     def rollout_func(prompts: list[Any], trainer: Any) -> dict[str, Any]:
         prompt_ids: list[list[int]] = []
         completion_ids: list[list[int]] = []
         reward_texts: list[str] = []
         retry_rows: list[dict[str, Any]] = []
-        for idx, prompt in enumerate(prompts):
-            prompt_text = _prompt_text_for_rollout(
-                tokenizer,
-                prompt,
-                include_assistant_prefill=True,
+        nonlocal cad_audits_used, chrono_audits_used
+
+        def append_encoded(prompt_text: str, completion_text: str) -> None:
+            encoded_prompt = tokenizer(prompt_text, add_special_tokens=False)
+            encoded_completion = tokenizer(
+                completion_text,
+                add_special_tokens=False,
             )
-            messages = _messages_for_rollout(
-                prompt,
-                include_assistant_prefill=True,
+            max_prompt_length = int(
+                getattr(trainer.args, "max_prompt_length", 0) or 0
             )
-            body: dict[str, Any] = {
-                "model": model,
-                "messages": messages,
-                "max_tokens": int(max_tokens),
-                "temperature": float(temperature),
-                "top_p": float(top_p),
-                "stream": False,
-                "continue_final_message": True,
-                "separate_reasoning": False,
-                "chat_template_kwargs": {
-                    "enable_thinking": False,
-                    "thinking": False,
-                },
-            }
-            if filtered_lora_path:
-                body["lora_path"] = filtered_lora_path
-            seed = int(getattr(trainer.args, "seed", 0) or 0)
-            body["seed"] = seed + int(getattr(trainer.state, "global_step", 0) or 0) + idx
+            ids_prompt = _truncate_token_ids(
+                _sanitize_token_ids(
+                    _extract_input_ids(encoded_prompt),
+                    tokenizer=tokenizer,
+                ),
+                max_prompt_length,
+            )
+            prompt_ids.append(ids_prompt)
+            ids = _truncate_token_ids(
+                _sanitize_token_ids(
+                    _extract_input_ids(encoded_completion),
+                    tokenizer=tokenizer,
+                ),
+                int(max_tokens),
+            )
+            eos_token_id = int(getattr(tokenizer, "eos_token_id", 0) or 0)
+            completion_ids.append(ids or [eos_token_id])
+
+        def post_with_lora_retry(body: dict[str, Any]) -> dict[str, Any]:
             lora_retry_stats = {
                 "sampler_http_400_count": 0,
                 "sampler_retry_count": 0,
@@ -1339,15 +1558,228 @@ def _make_openai_chat_rollout_func(
             retry_stats = dict(response.get("_sglang_retry_stats") or {})
             for key, value in lora_retry_stats.items():
                 retry_stats[key] = int(retry_stats.get(key, 0) or 0) + int(value)
+            response["_combined_retry_stats"] = retry_stats
+            return response
+
+        def record_retry_stats(
+            *,
+            response: dict[str, Any],
+            prompt_index: int,
+            turn_idx: int | None = None,
+        ) -> dict[str, int]:
+            retry_stats = dict(response.get("_combined_retry_stats") or {})
             if retry_stats and any(int(v or 0) for v in retry_stats.values()):
-                retry_rows.append({
+                row = {
                     "ts": time.time(),
                     "global_step": int(
                         getattr(trainer.state, "global_step", 0) or 0
                     ),
-                    "prompt_index": idx,
+                    "prompt_index": prompt_index,
                     **retry_stats,
-                })
+                }
+                if turn_idx is not None:
+                    row["turn_idx"] = int(turn_idx)
+                retry_rows.append(row)
+            return {key: int(value or 0) for key, value in retry_stats.items()}
+
+        for idx, prompt in enumerate(prompts):
+            seed = int(getattr(trainer.args, "seed", 0) or 0)
+            global_step = int(getattr(trainer.state, "global_step", 0) or 0)
+            if feedback_turns > 1:
+                metadata = prompt_task_metadata.get(_prompt_metadata_key(prompt))
+                if metadata is None:
+                    raise RuntimeError(
+                        "feedback rollout prompt metadata missing for prompt "
+                        f"index {idx}"
+                    )
+                task_path = Path(metadata["task_dir"]).resolve()
+                messages = _messages_for_rollout(
+                    prompt,
+                    include_assistant_prefill=False,
+                )
+                trace_turns: list[dict[str, Any]] = []
+                final_prompt_text = _prompt_text_for_rollout(
+                    tokenizer,
+                    prompt,
+                    include_assistant_prefill=True,
+                )
+                final_completion_text = ""
+                final_score_text = ASSISTANT_CODE_PREFILL
+                for turn_idx in range(feedback_turns):
+                    request_messages = [dict(item) for item in messages]
+                    request_messages.append({
+                        "role": "assistant",
+                        "content": ASSISTANT_CODE_PREFILL,
+                    })
+                    final_prompt_text = _prompt_text_from_messages(
+                        tokenizer,
+                        request_messages,
+                        include_assistant_prefill=True,
+                    )
+                    body = {
+                        "model": model,
+                        "messages": request_messages,
+                        "max_tokens": int(max_tokens),
+                        "temperature": float(temperature),
+                        "top_p": float(top_p),
+                        "stream": False,
+                        "continue_final_message": True,
+                        "separate_reasoning": False,
+                        "chat_template_kwargs": {
+                            "enable_thinking": False,
+                            "thinking": False,
+                        },
+                        "seed": (
+                            seed
+                            + global_step
+                            + idx * feedback_turns
+                            + turn_idx
+                        ),
+                    }
+                    if filtered_lora_path:
+                        body["lora_path"] = filtered_lora_path
+                    response = post_with_lora_retry(body)
+                    retry_stats = record_retry_stats(
+                        response=response,
+                        prompt_index=idx,
+                        turn_idx=turn_idx,
+                    )
+                    choice = (response.get("choices") or [{}])[0]
+                    message = choice.get("message") or {}
+                    text = str(message.get("content") or "")
+                    final_completion_text = text
+                    final_score_text = (
+                        text
+                        if text.startswith(ASSISTANT_CODE_PREFILL)
+                        else ASSISTANT_CODE_PREFILL + text
+                    )
+                    finish_reason = str(choice.get("finish_reason") or "stop")
+                    usage = response.get("usage") or {}
+                    candidate_scratch = (
+                        scratch_root
+                        / f"rollout_reward_{time.time_ns()}_{idx}_{turn_idx}"
+                    )
+                    candidate_scratch.mkdir(parents=True, exist_ok=True)
+                    skip_cad_audit = (
+                        max_cad_audits is not None
+                        and cad_audits_used >= int(max_cad_audits)
+                    )
+                    skip_chrono_audit = (
+                        max_chrono_audits is not None
+                        and chrono_audits_used >= int(max_chrono_audits)
+                    )
+                    result = score_completion(
+                        final_score_text,
+                        task_path,
+                        scratch_root=candidate_scratch,
+                        timeout_s=reward_timeout_s,
+                        skip_cad_audit=skip_cad_audit,
+                        skip_chrono_audit=skip_chrono_audit,
+                    )
+                    cad_audits_used += int(result.cad_audits or 0)
+                    chrono_audits_used += int(result.chrono_audits or 0)
+                    passed = bool(
+                        result.evaluation_valid
+                        and result.hard_gate_passed
+                        and not result.failure_codes
+                    )
+                    turn_trace = TurnTrace(
+                        turn_idx=turn_idx,
+                        assistant_text=final_score_text,
+                        score=float(result.verified_score) * 100.0,
+                        dense_pct=float(result.score) * 100.0,
+                        passed=passed,
+                        parsed_ok=bool(result.design_py_extracted),
+                        failure_codes=list(result.failure_codes or []),
+                        feedback=list(result.feedback or []),
+                        evaluation_valid=bool(result.evaluation_valid),
+                        cad_audits=int(result.cad_audits or 0),
+                        chrono_audits=int(result.chrono_audits or 0),
+                        physical_metrics=dict(result.physical_metrics or {}),
+                        no_procedural_fallback=result.no_procedural_fallback,
+                        completion_tokens=int(
+                            usage.get("completion_tokens", 0) or 0
+                        ),
+                        stop_reason=finish_reason,
+                        sampler_http_400_count=int(
+                            retry_stats.get("sampler_http_400_count", 0) or 0
+                        ),
+                        sampler_retry_count=int(
+                            retry_stats.get("sampler_retry_count", 0) or 0
+                        ),
+                    )
+                    trace_turns.append({
+                        **result.to_dict(),
+                        "turn_idx": int(turn_idx),
+                        "completion_text": final_score_text,
+                        "completion_preview": final_score_text[:4000],
+                        "completion_tokens": int(
+                            usage.get("completion_tokens", 0) or 0
+                        ),
+                        "stop_reason": finish_reason,
+                        "sampler_http_400_count": int(
+                            retry_stats.get("sampler_http_400_count", 0) or 0
+                        ),
+                        "sampler_retry_count": int(
+                            retry_stats.get("sampler_retry_count", 0) or 0
+                        ),
+                        "cad_audit_cap": max_cad_audits,
+                        "chrono_audit_cap": max_chrono_audits,
+                        "cad_audits_used_after": cad_audits_used,
+                        "chrono_audits_used_after": chrono_audits_used,
+                        "cad_audit_budget_exhausted_before": skip_cad_audit,
+                        "chrono_audit_budget_exhausted_before": (
+                            skip_chrono_audit
+                        ),
+                        "feedback_turn_trace": asdict(turn_trace),
+                    })
+                    messages.append({
+                        "role": "assistant",
+                        "content": final_score_text,
+                    })
+                    if turn_idx < feedback_turns - 1:
+                        messages.append({
+                            "role": "user",
+                            "content": _format_verifier_feedback(turn_trace),
+                        })
+                reward_texts.append(
+                    _feedback_rollout_trace_payload(
+                        final_text=final_score_text,
+                        turns=trace_turns,
+                        prompt_index=idx,
+                    )
+                )
+                append_encoded(final_prompt_text, final_completion_text)
+                continue
+
+            prompt_text = _prompt_text_for_rollout(
+                tokenizer,
+                prompt,
+                include_assistant_prefill=True,
+            )
+            messages = _messages_for_rollout(
+                prompt,
+                include_assistant_prefill=True,
+            )
+            body = {
+                "model": model,
+                "messages": messages,
+                "max_tokens": int(max_tokens),
+                "temperature": float(temperature),
+                "top_p": float(top_p),
+                "stream": False,
+                "continue_final_message": True,
+                "separate_reasoning": False,
+                "chat_template_kwargs": {
+                    "enable_thinking": False,
+                    "thinking": False,
+                },
+                "seed": seed + global_step + idx,
+            }
+            if filtered_lora_path:
+                body["lora_path"] = filtered_lora_path
+            response = post_with_lora_retry(body)
+            record_retry_stats(response=response, prompt_index=idx)
             choice = (response.get("choices") or [{}])[0]
             message = choice.get("message") or {}
             text = str(message.get("content") or "")
@@ -1357,28 +1789,7 @@ def _make_openai_chat_rollout_func(
                 else ASSISTANT_CODE_PREFILL + text
             )
             reward_texts.append(score_text)
-            encoded_prompt = tokenizer(prompt_text, add_special_tokens=False)
-            encoded_completion = tokenizer(text, add_special_tokens=False)
-            max_prompt_length = int(
-                getattr(trainer.args, "max_prompt_length", 0) or 0
-            )
-            ids_prompt = _truncate_token_ids(
-                _sanitize_token_ids(
-                    _extract_input_ids(encoded_prompt),
-                    tokenizer=tokenizer,
-                ),
-                max_prompt_length,
-            )
-            prompt_ids.append(ids_prompt)
-            ids = _truncate_token_ids(
-                _sanitize_token_ids(
-                    _extract_input_ids(encoded_completion),
-                    tokenizer=tokenizer,
-                ),
-                int(max_tokens),
-            )
-            eos_token_id = int(getattr(tokenizer, "eos_token_id", 0) or 0)
-            completion_ids.append(ids or [eos_token_id])
+            append_encoded(prompt_text, text)
         if retry_rows and retry_telemetry_path is not None:
             retry_telemetry_path.parent.mkdir(parents=True, exist_ok=True)
             with retry_telemetry_path.open("a", encoding="utf-8") as f:
@@ -1566,6 +1977,16 @@ def main() -> int:
     parser.add_argument("--rollout-openai-api-key", default="dummy")
     parser.add_argument("--rollout-openai-lora-path", default=None)
     parser.add_argument("--rollout-openai-timeout-s", type=float, default=240.0)
+    parser.add_argument(
+        "--rollout-feedback-turns",
+        type=int,
+        default=1,
+        help=(
+            "number of verifier-feedback turns per OpenAI-compatible GRPO "
+            "rollout episode. Values >1 spend and log multiple verifier "
+            "calls per generated completion."
+        ),
+    )
     parser.add_argument("--reward-scale", type=float, default=100.0)
     parser.add_argument(
         "--reward-channel",
@@ -1650,6 +2071,12 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true",
                         help="write dataset/config metadata without training")
     args = parser.parse_args()
+    if int(args.rollout_feedback_turns) <= 0:
+        raise SystemExit("--rollout-feedback-turns must be positive")
+    if int(args.rollout_feedback_turns) > 1 and not args.rollout_openai_base_url:
+        raise SystemExit(
+            "--rollout-feedback-turns >1 requires --rollout-openai-base-url"
+        )
     if args.max_cad_audits is not None and int(args.max_cad_audits) < 0:
         raise SystemExit("--max-cad-audits must be non-negative")
     if args.max_chrono_audits is not None and int(args.max_chrono_audits) < 0:
@@ -1698,7 +2125,8 @@ def main() -> int:
             // max(1, int(args.per_device_train_batch_size)),
         )
     )
-    expected_verifier_calls = (
+    rollout_feedback_turns = max(1, int(args.rollout_feedback_turns))
+    expected_rollout_episodes = (
         (
             int(args.max_steps)
             + effective_steps_per_generation
@@ -1707,6 +2135,7 @@ def main() -> int:
         // effective_steps_per_generation
         * generation_batch_size
     )
+    expected_verifier_calls = expected_rollout_episodes * rollout_feedback_turns
     rows, trainer_dataset_expansion = _repeat_rows_for_grpo_sampler(
         rows,
         generation_batch_size=generation_batch_size,
@@ -1746,12 +2175,15 @@ def main() -> int:
             "generation_batch_size": generation_batch_size,
             "steps_per_generation": args.steps_per_generation,
             "effective_steps_per_generation": effective_steps_per_generation,
+            "rollout_feedback_turns": rollout_feedback_turns,
+            "expected_rollout_episodes": expected_rollout_episodes,
             "expected_verifier_calls": expected_verifier_calls,
         },
         "init_adapter": str(init_adapter) if init_adapter else None,
         "rollout_openai_base_url": args.rollout_openai_base_url,
         "rollout_openai_model": args.rollout_openai_model,
         "rollout_openai_lora_path": args.rollout_openai_lora_path,
+        "rollout_feedback_turns": rollout_feedback_turns,
         "model_init": {
             "load_in_4bit": bool(args.load_in_4bit),
             "load_in_8bit": bool(args.load_in_8bit),
@@ -1818,6 +2250,7 @@ def main() -> int:
             tokenizer,
             max_prompt_length=int(args.max_prompt_length),
         )
+    prompt_task_metadata = _prompt_task_metadata(rows)
     with dataset_jsonl.open("w") as f:
         for row in rows:
             f.write(json.dumps(row, sort_keys=True) + "\n")
@@ -2000,6 +2433,12 @@ def main() -> int:
             timeout_s=float(args.rollout_openai_timeout_s),
             lora_path=args.rollout_openai_lora_path,
             retry_telemetry_path=rollout_retry_telemetry_path,
+            prompt_task_metadata=prompt_task_metadata,
+            rollout_feedback_turns=rollout_feedback_turns,
+            reward_timeout_s=float(args.reward_timeout_s),
+            scratch_root=scratch_root,
+            max_cad_audits=args.max_cad_audits,
+            max_chrono_audits=args.max_chrono_audits,
         )
     trainer = GRPOTrainer(
         model=model,
@@ -2109,6 +2548,7 @@ def main() -> int:
         "rollout_openai_base_url": args.rollout_openai_base_url,
         "rollout_openai_model": args.rollout_openai_model,
         "rollout_openai_lora_path": args.rollout_openai_lora_path,
+        "rollout_feedback_turns": rollout_feedback_turns,
         "lora_rank": int(args.lora_rank),
         "lora_target_modules": lora_target_modules,
         "rollout_backend": "sglang_chat",

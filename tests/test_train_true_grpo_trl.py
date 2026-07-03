@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -9,21 +10,25 @@ from rl.mech_env import TaskInfo
 from rl.mech_bench_reward import RewardResult, extract_design_py
 from rl import train_true_grpo_trl
 from rl.train_true_grpo_trl import (
+    FEEDBACK_ROLLOUT_TRACE_SCHEMA,
     STRICT_FENCED_OUTPUT_INSTRUCTION,
     _chat_prompt_rows,
     _cast_adapter_safetensors,
     _disable_intermediate_checkpoint_config,
     _estimate_prompt_tokens,
+    _feedback_rollout_trace_payload,
     _finite_named_tensor_audit,
     _filtered_config,
     _full_eval_contract_suffix,
     _guarded_optimizer_manifest,
     _load_text_tokenizer,
     _make_guarded_adamw,
+    _make_reward_func,
     _messages_for_rollout,
     _parse_max_memory,
     _post_openai_chat_completion,
     _prepare_model_for_kbit_training_lightweight,
+    _prompt_task_metadata,
     _prompt_text_for_rollout,
     _raise_if_nonfinite_trainable_parameters,
     _remove_intermediate_checkpoints,
@@ -660,6 +665,93 @@ def test_chat_prompt_rows_preserves_system_and_user_messages() -> None:
         "_user_prompt": "user text",
         "task_id": "t1",
     }]
+
+
+def test_prompt_task_metadata_keys_chat_prompts() -> None:
+    rows = _chat_prompt_rows([{
+        "prompt": "ignored",
+        "_system_prompt": "system text",
+        "_user_prompt": "user text",
+        "task_id": "t1",
+        "task_dir": "/tmp/task/t1",
+    }])
+
+    metadata = _prompt_task_metadata(rows)
+
+    assert list(metadata.values()) == [{
+        "task_id": "t1",
+        "task_dir": "/tmp/task/t1",
+    }]
+
+
+def test_reward_func_consumes_feedback_rollout_trace(tmp_path: Path) -> None:
+    payload = _feedback_rollout_trace_payload(
+        final_text="final",
+        prompt_index=0,
+        turns=[
+            {
+                "turn_idx": 0,
+                "completion_text": "bad",
+                "score": 0.25,
+                "verified_score": 0.0,
+                "hard_gate_passed": False,
+                "evaluation_valid": True,
+                "failure_codes": ["missing_port"],
+                "feedback": [{"code": "missing_port", "message": "add port"}],
+                "design_py_extracted": True,
+                "cad_audits": 1,
+                "chrono_audits": 0,
+                "cad_audits_used_after": 1,
+                "chrono_audits_used_after": 0,
+            },
+            {
+                "turn_idx": 1,
+                "completion_text": "good",
+                "score": 0.75,
+                "verified_score": 0.5,
+                "hard_gate_passed": True,
+                "evaluation_valid": True,
+                "failure_codes": [],
+                "feedback": [],
+                "design_py_extracted": True,
+                "cad_audits": 0,
+                "chrono_audits": 1,
+                "cad_audits_used_after": 1,
+                "chrono_audits_used_after": 1,
+            },
+        ],
+    )
+    reward_func = _make_reward_func(
+        log_path=tmp_path / "reward_log.jsonl",
+        scratch_root=tmp_path / "scratch",
+        timeout_s=1.0,
+        reward_scale=10.0,
+        reward_channel="score",
+        max_cad_audits=1,
+        max_chrono_audits=1,
+    )
+
+    rewards = reward_func(
+        prompts=["prompt"],
+        completions=["ignored"],
+        task_dir=[str(tmp_path / "task")],
+        task_id=["task"],
+        rollout_completion_text=[payload],
+    )
+
+    rows = [
+        json.loads(line)
+        for line in (tmp_path / "reward_log.jsonl").read_text().splitlines()
+    ]
+    assert len(rewards) == 1
+    assert rewards[0] == pytest.approx(7.5)
+    assert len(rows) == 2
+    assert rows[0]["feedback_rollout_trace_schema"] == FEEDBACK_ROLLOUT_TRACE_SCHEMA
+    assert rows[0]["feedback_rollout_turn_idx"] == 0
+    assert rows[1]["feedback_rollout_turn_idx"] == 1
+    assert rows[1]["chrono_audits_used_after"] == 1
+    assert rows[1]["score"] == 0.75
+    assert rows[1]["verified_score"] == 0.5
 
 
 def test_repeat_rows_for_grpo_sampler_expands_one_task_generation_batch() -> None:

@@ -82,7 +82,7 @@ SAMPLE_METHOD_IMPLEMENTATIONS = {
     "no_update_search": "diverse_no_update_best_of_k",
 }
 TTRL_METHOD_IMPLEMENTATION = "online_grpo_lora_verifier_reward"
-ARTIFACT_PROGRESS_REWARD_VERSION = "artifact_progress.v2.strict_caps"
+ARTIFACT_PROGRESS_REWARD_VERSION = "artifact_progress.v3.feedback_rollout"
 ADAPTER_WEIGHT_FILE_NAMES = {
     "adapter_model.safetensors",
     "adapter_model.bin",
@@ -393,11 +393,20 @@ def main() -> int:
         raise SystemExit(
             f"--budget={budget} must divide --feedback-turns={feedback_turns}"
         )
+    ttrl_rollout_feedback_turns = (
+        feedback_turns if bool(args.ttrl_rollout_openai) else 1
+    )
+    if budget % ttrl_rollout_feedback_turns:
+        raise SystemExit(
+            f"--budget={budget} must divide TTRL rollout feedback turns="
+            f"{ttrl_rollout_feedback_turns}"
+        )
+    ttrl_rollout_episodes = budget // ttrl_rollout_feedback_turns
     ttrl_generations = max(1, int(args.ttrl_num_generations))
     ttrl_steps = (
         int(args.ttrl_max_steps)
         if args.ttrl_max_steps is not None
-        else budget
+        else ttrl_rollout_episodes
     )
     if int(args.ttrl_max_steps or 0) < 0:
         raise SystemExit("--ttrl-max-steps must be non-negative")
@@ -407,7 +416,7 @@ def main() -> int:
         int(args.ttrl_steps_per_generation)
         if args.ttrl_steps_per_generation is not None
         else ttrl_steps_per_generation_for_budget(
-            budget=budget,
+            budget=ttrl_rollout_episodes,
             num_generations=ttrl_generations,
         )
     )
@@ -423,13 +432,17 @@ def main() -> int:
         (ttrl_steps + ttrl_steps_per_generation - 1)
         // ttrl_steps_per_generation
     )
-    expected_ttrl_verifier_calls = generation_batches * ttrl_steps_per_generation
+    expected_ttrl_rollout_episodes = generation_batches * ttrl_steps_per_generation
+    expected_ttrl_verifier_calls = (
+        expected_ttrl_rollout_episodes * ttrl_rollout_feedback_turns
+    )
     if expected_ttrl_verifier_calls != budget:
         raise SystemExit(
             "TTRL budget mismatch: "
             f"max_steps={ttrl_steps}, "
             f"steps_per_generation={ttrl_steps_per_generation}, "
-            f"num_generations={ttrl_generations} "
+            f"num_generations={ttrl_generations}, "
+            f"rollout_feedback_turns={ttrl_rollout_feedback_turns} "
             f"expects {expected_ttrl_verifier_calls} verifier calls, "
             f"not budget={budget}"
         )
@@ -461,6 +474,7 @@ def main() -> int:
         ttrl_steps=ttrl_steps,
         ttrl_generations=ttrl_generations,
         ttrl_steps_per_generation=ttrl_steps_per_generation,
+        ttrl_rollout_feedback_turns=ttrl_rollout_feedback_turns,
         ttrl_reward_channel=str(args.ttrl_reward_channel),
         shard_cells=shard_cells,
         sft_training_splits=sft_training_splits,
@@ -597,6 +611,7 @@ def main() -> int:
                             ttrl_steps=ttrl_steps,
                             ttrl_generations=ttrl_generations,
                             ttrl_steps_per_generation=ttrl_steps_per_generation,
+                            ttrl_rollout_feedback_turns=ttrl_rollout_feedback_turns,
                             method=method,
                             reward_channel=reward_channel_for_method(
                                 method,
@@ -1091,6 +1106,7 @@ def build_plan(
     ttrl_generations: int,
     ttrl_steps_per_generation: int,
     ttrl_reward_channel: str,
+    ttrl_rollout_feedback_turns: int = 1,
     shard_cells: list[dict[str, Any]] | None = None,
     sft_training_splits: dict[str, str] | None = None,
 ) -> dict[str, Any]:
@@ -1137,12 +1153,19 @@ def build_plan(
         "ttrl_optimizer_steps": ttrl_steps,
         "ttrl_steps_per_generation": ttrl_steps_per_generation,
         "ttrl_num_generations": ttrl_generations,
+        "ttrl_rollout_feedback_turns": int(ttrl_rollout_feedback_turns),
         "ttrl_reward_channel": str(ttrl_reward_channel),
         "sft_training_splits": dict(sorted((sft_training_splits or {}).items())),
+        "ttrl_generated_rollout_episodes_per_cell": (
+            ((ttrl_steps + ttrl_steps_per_generation - 1)
+             // ttrl_steps_per_generation)
+            * ttrl_steps_per_generation
+        ),
         "ttrl_rollout_evaluations_per_cell": (
             ((ttrl_steps + ttrl_steps_per_generation - 1)
              // ttrl_steps_per_generation)
             * ttrl_steps_per_generation
+            * int(ttrl_rollout_feedback_turns)
         ),
         "init_online_from_sft": init_online_from_sft,
         "planned_cells": total_cells,
@@ -1607,6 +1630,7 @@ def run_or_load_ttrl_cell(
     evidence_root: Path,
     init_adapter: str | None,
     resume_existing: bool,
+    ttrl_rollout_feedback_turns: int = 1,
     verifier_level_by_task: dict[str, int] | None = None,
     method: str = PRIMARY_METHOD,
     reward_channel: str | None = None,
@@ -1664,7 +1688,10 @@ def run_or_load_ttrl_cell(
                     ttrl_steps_per_generation
                     if ttrl_steps_per_generation is not None
                     else ttrl_steps_per_generation_for_budget(
-                        budget=budget,
+                        budget=(
+                            int(budget)
+                            // max(1, int(ttrl_rollout_feedback_turns))
+                        ),
                         num_generations=ttrl_generations,
                     )
                 ),
@@ -1722,6 +1749,8 @@ def run_or_load_ttrl_cell(
                     str(args.base_model),
                     "--rollout-openai-api-key",
                     str(args.api_key),
+                    "--rollout-feedback-turns",
+                    str(max(1, int(ttrl_rollout_feedback_turns))),
                 ])
                 add_option(cmd, "--rollout-openai-lora-path", init_adapter)
             run(cmd, timeout=float(args.train_timeout_s))

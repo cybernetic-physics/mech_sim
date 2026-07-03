@@ -62,6 +62,40 @@ def test_build_plan_records_ttrl_reward_channel(monkeypatch, tmp_path: Path) -> 
     assert plan["planned_cells"] == 1
 
 
+def test_build_plan_records_feedback_rollout_budget(monkeypatch, tmp_path: Path) -> None:
+    split_dir = tmp_path / "splits_A"
+    split_dir.mkdir()
+    (split_dir / "test.txt").write_text("task_a\n")
+    monkeypatch.setattr(
+        online,
+        "build_expected_coverage",
+        lambda _benchmark_dir: {"expected_cells": ["cell"]},
+    )
+
+    plan = build_plan(
+        benchmark_dir=tmp_path,
+        out_dir=tmp_path,
+        splits=["A"],
+        seeds=[20260607],
+        methods=["mechanical_evolve_ttrl_tool_verified"],
+        budget=32,
+        feedback_turns=4,
+        audit_retries=0,
+        limit_tasks=0,
+        init_online_from_sft=True,
+        ttrl_steps=8,
+        ttrl_generations=4,
+        ttrl_steps_per_generation=4,
+        ttrl_reward_channel="artifact_progress",
+        ttrl_rollout_feedback_turns=4,
+    )
+
+    assert plan["ttrl_optimizer_steps"] == 8
+    assert plan["ttrl_rollout_feedback_turns"] == 4
+    assert plan["ttrl_generated_rollout_episodes_per_cell"] == 8
+    assert plan["ttrl_rollout_evaluations_per_cell"] == 32
+
+
 def test_ttrl_steps_per_generation_for_budget_enforces_matched_rollouts() -> None:
     assert ttrl_steps_per_generation_for_budget(budget=32, num_generations=4) == 4
     with pytest.raises(SystemExit, match="must divide evenly"):
