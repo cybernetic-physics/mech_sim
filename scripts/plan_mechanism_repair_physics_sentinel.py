@@ -999,6 +999,9 @@ def local_stage_command(out_dir: Path, shard_index: int) -> str:
         "--evidence-layout",
         "bundled",
         "--require-runtime-preflight",
+        "--rollout-backend",
+        "sglang_chat",
+        "--ttrl-rollout-openai",
     ])
 
 
@@ -1022,6 +1025,8 @@ def stage_submit_command(
         "RESUME_EXISTING=1",
         "SYNC_LOCAL_BENCHMARK=1",
         "SUBMIT_DEPENDENTS=0",
+        "ROLLOUT_BACKEND=sglang_chat",
+        "TTRL_ROLLOUT_OPENAI=1",
     ]
     if fresh_remote_root:
         parts.extend([

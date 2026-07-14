@@ -44,11 +44,17 @@ def test_sentinel_plan_writes_staged_primary_pair_and_calibrators(
     write_sentinel_artifacts(out_dir=out_dir, plan=plan)
 
     assert plan["planned_cells"] == 192
+    assert "--rollout-backend sglang_chat" in plan["first_stage_local_command"]
+    assert "--ttrl-rollout-openai" in plan["first_stage_local_command"]
     assert "USE_PREPLANNED_SHARDS=1" in plan["first_stage_submit_command"]
     assert "RESUME_EXISTING=1" in plan["first_stage_submit_command"]
+    assert "ROLLOUT_BACKEND=sglang_chat" in plan["first_stage_submit_command"]
+    assert "TTRL_ROLLOUT_OPENAI=1" in plan["first_stage_submit_command"]
     assert "SHARD_INDICES=0" in plan["first_stage_resume_command"]
     assert "RESTAGE_REMOTE_REPO=0" in plan["first_stage_resume_command"]
     assert "REFRESH_REMOTE_CODE=1" in plan["first_stage_resume_command"]
+    assert "ROLLOUT_BACKEND=sglang_chat" in plan["first_stage_resume_command"]
+    assert "TTRL_ROLLOUT_OPENAI=1" in plan["first_stage_resume_command"]
     assert "ALLOW_DESTRUCTIVE_RESTAGE=1" not in plan["first_stage_resume_command"]
     assert "SHARD_INDICES=0" in plan["stage_submit_commands"][0]["command"]
     assert "RESTAGE_REMOTE_REPO=1" in plan["stage_submit_commands"][0]["command"]
