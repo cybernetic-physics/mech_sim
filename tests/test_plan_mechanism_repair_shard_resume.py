@@ -4,6 +4,9 @@ import json
 from pathlib import Path
 
 from scripts.plan_mechanism_repair_shard_resume import build_report
+from scripts.run_mechanism_repair_online_experiment import (
+    ARTIFACT_PROGRESS_REWARD_VERSION,
+)
 
 
 def _cell(task_id: str, method: str) -> dict:
@@ -339,4 +342,48 @@ def test_resume_plan_rejects_missing_learning_evidence(tmp_path: Path) -> None:
         "trained_tokens",
         "rl_datums",
         "rl_trained_tokens",
+    ]
+
+
+def test_resume_plan_rejects_stale_ttrl_reward_version(tmp_path: Path) -> None:
+    run_dir = tmp_path / "run"
+    expected = [
+        _cell("task_a", "llm_evolve_no_update"),
+        _cell("task_a", "mechanical_evolve_ttrl_tool_verified"),
+    ]
+    stale = {
+        **expected[1],
+        "reward_channel": "artifact_progress",
+        "artifact_progress_reward_version": "artifact_progress.v2.strict_caps",
+        "training_log_paths": ["training/reward_log.jsonl"],
+        "adapter_checkpoint_paths": ["adapter"],
+        "adapter_updates": 8,
+        "trained_tokens": 128,
+        "n_rl_datums": 32,
+        "rl_trained_tokens": 128,
+    }
+    _write_shard(run_dir, 0, expected)
+    _write_rows(run_dir, 0, [expected[0], stale])
+
+    report = build_report(run_dir=run_dir)
+
+    assert report["merge_ready"] is False
+    assert report["missing_rows"] == 1
+    assert report["stale_ttrl_reward_rows"] == 1
+    assert report["shards"][0]["status"] == "partial"
+    assert "stale TTRL reward version" in report["shards"][0]["blockers"]
+    assert report["shards"][0]["sample_stale_ttrl_reward_rows"] == [
+        {
+            "cell": (
+                "A/task_a/seed20260610/"
+                "mechanical_evolve_ttrl_tool_verified/budget32"
+            ),
+            "reward_channel": "artifact_progress",
+            "artifact_progress_reward_version": (
+                "artifact_progress.v2.strict_caps"
+            ),
+            "expected_artifact_progress_reward_version": (
+                ARTIFACT_PROGRESS_REWARD_VERSION
+            ),
+        }
     ]

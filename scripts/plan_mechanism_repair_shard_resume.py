@@ -20,6 +20,9 @@ from scripts.run_mechanism_repair_physics_experiment import (
     missing_evidence_for_row,
     missing_learning_evidence,
 )
+from scripts.run_mechanism_repair_online_experiment import (
+    ARTIFACT_PROGRESS_REWARD_VERSION,
+)
 
 
 DEFAULT_RUN_DIR = "runs/mechanism_repair_physics_final"
@@ -150,6 +153,9 @@ def build_report(
         "missing_rows": sum(int(item["missing_rows"]) for item in shard_reports),
         "duplicate_rows": sum(int(item["duplicate_rows"]) for item in shard_reports),
         "unexpected_rows": sum(int(item["unexpected_rows"]) for item in shard_reports),
+        "stale_ttrl_reward_rows": sum(
+            int(item["stale_ttrl_reward_rows"]) for item in shard_reports
+        ),
         "missing_evidence_count": sum(
             int(item["missing_evidence_count"]) for item in shard_reports
         ),
@@ -215,12 +221,27 @@ def summarize_shard(
     }
     missing_evidence: list[dict[str, Any]] = []
     missing_learning: list[dict[str, Any]] = []
+    stale_ttrl_reward_rows: list[dict[str, Any]] = []
     for row in rows:
         key = cell_key(row, default_budget=default_budget)
+        cell = expected_cell_by_key.get(key)
+        method = str(row.get("method") or (cell or {}).get("method") or "")
+        stale_ttrl_reward = stale_ttrl_reward_row(row, method=method)
+        if stale_ttrl_reward:
+            stale_ttrl_reward_rows.append({
+                "cell": key_text(key),
+                "reward_channel": row.get("reward_channel"),
+                "artifact_progress_reward_version": (
+                    row.get("artifact_progress_reward_version")
+                ),
+                "expected_artifact_progress_reward_version": (
+                    ARTIFACT_PROGRESS_REWARD_VERSION
+                ),
+            })
+            continue
         if key in observed_keys:
             duplicate_keys.append(key)
         observed_keys.add(key)
-        cell = expected_cell_by_key.get(key)
         if cell is None:
             continue
         audit_cell = {
@@ -230,7 +251,6 @@ def summarize_shard(
         missing_evidence.extend(
             missing_evidence_for_row(rows_path.parent, audit_cell, row)
         )
-        method = str(row.get("method") or cell.get("method") or "")
         if method in LEARNING_METHODS:
             learning_missing = missing_learning_evidence(
                 rows_path.parent,
@@ -256,6 +276,8 @@ def summarize_shard(
         blockers.append("unexpected cells not in shard file")
     if duplicate_keys:
         blockers.append("duplicate cell rows")
+    if stale_ttrl_reward_rows:
+        blockers.append("stale TTRL reward version")
     if missing_evidence:
         blockers.append("missing evidence files")
     if missing_learning:
@@ -279,6 +301,7 @@ def summarize_shard(
         "missing_rows": len(missing_keys),
         "unexpected_rows": len(unexpected_keys),
         "duplicate_rows": len(duplicate_keys),
+        "stale_ttrl_reward_rows": len(stale_ttrl_reward_rows),
         "missing_evidence_count": len(missing_evidence),
         "missing_learning_count": len(missing_learning),
         "cell_results": str(rows_path),
@@ -286,6 +309,7 @@ def summarize_shard(
         "sample_missing": [key_text(key) for key in missing_keys[:10]],
         "sample_unexpected": [key_text(key) for key in unexpected_keys[:10]],
         "sample_duplicates": [key_text(key) for key in duplicate_keys[:10]],
+        "sample_stale_ttrl_reward_rows": stale_ttrl_reward_rows[:10],
         "sample_missing_evidence": missing_evidence[:10],
         "sample_missing_learning": missing_learning[:10],
         "ttrl_baseline_group_errors": ttrl_baseline_errors[:10],
@@ -320,6 +344,17 @@ def ttrl_baseline_group_errors(
                 "missing_method": PRIMARY_BASELINE,
             })
     return errors
+
+
+def stale_ttrl_reward_row(row: dict[str, Any], *, method: str) -> bool:
+    if method not in TTRL_METHODS:
+        return False
+    if str(row.get("reward_channel") or "") != "artifact_progress":
+        return False
+    return (
+        str(row.get("artifact_progress_reward_version") or "")
+        != ARTIFACT_PROGRESS_REWARD_VERSION
+    )
 
 
 def local_shard_command(
