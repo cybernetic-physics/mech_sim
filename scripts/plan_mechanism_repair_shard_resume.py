@@ -115,9 +115,9 @@ def build_report(
         else None
     )
     resume_env = (
-        (
-            f"SHARD_INDICES={next_shard_index} "
-            "RESTAGE_REMOTE_REPO=0 SUBMIT_DEPENDENTS=0"
+        shard_resume_env(
+            shard_index=next_shard_index,
+            rollout_backend=rollout_backend,
         )
         if next_shard_index is not None
         else None
@@ -355,6 +355,18 @@ def stale_ttrl_reward_row(row: dict[str, Any], *, method: str) -> bool:
         str(row.get("artifact_progress_reward_version") or "")
         != ARTIFACT_PROGRESS_REWARD_VERSION
     )
+
+
+def shard_resume_env(*, shard_index: int, rollout_backend: str) -> str:
+    parts = [
+        f"SHARD_INDICES={int(shard_index)}",
+        "RESTAGE_REMOTE_REPO=0",
+        "SUBMIT_DEPENDENTS=0",
+        f"ROLLOUT_BACKEND={rollout_backend}",
+    ]
+    if rollout_backend == "sglang_chat":
+        parts.append("TTRL_ROLLOUT_OPENAI=1")
+    return " ".join(parts)
 
 
 def local_shard_command(

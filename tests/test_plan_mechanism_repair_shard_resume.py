@@ -97,9 +97,6 @@ def test_resume_plan_selects_first_missing_output_shard(tmp_path: Path) -> None:
 
     assert report["merge_ready"] is False
     assert report["next_shard_index"] == 0
-    assert report["resume_env"] == (
-        "SHARD_INDICES=0 RESTAGE_REMOTE_REPO=0 SUBMIT_DEPENDENTS=0"
-    )
     assert report["next_shard_file"] == str(
         run_dir / "experiment_shards" / "shard_0000.json"
     )
@@ -132,6 +129,10 @@ def test_resume_plan_selects_first_missing_output_shard(tmp_path: Path) -> None:
         report["local_shard_command_text"]
     )
     assert "--ttrl-rollout-openai" in report["local_shard_command_text"]
+    assert report["resume_env"] == (
+        "SHARD_INDICES=0 RESTAGE_REMOTE_REPO=0 SUBMIT_DEPENDENTS=0 "
+        "ROLLOUT_BACKEND=sglang_chat TTRL_ROLLOUT_OPENAI=1"
+    )
     assert report["shards"][0]["status"] == "missing_output"
 
 
@@ -155,6 +156,10 @@ def test_resume_plan_can_emit_local_transformers_command(tmp_path: Path) -> None
     assert "--sft-use-cpu" in cmd
     assert "--ttrl-use-cpu" in cmd
     assert "--local-trust-remote-code" in cmd
+    assert report["resume_env"] == (
+        "SHARD_INDICES=0 RESTAGE_REMOTE_REPO=0 SUBMIT_DEPENDENTS=0 "
+        "ROLLOUT_BACKEND=transformers_local"
+    )
 
 
 def test_resume_plan_marks_partial_shard(tmp_path: Path) -> None:
