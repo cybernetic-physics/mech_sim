@@ -386,9 +386,11 @@ def local_shard_command(
         "--evidence-layout",
         "bundled",
         "--require-runtime-preflight",
+        "--rollout-backend",
+        rollout_backend,
     ]
-    if rollout_backend != "sglang_chat":
-        cmd.extend(["--rollout-backend", rollout_backend])
+    if rollout_backend == "sglang_chat":
+        cmd.append("--ttrl-rollout-openai")
     if rollout_backend == "transformers_local":
         cmd.extend([
             "--local-device",
