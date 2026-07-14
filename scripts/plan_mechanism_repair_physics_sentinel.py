@@ -23,6 +23,10 @@ from scripts.prepare_mechanism_repair_physics_benchmark import (
     PRIMARY_METHOD,
     REQUIRED_FAMILIES,
 )
+from scripts.run_mechanism_repair_online_experiment import (
+    ARTIFACT_PROGRESS_REWARD_VERSION,
+    TTRL_METHODS,
+)
 
 
 DEFAULT_BENCHMARK_DIR = "runs/mechanism_repair_physics_final"
@@ -462,9 +466,22 @@ def audit_sentinel_run(
     )
     row_map: dict[tuple[str, str, int, str, int], dict[str, Any]] = {}
     duplicate_keys = []
+    stale_ttrl_reward_rows = []
     for row in rows:
         key = cell_key(row, default_budget=budget)
         if key not in planned_by_key:
+            continue
+        if stale_ttrl_reward_row(row):
+            stale_ttrl_reward_rows.append({
+                "cell": key_text(key),
+                "reward_channel": row.get("reward_channel"),
+                "artifact_progress_reward_version": (
+                    row.get("artifact_progress_reward_version")
+                ),
+                "expected_artifact_progress_reward_version": (
+                    ARTIFACT_PROGRESS_REWARD_VERSION
+                ),
+            })
             continue
         if key in row_map:
             duplicate_keys.append(key_text(key))
@@ -501,6 +518,7 @@ def audit_sentinel_run(
         "observed_cell_count": len(row_map),
         "missing_cell_count": len(missing),
         "duplicate_cell_count": len(duplicate_keys),
+        "stale_ttrl_reward_cell_count": len(stale_ttrl_reward_rows),
         "missing_cell_summary": summarize_missing_cells(missing),
         "partial_artifact_summary": partial_artifact_summary,
         "primary_method": primary_method,
@@ -520,7 +538,19 @@ def audit_sentinel_run(
         "decision": decision,
         "sample_missing_cells": missing[:25],
         "sample_duplicate_keys": duplicate_keys[:25],
+        "sample_stale_ttrl_reward_cells": stale_ttrl_reward_rows[:25],
     }
+
+
+def stale_ttrl_reward_row(row: dict[str, Any]) -> bool:
+    if str(row.get("method") or "") not in TTRL_METHODS:
+        return False
+    if str(row.get("reward_channel") or "") != "artifact_progress":
+        return False
+    return (
+        str(row.get("artifact_progress_reward_version") or "")
+        != ARTIFACT_PROGRESS_REWARD_VERSION
+    )
 
 
 def summarize_missing_cells(missing: list[dict[str, Any]]) -> dict[str, Any]:
