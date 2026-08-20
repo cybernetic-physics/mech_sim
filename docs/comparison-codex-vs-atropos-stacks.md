@@ -1,5 +1,11 @@
 # Codex runtime vs Atropos / Hermes-Agent — RL stack comparison
 
+> **Historical design note (2026-05-13).** This comparison reflects the
+> external repositories and local implementation at that date. It is retained
+> for decision provenance, not as current setup guidance. See
+> [`project-status.md`](project-status.md) and [`../rl/README.md`](../rl/README.md)
+> for the implemented training paths.
+
 > Written 2026-05-13 after walking through `ttt_discover/codex_runtime`,
 > `hermes-agent/environments/hermes_base_env.py`, and
 > `hermes-agent/tinker-atropos`. Both stacks solve the same problem:

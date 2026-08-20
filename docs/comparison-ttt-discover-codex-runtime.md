@@ -1,5 +1,10 @@
 # mech_sim vs. ttt_discover/codex_runtime — architectural comparison
 
+> **Historical design note (2026-05-13).** This file records a point-in-time
+> comparison with an external runtime. Estimates and recommendations below are
+> not an implementation-status checklist. Use [`project-status.md`](project-status.md)
+> and [`../rl/README.md`](../rl/README.md) for current guidance.
+
 > Written 2026-05-13 after walking through
 > `github.com/cybernetic-physics/ttt_discover`. Honest read: this is
 > the architecture I described in the abstract ("the harness IS the

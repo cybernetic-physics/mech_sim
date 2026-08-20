@@ -1,349 +1,241 @@
-# High-Fidelity Mechanical Simulation Roadmap
+# Mechanical Simulation Credibility Roadmap
 
-This is the canonical long-horizon plan for turning `mech_sim` from a
-mechanical-design RLVR benchmark runtime into a full high-fidelity
-mechanical simulation stack. Future planning, refactors, benchmark
-expansion, and agent work should preserve this direction unless this
-document is intentionally revised.
+The goal is to make `mech-sim` a credible verifier for agent-designed
+mechanical assemblies. The runtime already executes analytic checks and native
+rigid-body/contact simulations. The remaining work is to make predictive
+claims traceable, calibrated, converged, and validated for defined operating
+regimes.
 
-## Mission
+This roadmap is ordered by evidence dependency. Breadth should not outrun
+credibility.
 
-Build a credible high-fidelity mechanical simulation stack, not a narrow
-demo or MVP. The desired end state is a trusted oracle that can evaluate
-AI-generated mechanical assemblies from CAD and structured metadata,
-simulate rigid and flexible behavior, produce calibrated contact and
-structural evidence, and emit validation-grade reports.
+## Current baseline
 
-`mech_bench` remains the verifier and control plane. The missing layer is
-the physical oracle underneath it: trusted CAD ingestion, real
-multibody/contact dynamics, structural analysis, material/contact
-calibration, convergence evidence, and validation datasets.
+Implemented:
 
-## Current Baseline
+- generic evaluator, task contracts, capability dispatch, hard gates, dense
+  scoring, feedback, and evidence bundles;
+- analytic static, transmission, and planar-kinematic checks;
+- trusted geometry manifests and CAD-derived mass-property paths;
+- a native Project Chrono runner for rigid bodies, constraints, motors, loads,
+  collision, NSC/SMC contact, and traces;
+- one checked-in CAD-to-Chrono cycloidal acceptance packet; and
+- learning infrastructure from frozen inference through exact GRPO and online
+  verifier feedback.
 
-- `mech_bench` has a working evaluator, `DesignIR`, `TaskSpec`,
-  `EvalConfig`, probe registry, adapter registry, hard-gate scoring,
-  failure grammar, report bundles, RLVR reward API, and task suite.
-- `planar_kinematics` is an analytic adapter for limited planar
-  mechanisms. It is useful, but it is not a general mechanical simulator.
-- `fake_contact_oracle` is synthetic. It is for tests and demos only.
-  It must never be described as high fidelity or used as physical
-  validation evidence.
-- `chrono_contact` now has a real `_chrono_impl` runner for bodies, joints,
-  motors, loads, collision geometry, contact, traces, and diagnostics. It is
-  still optional and not broadly hardware-calibrated; real-solver output must
-  not be described as validated without reference evidence.
-- The first native dependency gate now lives in `mech-bench
-  oracle-smoke` plus `docker/solver/environment.yml`: PyChrono,
-  OpenCascade/OCP, Gmsh, HDF5, and NumPy must import and execute minimal
-  kernel operations before any runner can claim real oracle readiness.
-- Many current tasks are analytic, topology, or declared-parameter
-  checks. They are valid benchmark tasks, but they do not prove
-  high-fidelity simulation credibility.
+Not yet established:
 
-## Non-Negotiable Principles
+- broad calibration of contact and material parameters;
+- general solver-backed structural analysis;
+- systematic numerical convergence across representative mechanism families;
+- independent-solver and physical-reference agreement;
+- uncertainty bounds tied to intended operating regimes; and
+- completed Level-2/3 agent-learning results.
 
-- Trusted physical truth is recomputed from CAD/geometry on the trusted
-  side. Agent-declared mass, inertia, envelope, contact area, and
-  strength values are hints at most, never the source of truth.
-- Synthetic oracle output is never validation evidence. It may exercise
-  pipeline wiring, but reports must keep `oracle_is_synthetic=true` and
-  reward policy must treat unavailable real physics honestly.
-- High-fidelity claims require solver diagnostics, calibration, and
-  verification/validation evidence. A passing probe is not enough.
-- Breadth follows depth. Do not add large families of nominally
-  "physics" tasks before representative mechanisms have real CAD,
-  real solver execution, convergence checks, and validation packets.
-- RL progress and physics credibility are separate claims. A model
-  improving on proxy tasks does not make the simulator high fidelity.
-- All simulation artifacts must be replayable from content-addressed
-  inputs: task, submission, geometry, material database, solver version,
-  solver config, and random seeds.
+## Credibility ladder
 
-## Target Architecture
+Every task and reported result should state its highest completed level.
 
-### Trusted Asset Layer
+| Level | Evidence | Current example |
+|---|---|---|
+| 0. Contract | Valid artifact, schema, interfaces, and topology | Static and analytic tasks |
+| 1. Analysis | Deterministic kinematic or closed-form mechanical result | Planar paths and transmission checks |
+| 2. Solver execution | Real solver, trusted inputs, settings, diagnostics, and replay | Cycloidal CAD-to-Chrono packet |
+| 3. Numerical verification | Refinement, convergence, conservation, and regression evidence | Partial diagnostics only |
+| 4. Model validation | Agreement with independent or physical reference data in a stated regime | Not yet established broadly |
+| 5. Operational qualification | Validated uncertainty is acceptable for a defined decision | Future work |
 
-Inputs:
+Solver execution is necessary but is not validation. The label attached to a
+report must reflect the completed level, not the ambition of the task.
 
-- `design.py` submission.
-- STEP or constrained parametric geometry.
-- Explicit units, frames, joints, ports, actuators, contact surfaces,
-  materials, tolerances, manufacturing process, and load cases.
+## Workstream 1: self-consistent benchmark release
 
-Trusted outputs:
-
-- `DesignIR v2`.
-- Canonical scene graph.
-- OpenUSD physics scene.
-- Chrono scene package.
-- FEA model package.
-- Mesh and material manifests.
-- Hash-addressed evidence bundle.
-
-Responsibilities:
-
-- Import CAD and normalize units/frames.
-- Recompute volume, center of mass, inertia tensor, envelope, density,
-  wall thickness, clearance, and collision geometry.
-- Generate render meshes, collision meshes, convex proxies, and FEA
-  meshes with quality reports.
-- Reject nonphysical geometry, bad mass properties, path escapes,
-  malformed frames, invalid units, and inconsistent material metadata.
-
-### Physics Oracle Layer
-
-Primary backend:
-
-- Project Chrono for multibody dynamics, contact dynamics, motors,
-  constraints, loads, and eventually flexible-body coupling.
-
-Cross-check backends:
-
-- Drake for selected contact and hydroelastic sanity checks.
-- MuJoCo for fast robotics-style dynamics comparisons where its contact
-  assumptions are appropriate.
-- Isaac Sim/PhysX/OpenUSD for scene interchange, robotics workflow, and
-  selected USD physics compatibility tests.
-
-The adapter contract remains the existing `SimOutput` shape, extended as
-needed for torques, impulses, residuals, solver status, energy channels,
-mesh provenance, and uncertainty metadata.
-
-### Structural and Material Layer
-
-- Add solver-backed static FEA probes for stress, displacement, and
-  safety factor.
-- Add fatigue, modal, thermal, and flexible-body analyses only after
-  static load cases are validated.
-- Maintain a material database with provenance, units, temperature
-  assumptions, print/process orientation where relevant, and uncertainty
-  ranges.
-- Maintain a contact database for friction, restitution, stiffness,
-  damping, compliance, surface roughness, backlash, bearing losses, and
-  tolerance assumptions.
-
-### V&V Layer
-
-Every high-fidelity report must include:
-
-- Solver backend and exact version.
-- Solver settings, timestep, tolerances, integrator, contact method,
-  collision representation, and mesh resolution.
-- Constraint violation, penetration, contact impulse/force statistics,
-  residuals, energy/power balance, and convergence status.
-- Timestep refinement and mesh refinement evidence for benchmark
-  validation runs.
-- Material/contact database versions and uncertainty bands.
-- Link to validation fixture or trusted offline simulation dataset.
-
-Use ASME V&V 10 style language: verification, validation, uncertainty
-quantification, and stated credibility limits.
-
-## Phase Gates
-
-### Phase 0: Preserve the Control Plane
-
-Goal: Keep the current evaluator reliable while the physics stack is
-built.
-
-Exit criteria:
-
-- Existing tests and negative controls pass.
-- The fake oracle remains explicitly synthetic and opt-in.
-- Public docs point to this roadmap.
-- No new task claims high-fidelity dynamics without real solver evidence.
-
-### Phase 1: DesignIR v2 and Trusted CAD Ingestion
-
-Goal: represent real assemblies and recompute physical properties from
-trusted geometry.
+Goal: make task counts, documentation, and evidence point to one versioned
+benchmark snapshot.
 
 Required work:
 
-- Add `DesignIR v2` fields for units, frames, materials, tolerances,
-  contact surfaces, actuators, joint losses, load cases, and mesh roles.
-- Implement schema migration from current `DesignIR`.
-- Add STEP import and mass-property recomputation through a trusted CAD
-  kernel.
-- Add geometry artifact generation: render mesh, collision mesh, convex
-  proxy, FEA mesh, and mesh-quality report.
-- Add validation failures for unit ambiguity, frame inconsistency,
-  non-watertight geometry, bad inertia, impossible density, and
-  unsupported material/process declarations.
+- materialize all 58 registered families at a fixed seed;
+- record generator commit, dependency versions, and task hashes;
+- run reference solutions under public and hidden configurations;
+- run all negative controls and record expected/observed failure codes;
+- classify every task as analytic, synthetic, simulated, or validated; and
+- publish the aggregate summary beside the frozen task snapshot.
 
 Exit criteria:
 
-- A submitted CAD assembly can be converted into trusted geometry
-  artifacts without trusting agent-declared mass or inertia.
-- Existing non-CAD tasks still run through compatibility paths.
-- Reports identify exactly which physical quantities were recomputed.
+- registry, checked-in tasks, and result summary agree;
+- every unavailable capability is reported explicitly;
+- synthetic contact tasks are separated from real-solver tasks; and
+- the suite can be replayed without machine-specific source paths.
 
-### Phase 2: Real Chrono Multibody and Contact Backend
+## Workstream 2: trusted assembly ingestion
 
-Goal: replace synthetic contact for Tier-3 physics tasks with real
-Chrono execution.
-
-Implemented foundation:
-
-- `mech_bench/adapters/_chrono_impl.py` is present and exercised by the native
-  solver path.
-- The runner maps bodies, joints, motors, loads, contact materials, and
-  collision geometry into Chrono.
-- NSC and SMC contact modes are supported where appropriate.
-- The adapter emits time series for body poses, joint states, velocities,
-  motor torques, applied loads, contact forces, penetration, constraint
-  violation, and energy/power channels.
-- Solver diagnostics and capability-unavailable failure modes distinguish
-  missing dependencies from failed simulations.
-
-Remaining work:
-
-- Calibrate representative mechanisms and material/contact parameters against
-  trusted references.
-- Add systematic convergence studies and independent solver cross-checks.
-- Remove remaining procedural or declared-property compatibility paths from
-  production physics tasks.
-
-Exit criteria:
-
-- Representative contact tasks run without `fake_contact_oracle`.
-- Solver diagnostics are present in every contact report.
-- Reference designs and negative controls separate physical failures
-  from pipeline failures.
-
-### Phase 3: Solver-Backed Structural Analysis
-
-Goal: make structural probes physical rather than declared-metric checks.
+Goal: derive physical inputs from trusted geometry rather than agent claims.
 
 Required work:
 
-- Add an FEA adapter for static stress, displacement, and safety factor.
-- Generate boundary conditions from ports, joints, fixtures, and load
-  cases.
-- Add material model support with provenance and process assumptions.
-- Emit mesh quality, boundary condition summary, stress extrema,
-  displacement extrema, FOS, and solver convergence data.
+- normalize units, frames, materials, tolerances, contact surfaces, actuators,
+  and load cases;
+- recompute volume, center of mass, inertia, envelope, and density;
+- generate role-specific render, collision, and analysis meshes with quality
+  reports;
+- preserve source geometry, mesh, material, and transformation digests; and
+- reject ambiguous units, inconsistent frames, invalid solids, impossible
+  density, and unsupported material/process declarations.
 
 Exit criteria:
 
-- `safety_factor` and related structural probes are solver-backed for
-  CAD-backed tasks.
-- Negative controls fail for real stress/deformation reasons.
-- Reports state credibility limits for each structural result.
+- representative assemblies enter the solver without trusting declared mass
+  or inertia;
+- reports identify every recomputed and declared quantity; and
+- geometry conversion is deterministic or records the source of variation.
 
-### Phase 4: Contact and Material Calibration
+## Workstream 3: native contact verification
 
-Goal: replace magic constants with calibrated, versioned physical
-parameters.
+Goal: make the current Chrono backend numerically defensible for a small set of
+representative mechanisms.
 
 Required work:
 
-- Build calibration fixtures: sliding block, gear pair, cam follower,
-  brake pad, gripper pad, snap fit, bearing seat, latch/ratchet, and
-  belt/chain proxy.
-- Record physical measurements or trusted offline simulation data.
-- Fit contact/material parameters with uncertainty ranges.
-- Version the calibration database and include it in report provenance.
+- choose representative cam, gear, indexer, and reducer fixtures;
+- pin solver version, integrator, contact formulation, timestep, solver
+  tolerances, and collision settings;
+- record constraint violation, penetration, impulses/forces, energy and power
+  balance, iteration state, and failure diagnostics;
+- run timestep and collision-mesh refinement studies;
+- define convergence and conservation acceptance criteria before running; and
+- add regression thresholds that detect solver or geometry drift.
 
 Exit criteria:
 
-- Contact tasks cite calibration records.
-- Reports include uncertainty bands and validation residuals.
-- Contact parameters are not ad hoc task-local constants.
+- reference mechanisms execute without synthetic fallback;
+- reference and negative designs fail for mechanical rather than pipeline
+  reasons;
+- reported metrics are stable within predeclared refinement bounds; and
+- every contact report identifies its applicability limits.
 
-### Phase 5: Benchmark Migration and Expansion
+Project Chrono’s official
+[contact documentation](https://api.projectchrono.org/collisions.html)
+explains the different NSC and SMC formulations. Choosing between them is a
+modeling decision that must be justified and recorded.
 
-Goal: migrate from proxy tasks to broad CAD-backed physics tasks.
+## Workstream 4: structural and manufacturing evidence
+
+Goal: evaluate whether a valid mechanism can be made and survive its loads.
 
 Required work:
 
-- Replace synthetic contact stubs with real CAD, real load cases, and
-  real solver-backed expected failures.
-- Expand families for gears, belts, chains, cams, clutches, brakes,
-  bearings, linkages, flexures, snap fits, fasteners, tolerance stacks,
-  and actuator transmissions.
-- For each family, include reference design, negative controls,
-  validation packet, public/hidden eval configs, and V&V assumptions.
+- add a solver-backed static structural adapter for stress and displacement;
+- derive boundary conditions from trusted ports, joints, fixtures, and load
+  cases;
+- version material properties with source, temperature, process, orientation,
+  and uncertainty;
+- emit mesh quality, residual/convergence, extrema, and safety-factor data;
+- add tolerance-stack, clearance, tool-access, and assembly checks; and
+- model process capability, material stock, operation order, inspection, time,
+  and cost.
 
 Exit criteria:
 
-- Each tier has physically meaningful solver-backed tasks where
-  appropriate.
-- New task families are blocked unless they include validation artifacts
-  or are explicitly marked analytic/proxy.
-- Benchmark dashboards distinguish analytic, synthetic, simulated, and
-  validated evidence.
+- structural failures come from solver-backed fields rather than declared
+  scalar values;
+- manufacturing constraints affect both acceptance and optimization reward;
+- negative controls isolate boundary-condition, material, geometry, and
+  process errors; and
+- reports state the model form and uncertainty assumptions.
 
-### Phase 6: Operations, Scale, and Cross-Engine Validation
+## Workstream 5: calibration and validation
 
-Goal: make the stack reproducible and durable for long-running agent
-training and evaluation.
+Goal: establish when simulated metrics predict independent or physical
+observations.
 
 Required work:
 
-- Containerize solver workers with pinned versions.
-- Add a job queue for expensive simulation and FEA runs.
-- Cache geometry and simulation artifacts by digest.
-- Add deterministic replay from report bundles.
-- Add CI tiers: fast unit tests, nightly solver regression, weekly V&V
-  regression.
-- Add cross-engine checks for selected cases using Drake, MuJoCo, and
-  Isaac/OpenUSD where their assumptions match the task.
+- build simple calibration fixtures before complex assemblies: sliding block,
+  impact/contact pair, shaft fit, gear mesh, cam follower, and gripper pad;
+- measure geometry, material, friction, compliance, damping, backlash, load,
+  and response with uncertainty;
+- fit parameters on calibration data and evaluate on held-out trials;
+- cross-check selected cases with an independent solver where its assumptions
+  match; and
+- version calibration data and include its digest in every dependent report.
 
 Exit criteria:
 
-- Any high-fidelity result can be replayed from its bundle.
-- Solver regressions are caught before benchmark results change.
-- Reports clearly separate verified, validated, cross-checked, and
-  unsupported claims.
+- prediction error and uncertainty are reported against held-out references;
+- the accepted operating range is explicit;
+- calibration data is distinct from validation data; and
+- tasks outside the validated range do not inherit the validated label.
 
-## Drift Guards
+[Project Chrono’s validation studies](https://projectchrono.org/validation/)
+illustrate case-specific comparison against analytical, independent-software,
+or experimental references. [ASME V&V 10](https://www.asme.org/codes-standards/find-codes-standards/standard-for-verification-and-validation-in-computational-solid-mechanics/2019)
+provides the verification, validation, and uncertainty-quantification
+vocabulary used here.
 
-Future agents and maintainers should check this list before making
-architecture changes:
+## Workstream 6: Level-2/3 learning result
 
-- Do not rename synthetic contact output into oracle output.
-- Do not let `fake_contact_oracle` silently satisfy production
-  high-fidelity tasks.
-- Do not accept non-CAD declared values as trusted physical evidence.
-- Do not bury solver settings or material parameters in task-local
-  scripts.
-- Do not add broad task families before at least one representative
-  family has passed the full CAD -> Chrono/FEA -> V&V path.
-- Do not make `DesignIR v2` incompatible with existing generated tasks
-  without a migration path.
-- Do not report a single pass/fail score without preserving diagnostic
-  evidence.
-- Do not treat RL reward improvement as simulator validation.
+Goal: determine whether verifier-derived learning improves CAD- and
+physics-constrained repair, not merely executable program repair.
 
-## Minimum Staffing Assumption
+The repository already contains a 120-task Level-2/3 benchmark manifest and
+matched-budget experiment tooling. Its committed final audit records zero
+observed result rows, so execution remains outstanding.
 
-The full stack needs sustained specialist ownership:
+Use a staged experiment:
 
-- Multibody/contact simulation engineer.
-- CAD/geometry/meshing engineer.
-- FEA/materials engineer.
-- Infra/backend engineer.
-- Benchmark/V&V engineer.
-- Mechanical testing or calibration support.
+1. select two or three credible families with completed native verification;
+2. freeze public, hidden, and isomorphic variants;
+3. compare frozen, no-update feedback, search, SFT, and online-learning methods;
+4. match actual CAD and solver calls, including retries and failures;
+5. require complete raw evidence and adapter-update logs; and
+6. expand only after the small study passes its audit.
 
-The critical path is:
+Exit criteria:
 
-`DesignIR v2` -> trusted CAD ingestion -> real Chrono backend ->
-solver-backed contact tasks -> FEA backend -> calibration database ->
-V&V reporting -> broad benchmark migration.
+- all compared methods receive matched actual expensive-verifier budgets;
+- held-out families and anti-shortcut variants are genuinely disjoint;
+- learning improvement is supported by paired statistics and complete
+  evidence; and
+- the conclusion is scoped separately for CAD validity, contact behavior,
+  manufacturability, and physical transfer.
 
-## External Reference Points
+## Workstream 7: durable operations
 
-These are not dependencies by themselves; they define the level of
-capability this project should be measured against.
+Goal: make expensive evidence reproducible across machines and over time.
 
-- Project Chrono: https://projectchrono.org/
-- Chrono repository: https://github.com/projectchrono/chrono
-- Chrono collision/contact docs: https://api.chrono.projectchrono.org/collisions.html
-- Drake hydroelastic/contact docs: https://drake.mit.edu/doxygen_cxx/group__hydroelastic__user__guide.html
-- MuJoCo computation/contact docs: https://mujoco.readthedocs.io/en/2.1.5/computation.html
-- Isaac Sim physics docs: https://docs.isaacsim.omniverse.nvidia.com/latest/physics/index.html
-- OpenUSD physics schema: https://openusd.org/release/api/usd_physics_page_front.html
-- ASME V&V 10 overview: https://www.asme.org/codes-standards/find-codes-standards/standard-for-verification-and-validation-in-computational-solid-mechanics
+Required work:
+
+- pin and publish native solver environments;
+- cache geometry and simulation artifacts by digest;
+- use a queue for expensive simulations with bounded retries;
+- remove machine-specific absolute paths from portable manifests;
+- add fast, native-nightly, and periodic validation regression tiers; and
+- replay a sample of old bundles whenever solver or geometry dependencies
+  change.
+
+Exit criteria:
+
+- a reviewer can reconstruct a selected result from committed or retrievable
+  content-addressed inputs;
+- missing heavy artifacts are reported as missing, not implied to exist;
+- solver regressions are detected before benchmark numbers change; and
+- evidence labels remain stable across dashboards, summaries, and training
+  rewards.
+
+## Near-term sequence
+
+The shortest credible path is:
+
+```text
+versioned 58-family snapshot
+→ representative native contact verification
+→ trusted structural/manufacturing checks
+→ calibration and held-out validation
+→ bounded Level-2/3 learning experiment
+→ broader curriculum and physical feedback
+```
+
+The [project status](project-status.md) should be updated whenever an exit
+criterion becomes supported by checked-in evidence.

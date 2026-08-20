@@ -1,5 +1,12 @@
 # mech_bench — agent evaluation results + RL roadmap
 
+> **Historical snapshot (2026-05-13).** This document preserves the first
+> agent-evaluation and training-cook analysis. It is not the current project
+> status. The comparison has a contaminated evaluation arm, the legacy trainer
+> is not exact GRPO, the native Chrono runner now exists, and later Level-1
+> held-out-family results supersede the learning conclusions here. Start with
+> [`project-status.md`](project-status.md).
+>
 > Written 2026-05-13 after the first full RL cooks. Cites real run
 > artifacts under `evals/` and `runs/`. Honest, including the bits
 > that didn't work.
@@ -380,7 +387,7 @@ Ranked by expected pass-rate impact divided by engineering hours.
 8. **Real Chrono contact oracle.** Vendor in the `_chrono_impl.py`
    shim from phys-sim's `_chrono_mesh_runner.py`. Turn the Tier-3
    synthetic stubs into actual contact-dynamics tasks. Notes in
-   `docs/future_chrono_oracle.md`.
+   `docs/chrono-backend.md`.
 
 9. **`mech-bench-eval` as an Atropos-shape env.** Mirror
    `hermes-agent/environments/hermes_base_env.py` so a Hermes-Agent

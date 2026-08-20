@@ -15,6 +15,10 @@ The portable core check runs without a GPU or native physics stack. PyChrono,
 CAD-kernel, training, and archived experiment-replay checks have separate
 dependencies and should be run when a change touches those surfaces.
 
+The default `dev` group intentionally does not install PyTorch. A raw
+`pytest` collection therefore requires the `training-grpo` dependencies; use
+the portable script for evaluator-only changes.
+
 ## Change guidelines
 
 - Keep synthetic, simulated, and validated evidence clearly distinguished.
@@ -28,6 +32,11 @@ dependencies and should be run when a change touches those surfaces.
   when evidence changes.
 - Record units, solver versions, settings, and random seeds in new evidence
   paths.
+- Keep [`docs/project-status.md`](docs/project-status.md) aligned with the
+  implementation and committed evidence. Dated evidence records should remain
+  immutable except for scope or provenance corrections.
+- Treat generated task prompts and frozen run artifacts as data. Do not rewrite
+  them during a general prose cleanup.
 
 ## Validation tiers
 
@@ -49,3 +58,5 @@ training code.
 - [ ] Relevant optional validation tiers pass or are documented.
 - [ ] Documentation reflects the implemented state.
 - [ ] New claims link to replayable evidence and state their limitations.
+- [ ] Relative documentation links resolve, and current guidance does not rely
+  on a historical note.

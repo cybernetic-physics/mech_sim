@@ -1,6 +1,10 @@
-# Cycloidal Real-Geometry Chrono Validation
+# Cycloidal Real-Geometry Chrono Acceptance Run
 
-Validated on branch `mech-sim-natalia` with FreeCAD/OCCT-generated
+> **Scope:** solver-path and fixture acceptance, including refinement
+> diagnostics. This is not hardware or predictive-model validation. The loaded
+> SMC case still reports `power_balance_error`.
+
+Executed on branch `mech-sim-natalia` with FreeCAD/OCCT-generated
 CycloidGearBox assets and Project Chrono SMC contact.
 
 Command:

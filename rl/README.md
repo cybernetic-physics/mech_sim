@@ -1,79 +1,131 @@
-# RL Training On mech_bench
+# Verifier-Guided Learning
 
-There are now two distinct trainer paths. Do not describe them as the same
-algorithm.
+The learning layer turns a generated completion into `design.py`, evaluates it
+through the same trusted benchmark path used for offline scoring, and returns a
+gated reward plus structured repair feedback.
 
-## Exact GRPO
+There are two trainer paths. They are not the same algorithm and should not be
+reported under one label.
 
-Use this when the claim says GRPO:
+## Reward contract
+
+```text
+completion
+→ extract design.py
+→ isolated build and validation
+→ configured probes and adapters
+→ hard gate
+→ verified score, public feedback, and scalar channels
+```
+
+The compact API lives in `mech_bench.rlvr.evaluate_for_rlvr`. Its reward is
+zero when evaluation is invalid or a hard gate fails. The payload also records
+whether any selected adapter was synthetic, so an experiment can exclude or
+separately analyze that signal.
+
+This contract prevents a model from receiving positive reward for output the
+verifier could not safely interpret. It does not by itself prevent every form
+of reward hacking; held-out configurations and anti-shortcut variants remain
+necessary.
+
+## Exact GRPO path
+
+Use this path when a result is described as GRPO:
 
 ```bash
+uv sync --extra training-grpo
+
 uv run --extra training-grpo python rl/train_true_grpo_trl.py \
   --model <hf-causal-lm-or-local-path> \
-  --output-dir runs/true_grpo/<run_name> \
-  --split-file <train_split.txt> \
+  --output-dir runs/true_grpo/<run-name> \
+  --split-file <train-split.txt> \
   --num-generations 4 \
   --max-steps 100
 ```
 
 Implementation:
 
-- `rl/train_true_grpo_trl.py`
-- Hugging Face TRL `GRPOTrainer`
-- PEFT LoRA
-- verifier reward from `rl.mech_bench_reward.score_completion`
-- reward = `verified_score * reward_scale`
-- no learned value head
-- uses TRL's GRPO objective, including policy-ratio clipping/KL handling as
-  implemented by TRL
+- Hugging Face TRL `GRPOTrainer`;
+- PEFT LoRA;
+- deterministic verifier reward from
+  `rl.mech_bench_reward.score_completion`;
+- reward equal to `verified_score * reward_scale`;
+- no learned value head; and
+- policy-ratio clipping and KL handling as implemented by the pinned TRL
+  version.
 
-Install path:
+Every reward call is appended to `reward_log.jsonl` in the run directory.
+Model, dependency, task split, sampling configuration, and verifier commit
+should be frozen with any reported result.
 
-```bash
-uv sync --extra training-grpo
-```
+## Multi-turn repair rollouts
 
-or invoke directly with:
+`rl/chat_rollout.py` supports repeated completion–evaluation–feedback turns.
+The model receives public failures and suggestions, not hidden thresholds or
+private traces. A run should record:
 
-```bash
-uv run --extra training-grpo python rl/train_true_grpo_trl.py ...
-```
+- maximum turns and samples per task;
+- actual verifier, CAD, and native-solver calls;
+- sampler errors, timeouts, and replacement retries;
+- the best and final verified outcome; and
+- whether a successful design appeared only after feedback.
 
-## Legacy Worldlines Trainer
+Matched-budget comparisons must count actual expensive calls, including failed
+attempts, rather than only planned calls.
 
-`rl/train_grpo.py` is retained for reproducibility of old branch results, but
-it is not exact GRPO.
+## Legacy Worldlines path
 
-It performs:
+`rl/train_grpo.py` is retained to reproduce early experiments. It performs:
 
-- K rollouts per task
-- deterministic verifier scoring
-- group-relative normalized rewards
-- advantage/reward-weighted cross-entropy on final assistant tokens
-- Worldlines LoRA optimizer step
+- multiple rollouts per task;
+- deterministic verifier scoring;
+- group-relative normalized rewards;
+- advantage/reward-weighted cross-entropy on assistant tokens; and
+- a Worldlines LoRA optimization step.
 
-It does not perform:
-
-- policy-ratio clipped GRPO objective
-- old-policy/current-policy log-prob ratio optimization
-- PPO value-function training
-
-Refer to it as:
+It does **not** implement policy-ratio-clipped GRPO, old/current-policy ratio
+optimization, or PPO value-function training. Describe it as:
 
 ```text
 group-relative verifier-weighted CE LoRA
 ```
 
-not as GRPO.
+The older training-cook analysis is preserved in
+[`docs/results-and-rl-roadmap.md`](../docs/results-and-rl-roadmap.md), with a
+historical-status warning.
 
-## Reward Contract
+## Evidence and limits
 
-The verifier reward source is the existing deterministic benchmark path:
+The strongest checked-in learning result is the June 2026 Level-1
+held-out-family experiment in
+[`runs/mechanism_repair_ttrl_final`](../runs/mechanism_repair_ttrl_final/README.md).
+Its claim audit supports improved executable mechanism-program repair under the
+recorded matched-budget setup.
 
-```text
-completion -> design.py -> python -m mech_bench evaluate --full --allow-partial
+It does not establish CAD, contact-physics, manufacturing, or hardware
+performance. The prepared Level-2/3 experiment bundle contains benchmark and
+audit scaffolding but records zero executed result rows. See the
+[project evidence ledger](../docs/project-status.md#evidence-ledger).
+
+## Testing
+
+The portable project check does not install PyTorch and excludes training-only
+test modules:
+
+```bash
+scripts/check_core.sh
 ```
 
-`verified_score` is nonzero only when the generated artifact is evaluation-valid
-and passes the hard gate. The exact-GRPO trainer logs every reward call to
-`reward_log.jsonl` in the run directory.
+For changes to the exact trainer or rollout code, install the training group
+and run the relevant modules explicitly:
+
+```bash
+uv sync --extra training-grpo
+uv run --extra training-grpo pytest -q \
+  tests/test_train_true_grpo_trl.py \
+  tests/test_train_sft_peft.py \
+  tests/test_chat_rollout.py
+```
+
+Do not infer native-solver coverage from these tests; physics dependencies and
+evidence have their own validation tier.

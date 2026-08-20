@@ -16,6 +16,15 @@ central idea is to combine reinforcement learning with trusted mechanical
 verification so agents learn from the consequences of the artifacts they
 create, not only from text demonstrations or human preferences.
 
+The project sits between two active lines of work. Systems such as
+[Text2CAD](https://arxiv.org/abs/2409.17106) show that models can generate
+parametric CAD sequences from language. Work such as
+[DeepSeekMath](https://arxiv.org/abs/2402.03300) shows how objective,
+automatically checked outcomes can support reinforcement learning. Mechanical
+design needs both ideas plus a stricter evidence boundary: an executable model
+or visually plausible shape is only the beginning, and the reward must reflect
+geometry, interfaces, mechanics, manufacturability, and uncertainty.
+
 ## Why reinforcement learning
 
 Autonomous manufacturing is a long-horizon problem. A successful result may
@@ -107,6 +116,8 @@ boundary remain fixed.
 
 This is enough to study verifier-guided design and repair. It is not yet a
 general autonomous factory or a broadly hardware-validated digital twin.
+The [project status](project-status.md) separates implemented capability,
+executed evidence, and unfinished work.
 
 ## Research questions
 

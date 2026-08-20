@@ -1,40 +1,75 @@
-# Current Paper Results
-This file summarizes the controlled runs from `docs/paper-results-current.json`. The evidence supports a benchmark/runtime paper, not a hardware-calibrated simulator claim.
-## Headline Results
-- Reference controls: 50/51 pass rate (0.980); mean hidden score 0.945.
-- Negative controls: 104/104 expected failures detected.
-- Cycloidal real-geometry proof: ok=True, missing_bridge=None.
+# Frozen Benchmark Evidence — 2026-05-25
 
-## Reference Suite By Tier
-| Tier | n | pass rate | mean score |
+> **Snapshot, not current-suite status.** This record was generated from commit
+> `1f18ec5519ea417a56051539728585244d796ae9` on the then-current 51-task
+> materialization. The generator registry now contains 58 families. Eleven
+> reference tasks in this snapshot used the explicitly labeled synthetic
+> contact adapter.
+
+The source artifact is
+[`paper-results-current.json`](paper-results-current.json). It records the
+commands, repository revision, aggregate metrics, proof output, supported
+claims, and unsupported claims.
+
+## Summary
+
+| Check | Result |
+|---|---:|
+| Reference controls passing | 50 / 51 |
+| Reference hard-gate pass rate | 98.0% |
+| Mean hidden score | 0.945 |
+| Expected negative failures detected | 104 / 104 |
+| Synthetic reference tasks | 11 |
+| CAD-to-Chrono proof completed | Yes |
+
+The single invalid reference was `contact_gear_pair_stub_s0001`, which reported
+`capability_unavailable`. This is an honest missing-capability result, not a
+mechanical failure.
+
+## Reference controls by tier
+
+| Tier | Tasks | Hard-gate pass rate | Mean hidden score |
 |---|---:|---:|---:|
-| artifact_static | 13 | 1.000 | 0.969 |
-| contact_dynamics | 12 | 0.917 | 0.818 |
-| planar_kinematics | 12 | 1.000 | 0.982 |
-| transmission_analytic | 13 | 1.000 | 1.000 |
-| unknown | 1 | 1.000 | 1.000 |
+| Static artifact | 13 | 100.0% | 0.969 |
+| Planar kinematics | 12 | 100.0% | 0.982 |
+| Analytic transmission | 13 | 100.0% | 1.000 |
+| Contact dynamics | 12 | 91.7% | 0.818 |
+| Legacy unclassified task | 1 | 100.0% | 1.000 |
 
-## Known Misses / Caveats
-- `contact_gear_pair_stub_s0001`: invalid/hard-gate miss with public=['capability_unavailable', 'capability_unavailable'] hidden=['capability_unavailable', 'capability_unavailable'].
-- `brake_caliper_contact_stub_s0001`: valid but low hidden score 0.900; codes=[].
-- `cam_follower_contact_stub_s0001`: valid but low hidden score 0.800; codes=[].
-- `cycloidal_lowN_stub_s0001`: valid but low hidden score 0.300; codes=['excessive_torque_ripple', 'lockup', 'power_balance_error'].
-- `detent_spring_contact_stub_s0001`: valid but low hidden score 0.875; codes=[].
-- `fourbar_path_s0001`: valid but low hidden score 0.893; codes=[].
-- `fourbar_wiper_arc_s0001`: valid but low hidden score 0.893; codes=[].
-- `friction_clutch_torque_stub_s0001`: valid but low hidden score 0.944; codes=[].
-- `pulley_bore_alignment_static_s0001`: valid but low hidden score 0.693; codes=['insufficient_clearance'].
-- `static_fit_bracket_s0001`: valid but low hidden score 0.909; codes=['insufficient_clearance'].
+Several valid references scored below 0.95. The detailed JSON names them and
+records clearance, path, contact, lockup, torque-ripple, and power-balance
+feedback. A reference solution passing its hard gate does not imply every
+dense objective is ideal.
 
-## Cycloidal NSC vs SMC Real-Geometry Fixture
-| Contact model | max penetration mm | contact force RMS N | n_contacts_max | ratio_observed | failure_mode |
+## Real-geometry fixture
+
+The packet also ran the cycloidal CAD fixture through real Chrono NSC and SMC
+paths without procedural geometry fallback.
+
+| Contact model | Maximum penetration | Contact-force RMS | Maximum contacts | Observed ratio | Failure |
 |---|---:|---:|---:|---:|---|
-| NSC | 3.93418 | 1.58081e+06 | 958 | 0.576348 | power_balance_error |
-| SMC | 0.975371 | 66.3579 | 171 | 14.9072 | power_balance_error |
+| NSC | 3.934 mm | 1.58 MN | 958 | 0.576 | `power_balance_error` |
+| SMC | 0.975 mm | 66.4 N | 171 | 14.907 | `power_balance_error` |
 
-SMC/NSC ratios: force RMS 4.198e-05, penetration 0.248, contact count 0.178.
+These numbers establish runner execution and expose a major formulation/model
+difference. They do not establish that either run predicts a physical reducer.
 
-## Paper Interpretation
-Supported: a verifiable mechanical-design benchmark/runtime with reference controls, negative controls, and a real CAD-to-Chrono physics-adapter proof.
+## Supported interpretation
 
-Not supported yet: a trustworthy high-fidelity simulator, hardware-calibrated cycloidal reducer, or robot/agent learning result.
+This snapshot supports:
+
+- a working mechanical-design evaluation runtime;
+- reference and negative-control execution across four task tiers;
+- explicit reporting of unavailable capabilities and synthetic evidence; and
+- a real CAD-to-Chrono adapter path with diagnostic output.
+
+It does not support:
+
+- broad high-fidelity or hardware-calibrated simulation;
+- a validated cycloidal reducer model; or
+- a learning improvement claim.
+
+The last boundary applies to this May snapshot. A later Level-1 learning result
+is documented in
+[`runs/mechanism_repair_ttrl_final`](../runs/mechanism_repair_ttrl_final/README.md),
+but it does not change the physics limits of this packet.

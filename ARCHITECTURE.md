@@ -1,256 +1,207 @@
-# Architecture — Mechanical Design RLVR Benchmark Runtime
+# Architecture
 
-> Sister doc: `mech-sim-state.md` (distillation of the prior
-> `phys-sim` mechanism-specific harness, with empirical findings).
-> This doc proposes the architecture of the **generic runtime** we
-> are building here.
->
-> Long-horizon note:
-> `docs/high-fidelity-simulation-roadmap.md` is the canonical decision
-> record for the full high-fidelity simulation stack. This architecture
-> document describes the current evaluator/control plane; the roadmap
-> defines the CAD, Chrono, FEA, calibration, and V&V work needed to make
-> physical simulation claims credible.
+`mech-sim` is a verifier and control plane for agent-generated mechanical
+designs. Mechanism knowledge lives in versioned task data; the runtime provides
+generic execution, validation, simulation dispatch, probes, scoring, feedback,
+and evidence packaging.
 
-## The inversion
+## Design principle
 
-The prior harness (`phys-sim/mech_harness`) put mechanism knowledge in
-problem plugins. Each new mechanism class required a new
-`ProblemPlugin` subclass that knew how to validate that mechanism.
-The simulator core had to grow with each new mechanism family.
+A conventional mechanism-specific harness embeds the question “what should be
+checked?” in validator code. `mech-sim` instead separates:
 
-The runtime in this repo inverts that:
-
-```
-phys-sim:
-    mechanism plugin   ──▶  validator knows what to check
-                            (new mechanism = new plugin)
-
-mech_bench:
-    task spec
-    + eval config      ──▶  generic evaluator selects probes
-                            and simulator adapters from registries
-                            (new mechanism = new task config + maybe
-                             new probe types, but the runtime stays
-                             generic)
+```text
+task requirements + evaluation configuration
+                    ↓
+generic evaluator → capability plan → adapters → probes → evidence
 ```
 
-The runtime knows about a small set of universals — bodies, joints,
-ports, drives, contact pairs, swept-volume probes, force probes,
-manufacturability constraints, capability tags — and **nothing about
-"cycloidal" or "four-bar."** Mechanism knowledge lives in
-task config + reference solutions + fixtures, where it can be
-authored, versioned, and shared without touching the runtime.
+Adding a mechanism family usually means adding a generator, task contract,
+reference solution, and negative controls. Runtime code changes only when the
+new family needs a genuinely new universal capability or probe.
 
-## Five core abstractions
+## End-to-end flow
 
-### 1. `DesignIR` — what the agent submits
+```mermaid
+flowchart LR
+    A["TaskSpec + EvalConfig"] --> P["Evaluation plan"]
+    S["Untrusted design.py"] --> W["Isolated submission worker"]
+    W --> V["Schema, path, and physical-field validation"]
+    V --> P
+    P --> D["Capability-aware adapter dispatch"]
+    D --> R["Configured probes"]
+    R --> G["Hard gate + dense score"]
+    G --> E["Public feedback + private evidence bundle"]
+    E --> L["Agent repair, learning, or audit"]
+```
 
-A JSON-serializable design intermediate. The agent's `design.py`
-exposes:
+Cheap checks run before expensive ones where possible. A missing capability is
+reported explicitly; it is never replaced silently by synthetic data.
+
+## Core contracts
+
+### `DesignIR`
+
+An agent submission exposes:
 
 ```python
-def build_design(out_dir: Path) -> dict:  # DesignIR
+def build_design(out_dir: Path) -> dict:
     ...
 ```
 
-The IR carries `parts` (with mass / COM / inertia, optionally
-referencing STEP geometry), `joints` (revolute / prismatic / fixed /
-contact-pair), `ports` (named frames the task contract references),
-and `params` (task-specific data the agent declares). Geometry refs
-must resolve under `out_dir`; the runtime never trusts paths the
-agent submits outside the sandbox.
+The result describes parts, joints, ports, parameters, and optional geometry,
+material, tolerance, contact, actuator, load-case, and manufacturing metadata.
+The worker requires JSON-serializable output and rejects non-finite or
+structurally invalid values.
 
-### 2. `TaskSpec` + `EvalConfig` — what the runtime evaluates
+Geometry references must resolve under the trusted build directory. The
+validator rejects absolute escapes, traversal, unsafe identifiers, and symlink
+escapes. Mass properties are checked for physical consistency; CAD-backed tasks
+can additionally require trusted-side recomputation.
 
-The task contract is two TOML files:
+### `TaskSpec` and `EvalConfig`
 
-- `task.toml` — what the task is asking for. Stable; the prompt
-  references it. Defines required ports, expected mobility,
-  envelope, objectives, and points to fixtures.
-- `eval_config.toml` — how scoring happens. Defines which probes
-  run, their weights, hard-gate vs dense, public-vs-hidden metric
-  visibility. Mostly authored by the benchmark maintainer; agents
-  see only the prompt + public probe subset.
+Each task separates the functional request from evaluation policy:
 
-Splitting these two lets the same task be re-scored under different
-eval configs (cheap vs expensive, training vs eval) without
-re-authoring the task.
+- `task.toml` defines ports, mobility, envelope, objectives, fixtures, and
+  other task requirements.
+- `eval_config.toml` selects probes, weights, hard gates, adapter settings, and
+  metric visibility.
+- `eval_config.public.toml` and `eval_config.hidden.toml` can apply different
+  thresholds or checks without changing the task prompt.
 
-### 3. `Probe` — the verifiable unit of evaluation
+This separation supports training feedback, hidden evaluation, and alternate
+cost/credibility modes over the same artifact.
 
-A `Probe` is a function
+### Probes
 
-```python
-run(ir: DesignIR, sim_outputs: dict, config: dict) -> ProbeResult
-```
+A probe consumes the validated design, adapter outputs, and probe
+configuration, then emits pass state, metrics, failures, and artifact links.
+Each probe declares the capabilities it requires.
 
-that emits a `ProbeResult { passed, metrics, failures, artifacts }`.
-Probes declare their `capabilities_required` (planar kinematics,
-contact forces, FEA, …). The evaluator only runs a probe when the
-selected simulator adapter advertises matching capabilities.
-
-Shipping today:
-
-| Probe | Capabilities | Purpose |
-|---|---|---|
-| `dof_grubler` | none (pure topology) | Mobility (planar / spatial Grübler-Kutzbach) |
-| `required_ports` | none | Required ports exist, kinds match, grounded checks |
-| `analytic_param_check` | none | Compare a dotted IR path (`params.declared_ratio`, etc.) to an expected value with `eq` / `ge` / `le` comparators |
-| `path_trace_chamfer` | `planar_kinematics` | Compare a moving frame's trace to a target CSV via Chamfer distance |
-| `port_velocity_ratio` | any kinematic adapter | Measured ω_out / ω_in vs target |
-| `lockup` | `planar_kinematics` | Output never moves while input is driven |
-| `swept_collision` | `mesh_overlap` | Maximum penetration over a joint sweep |
-| `contact_engagement` | `contact_forces` | Required pair carries ≥ F_min RMS and ≥ engagement fraction |
-| `torque_load_trial` | rigid dyn + drives + loads | Motion under prescribed input speed and output load; power balance, torque ripple |
-| `printability_dfam` | `mesh` | Min wall, max overhang per process |
-| `safety_factor` | `safety_factor` | FOS check against allowable stress |
-
-The bar to add a new probe is "express it as configuration." A probe
-should be the same shape no matter which mechanism the task is.
-
-### 4. `SimAdapter` — capability-tagged simulator
-
-Each adapter advertises a `Capability` set. The dispatcher picks the
-cheapest adapter whose advertised capabilities cover the union of
-the active probes' requirements. The task author does not name an
-adapter; the runtime selects one based on capabilities.
-
-Shipping today:
-
-| Adapter | Capabilities | Cost | Registration |
-|---|---|---|---|
-| `planar_kinematics` | `planar_kinematics`, `path_trace`, `dof_detection`, `pose_traces` | 0 (μs–ms) | always registered |
-| `fake_contact_oracle` | `rigid_body_dynamics`, `contact_forces`, `joint_constraints`, `motor_drives`, `load_torques`, `pose_traces`, `mesh_overlap`, `planar_kinematics` | 50 / 1000 | **explicit opt-in only**: `[adapters.fake_contact_oracle] enabled = true`, mode-level `forced_adapter = "fake_contact_oracle"`, probe-level `adapter = "fake_contact_oracle"`, or env var `MECH_BENCH_USE_FAKE_ORACLE=1` / `MECH_BENCH_TEST_MODE=1`. Reports tag `oracle_is_synthetic = true`. |
-| `chrono_contact` | `rigid_body_dynamics`, `contact_forces`, `joint_constraints`, `motor_drives`, `load_torques`, `pose_traces`, `mesh_overlap` | 100 (minutes) | real PyChrono runner; registers only when Project Chrono and `_chrono_impl` are available. Simulated does not imply hardware-validated; see `docs/future_chrono_oracle.md`. |
-
-The dispatcher picks `chrono_contact` automatically for a task whose probes
-require contact forces when the native runtime is available. The fake oracle
-never satisfies a probe by accident — the
-evaluator filters it out unless the active eval config (or env var)
-explicitly opts in.
-
-### 5. `Feedback` — structured failures, not strings
-
-Every failure is a `Failure { code, severity, message, metric,
-observed, target, where, public_hint, private_trace }`. The codes
-come from a closed grammar (the `FailureCode` enum) shared across
-all probes, so a generation agent can pattern-match and self-repair
-without parsing English. The grammar:
-
-```
-invalid_artifact            missing_port
-invalid_mass_properties     wrong_mobility
-wrong_topology              wrong_ratio
-path_error                  collision
-insufficient_clearance      missing_contact
-lockup                      excessive_penetration
-excessive_torque_ripple     power_balance_error
-insufficient_safety_factor  unprintable
-simulator_divergence        capability_unavailable
-```
-
-Public hints are shown to the agent; private traces (HDF5 keys,
-hidden-trial pointers) stay on the trusted side.
-
-## Scoring: hard gate + dense reward
-
-```
-score = 0                            if hard_gate fails
-score = Σ_i w_i · s_i  ∈ [0, 1]      otherwise
-```
-
-The hard gate is the set of probes (and pipeline steps) that must
-all `passed=True` before any dense reward is computed. Typical
-contents: solid validity, schema sanity, no path escape, required
-ports, no NaN metrics, no preflight assembly failures.
-
-The dense layer is a weighted convex combination of probe-specific
-score functions `s_i ∈ [0, 1]` (each probe maps its metrics into
-a normalized score). Weights are declared per task in
-`eval_config.toml`.
-
-This separation matters for two reasons:
-
-1. **RLVR signal.** Below the gate, the agent gets dense
-   diagnostics with metric deltas (so it can repair) but a reward
-   of 0 (so it cannot earn credit for evaluating an invalid design).
-2. **Verifier-gaming resistance.** A probe whose proxy metric is
-   easy to satisfy in a physically-meaningless way (e.g. "ratio is
-   correct, but the contact pair is fake") still costs the agent
-   because the contact-engagement probe under the same hard gate
-   will fail.
-
-## Procedural task generation
-
-Tasks live in `tasks/<family>_<id>/` as flat files. The directory
-layout is the contract:
-
-```
-tasks/<id>/
-    prompt.md                  # natural-language task statement (agent sees)
-    task.toml                  # structured requirements (agent sees abridged)
-    eval_config.toml           # default probe pipeline + visibility
-    eval_config.public.toml    # public split (looser, agent-visible)
-    eval_config.hidden.toml    # hidden split (tighter, for generalization gap)
-    fixtures/                  # target paths, envelopes, etc.
-    reference_solution/        # known-good design.py (hidden during eval)
-    negative_solutions/<case>/ # one design.py per negative control
-    expected_failures.json     # negative-control expectations (hidden)
-    metadata.json              # family, tier, seed, difficulty
-```
-
-A task generator emits these files programmatically. The default
-suite registered under `mech_bench/generators/benchmark_suite.py`
-ships **four tiers, 58 families** today:
-
-| Tier (`metadata.tier`)   | Adapter dependence                       | Families |
-|--------------------------|------------------------------------------|----------|
-| `artifact_static`        | none                                     | 13       |
-| `planar_kinematics`      | `planar_kinematics`                      | 16       |
-| `transmission_analytic`  | none (declared-ratio checks)             | 14       |
-| `contact_dynamics`       | explicit synthetic test adapter or real PyChrono | 15 |
-
-Tasks under `artifact_static` and `transmission_analytic` evaluate with no
-simulator. `planar_kinematics` tasks need only the always-on analytic adapter.
-The contact tier includes explicit synthetic pipeline tests, legacy
-capability-gated stubs, and three geometry/contact families intended for the
-real PyChrono path. Reports preserve the distinction.
-
-The complete suite materializes into `tasks/` (seed 1) and is
-exercised end-to-end by `mech-bench check-negative-controls --tasks
-tasks`. Add a new family by writing one `TaskGenerator` subclass and
-appending it to `SUITE`; nothing else in the runtime changes.
-
-## What is NOT in this runtime
-
-Deliberately out of scope:
-
-- **Mechanism-specific validators.** If a check is only meaningful
-  for one mechanism class (e.g. "Hertz pressure on cycloid ring
-  pins"), it should be implemented as a *probe with a config*
-  (e.g. `hertz_pressure_at_contact` parameterized by which contact
-  pair and which material), not as a cycloidal-specific function.
-- **Trust model decisions baked into runtime.** Path policy and
-  attestation logic are stage-2 work; the runtime exposes hooks for
-  them but does not assume a particular sandbox.
-- **A new CAD kernel.** We use STEP/build123d when geometry matters;
-  for analytic probes, the IR's parametric description suffices.
-
-## How this connects to phys-sim
-
-The phys-sim repo (see `mech-sim-state.md`) has working code we will
-port piecewise as probes/adapters mature:
-
-| phys-sim asset | Where it goes here |
+| Probe | Primary purpose |
 |---|---|
-| `mech_harness/builder/run_builder.py` | `mech_bench/submission_worker.py` (subprocess-isolated `build_design()` invocation, ported) |
-| `mech_harness/validators/assembly.py` (Grübler) | `mech_bench/probes/dof_grubler.py` (ported) |
-| `mech_harness/validators/cycloidal.py` (Hertz, FOS) | `mech_bench/probes/safety_factor.py` + parameterized contact probes (in progress) |
-| `mech_harness/simulators/_chrono_mesh_runner.py` | `mech_bench/adapters/chrono_contact.py` + `_chrono_impl.py` (ported and expanded; calibration remains roadmap work) |
-| `mech_harness/standards/sarif.py` | `mech_bench/feedback.py` (ported in spirit) |
-| `mech_harness/standards/hdf5_traces.py` | `mech_bench/traces.py` (ported; per-adapter groups under `/adapters/<name>/`) |
+| `analytic_param_check` | Compare a derived or declared value with a configured relation |
+| `contact_engagement` | Require a named contact pair to carry force for enough of a trial |
+| `dof_grubler` | Check planar or spatial mobility from topology |
+| `lockup` | Detect output immobility under prescribed input motion |
+| `path_trace_chamfer` | Compare a simulated path with a target trace |
+| `port_velocity_ratio` | Measure input/output velocity relationship |
+| `printability_dfam` | Check supplied mesh/manufacturing metrics |
+| `required_ports` | Enforce interface presence, type, and grounding |
+| `safety_factor` | Evaluate solver-provided structural safety-factor results |
+| `swept_collision` | Bound unwanted overlap during a motion sweep |
+| `torque_load_trial` | Evaluate motion, torque ripple, and power balance under load |
+| `trusted_asset_preflight` | Require trusted geometry, material, and mass evidence |
 
-The four-bar task originally shipped in this repo is now one of 58
-generated families; the runtime stays generic and the inversion holds
-across all of them.
+Probes are generic. Family-specific behavior belongs in task configuration and
+fixtures unless it expresses a reusable physical check.
+
+### Adapters
+
+Adapters advertise a capability set and cost tier. The evaluator selects the
+lowest-cost eligible adapter for each plan.
+
+| Adapter | State | Role |
+|---|---|---|
+| `planar_kinematics` | Always available | Deterministic planar positions, paths, velocities, and mobility support |
+| `chrono_contact` | Optional native runtime | Rigid-body dynamics, joints, motors, loads, contact, collision, and traces |
+| `fake_contact_oracle` | Explicit opt-in only | Deterministic synthetic outputs for pipeline and policy tests |
+
+The native adapter registers only when a compatible Project Chrono runtime is
+available. The synthetic adapter carries `oracle_is_synthetic=true` through
+the final report. See the [backend reference](docs/chrono-backend.md).
+
+### Feedback and evidence
+
+Failures use a closed code vocabulary rather than requiring a learning system
+to parse prose. A failure contains severity, observed and target values,
+location, public repair hint, and an optional private trace reference.
+
+Public serialization respects metric visibility and removes private traces.
+Full run bundles can contain:
+
+- public and trusted JSON reports;
+- task, design, geometry, and configuration digests;
+- per-adapter HDF5 traces;
+- static dashboard data and optional media; and
+- native solver and trusted-asset metadata.
+
+## Scoring and reward
+
+Scoring separates validity from optimization:
+
+```text
+reward = 0                         if evaluation is invalid
+reward = 0                         if a hard gate fails
+reward = weighted probe score     otherwise, bounded to [0, 1]
+```
+
+Failed probes may still expose public diagnostics and progress metrics. This
+lets an agent repair a design without receiving positive reward for an invalid
+artifact.
+
+The compact RLVR API returns the gated reward, dense score, public feedback,
+retry suggestions, scalar channels, run identity, and synthetic-evidence flag.
+Training code does not need access to hidden evaluation details.
+
+## Evaluation modes
+
+- `fast` uses the inexpensive subset of configured checks.
+- `oracle` requests the more expensive configured capabilities.
+- `final` evaluates both paths and records agreement and final policy.
+- The default mode follows the task’s selected evaluation configuration.
+
+Modes are evaluation policies, not evidence labels. A fast analytic result can
+be trustworthy for its narrow claim; a native solver result can still be
+unvalidated.
+
+## Procedural benchmark
+
+The generator registry currently contains 58 families:
+
+| Tier | Families | Typical dependency |
+|---|---:|---|
+| `artifact_static` | 13 | No simulator |
+| `planar_kinematics` | 16 | Analytic planar adapter |
+| `transmission_analytic` | 14 | No simulator or analytic motion |
+| `contact_dynamics` | 15 | Explicit synthetic test adapter or native Chrono |
+
+A generated task directory contains the prompt, task and evaluation contracts,
+public/hidden variants, fixtures, a reference solution, negative solutions,
+expected failures, and metadata. The repository currently checks in an older
+51-task materialization; the registry count and frozen evidence count should
+not be conflated.
+
+## Trust boundaries
+
+The evaluator assumes an agent may produce malformed, misleading, or hostile
+output. The implementation therefore:
+
+- executes submissions in a child process with a timeout;
+- validates before probes and simulation;
+- confines referenced geometry to the build root;
+- distinguishes declared properties from trusted recomputation;
+- keeps hidden thresholds and private traces out of public reports;
+- requires explicit synthetic-adapter opt-in; and
+- blocks reward when evaluation validity or a hard gate fails.
+
+This is application-level isolation, not a complete operating-system sandbox.
+Production deployment should add container or process-level resource and
+network controls appropriate to the threat model.
+
+## Deliberate boundaries
+
+The runtime is not:
+
+- a CAD kernel;
+- a general FEA solver;
+- a hardware-calibrated digital twin;
+- a guarantee that every generated task is physically rich; or
+- a substitute for model-specific verification and validation.
+
+The project uses external geometry and physics engines behind adapters while
+keeping task contracts, trust labels, evidence, and learning feedback stable.
+The [project status](docs/project-status.md) records current implementation and
+results; the [simulation roadmap](docs/high-fidelity-simulation-roadmap.md)
+defines the work required for stronger predictive claims.

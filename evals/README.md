@@ -1,5 +1,10 @@
 # Eval results
 
+> **Frozen debugging snapshot.** One comparison arm suffered 26 pre-inference
+> environment failures, so these files must not be used as a clean model
+> leaderboard. They remain useful for reproducing the harness and diagnosing
+> submission failure modes.
+
 This directory holds frozen agent-vs-benchmark scorecards. Each row
 is one sweep of the 50 generated tasks + the hand-written
 `fourbar_path_t001` reference (= 51 tasks).

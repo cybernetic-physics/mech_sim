@@ -91,7 +91,7 @@ def main() -> int:
         action="store_true",
         help=(
             "when running the physics audit after merge, require the final "
-            "claim audit to prove docs/goals.md completion"
+            "claim audit to prove goals.md completion"
         ),
     )
     args = parser.parse_args()

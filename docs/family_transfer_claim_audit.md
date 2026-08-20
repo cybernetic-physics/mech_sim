@@ -1,5 +1,11 @@
 # Family Transfer Claim Audit
 
+> **Historical claim audit (2026-05-28).** This audit correctly rejects an
+> older run’s unseen-family claim. A later Level-1 experiment used disjoint
+> held-out mechanism families and is documented in
+> [`runs/mechanism_repair_ttrl_final`](../runs/mechanism_repair_ttrl_final/README.md).
+> This file remains the boundary record for the older seed-heldout result.
+
 Claim status: `does_not_support_family_heldout_transfer`.
 
 Supported claim: seed-heldout multi-family task generalization.

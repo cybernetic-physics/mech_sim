@@ -1,5 +1,12 @@
 # MechanicalEvolve-Physics Goal
 
+> **Experiment execution record.** This file preserves the fixed hypothesis,
+> resource constraints, and completion rules used to plan the mechanism-repair
+> study. It is not the repository overview. The Level-1 experiment completed;
+> the prepared Level-2/3 experiment did not. See
+> [`docs/project-status.md`](docs/project-status.md) for the current evidence
+> ledger.
+
 This file is the execution contract for `/goal pursue goals.md`.
 
 The goal is an experiment, not a document-writing exercise. Markdown summaries

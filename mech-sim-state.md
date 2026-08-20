@@ -1,5 +1,11 @@
 # Mechanical Simulation for RLVR — State of the Build
 
+> **Historical source-system note (2026-05-11).** This file describes a prior,
+> separate repository whose ideas were selectively ported into `mech-sim`.
+> Paths and component states below do not describe the current tree. See
+> [`docs/project-status.md`](docs/project-status.md) and
+> [`ARCHITECTURE.md`](ARCHITECTURE.md) for the current implementation.
+
 > **Scope.** This document describes the code state of the **`phys-sim`**
 > repository (a worktree of `cybernetic-physics`) at commit
 > **`ace9ba925bb081dbb170043c93fe4ab72b449f2a`** — short

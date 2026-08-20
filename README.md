@@ -21,9 +21,11 @@ for the learning loop, curriculum, evaluation strategy, and path to physical
 production.
 
 > **Research status:** the evaluator, task system, analytic adapters, trusted
-> asset checks, and PyChrono integration are implemented. The platform is not
-> yet a hardware-calibrated digital twin, and synthetic test output is always
-> labeled as synthetic.
+> asset checks, PyChrono integration, and verifier-guided learning machinery
+> are implemented. The platform is not yet a hardware-calibrated digital twin,
+> and synthetic test output is always labeled as synthetic. See the
+> [current project status](docs/project-status.md) for executed evidence and
+> known limitations.
 
 ## Motivation
 
@@ -55,12 +57,19 @@ eventual multi-agent manufacturing challenges.
 | Agent learning | Compact RLVR reward API, public feedback, retry suggestions, and verifier-gated training/evaluation scripts |
 | Reproducibility | JSON scorecards, HDF5 traces, manifests, dashboards, media, and content-addressable evidence fields |
 
-The checked-in evidence snapshot reports **50/51 reference controls passing**,
-**104/104 expected negative-control failures detected**, and a real
-CAD-to-Chrono geometry-path proof. These results support the benchmark and
-verification-runtime claim; they do not establish hardware calibration or a
-general high-fidelity simulator. See
-[`docs/paper-results-current.md`](docs/paper-results-current.md).
+The strongest checked-in results are deliberately scoped:
+
+- a frozen 51-task snapshot with **50/51 reference controls passing** and
+  **104/104 expected negative failures detected**;
+- a real CAD-to-Chrono geometry-path proof; and
+- a matched-budget Level-1 experiment in which online verifier-derived
+  adaptation improved held-out-family mechanism-program repair by **62.5
+  percentage points** over its no-update baseline.
+
+The first snapshot includes synthetic contact tasks, the geometry proof is not
+hardware calibration, and the learning result does not cover CAD or contact
+physics. The [evidence ledger](docs/project-status.md#evidence-ledger) keeps
+those boundaries explicit.
 
 ## Five-minute tour
 
@@ -148,10 +157,11 @@ useful parts autonomously.
 
 ## Documentation
 
+- [Documentation index](docs/README.md)
+- [Current project status and evidence ledger](docs/project-status.md)
 - [Autonomous manufacturing research vision](docs/autonomous-manufacturing-vision.md)
 - [Architecture and trust boundaries](ARCHITECTURE.md)
-- [Current evidence snapshot](docs/paper-results-current.md)
-- [Chrono backend status](docs/future_chrono_oracle.md)
+- [Chrono backend](docs/chrono-backend.md)
 - [High-fidelity simulation roadmap](docs/high-fidelity-simulation-roadmap.md)
 - [Contributing and validation tiers](CONTRIBUTING.md)
 
