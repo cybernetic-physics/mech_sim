@@ -29,8 +29,10 @@ calibration, convergence evidence, and validation datasets.
 - `fake_contact_oracle` is synthetic. It is for tests and demos only.
   It must never be described as high fidelity or used as physical
   validation evidence.
-- `chrono_contact` is a skeleton. A real `_chrono_impl` runner must be
-  added before contact-dynamics tasks become physically credible.
+- `chrono_contact` now has a real `_chrono_impl` runner for bodies, joints,
+  motors, loads, collision geometry, contact, traces, and diagnostics. It is
+  still optional and not broadly hardware-calibrated; real-solver output must
+  not be described as validated without reference evidence.
 - The first native dependency gate now lives in `mech-bench
   oracle-smoke` plus `docker/solver/environment.yml`: PyChrono,
   OpenCascade/OCP, Gmsh, HDF5, and NumPy must import and execute minimal
@@ -182,17 +184,26 @@ Exit criteria:
 Goal: replace synthetic contact for Tier-3 physics tasks with real
 Chrono execution.
 
-Required work:
+Implemented foundation:
 
-- Implement `mech_bench/adapters/_chrono_impl.py`.
-- Map trusted scene graph bodies, joints, motors, springs, dampers,
-  loads, contact materials, and collision geometry into Chrono.
-- Support both NSC and SMC contact modes where appropriate.
-- Emit time series for body poses, joint states, velocities, motor
-  torques, applied loads, contact forces, penetration, constraint
+- `mech_bench/adapters/_chrono_impl.py` is present and exercised by the native
+  solver path.
+- The runner maps bodies, joints, motors, loads, contact materials, and
+  collision geometry into Chrono.
+- NSC and SMC contact modes are supported where appropriate.
+- The adapter emits time series for body poses, joint states, velocities,
+  motor torques, applied loads, contact forces, penetration, constraint
   violation, and energy/power channels.
-- Add solver diagnostics and capability-unavailable failure modes that
-  distinguish missing dependencies from failed simulations.
+- Solver diagnostics and capability-unavailable failure modes distinguish
+  missing dependencies from failed simulations.
+
+Remaining work:
+
+- Calibrate representative mechanisms and material/contact parameters against
+  trusted references.
+- Add systematic convergence studies and independent solver cross-checks.
+- Remove remaining procedural or declared-property compatibility paths from
+  production physics tasks.
 
 Exit criteria:
 

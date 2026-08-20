@@ -122,11 +122,11 @@ Shipping today:
 |---|---|---|---|
 | `planar_kinematics` | `planar_kinematics`, `path_trace`, `dof_detection`, `pose_traces` | 0 (μs–ms) | always registered |
 | `fake_contact_oracle` | `rigid_body_dynamics`, `contact_forces`, `joint_constraints`, `motor_drives`, `load_torques`, `pose_traces`, `mesh_overlap`, `planar_kinematics` | 50 / 1000 | **explicit opt-in only**: `[adapters.fake_contact_oracle] enabled = true`, mode-level `forced_adapter = "fake_contact_oracle"`, probe-level `adapter = "fake_contact_oracle"`, or env var `MECH_BENCH_USE_FAKE_ORACLE=1` / `MECH_BENCH_TEST_MODE=1`. Reports tag `oracle_is_synthetic = true`. |
-| `chrono_contact` *(skeleton-only)* | `rigid_body_dynamics`, `contact_forces`, `joint_constraints`, `motor_drives`, `load_torques`, `pose_traces`, `mesh_overlap` | 100 (minutes) | registers only when both `pychrono` and `mech_bench.adapters._chrono_impl` are importable; see `docs/future_chrono_oracle.md`. |
+| `chrono_contact` | `rigid_body_dynamics`, `contact_forces`, `joint_constraints`, `motor_drives`, `load_torques`, `pose_traces`, `mesh_overlap` | 100 (minutes) | real PyChrono runner; registers only when Project Chrono and `_chrono_impl` are available. Simulated does not imply hardware-validated; see `docs/future_chrono_oracle.md`. |
 
-When `chrono_contact` lands, no probe code changes. The dispatcher
-picks it automatically for any task whose probes require contact
-forces. The fake oracle never satisfies a probe by accident — the
+The dispatcher picks `chrono_contact` automatically for a task whose probes
+require contact forces when the native runtime is available. The fake oracle
+never satisfies a probe by accident — the
 evaluator filters it out unless the active eval config (or env var)
 explicitly opts in.
 
@@ -202,21 +202,20 @@ tasks/<id>/
 
 A task generator emits these files programmatically. The default
 suite registered under `mech_bench/generators/benchmark_suite.py`
-ships **four tiers, 50 families** today:
+ships **four tiers, 58 families** today:
 
 | Tier (`metadata.tier`)   | Adapter dependence                       | Families |
 |--------------------------|------------------------------------------|----------|
 | `artifact_static`        | none                                     | 13       |
-| `planar_kinematics`      | `planar_kinematics`                      | 12       |
-| `transmission_analytic`  | none (declared-ratio checks)             | 13       |
-| `contact_dynamics`       | `fake_contact_oracle` (opt-in) or real Chrono once ported | 12 |
+| `planar_kinematics`      | `planar_kinematics`                      | 16       |
+| `transmission_analytic`  | none (declared-ratio checks)             | 14       |
+| `contact_dynamics`       | explicit synthetic test adapter or real PyChrono | 15 |
 
-Tasks under `artifact_static` and `transmission_analytic` evaluate
-with no simulator. `planar_kinematics` tasks need only the
-always-on `planar_kinematics` adapter. `contact_dynamics` tasks are
-test/demo tasks: two surface `capability_unavailable` until a real
-Chrono runner ships; the other ten explicitly enable the synthetic
-`fake_contact_oracle` and tag reports as synthetic.
+Tasks under `artifact_static` and `transmission_analytic` evaluate with no
+simulator. `planar_kinematics` tasks need only the always-on analytic adapter.
+The contact tier includes explicit synthetic pipeline tests, legacy
+capability-gated stubs, and three geometry/contact families intended for the
+real PyChrono path. Reports preserve the distinction.
 
 The complete suite materializes into `tasks/` (seed 1) and is
 exercised end-to-end by `mech-bench check-negative-controls --tasks
@@ -248,10 +247,10 @@ port piecewise as probes/adapters mature:
 | `mech_harness/builder/run_builder.py` | `mech_bench/submission_worker.py` (subprocess-isolated `build_design()` invocation, ported) |
 | `mech_harness/validators/assembly.py` (Grübler) | `mech_bench/probes/dof_grubler.py` (ported) |
 | `mech_harness/validators/cycloidal.py` (Hertz, FOS) | `mech_bench/probes/safety_factor.py` + parameterized contact probes (in progress) |
-| `mech_harness/simulators/_chrono_mesh_runner.py` | `mech_bench/adapters/chrono_contact.py` (skeleton + diagnostic only; vendor `_chrono_impl.py` to enable) |
+| `mech_harness/simulators/_chrono_mesh_runner.py` | `mech_bench/adapters/chrono_contact.py` + `_chrono_impl.py` (ported and expanded; calibration remains roadmap work) |
 | `mech_harness/standards/sarif.py` | `mech_bench/feedback.py` (ported in spirit) |
 | `mech_harness/standards/hdf5_traces.py` | `mech_bench/traces.py` (ported; per-adapter groups under `/adapters/<name>/`) |
 
-The four-bar task originally shipped in this repo is now one of 50
+The four-bar task originally shipped in this repo is now one of 58
 generated families; the runtime stays generic and the inversion holds
 across all of them.

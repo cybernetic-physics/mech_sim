@@ -700,6 +700,11 @@ def _mass_properties_for_body(
 ]:
     cad_mass: float | None = None
     cad_com: tuple[float, float, float] | None = None
+    cad_inertia: tuple[
+        tuple[float, float, float],
+        tuple[float, float, float],
+        tuple[float, float, float],
+    ] | None = None
     props = body.get("mass_properties")
     if isinstance(props, dict):
         try:
@@ -710,6 +715,26 @@ def _mass_properties_for_body(
                 cad_com = tuple(com_vals)  # type: ignore[assignment]
         except (KeyError, TypeError, ValueError):
             pass
+        try:
+            inertia_rows = tuple(
+                tuple(float(v) for v in list(row)[:3])
+                for row in list(props["inertia_kg_m2"])[:3]
+            )
+            if (
+                len(inertia_rows) == 3
+                and all(len(row) == 3 for row in inertia_rows)
+                and all(math.isfinite(v) for row in inertia_rows for v in row)
+            ):
+                cad_inertia = inertia_rows  # type: ignore[assignment]
+        except (KeyError, TypeError, ValueError):
+            pass
+
+    if cad_mass is not None and cad_com is not None and cad_inertia is not None:
+        return _canonical_chrono_mass_properties(
+            cad_mass,
+            cad_com,
+            cad_inertia,
+        )
 
     bbox = [float(v) for v in list(body.get("bbox_mm", (0, 0, 0, 1, 1, 1)))[:6]]
     while len(bbox) < 6:

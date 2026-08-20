@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from scripts.analyze_mechanism_repair_results import (
     analyze_rows,
     build_benchmark_readiness,
@@ -699,7 +701,7 @@ def test_mechanism_repair_analysis_summarizes_secondary_metrics(
     assert ttrl_metrics["ratio_error_pct"]["mean"] == 0.0
     assert ttrl_metrics["stroke_error_mm"]["mean"] == 0.0
     assert ttrl_metrics["path_chamfer_error"]["mean"] == 0.0
-    assert ttrl_metrics["max_penetration_mm"]["mean"] == 0.05
+    assert ttrl_metrics["max_penetration_mm"]["mean"] == pytest.approx(0.05)
     assert ttrl_metrics["contact_force_rms_N"]["mean"] == 10.0
     assert ttrl_metrics["rl_datums"]["mean"] == 32
     assert ttrl_metrics["strict_score_pass_rate"]["mean"] == 1.0
